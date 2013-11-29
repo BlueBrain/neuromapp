@@ -60,9 +60,7 @@ namespace mechanism{
                 value_type _v=-33.33; // _v voltage fron a node random number
                 cyme::serial<value_type,O> tmp  = cnrn_current<iterator, O>(it, _v + 0.001);
                 cyme::serial<value_type,O> tmp2 = cnrn_current<iterator, O>(it, _v);
-            //    tmp -= tmp2; //  TO DO TUNE ME <--------------------------- TIM
-                (*it)[17] = tmp() - tmp2();
-                (*it)[17] = (*it)[17]/0.001;
+                (*it)[17] = (tmp()-tmp2())/0.001;
             }
             
             template<class iterator>

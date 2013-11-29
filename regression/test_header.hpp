@@ -30,8 +30,8 @@
 namespace cyme {
     namespace test {
 
-    static boost::random::uniform_real_distribution<float>    RandomDouble = boost::random::uniform_real_distribution<float>(-5,5); 
-    static boost::random::uniform_real_distribution<double>   Randomfloat  = boost::random::uniform_real_distribution<double>(-5,5); 
+    static boost::random::uniform_real_distribution<float>    RandomDouble = boost::random::uniform_real_distribution<float>(0.01,5); 
+    static boost::random::uniform_real_distribution<double>   Randomfloat  = boost::random::uniform_real_distribution<double>(0.01,5); 
     static boost::random::mt19937    rng;
 
     template<class T>
@@ -52,6 +52,32 @@ namespace cyme {
         for(std::size_t j=0; j<block_a.size_block(); ++j){
             block_a(0,j) = block_b[j];
         }
+    }
+
+    template<class T,  memory::order O>
+    struct type_info{
+        typedef T value_type;
+        static const memory::order order = O; 
+    };
+
+    typedef boost::mpl::list<
+                                type_info<double,memory::AoS>,
+                                type_info<double,memory::AoSoA>,
+                                type_info<float,memory::AoS>,
+                                type_info<float,memory::AoSoA>
+                            > test_types;
+
+    template<class T>
+    T error_close();
+
+    template<>
+    float error_close(){
+        return 0.1;
+    }
+   
+    template<>
+    double error_close(){
+        return 0.0001;
     }
 
     } 
