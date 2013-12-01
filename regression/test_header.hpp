@@ -13,8 +13,6 @@
 #include "utils/constant.h"
 #include "utils/pack.hpp"
 
-
-
 #include <boost/mpl/list.hpp>
 #include <boost/cstdint.hpp> 
 #include <boost/test/unit_test.hpp>
@@ -24,8 +22,6 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include <boost/test/floating_point_comparison.hpp>
-
-#define RELATIVE_ERROR 0.001
 
 namespace cyme {
     namespace test {
@@ -54,17 +50,23 @@ namespace cyme {
         }
     }
 
-    template<class T,  memory::order O>
+    template<class T,  memory::order O, int S >
     struct type_info{
         typedef T value_type;
         static const memory::order order = O; 
+        static const int s = S; /* select container, 0 = vector, 1 = array */
     };
 
-    typedef boost::mpl::list<
-                                type_info<double,memory::AoS>,
-                                type_info<double,memory::AoSoA>,
-                                type_info<float,memory::AoS>,
-                                type_info<float,memory::AoSoA>
+    typedef boost::mpl::list<   /* array */
+                                type_info<double,memory::AoS,0>,
+                                type_info<double,memory::AoSoA,0>,
+                                type_info<float,memory::AoS,0>,
+                                type_info<float,memory::AoSoA,0>,
+                                /* vector */
+                                type_info<double,memory::AoS,1>,
+                                type_info<double,memory::AoSoA,1>,
+                                type_info<float,memory::AoS,1>,
+                                type_info<float,memory::AoSoA,1>
                             > test_types;
 
     template<class T>
@@ -72,7 +74,7 @@ namespace cyme {
 
     template<>
     float error_close(){
-        return 0.1;
+        return 1;
     }
    
     template<>
