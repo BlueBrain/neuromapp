@@ -378,17 +378,23 @@ int main(int argc, char **argv)
     printf("Initialized %d properties %d times\n", iNumMechs, iNumLoops);
     printf("Using the %d data access pattern\n", iAccessType);
 
-    boost::chrono::system_clock::time_point start_run = boost::chrono::system_clock::now();
     boost::chrono::duration<double> sec_run;
 
     // memory ready and init
     double *dParam = head->param;
     nrn_init(dParam,iNumLoops); // because Na channel test
     nrn_cur(dParam,iNumLoops); // because Na channel test
+
+    //benchmark only nrn_state kernel
+    boost::chrono::system_clock::time_point start_run = boost::chrono::system_clock::now();
+
     nrn_state(dParam,iNumLoops); // because Na channel test
+
+    sec_run = boost::chrono::system_clock::now() - start_run;
+
+
     prop_free(&p);
    
-    sec_run = boost::chrono::system_clock::now() - start_run;
 
 
     std::cout << " time alloc, sec " << sec_alloc.count() << std::endl;

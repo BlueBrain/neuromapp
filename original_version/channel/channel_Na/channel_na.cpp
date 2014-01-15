@@ -133,6 +133,8 @@ void nrn_state(double *pdata, int num_mechs) {
     double t = 0.0;// <------------------ my value, which value ?
     _cntml = num_mechs; // WHAT IS IT ?
 
+    //make sure set OMP_SCHEDULE environmental varible
+    #pragma omp parallel for default(none) shared(pdata, num_mechs, _cntml) private(_iml, _p, _break, _save, t) schedule(runtime)
     for (_iml = 0; _iml < _cntml; ++_iml) {
         _p = &pdata[_iml*18]; // INIT ?
         _break = t + .5*dt;

@@ -18,7 +18,7 @@ declareArrayPool(CharArrayPool, char)
 implementArrayPool(CharArrayPool, char)
 
 //#define APSIZE 700001
-#define APSIZE 100000 // 1000 channel of type Na
+#define APSIZE 50000000 // for benchmarking large number of channel of type Na
 declareArrayPool(DoubleArrayPool, double)
 implementArrayPool(DoubleArrayPool, double)
 declareArrayPool(DatumArrayPool, Datum)
