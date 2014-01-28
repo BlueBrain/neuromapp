@@ -34,21 +34,21 @@ int main(int argc, char* argv[]){
     pack<ProbAMPANMDA,double,AoSoA,1024> b(0); 
     pack<Na,double,AoSoA,128> c(0); 
 */
-    pack<Na,double,AoSoA> a(0,1204); 
-    pack<ProbAMPANMDA,double,AoSoA> b(0,1024); 
-    pack<Na,double,AoSoA> c(0,128); 
+    pack<Na,double,AoSoA> a(1000000,0); 
+//    pack<ProbAMPANMDA,double,AoSoA> b(0,1024); 
+//    pack<Na,double,AoSoA> c(0,128); 
 
     init(a);
-    init(b);
-    init(c);
+//    init(b);
+//    init(c);
 /*
     s.push_back(boost::bind(&pack<Na, double, AoSoA, 1024>::execution,&a)); // fill up the stack
     s.push_back(boost::bind(&pack<ProbAMPANMDA, double, AoSoA, 1024>::execution,&b)); // fill up the stack
     s.push_back(boost::bind(&pack<Na, double, AoSoA,128>::execution,&c)); // fill up the stack
 */
     s.push_back(boost::bind(&pack<Na, double, AoSoA>::execution,&a)); // fill up the stack
-    s.push_back(boost::bind(&pack<ProbAMPANMDA, double, AoSoA>::execution,&b)); // fill up the stack
-    s.push_back(boost::bind(&pack<Na, double, AoSoA>::execution,&c)); // fill up the stack
+//    s.push_back(boost::bind(&pack<ProbAMPANMDA, double, AoSoA>::execution,&b)); // fill up the stack
+//    s.push_back(boost::bind(&pack<Na, double, AoSoA>::execution,&c)); // fill up the stack
 
     boost::chrono::system_clock::time_point start =  boost::chrono::system_clock::now();
     s.flush(); // execute the stack

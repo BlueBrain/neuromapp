@@ -9,8 +9,8 @@ namespace mechanism{
         
             template<class iterator, memory::order O>
             static inline void cnrn_functions(iterator it){
-                cnrn_initmodel<iterator,O>(it);
-                cnrn_cur<iterator,O>(it);
+//              cnrn_initmodel<iterator,O>(it);
+//              cnrn_cur<iterator,O>(it);
                 cnrn_state(it);
             }
         

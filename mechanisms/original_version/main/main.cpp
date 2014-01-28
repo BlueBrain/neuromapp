@@ -346,7 +346,7 @@ int main(int argc, char **argv)
     iNumMechs = 1;//atoi(argv[2]);
 
     /// Get the number to loop for from the comand line
-    iNumLoops = 16384;//atoi(argv[3]);
+    iNumLoops = 1000000;//atoi(argv[3]);
 
     /// Allocate that many double array pools and datum array pools
     nrn_mk_prop_pools(30);
