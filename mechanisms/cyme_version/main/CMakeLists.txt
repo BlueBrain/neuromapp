@@ -3,7 +3,7 @@ add_definitions("-mavx  -D__CYME_SIMD_VALUE__=${SIMD_TECH}")
 include_directories ("${PROJECT_SOURCE_DIR}/cyme/include/cyme")
 include_directories ("${PROJECT_SOURCE_DIR}/cyme_version")
 
-set(SOURCES_MEMORY ${PROJECT_SOURCE_DIR}/original_version/channel/channel_Na/channel_na.cpp)
+set(SOURCES_MEMORY ${PROJECT_SOURCE_DIR}/original_version/channel/Na.cpp)
 
 set(LIBRAIRIES ${MASS_LIBRARY} ${SIMD_MASS_LIBRARY})
 

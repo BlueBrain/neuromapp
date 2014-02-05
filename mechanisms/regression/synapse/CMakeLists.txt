@@ -15,7 +15,7 @@ if(${SIMD_TECH} STREQUAL "mic")
     set(simd_test mic)
 endif()
 
-set(SOURCES_MEMORY ${PROJECT_SOURCE_DIR}/original_version/synapse/synapse_ProbAMPANMDA_EMS/synapse_ProbAMPANMDA_EMS.cpp)
+set(SOURCES_MEMORY ${PROJECT_SOURCE_DIR}/original_version/synapse/ProbAMPANMDA_EMS.cpp)
 
 foreach(test ${tests})
     foreach(simd ${simd_test})

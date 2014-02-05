@@ -15,7 +15,7 @@ if(${SIMD_TECH} STREQUAL "mic")
     set(simd_test mic)
 endif()
 
-set(SOURCES_MEMORY ${PROJECT_SOURCE_DIR}/original_version/channel/channel_Na/channel_na.cpp)
+set(SOURCES_MEMORY ${PROJECT_SOURCE_DIR}/original_version/channel/Na.cpp)
 
 foreach(test ${tests})
     foreach(simd ${simd_test})
