@@ -36,6 +36,7 @@ namespace corebluron{
      public:
             typedef typename container::value_type value_type;
             typedef typename container::iterator iterator; 
+            typedef container container_value; 
         
             explicit pack(int size, int value):cont(size,value){ // vector constructor
             }
@@ -44,8 +45,8 @@ namespace corebluron{
             }
         
             void execution(){
-                for(typename container::iterator it = cont.begin(); it < cont.end(); ++it)
-                    m.template cnrn_functions<typename container::iterator, container::order_value>(it);
+                   for(iterator it=cont.begin(); it<cont.end(); ++it)
+                      m.template cnrn_functions<container>(*it);
             }
         
             value_type& operator()(size_t i, size_t j){

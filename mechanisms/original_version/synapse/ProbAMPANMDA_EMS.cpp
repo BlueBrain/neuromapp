@@ -1,8 +1,6 @@
-//from Na.c, with big clean up, by cleaning I already tune ....
 
 //#include "Memb_list.h"
 #include <cmath>
-#include <iostream>
    
  static double A_NMDA0 = 0;
  static double A_AMPA0 = 0;
@@ -51,7 +49,7 @@
 #define _tsav _p[34]
 
 
-int states (double* _p){ // I keeep this dummy arg I do not want tune the code for its first release
+int state (double* _p){ // I keeep this dummy arg I do not want tune the code for its first release
     A_AMPA = A_AMPA + (1. - exp(dt*(( - 1.0 ) / tau_r_AMPA)))*(- ( 0.0 ) / ( ( - 1.0 ) / tau_r_AMPA ) - A_AMPA) ;
     B_AMPA = B_AMPA + (1. - exp(dt*(( - 1.0 ) / tau_d_AMPA)))*(- ( 0.0 ) / ( ( - 1.0 ) / tau_d_AMPA ) - B_AMPA) ;
     A_NMDA = A_NMDA + (1. - exp(dt*(( - 1.0 ) / tau_r_NMDA)))*(- ( 0.0 ) / ( ( - 1.0 ) / tau_r_NMDA ) - A_NMDA) ;
@@ -61,24 +59,24 @@ int states (double* _p){ // I keeep this dummy arg I do not want tune the code f
 
 
 void initmodel(double* _p){
-        A_NMDA = A_NMDA0;
-        A_AMPA = A_AMPA0;
-        B_NMDA = B_NMDA0;
-        B_AMPA = B_AMPA0;
-        double _ltp_AMPA , _ltp_NMDA ;
-        Rstate = 1.0 ;
-        tsyn_fac = 0.0 ;
-        u = u0 ;
-        A_AMPA = 0.0 ;
-        B_AMPA = 0.0 ;
-        A_NMDA = 0.0 ;
-        B_NMDA = 0.0 ;
-        _ltp_AMPA = ( tau_r_AMPA * tau_d_AMPA ) / ( tau_d_AMPA - tau_r_AMPA ) * log ( tau_d_AMPA / tau_r_AMPA ) ;
-        _ltp_NMDA = ( tau_r_NMDA * tau_d_NMDA ) / ( tau_d_NMDA - tau_r_NMDA ) * log ( tau_d_NMDA / tau_r_NMDA ) ;
-        factor_AMPA = - exp ( - _ltp_AMPA / tau_r_AMPA ) + exp ( - _ltp_AMPA / tau_d_AMPA ) ;
-        factor_AMPA = 1.0 / factor_AMPA ;
-        factor_NMDA = - exp ( - _ltp_NMDA / tau_r_NMDA ) + exp ( - _ltp_NMDA / tau_d_NMDA ) ;
-        factor_NMDA = 1.0 / factor_NMDA ;
+    A_NMDA = A_NMDA0;
+    A_AMPA = A_AMPA0;
+    B_NMDA = B_NMDA0;
+    B_AMPA = B_AMPA0;
+    double _ltp_AMPA , _ltp_NMDA ;
+    Rstate = 1.0 ;
+    tsyn_fac = 0.0 ;
+    u = u0 ;
+    A_AMPA = 0.0 ;
+    B_AMPA = 0.0 ;
+    A_NMDA = 0.0 ;
+    B_NMDA = 0.0 ;
+    _ltp_AMPA = ( tau_r_AMPA * tau_d_AMPA ) / ( tau_d_AMPA - tau_r_AMPA ) * log ( tau_d_AMPA / tau_r_AMPA ) ;
+    _ltp_NMDA = ( tau_r_NMDA * tau_d_NMDA ) / ( tau_d_NMDA - tau_r_NMDA ) * log ( tau_d_NMDA / tau_r_NMDA ) ;
+    factor_AMPA = - exp ( - _ltp_AMPA / tau_r_AMPA ) + exp ( - _ltp_AMPA / tau_d_AMPA ) ;
+    factor_AMPA = 1.0 / factor_AMPA ;
+    factor_NMDA = - exp ( - _ltp_NMDA / tau_r_NMDA ) + exp ( - _ltp_NMDA / tau_d_NMDA ) ;
+    factor_NMDA = 1.0 / factor_NMDA ;
 }
 
 double _nrn_current(double* _p, double _v){
@@ -142,7 +140,7 @@ void nrn_state(double *pdata, int num_mechs) {
       //  v=_v;
        // ena = _ion_ena;
         for (; t < _break; t = t +  dt) // NOT REPRODUCIBLE AT ALL
-            states(_p);
+            state(_p);
         t = _save;
     }
 }
