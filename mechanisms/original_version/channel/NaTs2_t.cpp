@@ -23,11 +23,11 @@
 #define _ion_ena	*_ppvar[0]._pval
 #define _ion_ina	*_ppvar[1]._pval
 #define _ion_dinadv	*_ppvar[2]._pval
- 
+
 int  rates (double * _p){
     double _lqt ;
     _lqt = pow( 2.3 , ( ( 34.0 - 21.0 ) / 10.0 ) ) ;
-    if ( v  == - 32.0 ) 
+    if ( v  == - 32.0 )
          v = v + 0.0001 ;
     mAlpha = ( 0.182 * ( v - - 32.0 ) ) / ( 1.0 - ( exp ( - ( v - - 32.0 ) / 6.0 ) ) ) ;
     mBeta = ( 0.124 * ( - v - 32.0 ) ) / ( 1.0 - ( exp ( - ( - v - 32.0 ) / 6.0 ) ) ) ;
@@ -48,4 +48,4 @@ int states (double* _p) {
     h = h + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / hTau)))*(- ( ( ( hInf ) ) / hTau ) / ( ( ( ( - 1.0) ) ) / hTau ) - h) ;
     return 0;
 }
- 
+

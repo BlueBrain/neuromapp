@@ -6,7 +6,7 @@ namespace mechanism{
 
         struct Na{
             const static int value_size = 18;
- 
+
             template<class T>
             static inline void cnrn_functions(typename T::storage_type& C){
                 cnrn_states<T>(C);
@@ -35,7 +35,7 @@ namespace mechanism{
 /*
             template<class iterator, memory::order O>
             static inline  cyme::serial<typename std::iterator_traits<iterator>::value_type::value_type,O> cnrn_current(
-                iterator it, 
+                iterator it,
                 typename std::iterator_traits<iterator>::value_type::value_type t = typename std::iterator_traits<iterator>::value_type::value_type() ){
                 typedef typename std::iterator_traits<iterator>::value_type::value_type value_type; //basic float or double
                     C[16] = t;
@@ -43,16 +43,16 @@ namespace mechanism{
                     C[1] = C[2] * (C[16] - C[5]);
                     return cyme::serial<value_type,O> (C[1]);
             }
-        
+
             template<class iterator, memory::order O>
             static inline void cnrn_initmodel(iterator it){
                 C[4] = 0. ; // TO DO, C[4] ^= C[4] XOR, or basic set up to 0 <--------------------------------- TIM
                 C[3] = 0. ; // C[i] = C[j] kills the persd find a sol
                 cnrn_rates(it);
-                C[3] = C[6]; // TO DO investigate remove = by move ? 
-                C[4] = C[10]; 
+                C[3] = C[6]; // TO DO investigate remove = by move ?
+                C[4] = C[10];
             }
-        
+
             template<class iterator, memory::order O>
             static inline void cnrn_cur(iterator it){
                 typedef typename std::iterator_traits<iterator>::value_type::value_type value_type; //basic float or double
@@ -63,10 +63,10 @@ namespace mechanism{
             }
             template<class iterator>
             static inline void cnrn_state(iterator it){
-   
+
              cnrn_states(it);
             }
-  */          
+  */
 
     } //end namespace channel
 } //end namespace mechanism

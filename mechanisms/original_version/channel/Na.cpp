@@ -6,7 +6,7 @@ static double h0 = 0;
 static double m0 = 0;
 
 //#define t 10  // TIM VALUE
-#define dt  0.01 // TIM VALUE 
+#define dt  0.01 // TIM VALUE
 #define gNabar _p[0]
 #define ina _p[1]
 #define gNa _p[2]
@@ -26,7 +26,7 @@ static double m0 = 0;
 #define v _p[16]
 #define _g _p[17]
 
-//#define _ion_ena	*_ppvar[0]._pval // which value, if I give a value a tune moving from dynamic to static approach 
+//#define _ion_ena	*_ppvar[0]._pval // which value, if I give a value a tune moving from dynamic to static approach
 //#define _ion_ina	*_ppvar[1]._pval // which value
 //#define _ion_dinadv	*_ppvar[2]._pval // which value
 int  rates( double *_p){

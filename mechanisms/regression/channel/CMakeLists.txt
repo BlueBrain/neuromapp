@@ -1,6 +1,6 @@
 add_definitions (-DBOOST_TEST_DYN_LINK -Wno-unused-variable)
 
-set(tests Na SKv3_1 NaTs2_t)
+set(tests Na SKv3_1 NaTs2_t lm lh)
 
 if(${SIMD_TECH} STREQUAL "avx" OR ${SIMD_TECH} STREQUAL "sse" )
     set(simd_test sse avx)

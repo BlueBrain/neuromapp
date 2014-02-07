@@ -30,13 +30,13 @@ int main(int argc, char* argv[]){
 
     stack s;
 /*
-    pack<Na,double,AoSoA,1024> a(0); 
-    pack<ProbAMPANMDA,double,AoSoA,1024> b(0); 
-    pack<Na,double,AoSoA,128> c(0); 
+    pack<Na,double,AoSoA,1024> a(0);
+    pack<ProbAMPANMDA,double,AoSoA,1024> b(0);
+    pack<Na,double,AoSoA,128> c(0);
 */
-    pack<Na,double,AoSoA> a(1000000,0); 
-//    pack<ProbAMPANMDA,double,AoSoA> b(0,1024); 
-//    pack<Na,double,AoSoA> c(0,128); 
+    pack<Na,double,AoSoA> a(1000000,0);
+//    pack<ProbAMPANMDA,double,AoSoA> b(0,1024);
+//    pack<Na,double,AoSoA> c(0,128);
 
     init(a);
 //    init(b);
