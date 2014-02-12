@@ -5,7 +5,13 @@ namespace mechanism{
     namespace synapse{
 
         struct ProbAMPANMDA_EMS{
-            const static int value_size = 35;
+            private:
+            enum properties {
+                tau_r_AMPA, tau_d_AMPA, tau_r_NMDA, tau_d_NMDA, A_AMPA, B_AMPA, A_NMDA, B_NMDA
+            };
+
+            public:
+            const static int value_size = 8;
 
             template<class T>
             static inline void cnrn_functions(typename T::storage_type& S){
@@ -15,10 +21,10 @@ namespace mechanism{
             template<class T>
             static inline void cnrn_state(typename T::storage_type& S){
                 typedef typename T::storage_type::value_type value_type; //basic float or double
-                S[22] += (1. - exp(corebluron::time<value_type>::dt()*(-1.)/S[0])) * (-S[22]);
-                S[23] += (1. - exp(corebluron::time<value_type>::dt()*(-1.)/S[1])) * (-S[23]);
-                S[24] += (1. - exp(corebluron::time<value_type>::dt()*(-1.)/S[2])) * (-S[24]);
-                S[25] += (1. - exp(corebluron::time<value_type>::dt()*(-1.)/S[3])) * (-S[25]);
+                S[A_AMPA] += (1.-exp(-corebluron::time<value_type>::dt()/S[tau_r_AMPA]))*(-S[A_AMPA]);
+                S[B_AMPA] += (1.-exp(-corebluron::time<value_type>::dt()/S[tau_d_AMPA]))*(-S[B_AMPA]);
+                S[A_NMDA] += (1.-exp(-corebluron::time<value_type>::dt()/S[tau_r_NMDA]))*(-S[A_NMDA]);
+                S[B_NMDA] += (1.-exp(-corebluron::time<value_type>::dt()/S[tau_d_NMDA]))*(-S[B_NMDA]);
             }
         };
 
@@ -30,16 +36,16 @@ namespace mechanism{
             static inline void cnrn_initmodel(iterator it){
                 typedef typename std::iterator_traits<iterator>::value_type::value_type value_type;
                 S[21] = S[9];
-                S[22] = 0.0;
-                S[23] = 0.0;
-                S[24] = 0.0;
-                S[25] = 0.0;
+                S[A_AMPA] = 0.0;
+                S[B_AMPA] = 0.0;
+                S[A_NMDA] = 0.0;
+                S[B_NMDA] = 0.0;
                 S[19] = 1.0;
                 S[20] = 0.0;
-                cyme::serial<value_type,O> _ltp_AMPA ( (S[0]*S[1]) / (S[1]-S[0]) * log(S[1]/S[0]));
-                cyme::serial<value_type,O> _ltp_NMPA ( (S[2]*S[3]) / (S[3]-S[2]) * log(S[3]/S[2]));
-                S[26]  = 1. / (exp(-_ltp_AMPA()/S[1]) - exp (-_ltp_AMPA() / (S[0])));
-                S[27]  = 1. / (exp(-_ltp_NMPA()/S[3]) - exp (-_ltp_NMPA() / (S[2])));
+                cyme::serial<value_type,O> _ltp_AMPA ( (S[tau_r_AMPA]*S[tau_d_AMPA]) / (S[tau_d_AMPA]-S[tau_r_AMPA]) * log(S[tau_d_AMPA]/S[tau_r_AMPA]));
+                cyme::serial<value_type,O> _ltp_NMPA ( (S[tau_r_NMDA]*S[tau_d_NMDA]) / (S[tau_d_NMDA]-S[tau_r_NMDA]) * log(S[tau_d_NMDA]/S[tau_r_NMDA]));
+                S[26]  = 1. / (exp(-_ltp_AMPA()/S[tau_d_AMPA]) - exp (-_ltp_AMPA() / (S[tau_r_AMPA])));
+                S[27]  = 1. / (exp(-_ltp_NMPA()/S[tau_d_NMDA]) - exp (-_ltp_NMPA() / (S[tau_r_NMDA])));
             }
 
             template<class iterator, memory::order O>
@@ -51,8 +57,8 @@ namespace mechanism{
                 S[32] = t;
                 cyme::serial<value_type,O> gmax(1); // my value
                 cyme::serial<value_type,O> mggate(1.0/(1.0+exp(-0.062*S[32])*(S[8]/3.57)));
-                S[16] = gmax() * (S[23] - S[22]);
-                S[17] = gmax() * (S[25] - S[24]) * mggate();
+                S[16] = gmax() * (S[B_AMPA] - S[A_AMPA]);
+                S[17] = gmax() * (S[B_NMDA] - S[A_NMDA]) * mggate();
                 S[18] = S[16] + S[17];
                 S[14] = S[16]*(S[32]-S[7]);
                 S[15] = S[17]*(S[32]-S[7]);

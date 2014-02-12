@@ -10,7 +10,7 @@
 #include "utils/stack.h"
 
 #include "mechanism/channel/Na.hpp"
-#include "mechanism/synapse/ProbAMPANMDA_EMC.hpp"
+#include "mechanism/synapse/ProbAMPANMDA_EMS.hpp"
 
 using namespace mechanism::channel;
 using namespace mechanism::synapse;

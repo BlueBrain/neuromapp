@@ -14,7 +14,7 @@
 #define _ion_ek	*_ppvar[0]._pval
 #define _ion_ik	*_ppvar[1]._pval
 #define _ion_dikdv	*_ppvar[2]._pval
- 
+
 
  /*END CVODE*/
 int  rates (double *  _p){
@@ -28,8 +28,8 @@ int states (double* _p){ // I keeep this dummy arg I do not want tune the code f
     m = m + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / mTau)))*(- ( ( ( mInf ) ) / mTau ) / ( ( ( ( - 1.0) ) ) / mTau ) - m) ;
     return 0;
 }
- 
- 
+
+
 
 
 void nrn_state(double *pdata, int num_mechs) {
