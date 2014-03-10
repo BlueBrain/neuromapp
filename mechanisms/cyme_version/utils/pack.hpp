@@ -23,15 +23,15 @@ namespace corebluron{
 
      template<class mechanism, class T, memory::order O, int M>
      struct selector_container<mechanism, T, O, M,typename boost::enable_if_c<M == 0>::type>{
-         typedef cyme::vector<trait_mechanism<mechanism,T>, O> c; // c for container
+         typedef cyme::vector<trait_mechanism<mechanism,T>, O> type;
      };
 
      template<class mechanism, class T, memory::order O, int M>
      struct selector_container<mechanism, T, O, M,typename boost::enable_if_c<M != 0>::type>{
-         typedef cyme::array<trait_mechanism<mechanism,T>, M, O> c; // c for container
+         typedef cyme::array<trait_mechanism<mechanism,T>, M, O> type;
      };
 
-     template<class mechanism, class T,  memory::order O, int M=0, class container = typename selector_container<mechanism,T,O,M>::c >
+     template<class mechanism, class T,  memory::order O, int M=0, class container = typename selector_container<mechanism,T,O,M>::type >
      class pack{
      public:
             typedef typename container::value_type value_type;
