@@ -1,13 +1,6 @@
 #ifndef LL_COUNTER_H
 #define LL_COUNTER_H
 
-#include <atomic>
-#include <utility>
-
-#if defined(__xlC)
-#include <builtins.h>
-#endif
-
 /** Low-level counter framework
  *
  * Wraps access to low-level counters, e.g. cycle counters,
@@ -20,14 +13,16 @@
  *     x86: gcc 4.8, clang 3.5, icc (maybe?)
  */
 
-namespace llc {
+#include <atomic>
+#include <utility>
 
-/** Direct compiler not to reorder instructions
- * across fence.
- */
-static inline void ll_compiler_fence() {
-    asm volatile("" ::: "memory");
-}
+#if defined(__xlC)
+#include <builtins.h>
+#endif
+
+#include "ll_common.h"
+
+namespace llc {
 
 /** Direct cpu to complete all prior instructions to the
  * barrier, and not begin any subsequent instructions until
@@ -138,23 +133,14 @@ namespace ll_sync {
     enum ll_sync { none=0, memory=1, instruction=2 };
 }
 
-#if 0
-static inline ll_sync operator|(ll_sync a,ll_sync b) {
-    return (ll_sync)((int)a|(int)b);
-}
-
-static inline ll_sync operator&(ll_sync a,ll_sync b) {
-    return (ll_sync)((int)a&(int)b);
-}
-#endif
-
 /** Higher-level interface to counter accumulation
  *
  * ll_counter accumulates differences in a counter value.
  * Initial state is 'paused', with zero accumulator.
  */
 
-template <typename cimpl,ll_sync::ll_sync sync=ll_sync::instruction>
+//template <typename cimpl,ll_sync::ll_sync sync=ll_sync::instruction>
+template <typename cimpl,int sync=ll_sync::instruction>
 struct ll_counter: protected cimpl {
     using typename cimpl::value_type;
 
@@ -182,15 +168,15 @@ public:
     void resume() {
         ll_compiler_fence();
         paused=false;
-        store_counter<0>();
+        read_counter(c0);
         ll_compiler_fence();
     }
 
     /** Pause counting */
     void stop() {
         ll_compiler_fence();
-        store_counter<1>();
-        accum+=counter[1]-counter[0];
+        read_counter(c1);
+        accum+=c1-c0;
         paused=true;
         ll_compiler_fence();
     }
@@ -210,31 +196,63 @@ public:
     }
 
     template <typename F,typename... Args>
-    void instrument(F f,Args&&... args) {
+    void instrument(const F &f,Args&&... args) {
         ll_compiler_fence();
-        atomic_type c0;
-        store_impl::store(c0,read());
-        fence_impl::fence();
+
+        ASM_LABEL("instrument: c0 read");
+        atomic_type local_c0;
+        read_counter(local_c0);
+
+        ll_compiler_fence();
+
+        ASM_LABEL("instrument: kernel");
         f(std::forward<Args>(args)...);
-        if (!is_serialized()) fence_impl::fence();
-        atomic_type c1;
-        store_impl::store(c1,read());
-        fence_impl::fence();
-        accum+=c1-c0;
+
+        ll_compiler_fence();
+
+        ASM_LABEL("instrument: c1 read");
+        atomic_type local_c1;
+        read_counter(local_c1);
+
+        ll_compiler_fence();
+
+        ASM_LABEL("instrument: counter accumulate");
+        accum+=local_c1-local_c0;
     }
 
+    struct guard {
+        atomic_type guard_c0;
+        ll_counter &llc;
+
+        guard(ll_counter &llc_): llc(llc_) {
+            ASM_LABEL("counter guard: c0 read");
+            llc.read_counter(guard_c0);
+        }
+            
+        ~guard() {
+            ASM_LABEL("counter guard: c1 read");
+            atomic_type guard_c1;
+            llc.read_counter(guard_c1);
+
+            ll_compiler_fence();
+
+            ASM_LABEL("instrument_block: counter accumulate");
+            llc.accum+=guard_c1-guard_c0;
+        }
+    };
+
 protected:
-    atomic_type counter[2];
+    atomic_type c0,c1;
     value_type accum;
     bool paused;
 
-    template <int idx>
-    void store_counter() {
+    void read_counter(atomic_type &a) {
         if (!is_serialized()) fence_impl::fence();
-        store_impl::store(counter[idx],read());
+        store_impl::store(a,read());
         fence_impl::fence();
     }
 };
+
 
 template <typename cimpl,ll_sync::ll_sync sync=ll_sync::instruction>
 struct ll_timer: ll_counter<cimpl,sync> {

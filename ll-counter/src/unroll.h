@@ -1,16 +1,13 @@
+#ifndef UNROLL_H
+#define UNROLL_H
+
 #include <utility>
+#include "ll_common.h"
 
 // don't use this with a function that takes rvalue refs; surprisingly bad
 // results will ensue.
 
 namespace llc {
-
-#if __GNUC__==4 && __GNUC__MINOR__ >=8 || __GNUC__>=5
-#define ALWAYS_INLINE [[gnu::always_inline]]
-#else
-#define ALWAYS_INLINE __attribute((always_inline))
-#endif
-
 
 template <unsigned N>
 struct unroll {
@@ -28,8 +25,28 @@ struct unroll {
 
 template <>
 struct unroll<0> {
-    ALWAYS_INLINE static void run(...) {}
-    ALWAYS_INLINE static void runi(...) {}
+    template <typename... X>
+    ALWAYS_INLINE static void run(X&& ...) {}
+    template <typename... X>
+    ALWAYS_INLINE static void runi(X&& ...) {}
 };
 
-}
+template <unsigned N,template <int> class F,int i0=0>
+struct unroll_static_n {
+    // expands to F<i0>::run(args...); F<i0+1>::run(args...); ...
+    template <typename... Args>
+    ALWAYS_INLINE static void run(Args&&... args) {
+        unroll_static_n<N-1,F,i0>::run(std::forward<Args>(args)...);
+        F<i0+(N-1)>::run(std::forward<Args>(args)...);
+    }
+};
+
+template <template <int> class F,int i0>
+struct unroll_static_n<0,F,i0> {
+    template <typename... X>
+    ALWAYS_INLINE static void run(X&&...) {}
+};
+
+} // namespace llc
+
+#endif // ndef  UNROLL_H

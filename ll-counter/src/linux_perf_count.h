@@ -1,3 +1,6 @@
+#ifndef LINUX_PERF_COUNT_H_
+#define LINUX_PERF_COUNT_H_
+
 #include <cstdint>
 #include <memory>
 #include <unistd.h>
@@ -67,7 +70,7 @@ struct perf_event_set {
 
     bool sample() {
         int r=read(ev[0].fd,rdbuf.get(),rdbuf_sz);
-        return r==rdbuf_sz;
+        return (size_t)r==rdbuf_sz;
     }
 
     /** Enable counters in set */
@@ -99,3 +102,5 @@ private:
 };
 
 } // namespace llc
+
+#endif // ndef  LINUX_PERF_COUNT_H_

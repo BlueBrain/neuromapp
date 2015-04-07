@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <limits>
 #include <memory>
 
 #include "ll_counter.h"
@@ -35,10 +36,28 @@ struct ppc_spr {
     static constexpr bool is_serialized() { return false; }
 };
 
-/** Ttraslates Power ISA bit-field descriptions
+/** Traslates Power ISA bit-field descriptions
  *  (which are MSB0 order) into 64-bit masks.
+ *
+ * @param msb Most significant bit number in MSB0 order
+ * @param lsb Most significant bit number in MSB0 order
+ *
+ * Note lsb >= msb in this representation.
  */
 
+template <typename UINT,int msb,int lsb=msb>
+struct msb0_bitfield {
+    static constexpr unsigned word_bits=std::numeric_limits<UINT>::digits;
+    static constexpr unsigned bits=lsb-msb+1;
+    static constexpr unsigned shift=word_bits-lsb-1;
+
+    static constexpr UINT mask=(bits==word_bits)?(UINT)-1:((UINT(1)<<bits)-1)<<shift;
+};
+
+template <int msb,int lsb=msb>
+using msb0_bitfield64 = msb0_bitfield<uint64_t,msb,lsb>;
+
+/*
 constexpr uint64_t mask_msb0(int bit) {
     return 1ull<<(63-bit);
 }
@@ -46,6 +65,8 @@ constexpr uint64_t mask_msb0(int bit) {
 constexpr uint64_t mask_msb0(int msb,int lsb) {
     return (lsb==63 && msb==0)?(uint64_t)-1:((1ull<<(1+lsb-msb))-1)<<(63-lsb);
 }
+*/
+
 
 namespace spr {
     enum reg: int {
@@ -61,18 +82,28 @@ namespace spr {
         tb=268
     };
 
+/*
     enum mask: uint64_t {
         mmcr0_fc  =mask_msb0(32),
         mmcr0_pmcc=mask_msb0(44,45),
         mmcr0_fc14=mask_msb0(58),
         mmcr0_fc56=mask_msb0(59)
     };
+*/
+
+    typedef msb0_bitfield64<32>    mmcr0_fc;
+    typedef msb0_bitfield64<44,45> mmcr0_pmcc;
+    typedef msb0_bitfield64<58>    mmcr0_fc14;
+    typedef msb0_bitfield64<59>    mmcr0_fc56;
 };
 
 inline bool pmc56_running() {
     ll_op_fence();
     uint64_t mmcr0=read_spr<spr::mmcr0>();
-    return !(mmcr0 & (spr::mmcr0_fc | spr::mmcr0_fc56)) && !(mmcr0 & spr::mmcr0_pmcc == 3u);
+    //return !(mmcr0 & (spr::mmcr0_fc | spr::mmcr0_fc56)) && !((mmcr0 & spr::mmcr0_pmcc) == spr::mmcr0_pmcc);
+
+    return !(mmcr0 & (spr::mmcr0_fc::mask | spr::mmcr0_fc56::mask)) &&
+           ((mmcr0 & spr::mmcr0_pmcc::mask) >> spr::mmcr0_pmcc::shift) != 3;
 }
 
 struct ppc_cycle: ppc_spr<spr::pmc6> {
