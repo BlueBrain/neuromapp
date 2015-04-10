@@ -24,30 +24,6 @@
 
 namespace llc {
 
-/** Direct cpu to complete all prior instructions to the
- * barrier, and not begin any subsequent instructions until
- * after the barrier.
- *
- * PowerPC implementation:
- *     isync
- * see: Power ISA 2.07 p.776.
-
- * x86 implementation:
- *     lfence
- * see: Intel 64 and IA-32 Archictecture Software Developer's Manual
- *      Vol3A, January 2015; Note 4, p. 8-17.
- */
-
-static inline void ll_op_fence() {
-#if defined(__powerpc__)
-    asm volatile("isync" ::: "memory");
-#elif defined(__i386__) || defined(__M_IX86) || defined(__x86_64__)
-    asm volatile("lfence" ::: "memory");
-#else
-    #error "low level instruction barrier not implemented for architecture"
-#endif
-}
-
 /* raw counter T interface:
  *
  * T(...)         counter initialisation
