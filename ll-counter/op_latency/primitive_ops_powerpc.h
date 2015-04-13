@@ -45,7 +45,7 @@ struct primitive_op<arith_op::sqrt> {
     ALWAYS_INLINE static void run(float &a1,...) {
         asm volatile ("xssqrtsp %0,%1\n\t" :"=wa"(a1) :"0"(a1));
     }
-    ALWAYS_INLINE static void run(double &1,...) {
+    ALWAYS_INLINE static void run(double &a1,...) {
         asm volatile ("xssqrtdp %0,%1\n\t" :"=wa"(a1) :"0"(a1));
     }
 };
