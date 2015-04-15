@@ -3,10 +3,12 @@
 
 #include <cstddef>
 #include <stdexcept>
+#include <cmath>
+
 #include "llc/ll_common.h"
 
 namespace arith_op {
-    enum arith_op { add, mul, div, sqrt };
+    enum arith_op { add, mul, div, sqrt, exp};
 }
 
 /** Wrap underlying assembly for primitive arithmetic operation.

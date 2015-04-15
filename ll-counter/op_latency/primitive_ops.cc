@@ -12,6 +12,7 @@ struct name_tbl_entry { int op; const char *name; } name_tbl[]={
     { arith_op::mul,  "mul" },
     { arith_op::div,  "div" },
     { arith_op::sqrt, "sqrt" },
+    { arith_op::exp , "exp" },
     // terminal entry
     { 0,0 }
 };

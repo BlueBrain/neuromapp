@@ -37,7 +37,6 @@ struct primitive_op<arith_op::div> {
     }
 };
 
-
 // TODO: include guard for VSX-specific operations ...
 
 template <>
@@ -47,6 +46,16 @@ struct primitive_op<arith_op::sqrt> {
     }
     ALWAYS_INLINE static void run(double &a1,...) {
         asm volatile ("xssqrtdp %0,%1\n\t" :"=wa"(a1) :"0"(a1));
+    }
+};
+
+template <>
+struct primitive_op<arith_op::exp> {
+    ALWAYS_INLINE static void run(float &a1,...) {
+        a1 = std::exp(a1);
+    }
+    ALWAYS_INLINE static void run(double &a1,...) {
+        a1 = std::exp(a1);
     }
 };
 

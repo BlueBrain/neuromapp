@@ -18,7 +18,7 @@
 #endif
 
 #ifndef KSIZE
-#define KSIZE 5
+#define KSIZE 4
 #endif
 
 /** Scales kernel up to size max_ksize.
@@ -88,12 +88,14 @@ void run_all_kernels(harness &H) {
     runner_looped_karg<float,arith_op::mul,ksizes>::run_and_emit(std::cout,H,n_inner,f1,f2,f3);
     runner_looped_karg<float,arith_op::div,ksizes>::run_and_emit(std::cout,H,n_inner,f1,f2,f3);
     runner_looped_karg<float,arith_op::sqrt,ksizes>::run_and_emit(std::cout,H,n_inner,f1,f2,f3);
+    runner_looped_karg<float,arith_op::exp,ksizes>::run_and_emit(std::cout,H,n_inner,f1,f2,f3);
 
     double d1=1.0,d2=2.0,d3=0.0;
     runner_looped_karg<double,arith_op::add,ksizes>::run_and_emit(std::cout,H,n_inner,d1,d2,d3);
     runner_looped_karg<double,arith_op::mul,ksizes>::run_and_emit(std::cout,H,n_inner,d1,d2,d3);
     runner_looped_karg<double,arith_op::div,ksizes>::run_and_emit(std::cout,H,n_inner,d1,d2,d3);
     runner_looped_karg<double,arith_op::sqrt,ksizes>::run_and_emit(std::cout,H,n_inner,d1,d2,d3);
+    runner_looped_karg<double,arith_op::exp,ksizes>::run_and_emit(std::cout,H,n_inner,d1,d2,d3);
 }
 
 

@@ -10,7 +10,7 @@ using namespace llc;
 // serial fp arithmetic sequence with dependencies
 
 namespace arith_op {
-    enum arith_op { add, mul, div, sqrt };
+    enum arith_op { add, mul, div, sqrt, exp};
 }
 
 template <typename V,arith_op::arith_op op,unsigned k>
