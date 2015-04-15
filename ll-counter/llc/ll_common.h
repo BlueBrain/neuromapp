@@ -40,8 +40,10 @@ asm ("#" label "\n\t" ::: "memory")
 #if (__GNUC__>=5 || __GNUC__==4 && __GNUC__MINOR__ >=8) \
  || (__clang_major__>=4 || __clang_major__==3 && __clang_minor__>=3)
 #define ALWAYS_INLINE [[gnu::always_inline]] inline 
+#define ALWAYS_INLINE_LAMBDA [[gnu::always_inline]]
 #else
 #define ALWAYS_INLINE __attribute((always_inline)) inline
+#define ALWAYS_INLINE_LAMBDA __attribute((always_inline))
 #endif
 
 namespace llc {

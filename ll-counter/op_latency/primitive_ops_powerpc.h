@@ -15,6 +15,7 @@ struct primitive_op<arith_op::add> {
     ALWAYS_INLINE static void run(double &a1,double a2,...) {
         asm volatile ("fadd %0,%1,%2\n\t" :"=d"(a1) :"0"(a1),"d"(a2));
     }
+    static constexpr bool is_specialized=true;
 };
 
 template <>
@@ -25,6 +26,7 @@ struct primitive_op<arith_op::mul> {
     ALWAYS_INLINE static void run(double &a1,double a2,...) {
         asm volatile ("fmul %0,%1,%2\n\t" :"=d"(a1) :"0"(a1),"d"(a2));
     }
+    static constexpr bool is_specialized=true;
 };
 
 template <>
@@ -35,6 +37,7 @@ struct primitive_op<arith_op::div> {
     ALWAYS_INLINE static void run(double &a1,double a2,...) {
         asm volatile ("fdiv %0,%1,%2\n\t" :"=d"(a1) :"0"(a1),"d"(a2));
     }
+    static constexpr bool is_specialized=true;
 };
 
 // TODO: include guard for VSX-specific operations ...
@@ -47,16 +50,10 @@ struct primitive_op<arith_op::sqrt> {
     ALWAYS_INLINE static void run(double &a1,...) {
         asm volatile ("xssqrtdp %0,%1\n\t" :"=wa"(a1) :"0"(a1));
     }
+    static constexpr bool is_specialized=true;
 };
 
-template <>
-struct primitive_op<arith_op::exp> {
-    ALWAYS_INLINE static void run(float &a1,...) {
-        a1 = std::exp(a1);
-    }
-    ALWAYS_INLINE static void run(double &a1,...) {
-        a1 = std::exp(a1);
-    }
-};
+inline void consume(float v)  { asm volatile ("" ::"f"(v)); }
+inline void consume(double v) { asm volatile ("" ::"d"(v)); }
 
 #endif // ndef PRIMITIVE_OPS_POWERPC_H

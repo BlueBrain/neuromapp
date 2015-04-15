@@ -29,17 +29,60 @@
  * @tparam V   Operand type (e.g. float, double)
  * @tparam op  Operation (e.g. arith_op::mul)
  * @tparam m   Number of 'op' operations
+ * @tparam M   Maximum number of introduced 'op' operations.
  *
+ * M is ignored in this kernel.
  */
 
-template <typename V,arith_op::arith_op op,unsigned m>
+template <typename V,arith_op::arith_op op,unsigned m,unsigned M>
 struct kernel_dep_seq {
-    /** Execute dep_seq kernel. */
-
-    ALWAYS_INLINE static void run() {
-        V r,a1,a2,a3;
+    /** Execute dep_seq kernel with given inner-loop count and operands.
+     *
+     * @param a1        Initial value of first operand to operation 'op'
+     * @param a2        Second operand to operation 'op' 
+     * @param a3        Third operand to operation 'op' 
+     *
+     */
+    ALWAYS_INLINE static void run(V a1,V a2=0,V a3=0) {
         llc::ll_compiler_fence();
-        llc::unroll<m>::run([&] { primitive_op<op>::run(r,a1,a2,a3); });
+        ASM_LABEL("kernel_dep_seq begin");
+        V b1=a1;
+        llc::unroll<m>::run([&]() ALWAYS_INLINE_LAMBDA { primitive_op<op>::run(b1,a2,a3); });
+        consume(b1);
+        ASM_LABEL("kernel_dep_seq end");
+        llc::ll_compiler_fence();
+    }
+};
+
+/** Perform n_iter iterations of dep_seq sequence.
+ *
+ * @tparam V   Operand type (e.g. float, double)
+ * @tparam op  Operation (e.g. arith_op::mul)
+ * @tparam m   Number of 'op' operations
+ * @tparam M   Maximum number of introduced 'op' operations.
+ *
+ * M is ignored in this kernel.
+ */
+
+template <typename V,arith_op::arith_op op,unsigned m,unsigned M>
+struct kernel_looped_seq {
+    /** Execute dep_seq kernel with given inner-loop count and operands.
+     *
+     * @param n_inner   Number of iterations of inner-loop
+     * @param a1        Initial value of first operand to operation 'op'
+     * @param a2        Second operand to operation 'op' 
+     * @param a3        Third operand to operation 'op' 
+     *
+     */
+    ALWAYS_INLINE static void run(size_t n_inner,V a1,V a2=0,V a3=0) {
+        llc::ll_compiler_fence();
+        ASM_LABEL("kernel_looped_seq begin");
+        V b1=a1;
+        for (unsigned i=0;i<n_inner;++i) {
+            llc::unroll<m>::run([&]() ALWAYS_INLINE_LAMBDA { primitive_op<op>::run(b1,a2,a3); });
+        }
+        consume(b1);
+        ASM_LABEL("kernel_looped_seq end");
         llc::ll_compiler_fence();
     }
 };
@@ -67,20 +110,24 @@ struct kernel_looped_karg {
      */
     ALWAYS_INLINE static void run(size_t n_inner,V a1,V a2=0,V a3=0) {
         llc::ll_compiler_fence();
+        ASM_LABEL("kernel_looped_karg begin");
         V b1=a1;
+        V zero(0);
         for (unsigned i=0;i<n_inner;++i) {
-            llc::unroll<m>::run([&] {
-                    primitive_op<op>::run(b1,b1,a2,a3);
+            llc::unroll<m>::run([&]() ALWAYS_INLINE_LAMBDA {
+                    primitive_op<op>::run(b1,a2,a3);
                     // reload b1 with data dependency
-                    primitive_op<arith_op::mul>::run(b1,b1,V(0));
-                    primitive_op<arith_op::add>::run(b1,b1,a1);
+                    primitive_op<arith_op::mul>::run(b1,zero);
+                    primitive_op<arith_op::add>::run(b1,a1);
                 });
-            llc::unroll<M-m>::run([&] {
+            llc::unroll<M-m>::run([&]() ALWAYS_INLINE_LAMBDA {
                     // reload b1 with data dependency
-                    primitive_op<arith_op::mul>::run(b1,b1,V(0));
-                    primitive_op<arith_op::add>::run(b1,b1,a1);
+                    primitive_op<arith_op::mul>::run(b1,zero);
+                    primitive_op<arith_op::add>::run(b1,a1);
                 });
         }
+        consume(b1);
+        ASM_LABEL("kernel_looped_karg end");
         llc::ll_compiler_fence();
     }
 };

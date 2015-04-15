@@ -10,6 +10,7 @@ namespace arith_op {
 struct name_tbl_entry { int op; const char *name; } name_tbl[]={
     { arith_op::add,  "add" },
     { arith_op::mul,  "mul" },
+    { arith_op::fma,  "fma" },
     { arith_op::div,  "div" },
     { arith_op::sqrt, "sqrt" },
     { arith_op::exp , "exp" },

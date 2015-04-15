@@ -8,8 +8,9 @@
 #include "llc/ll_common.h"
 
 namespace arith_op {
-    enum arith_op { add, mul, div, sqrt, exp};
+    enum arith_op { add, mul, fma, div, sqrt, exp};
 }
+
 
 /** Wrap underlying assembly for primitive arithmetic operation.
  *
@@ -18,17 +19,81 @@ namespace arith_op {
  * implements the arithmetic operation on values of type V
  *     a1 = OP(a1,a2,...)
  * where extra arguments are ignored.
+ *
+ * primitive_op<OP>, unless specialized by an architecture-specific
+ * implementation, inherits from a basic C++ implementation of
+ * the operation in primitive_op_default<OP>.
+ *
+ * Specializations should set primitive_op<OP>::is_specialized
+ * to true.
  */
 
 template <arith_op::arith_op op>
-struct primitive_op {
+struct primitive_op_default {
     static void run(...) { throw std::invalid_argument("unsupported operation"); }
+    static constexpr bool is_specialized=false; 
+};
+
+template <>
+struct primitive_op_default<arith_op::add> {
+    template <typename V>
+    ALWAYS_INLINE static void run(V &a1,V a2,...) { a1+=a2; }
+    static constexpr bool is_specialized=false; 
+};
+
+template <>
+struct primitive_op_default<arith_op::mul> {
+    template <typename V>
+    ALWAYS_INLINE static void run(V &a1,V a2,...) { a1*=a2; }
+    static constexpr bool is_specialized=false; 
+};
+
+template <>
+struct primitive_op_default<arith_op::fma> {
+    template <typename V>
+    ALWAYS_INLINE static void run(V &a1,V a2,V a3,...) { a1=std::fma(a1,a2,a3); }
+    static constexpr bool is_specialized=false; 
+};
+
+template <>
+struct primitive_op_default<arith_op::div> {
+    template <typename V>
+    ALWAYS_INLINE static void run(V &a1,V a2,...) { a1/=a2; }
+    static constexpr bool is_specialized=false; 
+};
+
+template <>
+struct primitive_op_default<arith_op::sqrt> {
+    template <typename V>
+    ALWAYS_INLINE static void run(V &a1,...) { a1=std::sqrt(a1); }
+    static constexpr bool is_specialized=false; 
+};
+
+template <>
+struct primitive_op_default<arith_op::exp> {
+    template <typename V>
+    ALWAYS_INLINE static void run(V &a1,...) { a1=std::exp(a1); }
+    static constexpr bool is_specialized=false; 
+};
+
+template <arith_op::arith_op op>
+struct primitive_op: primitive_op_default<op> {
 };
 
 /** arith_op to string conversion */
 
 std::string to_string(arith_op::arith_op);
 std::ostream &operator<<(std::ostream &,arith_op::arith_op);
+
+/** Generic value sink
+ *
+ * Architecture-specific implementations will use
+ * asm construction to provide data dependency without
+ * explicit store as required.
+ */
+
+template <typename V>
+inline void consume(V v) { volatile V u(v); }
 
 // architecture-specific specializations:
 
@@ -39,6 +104,5 @@ std::ostream &operator<<(std::ostream &,arith_op::arith_op);
 #else
 #warning "unsupported archictecture"
 #endif
-
 
 #endif // ndef PRIMITIVE_OPS_H
