@@ -112,7 +112,7 @@ struct kernel_looped_karg {
         llc::ll_compiler_fence();
         ASM_LABEL("kernel_looped_karg begin");
         V b1=a1;
-        V zero(0);
+        V zero=v_or_s_zero<V>::value;
         for (unsigned i=0;i<n_inner;++i) {
             llc::unroll<m>::run([&]() ALWAYS_INLINE_LAMBDA {
                     primitive_op<op>::run(b1,a2,a3);

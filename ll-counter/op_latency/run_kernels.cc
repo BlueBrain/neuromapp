@@ -31,6 +31,9 @@ constexpr int max_ksize=KSIZE;
 using namespace llc;
 typedef arith_op::arith_op op_enum;
 
+template <> std::string type_name<v4float>() { return "v4f"; }
+template <> std::string type_name<v2double>() { return "v2d"; }
+
 std::ostream &emit_header(std::ostream &O) {
     O << "type,\top,\tspec,\tksize,\tcount,\tcount_harness\n";
     return O;
@@ -84,21 +87,66 @@ void run_setup() {
 template <op_enum OP> using run_float_dep_seq = run_kernels<kernel_dep_seq,float,OP,ksizes>;
 template <op_enum OP> using run_double_dep_seq = run_kernels<kernel_dep_seq,double,OP,ksizes>;
 
+template <op_enum OP> using run_v4float_dep_seq = run_kernels<kernel_dep_seq,v4float,OP,ksizes>;
+template <op_enum OP> using run_v2double_dep_seq = run_kernels<kernel_dep_seq,v2double,OP,ksizes>;
+
 template <typename harness>
 void run_dep_seq_kernels(harness &H) {
     run_setup();
 
-    typedef tvalue_list<op_enum,arith_op::add,arith_op::mul,arith_op::fma,arith_op::div,arith_op::sqrt,arith_op::exp> ops;
+    // do not include exp for non-constant argument latency kernel
+    typedef tvalue_list<op_enum,arith_op::add,arith_op::mul,arith_op::fma,arith_op::div,arith_op::sqrt> ops;
 
-    float f1=1.f,f2=2.f,f3=0.f;
+    float f1=1.1e-7f,f2=2.1f,f3=3.2f;
     ops::template for_each<run_float_dep_seq>::run(std::cout,H,f1,f2,f3);
 
-    double d1=1.0,d2=2.0,d3=0.0;
+    double d1=1.1e-7,d2=2.1,d3=3.2;
     ops::template for_each<run_double_dep_seq>::run(std::cout,H,d1,d2,d3);
+
+    typedef ops vops;
+
+    v4float vf1={f1,f1,f1,f1},vf2={f2,f2,f2,f2},vf3={f3,f3,f3,f3};
+    vops::template for_each<run_v4float_dep_seq>::run(std::cout,H,vf1,vf2,vf3);
+
+    v2double vd1={d1,d1},vd2={d2,d2},vd3={d3,d3};
+    vops::template for_each<run_v2double_dep_seq>::run(std::cout,H,vd1,vd2,vd3);
+}
+
+template <op_enum OP> using run_float_looped_seq = run_kernels<kernel_looped_seq,float,OP,ksizes>;
+template <op_enum OP> using run_double_looped_seq = run_kernels<kernel_looped_seq,double,OP,ksizes>;
+
+template <op_enum OP> using run_v4float_looped_seq = run_kernels<kernel_looped_seq,v4float,OP,ksizes>;
+template <op_enum OP> using run_v2double_looped_seq = run_kernels<kernel_looped_seq,v2double,OP,ksizes>;
+
+template <typename harness>
+void run_looped_seq_kernels(harness &H) {
+    run_setup();
+
+    size_t n_inner=100;
+
+    // do not include exp for non-constant argument latency kernel
+    typedef tvalue_list<op_enum,arith_op::add,arith_op::mul,arith_op::fma,arith_op::div,arith_op::sqrt> ops;
+
+    float f1=1.1e-7f,f2=2.1f,f3=3.2f;
+    ops::template for_each<run_float_looped_seq>::run(std::cout,H,n_inner,f1,f2,f3);
+
+    double d1=1.1e-7,d2=2.1,d3=3.2;
+    ops::template for_each<run_double_looped_seq>::run(std::cout,H,n_inner,d1,d2,d3);
+
+    typedef ops vops;
+
+    v4float vf1={f1,f1,f1,f1},vf2={f2,f2,f2,f2},vf3={f3,f3,f3,f3};
+    vops::template for_each<run_v4float_looped_seq>::run(std::cout,H,n_inner,vf1,vf2,vf3);
+
+    v2double vd1={d1,d1},vd2={d2,d2},vd3={d3,d3};
+    vops::template for_each<run_v2double_looped_seq>::run(std::cout,H,n_inner,vd1,vd2,vd3);
 }
 
 template <op_enum OP> using run_float_looped_karg = run_kernels<kernel_looped_karg,float,OP,ksizes>;
 template <op_enum OP> using run_double_looped_karg = run_kernels<kernel_looped_karg,double,OP,ksizes>;
+
+template <op_enum OP> using run_v4float_looped_karg = run_kernels<kernel_looped_karg,v4float,OP,ksizes>;
+template <op_enum OP> using run_v2double_looped_karg = run_kernels<kernel_looped_karg,v2double,OP,ksizes>;
 
 template <typename harness>
 void run_looped_karg_kernels(harness &H) {
@@ -108,29 +156,19 @@ void run_looped_karg_kernels(harness &H) {
 
     typedef tvalue_list<op_enum,arith_op::add,arith_op::mul,arith_op::fma,arith_op::div,arith_op::sqrt,arith_op::exp> ops;
 
-    float f1=1.f,f2=2.f,f3=0.f;
+    float f1=1.1e-7f,f2=2.1f,f3=3.2f;
     ops::template for_each<run_float_looped_karg>::run(std::cout,H,n_inner,f1,f2,f3);
 
-    double d1=1.0,d2=2.0,d3=0.0;
+    double d1=1.1e-7,d2=2.1,d3=3.2;
     ops::template for_each<run_double_looped_karg>::run(std::cout,H,n_inner,d1,d2,d3);
-}
 
-template <op_enum OP> using run_float_looped_seq = run_kernels<kernel_looped_seq,float,OP,ksizes>;
-template <op_enum OP> using run_double_looped_seq = run_kernels<kernel_looped_seq,double,OP,ksizes>;
+    typedef ops vops;
 
-template <typename harness>
-void run_looped_seq_kernels(harness &H) {
-    run_setup();
+    v4float vf1={f1,f1,f1,f1},vf2={f2,f2,f2,f2},vf3={f3,f3,f3,f3};
+    vops::template for_each<run_v4float_looped_karg>::run(std::cout,H,n_inner,vf1,vf2,vf3);
 
-    size_t n_inner=100;
-
-    typedef tvalue_list<op_enum,arith_op::add,arith_op::mul,arith_op::fma,arith_op::div,arith_op::sqrt,arith_op::exp> ops;
-
-    float f1=1.f,f2=2.f,f3=0.f;
-    ops::template for_each<run_float_looped_seq>::run(std::cout,H,n_inner,f1,f2,f3);
-
-    double d1=1.0,d2=2.0,d3=0.0;
-    ops::template for_each<run_double_looped_seq>::run(std::cout,H,n_inner,d1,d2,d3);
+    v2double vd1={d1,d1},vd2={d2,d2},vd3={d3,d3};
+    vops::template for_each<run_v2double_looped_karg>::run(std::cout,H,n_inner,vd1,vd2,vd3);
 }
 
 int main(int argc,char **argv) {

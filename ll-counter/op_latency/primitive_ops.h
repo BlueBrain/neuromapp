@@ -11,6 +11,25 @@ namespace arith_op {
     enum arith_op { add, mul, fma, div, sqrt, exp};
 }
 
+/** Typedefs for 128-bit SIMD vectors */
+
+typedef float v4float __attribute((vector_size(16)));
+typedef double v2double __attribute((vector_size(16)));
+
+template <typename FP>
+struct v_or_s_zero {
+    constexpr static FP value=0;
+};
+
+template <>
+struct v_or_s_zero<v4float> {
+    constexpr static v4float value={0.f,0.f,0.f,0.f};
+};
+
+template <>
+struct v_or_s_zero<v2double> {
+    constexpr static v2double value={0.,0.};
+};
 
 /** Wrap underlying assembly for primitive arithmetic operation.
  *
@@ -66,6 +85,16 @@ template <>
 struct primitive_op_default<arith_op::sqrt> {
     template <typename V>
     ALWAYS_INLINE static void run(V &a1,...) { a1=std::sqrt(a1); }
+    ALWAYS_INLINE static void run(v4float &a1,...) {
+        a1[0]=std::sqrt(a1[0]);
+        a1[1]=std::sqrt(a1[1]);
+        a1[2]=std::sqrt(a1[2]);
+        a1[3]=std::sqrt(a1[3]);
+    }
+    ALWAYS_INLINE static void run(v2double &a1,...) {
+        a1[0]=std::sqrt(a1[0]);
+        a1[1]=std::sqrt(a1[1]);
+    }
     static constexpr bool is_specialized=false; 
 };
 
@@ -73,6 +102,16 @@ template <>
 struct primitive_op_default<arith_op::exp> {
     template <typename V>
     ALWAYS_INLINE static void run(V &a1,...) { a1=std::exp(a1); }
+    ALWAYS_INLINE static void run(v4float &a1,...) {
+        a1[0]=std::exp(a1[0]);
+        a1[1]=std::exp(a1[1]);
+        a1[2]=std::exp(a1[2]);
+        a1[3]=std::exp(a1[3]);
+    }
+    ALWAYS_INLINE static void run(v2double &a1,...) {
+        a1[0]=std::exp(a1[0]);
+        a1[1]=std::exp(a1[1]);
+    }
     static constexpr bool is_specialized=false; 
 };
 
