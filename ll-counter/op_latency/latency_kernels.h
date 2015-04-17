@@ -112,17 +112,18 @@ struct kernel_looped_karg {
         llc::ll_compiler_fence();
         ASM_LABEL("kernel_looped_karg begin");
         V b1=a1;
-        V zero=v_or_s_zero<V>::value;
         for (unsigned i=0;i<n_inner;++i) {
+            ASM_LABEL("kernel_looped_karg op-seq");
             llc::unroll<m>::run([&]() ALWAYS_INLINE_LAMBDA {
                     primitive_op<op>::run(b1,a2,a3);
                     // reload b1 with data dependency
-                    primitive_op<arith_op::mul>::run(b1,zero);
+                    primitive_op<arith_op::sub>::run(b1,b1);
                     primitive_op<arith_op::add>::run(b1,a1);
                 });
+            ASM_LABEL("kernel_looped_karg no-op-seq");
             llc::unroll<M-m>::run([&]() ALWAYS_INLINE_LAMBDA {
                     // reload b1 with data dependency
-                    primitive_op<arith_op::mul>::run(b1,zero);
+                    primitive_op<arith_op::sub>::run(b1,b1);
                     primitive_op<arith_op::add>::run(b1,a1);
                 });
         }

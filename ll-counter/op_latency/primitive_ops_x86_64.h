@@ -25,6 +25,23 @@ struct primitive_op<arith_op::add> {
 };
 
 template <>
+struct primitive_op<arith_op::sub> {
+    ALWAYS_INLINE static void run(float &a1,float a2,...) {
+        asm volatile ("subss %1,%0\n\t" :"+x"(a1) :"x"(a2));
+    }
+    ALWAYS_INLINE static void run(double &a1,double a2,...) {
+        asm volatile ("subsd %1,%0\n\t" :"+x"(a1) :"x"(a2));
+    }
+    ALWAYS_INLINE static void run(v4float &a1,v4float a2,...) {
+        asm volatile ("subps %1,%0\n\t" :"+x"(a1) :"x"(a2));
+    }
+    ALWAYS_INLINE static void run(v2double &a1,v2double a2,...) {
+        asm volatile ("subpd %1,%0\n\t" :"+x"(a1) :"x"(a2));
+    }
+    static constexpr bool is_specialized=true;
+};
+
+template <>
 struct primitive_op<arith_op::mul> {
     ALWAYS_INLINE static void run(float &a1,float a2,...) {
         asm volatile ("mulss %1,%0\n\t" :"+x"(a1) :"x"(a2));

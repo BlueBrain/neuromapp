@@ -8,7 +8,7 @@
 #include "llc/ll_common.h"
 
 namespace arith_op {
-    enum arith_op { add, mul, fma, div, sqrt, exp};
+    enum arith_op { add, sub, mul, fma, div, sqrt, exp};
 }
 
 /** Typedefs for 128-bit SIMD vectors */
@@ -30,6 +30,16 @@ template <>
 struct v_or_s_zero<v2double> {
     constexpr static v2double value={0.,0.};
 };
+
+/** Generic value sink
+ *
+ * Architecture-specific implementations will use
+ * asm construction to provide data dependency without
+ * explicit store as required.
+ */
+
+template <typename V>
+inline void consume(V v) { volatile V u(v); }
 
 /** Wrap underlying assembly for primitive arithmetic operation.
  *
@@ -57,6 +67,13 @@ template <>
 struct primitive_op_default<arith_op::add> {
     template <typename V>
     ALWAYS_INLINE static void run(V &a1,V a2,...) { a1+=a2; }
+    static constexpr bool is_specialized=false; 
+};
+
+template <>
+struct primitive_op_default<arith_op::sub> {
+    template <typename V>
+    ALWAYS_INLINE static void run(V &a1,V a2,...) { a1-=a2; }
     static constexpr bool is_specialized=false; 
 };
 
@@ -123,16 +140,6 @@ struct primitive_op: primitive_op_default<op> {
 
 std::string to_string(arith_op::arith_op);
 std::ostream &operator<<(std::ostream &,arith_op::arith_op);
-
-/** Generic value sink
- *
- * Architecture-specific implementations will use
- * asm construction to provide data dependency without
- * explicit store as required.
- */
-
-template <typename V>
-inline void consume(V v) { volatile V u(v); }
 
 // architecture-specific specializations:
 
