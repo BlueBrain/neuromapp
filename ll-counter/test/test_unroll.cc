@@ -1,6 +1,3 @@
-/* Compile with -fstack-usage to get stack information
- * to confirm inlining state */
-
 #include <iostream>
 #include <cassert>
 
@@ -9,33 +6,35 @@
 #include <execinfo.h>
 #endif
 
+#include "llc/unroll.h"
+#include "gtest/gtest.h"
 
-#include "unroll.h"
 
 using namespace llc;
 
 // check iterations with unroll::run
 
-void check_unroll_run() {
+TEST(unroll,run4) {
     int sum=0;
     for (int i=0;i<10;++i)
         unroll<4>::run([&](int j) { sum+=j; }, 3);
 
-    assert(sum==10*4*3);
+    ASSERT_EQ(sum,10*4*3);
 }
 
 // check iterations and index with unroll::runi
 
-void check_unroll_runi() {
+TEST(unroll,runi4) {
     int sum=0;
     // sum 1..100
     for (int i=0;i<100;i+=4)
         unroll<4>::runi(i+1,[&](int i) { sum+=i; });
 
-    assert(sum==101*100/2);
+    ASSERT_EQ(sum,101*100/2);
 }
 
 #ifdef HAS_BACKTRACE
+
 int stack_depth() {
     constexpr size_t max_depth=100;
     void *backtrace_buf[max_depth];
@@ -45,26 +44,20 @@ int stack_depth() {
 
 // check unroll isn't performing recursive calls
 
-void check_unroll_stack_depth() {
-    int depths[8];
+TEST(unroll,stack_depth) {
+    constexpr unsigned n_unroll=8;
+    int depth[n_unroll];
 
-    unroll<8>::runi(0,[&](int i){ depths[i]=stack_depth(); });
-    for (int j=0;j<8;++j) {
-        std::cout << "depth[" << j << "]==" << depths[j] << "\n";
+    for (int i=0;i<n_unroll;++i) depth[i]=-1;
+
+    unroll<8>::runi(0,[&](int i){ depth[i]=stack_depth(); });
+    
+    EXPECT_GT(depth[0],-1);
+
+    for (int j=1;j<n_unroll;++j) {
+        EXPECT_EQ(depth[0],depth[j]);
     }
 }
 
-#else
-
-void check_unroll_stack_depth() {
-     std::cout << "not available\n";
-}
-
 #endif
-
-int main() {
-    check_unroll_stack_depth();
-}
-
-
 

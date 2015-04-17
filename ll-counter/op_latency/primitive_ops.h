@@ -144,7 +144,8 @@ std::ostream &operator<<(std::ostream &,arith_op::arith_op);
 // architecture-specific specializations:
 
 #if defined(__powerpc) || defined(_M_PPC) || defined(_ARCH_PPC)
-#include "primitive_ops_powerpc.h"
+// actually, this needs to be specific to 2.07 ISA / POWER8
+#include "primitive_ops_power8.h"
 #elif defined(__x86_64) || defined(_M_X64)
 #include "primitive_ops_x86_64.h"
 #else

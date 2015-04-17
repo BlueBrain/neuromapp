@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8.9)
+enable_testing()
+
 project(ll_counter)
 
 include(CMake/Compiler.cmake)
@@ -13,8 +15,6 @@ set(CMAKE_BUILD_TYPE Release)
 
 add_subdirectory(llc)
 add_subdirectory(op_latency)
-
-
-
-
+add_subdirectory(demo)
+add_subdirectory(test)
 

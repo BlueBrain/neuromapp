@@ -11,8 +11,8 @@ template <typename T,T...>
 struct tvalue_list {
     typedef T value_type;
 
-    constexpr static bool empty=true;
-    constexpr static unsigned length=0;
+    enum :bool { empty=true };
+    enum :unsigned { length=0 };
 
     template <T p>
     using prepend = tvalue_list<T,p>;
@@ -28,9 +28,10 @@ template <typename T,T h,T... t>
 struct tvalue_list<T,h,t...> {
     typedef T value_type;
 
-    constexpr static bool empty=false;
+    enum :bool { empty=false };
+    enum :unsigned { length=1+sizeof...(t) };
+
     constexpr static T head=h;
-    constexpr static unsigned length=1+sizeof...(t);
     typedef tvalue_list<T,t...> tail;
 
     template <T p>
@@ -40,7 +41,7 @@ struct tvalue_list<T,h,t...> {
     struct for_each {
         template <typename... Args>
         static void run(Args&&... args) {
-            F<head>::run(std::forward<Args>(args)...);
+            F<h>::run(std::forward<Args>(args)...);
             tail::template for_each<F>::run(std::forward<Args>(args)...);
         }
     };

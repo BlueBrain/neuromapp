@@ -1,8 +1,8 @@
 #include <chrono>
 #include <iostream>
 
-#include "ll_counter.h"
-#include "linux_perf_count.h"
+#include "llc/ll_counter.h"
+#include "llc/linux_perf_count.h"
 
 using namespace llc;
 
