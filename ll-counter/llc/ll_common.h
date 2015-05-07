@@ -15,7 +15,7 @@
 #define ASM_LABEL(label) \
 asm ("#" label "\n\t")
 
-/** Insert comment in emmited assembly with fence.
+/** Insert comment in emitted assembly with fence.
  *
  * @param label Label: must be a string literal
  *
