@@ -1,0 +1,16 @@
+Workaround for XL C not including asm comments in generated .s files:
+
+The macros introduce special non-executed code in the functions which
+encode the line number where the macros are placed, and also causes
+a symbol to be defined in a special section whcih encodes the mapping
+between line number and a supplied label.
+
+The postprocess.pl script scans the generated assembly for the
+magic marking code, and includes a comment before or after it,
+depending on the macro used, with the appropriate label.
+
+demo_kernels.s and demo_kernels.s.post are produced by:
+
+    xlc -O3 -S demo_kernels.c
+    perl postprocess.pl demo_kernels.s > demo_kernels.s.post
+
