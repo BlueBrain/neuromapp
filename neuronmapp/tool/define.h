@@ -1,6 +1,11 @@
 #pragma once
 
-#if defined(__clang__)
+#if defined(__OPENACC__)
+    /* OpenACC accelerator  ---------------------------------------------- */
+    // Putting it first as it's compiler independent (cray,pgi ...)
+#define  PRAGMA_FOR_VECTOR_LOOP _Pragma("acc kernels")
+
+#elif defined(__clang__)
     /* Clang/LLVM. ---------------------------------------------- */
 #define PRAGMA_FOR_VECTOR_LOOP _Pragma("clang loop vectorize(enable)")
 
