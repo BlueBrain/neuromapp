@@ -31,9 +31,7 @@ public:
             if ( _llv == - 154.9 ) {
                 _llv = _llv + 0.0001 ;
             }
-            #else
-            _llv = _llv + 0.0001 ;
-            #endif 
+            #endif
 
             _lmAlpha = 0.001 * 6.43 * ( _llv + 154.9 ) / ( exp ( ( _llv + 154.9 ) / 11.9 ) - 1.0 );
             _lmBeta = 0.001 * 193.0 * exp ( _llv / 33.1 ) ;
