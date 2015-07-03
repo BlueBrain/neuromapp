@@ -1,0 +1,8 @@
+To compile on Cray system (CSCS)
+1) source source-cray
+2) make clean
+3) make cray-openacc: This will compile an executable in bin/exe_cray_openacc 
+
+To launch a job in Cray system (CSCS) piz daint
+1) module load slurm
+2) sbatch test/slurm.sl  
