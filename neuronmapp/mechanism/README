@@ -1,0 +1,4 @@
+
+List of compilation flags
+ __CORENEURON_ORIGINAL: If true, this will compile kernels with the original version of the code which includes some comparison of double precision nubmbers with the == syntax. We believe such a comparison is erroneous and should be discarded in the future. For performance it is better to avoid branching and add a regularization parameter to all variables. If the method is stable, this should not lead to a large difference in the final result
+ 

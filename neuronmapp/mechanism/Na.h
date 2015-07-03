@@ -31,17 +31,28 @@ public:
             _v = pVEC_V[i];
             _llv = _v;
             p_3[i] = pion_data0[ppvar0[i]];
+
+            #ifdef __CORENEURON_ORIGINAL
             if ( _llv == - 32.0 ) {
                 _llv = _llv + 0.0001 ;
             }
+            #else 
+            _llv += 0.0001;
+            #endif 
             _lmAlpha = ( 0.182 * ( _llv - - 32.0 ) ) / ( 1.0 - ( std::exp ( - ( _llv - - 32.0 ) / 6.0 ) ) );
             _lmBeta = ( 0.124 * ( - _llv - 32.0 ) ) / ( 1.0 - ( std::exp ( - ( - _llv - 32.0 ) / 6.0 ) ) );
             _lmInf = _lmAlpha / ( _lmAlpha + _lmBeta ) ;
             _lmTau = ( 1.0 / ( _lmAlpha + _lmBeta ) ) / _lqt ;
             p_0[i] = p_0[i] + (1. - std::exp(dt*(( ( ( - 1.0 ) ) ) / _lmTau)))*(- ( ( ( _lmInf ) ) / _lmTau ) / ( ( ( ( - 1.0) ) ) / _lmTau ) - p_0[i]) ;
+
+            #ifdef __CORENEURON_ORIGINAL
             if ( _llv == - 60.0 ) {
                 _llv = _llv + 0.0001 ;
             }
+            #else
+            _llv = _llv + 0.0001 ;
+            #endif 
+
             _lhAlpha = ( - 0.015 * ( _llv - - 60.0 ) ) / ( 1.0 - ( std::exp ( ( _llv - - 60.0 ) / 6.0 ) ) );
             _lhBeta = ( - 0.015 * ( - _llv - 60.0 ) ) / ( 1.0 - ( std::exp ( ( - _llv - 60.0 ) / 6.0 ) ) );
             _lhInf = _lhAlpha / ( _lhAlpha + _lhBeta ) ;
