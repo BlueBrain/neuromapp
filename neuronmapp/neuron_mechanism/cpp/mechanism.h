@@ -47,8 +47,8 @@ struct mechanism{
 };
 
 #include "tool/define.h"
-#include "mechanism/Na.h"
-#include "mechanism/lh.h"
-#include "mechanism/ProbAMPANMDA_EMS.h"
+#include "Na.h"
+#include "lh.h"
+#include "ProbAMPANMDA_EMS.h"
 
 #undef PRAGMA_FOR_VECTOR_LOOP // keep global macro is dangerous, not used anymore undef

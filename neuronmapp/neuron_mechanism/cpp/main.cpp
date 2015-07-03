@@ -6,10 +6,10 @@
 
 //#define NDEBUG
 
-#include "mechanism/mechanism.h"
-#include "mechanism/Na.h"
-#include "mechanism/lh.h"
-#include "mechanism/ProbAMPANMDA_EMS.h"
+#include "mechanism.h"
+#include "Na.h"
+#include "lh.h"
+#include "ProbAMPANMDA_EMS.h"
 
 
 template<class T>

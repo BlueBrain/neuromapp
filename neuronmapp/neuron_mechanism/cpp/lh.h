@@ -21,7 +21,8 @@ public:
 
         double dt = 0.1;
 
-        PRAGMA_FOR_VECTOR_LOOP
+        //PRAGMA_FOR_VECTOR_LOOP
+        #pragma acc kernels
         for (int i = 0; i < size; ++i) {
 
             _v = pVEC_V[pni[i]];
@@ -54,7 +55,8 @@ public:
         size_t size =  number_instance();
         double lgIh, lihcn, rhs, g, v;
 
-        PRAGMA_FOR_VECTOR_LOOP
+        //PRAGMA_FOR_VECTOR_LOOP
+        #pragma acc kernels
         for (int i = 0; i < size; ++i){
             v = pVEC_V[pni[i]];
             lgIh = p_0[i] * p_1[i] ;
