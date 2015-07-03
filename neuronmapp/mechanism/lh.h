@@ -25,9 +25,15 @@ public:
 
             _v = pVEC_V[pni[i]];
             _llv = _v ;
+
+            #ifdef __CORENEURON_ORIGINAL
             if ( _llv == - 154.9 ) {
                 _llv = _llv + 0.0001 ;
             }
+            #else
+            _llv = _llv + 0.0001 ;
+            #endif 
+
             _lmAlpha = 0.001 * 6.43 * ( _llv + 154.9 ) / ( exp ( ( _llv + 154.9 ) / 11.9 ) - 1.0 );
             _lmBeta = 0.001 * 193.0 * exp ( _llv / 33.1 ) ;
             _lmInf = _lmAlpha / ( _lmAlpha + _lmBeta ) ;
