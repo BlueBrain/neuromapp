@@ -1,6 +1,5 @@
 #pragma once
 
-
 struct mechanism{
     mechanism(size_t s, size_t l){
         _number_instance = s;
@@ -47,6 +46,9 @@ struct mechanism{
     std::vector<int> ni,ppvar;
 };
 
+#include "tool/define.h"
 #include "mechanism/Na.h"
 #include "mechanism/lh.h"
 #include "mechanism/ProbAMPANMDA_EMS.h"
+
+#undef PRAGMA_FOR_VECTOR_LOOP // keep global macro is dangerous, not used anymore undef

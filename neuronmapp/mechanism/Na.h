@@ -26,8 +26,7 @@ public:
 
         _lqt = 2.952882641412121 ;
 
-        #pragma ibm independent_loop
-        #pragma GCC ivdep
+        PRAGMA_FOR_VECTOR_LOOP
         for (int i = 0; i < size; i++) {
             _v = pVEC_V[i];
             _llv = _v;
@@ -77,7 +76,7 @@ public:
 
         double _rhs, _g, _v, v;
 
-        #pragma ibm independent_loop
+        PRAGMA_FOR_VECTOR_LOOP
         for (int i = 0; i < size; i++) {
             _v = pVEC_V[pni[i]];
             p_3[i] = pion_data0[ppvar0[i]];

@@ -1,6 +1,7 @@
 #include <iostream>
+#include <algorithm>
 #include <vector>
-#include <chrono>
+#include <ctime>
 #include <cmath>
 
 //#define NDEBUG
@@ -18,28 +19,27 @@ public:
     benchmark(size_t size,void (mechanism::*pt)()):ptf(pt){
         v.resize(100);
         #pragma omp parallel for schedule(static)
-        for(int i=0; i<v.size(); ++i)
+        for(size_t i=0; i<v.size(); ++i)
             v[i] = new value_type(size,value_type::width);
     }
 
     ~benchmark(){
-        std::for_each(v.begin(),v.end(),std::default_delete<mechanism>());
+        for(size_t i=0; i<v.size(); ++i)
+            delete v[i];
         v.clear();
     }
 
     void execute(){
         #pragma omp parallel for schedule(static)
-        for(int i=0; i<v.size(); ++i)
+        for(size_t i=0; i<v.size(); ++i)
             (v[i]->*ptf)();
     }
 
     double bench(){
-        std::chrono::time_point<std::chrono::system_clock> t_start =  std::chrono::system_clock::now();
+        std::clock_t t_start = std::clock();
         execute();
-        std::chrono::time_point<std::chrono::system_clock> t_end =  std::chrono::system_clock::now();
-        std::chrono::duration<double> time = std::chrono::duration<double>();
-        time = t_end - t_start;
-        return time.count();
+        std::clock_t t_end = std::clock();
+        return (t_end - t_start)/(double)CLOCKS_PER_SEC;
     }
 
 private:
@@ -51,7 +51,7 @@ class result{
 public:
     result(std::string n, double timer_state = 0, double timer_current = 0):name(n),time_state(timer_state),time_current(timer_current){ }
 
-    void print(std::ostream & os) const{
+    void prsize_t(std::ostream & os) const{
         os << name << " time state " <<  time_state << " [s] " << "time current : " << time_current << " [s] " << std::endl;
     }
 
@@ -61,7 +61,7 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& os, result const& a){
-    a.print(os);
+    a.prsize_t(os);
     return os;
 }
 
@@ -77,7 +77,7 @@ void execution(std::size_t size){
     std::cout << r << std::endl;
 }
 
-int main(int argc, char* argv[]){
+int main(int  argc, char* argv[]){
     size_t size = atoi(argv[1]); // number of instance mechanism
     execution<Na>(size);
     execution<lh>(size);

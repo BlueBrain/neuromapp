@@ -30,6 +30,7 @@ public:
         double _lmggate , _rhs, _g, _lg_AMPA , _lg_NMDA , _lg , _li_AMPA , _li_NMDA , _lvv , _li , _lvve, _v ;
         double gmax_ProbAMPANMDA_EMS(1.1); // random value
 
+        PRAGMA_FOR_VECTOR_LOOP
         for (int i = 0; i < size; ++i) {
             _v = pVEC_V[pni[i]];
             _lvv = _v ;
@@ -49,6 +50,7 @@ public:
             pshadow_d[i] = _g;
         }
 
+        PRAGMA_FOR_VECTOR_LOOP
         for (int i = 0; i < size; ++i) {
             pVEC_RHS[pni[i]] -= pshadow_rhs[i];
             pVEC_D[pni[i]] +=  pshadow_d[i];
@@ -67,6 +69,7 @@ public:
 
         size_t size =  number_instance();
 
+        PRAGMA_FOR_VECTOR_LOOP
         for (int i = 0; i < size ; ++i) {
             p_20[i] *= p_13[i] ;
             p_21[i] *= p_14[i] ;
