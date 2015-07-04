@@ -1,0 +1,14 @@
+Compile with:
+    make cuda
+
+Run with:
+    ./run.sh
+
+
+CUDA-related files:
+  mechanism/Na.cu: Wrapper functions that call CUDA kernels and __global__ kernel functions.
+
+  mechanism/Na_kernels.cu: Loop implementations, code is shared by both CUDA kernels and CPU verification.
+
+  mechanism/Na.h: Original file, now calls CUDA wrappers and includes additional code to verify the result on CPU.
+
