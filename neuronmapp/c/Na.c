@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "time.c"
+#include "timer.h"
 
 //#define _RESTR_ restrict 
 #define _RESTR_
@@ -25,8 +25,6 @@ double * _RESTR_ VEC_V;
 
 double * _RESTR_ ppvar;
 double * _RESTR_ ppvar0, * _RESTR_ ppvar1, * _RESTR_ ppvar2;
-
-
 
 
 void alloc_mechanism(int num_mechs)
@@ -76,7 +74,7 @@ void init_mechanism(int num_mechs)
     seed = time (NULL);
     srand (seed);
 
-    #pragma omp parallel for
+ //   #pragma omp parallel for
     for( i=0; i<num_mechs; i++)
     {
         for( j=0; j<CHANNEL_LEN; j++)
@@ -112,7 +110,8 @@ void init_mechanism(int num_mechs)
     }
 }
 
-void na_cur_soa(int num_mechs)
+/// current kernel 
+/*void na_cur_soa(int num_mechs)
 {
     int _cntml = num_mechs;
     int i;
@@ -120,8 +119,8 @@ void na_cur_soa(int num_mechs)
     double rhs, v, dina;
 
     #pragma acc parallel loop 
-    #pragma ivdep
-    #pragma omp parallel for
+    //#pragma ivdep
+    //#pragma omp parallel for
     for (i = 0; i < _cntml; i++) 
     {
         v = VEC_V[i];
@@ -149,17 +148,21 @@ void na_cur_soa(int num_mechs)
         VEC_RHS[i] -= rhs;
     }
 
-}
+}*/
 
 /* nrn_state kernel in SOA layout: original from neurodamus */
-void compute_mechanism_soa(int num_mechs)
+//void compute_mechanism_soa(int num_mechs)
+void state(int num_mechs)
 {
     int _cntml = num_mechs;
     int i;
+    #pragma acc data copy (p_10[0:num_mechs],p_3[0:num_mechs],p_8[0:num_mechs],p_9[0:num_mechs],p_6[0:num_mechs],p_7[0:num_mechs],p_16[0:num_mechs],p_12[0:num_mechs],p_11[0:num_mechs],p_13[0:num_mechs],p_4[0:num_mechs]) 
+{
+   // #pragma acc parallel loop present(p_10,p_3,p_8,p_9,p_6,p_7,p_16,p_12,p_11,p_13,p_4) 
+   // #pragma ivdep
+   // #pragma omp parallel for
 
-    #pragma acc parallel loop 
-    #pragma ivdep
-    #pragma omp parallel for
+    #pragma acc parallel loop present(p_10[0:num_mechs],p_3[0:num_mechs],p_8[0:num_mechs],p_9[0:num_mechs],p_6[0:num_mechs],p_7[0:num_mechs],p_16[0:num_mechs],p_12[0:num_mechs],p_11[0:num_mechs],p_13[0:num_mechs],p_4[0:num_mechs])
     for (i = 0; i < _cntml; i++) 
     {
         p_8[i] = ( 0.182 * ( p_16[i] - - 35.0 ) )/ ( 1.0 - ( exp ( - ( p_16[i] - - 35.0 ) / 9.0 ) ) ) ;
@@ -177,7 +180,7 @@ void compute_mechanism_soa(int num_mechs)
 
         p_4[i] = p_4[i] + (1. - exp(0.01*(( ( ( -1.0 ) ) ) / p_11[i])))*(- ( ( ( p_10[i] ) ) / p_11[i] ) / ( ( ( ( -1.0) ) ) / p_11[i] ) - p_4[i]);
     }
-
+}
 }
 
 int main(int argc, char *argv[])
@@ -200,17 +203,18 @@ int main(int argc, char *argv[])
         init_mechanism(num_mechs);
 
         /* Compute time for SOA layout*/
-        #pragma acc data copy(p_8[0:num_mechs], p_16[0:num_mechs], p_9[0:num_mechs], p_6[0:num_mechs], p_7[0:num_mechs], p_3[0:num_mechs], \
+        //#pragma acc data copy(p_8[0:num_mechs], p_16[0:num_mechs], p_9[0:num_mechs], p_6[0:num_mechs], p_7[0:num_mechs], p_3[0:num_mechs], \
         p_4[0:num_mechs], p_10[0:num_mechs], p_11[0:num_mechs], p_12[0:num_mechs], p_13[0:num_mechs], p_14[0:num_mechs])
+	//#pragma acc data copy (p_1[0:num_mechs], p_2[0:num_mechs], p_3[0:num_mechs], p_4[0:num_mechs], p_5[0:num_mechs], p_6[0:num_mechs], p_7[0:num_mechs], p_8[0:num_mechs], p_9[0:num_mechs], p_10[0:num_mechs], p_11[0:num_mechs], p_12[0:num_mechs], p_13[0:num_mechs], p_14[0:num_mechs], p_15[0:num_mechs], p_16[0:num_mechs])
         {
             gettimeofday(&tvBegin, NULL);
-            compute_mechanism_soa(num_mechs);
+            state(num_mechs);
             gettimeofday(&tvEnd, NULL);
         }
 
         timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
         printf("\n SOA State OpenACC Version : %ld.%06ld", tvDiff.tv_sec, tvDiff.tv_usec);
-
+/*
 
         #pragma acc data copy(p_1[0:num_mechs], p_2[0:num_mechs], p_3[0:num_mechs], p_4[0:num_mechs], p_16[0:num_mechs], p_7[0:num_mechs], \
         p_5[0:num_mechs], ppvar0[0:num_mechs], ppvar1[0:num_mechs], ppvar2[0:num_mechs], VEC_V[0:num_mechs], VEC_RHS[0:num_mechs])
@@ -223,7 +227,7 @@ int main(int argc, char *argv[])
         timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
         printf("\n SOA Curr Version : %ld.%06ld", tvDiff.tv_sec, tvDiff.tv_usec);
 
-
+*/
 
         printf("\n\n");        
     }

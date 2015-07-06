@@ -1,15 +1,14 @@
-CC = icc
-CPU_CFLAGS = -g -O3 -Minfo 
 
-CC = pgcc
-GPU_CFLAGS = -O2 -ta=nvidia -Minfo=accel  -acc
+pgi-openacc: 
+	mkdir -p bin
+	CC -D__OPENACC__ -Minfo=accel -mp=nonuma -fast -acc -ta=nvidia,time -I . Na.c -o bin/Na_test_pgi 
 
-all: soa_vs_aos_test
+cray-openacc:
+	mkdir -p bin
+	CC -D__OPENACC__ -h list=a -hacc -O3 -fpic -dynamic -lcudart -G1 -I . Na.c -o bin/Na_test_cray 
 
-soa_vs_aos_test: soa_vs_aos_test.c time.c 
-	 ${CC} $(GPU_CFLAGS) soa_vs_aos_test.c -o $@_gpu
-	 ${CC} $(CPU_CFLAGS) soa_vs_aos_test.c -o $@_cpu
+all: cray-openacc pgi-openacc
 
 clean:	
-	rm -f  soa_vs_aos_test soa_vs_aos_test_gpu soa_vs_aos_test_cpu *.o
+	rm -rf Na_1*  bin *.o comp_cray  comp_pgi 
 

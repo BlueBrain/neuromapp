@@ -16,20 +16,20 @@ int timeval_subtract(struct timeval *result, struct timeval *t2, struct timeval 
     return (diff<0);
 }
 
-int test_main()
-{
-
-    // begin
-    gettimeofday(&tvBegin, NULL);
-
-    // compute here
-
-    //end
-    gettimeofday(&tvEnd, NULL);
-
-    // diff
-    timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-    printf("%ld.%06ld\n", tvDiff.tv_sec, tvDiff.tv_usec);
-
-    return 0;
-}
+//int test_main()
+//{
+//
+//    // begin
+//    gettimeofday(&tvBegin, NULL);
+//
+//    // compute here
+//
+//    //end
+//    gettimeofday(&tvEnd, NULL);
+//
+//    // diff
+//    timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
+//    printf("%ld.%06ld\n", tvDiff.tv_sec, tvDiff.tv_usec);
+//
+//    return 0;
+//}
