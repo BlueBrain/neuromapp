@@ -1,5 +1,0 @@
-# source file to load cray compiler
-module unload PrgEnv-cray PrgEnv-pgi
-module load PrgEnv-cray craype-accel-nvidia35 cudatoolkit
-COMP=`which CC`
-echo "CC compiler: $COMP"
