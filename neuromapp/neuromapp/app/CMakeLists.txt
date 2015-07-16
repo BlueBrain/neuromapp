@@ -1,2 +1,6 @@
 add_executable (app main.cpp)
-target_link_libraries (app hello coreneuron10_kernel ${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG})
+target_link_libraries (app
+                       hello
+                       coreneuron10_kernel
+                       coreneuron10_solver
+                       ${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG})
