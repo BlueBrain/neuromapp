@@ -3,13 +3,13 @@
 #include <string.h>
 #include <math.h>
 //#include <mpi.h>
-#include "cnkernel/cnkernel.h"
-#include "cnkernel/util/reader.h"
-#include "cnkernel/util/writer.h"
-#include "cnkernel/util/timer.h"
-#include "cnkernel/util/helper.h"
-#include "cnkernel/mechanism/mechanism.h"
-#include "cnkernel/memory/data_manager.h"
+#include "coreneuron_1.0/kernel/helper.h"
+#include "coreneuron_1.0/kernel/kernel.h"
+#include "coreneuron_1.0/kernel/mechanism/mechanism.h"
+#include "coreneuron_1.0/common/util/reader.h"
+#include "coreneuron_1.0/common/util/writer.h"
+#include "coreneuron_1.0/common/util/timer.h"
+#include "coreneuron_1.0/common/memory/data_manager.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -55,7 +55,7 @@ int gettable()
   return 0;
 }
 
-int cnkernel_execute(int argc, char *argv[])
+int coreneuron10_kernel_execute(int argc, char *argv[])
 {
 
     struct input_parameters p;

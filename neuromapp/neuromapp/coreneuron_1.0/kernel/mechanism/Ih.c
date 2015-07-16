@@ -1,9 +1,10 @@
 /* Created by Language version: 6.2.0 */
 /* VECTORIZED */
-#include "cnkernel/mechanism/mechanism.h"
-#include "cnkernel/memory/nrnthread.h"
-#include "cnkernel/util/writer.h"
-#include "cnkernel/util/vectorizer.h"
+
+#include "coreneuron_1.0/kernel/mechanism/mechanism.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
+#include "coreneuron_1.0/common/util/writer.h"
+#include "coreneuron_1.0/common/util/vectorizer.h"
 
 #define _STRIDE _cntml + _iml
 #define t _nt->_t

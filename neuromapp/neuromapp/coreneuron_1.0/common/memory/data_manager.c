@@ -6,7 +6,7 @@
 #include<openacc.h>
 #endif
 
-#include "cnkernel/memory/nrnthread.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
 
 #define DEBUG 1
 

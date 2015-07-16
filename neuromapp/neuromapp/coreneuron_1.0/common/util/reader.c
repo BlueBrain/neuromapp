@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cnkernel/memory/nrnthread.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
 
 void print_iarray(int * data, int n) {
     int i = 0;

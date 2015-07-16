@@ -3,7 +3,7 @@
 
 #include <math.h>
 
-#include "cnkernel/util/reader.h"
+#include "coreneuron_1.0/common/util/reader.h"
 
 void mech_init_NaTs2_t(NrnThread *nt, Mechanism *ml);
 void mech_state_NaTs2_t(NrnThread *nt, Mechanism *ml);

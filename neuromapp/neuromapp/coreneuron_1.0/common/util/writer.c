@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "cnkernel/memory/nrnthread.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
 
 void write_darray_to_file(FILE *hFile, double *data, int n) {
     int i;

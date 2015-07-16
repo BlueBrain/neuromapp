@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "cnkernel/memory/nrnthread.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
 
 void dump_darray_to_file(char *fname, double *d, int n);
 void dump_iarray_to_file(char *fname, int *d, int n);
