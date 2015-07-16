@@ -33,8 +33,8 @@ typedef struct NrnTh{
 
     Mechanism *ml;
 
-    //@todo: add following extra members
-    //nmech: temporarily stored, make struct member
+    int* _v_parent_index;
+
 } NrnThread;
 
 #endif // _nrnthread_

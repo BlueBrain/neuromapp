@@ -91,6 +91,10 @@ void read_nt_from_file(char *filename, NrnThread *nt) {
 
     }
 
+    /* parent indexes for linear algebra */
+    posix_memalign((void **)&nt->_v_parent_index, 64, sizeof(int) * ne);
+    read_iarray_from_file(hFile, nt->_v_parent_index, ne);
+
     posix_memalign((void **)&nt->_shadow_rhs, 64, sizeof(double) *nt->max_nodecount);
     posix_memalign((void **)&nt->_shadow_d, 64, sizeof(double) *nt->max_nodecount);
 
