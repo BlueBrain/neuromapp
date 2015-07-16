@@ -59,7 +59,7 @@ int coreneuron10_kernel_execute(int argc, char *argv[])
 {
 
     struct input_parameters p;
-    help(argc, argv, &p);
+    kernel_help(argc, argv, &p);
 
 
 #ifdef _OPENMP

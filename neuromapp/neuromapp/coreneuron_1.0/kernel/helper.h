@@ -5,8 +5,8 @@
 #include <getopt.h>
 
 
-void print_usage() {
-    printf("Usage: cnkernels --mechanism [string] --function [string] --data [string] --numthread [int] \n");
+void kernel_print_usage() {
+    printf("Usage: kernel --mechanism [string] --function [string] --data [string] --numthread [int] \n");
     printf("Details: \n");
     printf("                 --mechanism [Na, ProbAMPANMDA or Ih] \n");
     printf("                 --function [state or current] \n");
@@ -22,7 +22,7 @@ struct input_parameters{
     int th; // number of thread
 };
 
-int help(int argc, char* argv[], struct input_parameters * p)
+int kernel_help(int argc, char* argv[], struct input_parameters * p)
 {
   int c;
 
@@ -63,10 +63,10 @@ int help(int argc, char* argv[], struct input_parameters * p)
           case 'n': p->th = atoi(optarg);
               break;
           case 'h':
-              print_usage();
+              kernel_print_usage();
               break;
           default:
-              print_usage ();
+              kernel_print_usage ();
 	      break;
       }
   }
