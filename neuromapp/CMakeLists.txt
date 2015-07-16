@@ -3,6 +3,7 @@ project (neuromapp)
 
 #set( CMAKE_C_FLAGS  ${CMAKE_C_FLAGS} "-std=c99")
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
+set(Boost_USE_STATIC_LIBS   ON)
 find_package(Boost 1.44 REQUIRED program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
