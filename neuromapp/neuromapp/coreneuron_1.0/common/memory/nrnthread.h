@@ -17,6 +17,7 @@ typedef struct Membrane {
 typedef struct NrnTh{
     int _ndata;
     int nmech;
+    int ncell;
     int end;   //this is number of compartments
     double dt;
 
