@@ -8,7 +8,7 @@
 void print_usage() {
     printf("Usage: cnkernels --mechanism [string] --function [string] --data [string] --numthread [int] \n");
     printf("Details: \n");
-    printf("                 --mechanism [Na, Synapse or Ih] \n");
+    printf("                 --mechanism [Na, ProbAMPANMDA or Ih] \n");
     printf("                 --function [state or current] \n");
     printf("                 --data [path to the input] \n");
     printf("                 --numthread [threadnumber] \n");

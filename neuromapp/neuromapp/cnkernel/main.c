@@ -139,10 +139,19 @@ void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
         gettimeofday(&tvEnd, NULL);
     }
 
-    if(strncmp(p->m,"Synapse",7) == 0)
+    if(strncmp(p->m,"Ih",2) == 0)
     {
         gettimeofday(&tvBegin, NULL);
-        mech_init_ProbAMPANMDA_EMS(nt, &(nt->ml[mech_id]));
+        if(strncmp(p->f,"state",5) == 0)
+             mech_state_NaTs2_t(nt, &(nt->ml[mech_id]));
+        if(strncmp(p->f,"current",7) == 0)
+             mech_current_NaTs2_t(nt, &(nt->ml[mech_id]));
+        gettimeofday(&tvEnd, NULL);
+    }
+
+    if(strncmp(p->m,"ProbAMPANMDA",12) == 0)
+    {
+        gettimeofday(&tvBegin, NULL);
         if(strncmp(p->f,"state",5) == 0)
             mech_state_ProbAMPANMDA_EMS(nt, &(nt->ml[mech_id]));
         if(strncmp(p->f,"current",7) == 0)

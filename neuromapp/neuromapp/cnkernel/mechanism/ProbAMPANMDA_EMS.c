@@ -208,7 +208,7 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
                            _vec_rhs[0:_num_compartment])
    #endif
    #endif
-
+/*
     FILE *fp_d;
     fp_d = fopen("vec_d.txt", "a+");
 
@@ -218,7 +218,7 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
       fprintf(fp_d,"%lf\t%lf\n",_vec_d[i], _vec_rhs[i]);
     }
     fclose(fp_d);
-
+*/
    #ifdef __SHADOW
    #ifdef __OPENACC__
    #pragma acc parallel loop present(_ni[0:_cntml], \
