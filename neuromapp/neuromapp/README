@@ -1,0 +1,10 @@
+#Brief description of the directory
+
+    app : contain the main app that organize all the mini app (C++)
+    hello: contain a basic example of hello world miniapp (C++)
+    coreneuron_1.0 : contain 3 mini-app that extract the functionality of CoreNeuron
+			- kernel, the main computation of core neuron (C/OMP)
+                        - solver, the famous Hines solver for sparce matrix (C)
+			- spike, spike exchange (C/MPI)
+
+
