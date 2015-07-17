@@ -27,8 +27,10 @@ void mech_init_Ih(NrnThread* _nt, Mechanism *_ml){
     double * restrict _vec_v = _nt->_actual_v;
     _p = _ml->data;
     int * _ppvar = _ml->pdata;
+
     _PRAGMA_FOR_VECTOR_LOOP_
-    for (_iml = 0; _iml < _cntml; ++_iml) {
+    for (_iml = 0; _iml < _cntml; ++_iml)
+    {
        int _nd_idx = _ni[_iml];
        _v = _vec_v[_nd_idx];
        v = _v;
@@ -42,7 +44,7 @@ void mech_init_Ih(NrnThread* _nt, Mechanism *_ml){
        _lmBeta =  0.001 * 193.0 * exp ( _llv / 33.1 ) ;
        _lmInf = _lmAlpha / ( _lmAlpha + _lmBeta ) ;
        m = _lmInf ;
-   }
+    }
 }
 
 void mech_cur_Ih(NrnThread* _nt, Mechanism* _ml) {
@@ -59,8 +61,10 @@ void mech_cur_Ih(NrnThread* _nt, Mechanism* _ml) {
     double * restrict _vec_v = _nt->_actual_v;
     _p = _ml->data;
     int * restrict _ppvar = _ml->pdata;
+
     _PRAGMA_FOR_VECTOR_LOOP_
-    for (_iml = 0; _iml < _cntml; ++_iml) {
+    for (_iml = 0; _iml < _cntml; ++_iml)
+    {
         int _nd_idx = _ni[_iml];
         _v = _vec_v[_nd_idx];
         double _lgIh , _lihcn ;
@@ -80,18 +84,21 @@ void mech_state_Ih(NrnThread* _nt, Mechanism* _ml) {
     double dt = 0.1;
     int* _ni;
     int _iml, _cntml;
-    _ni = _ml->nodeindices;
-    _cntml = _ml->nodecount;
     double * restrict _nt_data = _nt->_data;
     double * restrict _vec_v = _nt->_actual_v;
+
+    _ni = _ml->nodeindices;
+    _cntml = _ml->nodecount;
     _p = _ml->data;
-     _ppvar = _ml->pdata;
+    _ppvar = _ml->pdata;
+
     _PRAGMA_FOR_VECTOR_LOOP_
-    for (_iml = 0; _iml < _cntml; ++_iml) {
+    for (_iml = 0; _iml < _cntml; ++_iml)
+    {
+        double _lmAlpha , _lmBeta , _lmInf , _lmTau , _llv ;
         int _nd_idx = _ni[_iml];
         _v = _vec_v[_nd_idx];
         v=_v;
-        double _lmAlpha , _lmBeta , _lmInf , _lmTau , _llv ;
         _llv = v ;
         if ( _llv  == - 154.9 ) {
           _llv = _llv + 0.0001 ;

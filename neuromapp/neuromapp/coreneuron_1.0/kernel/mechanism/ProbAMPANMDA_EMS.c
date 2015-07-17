@@ -1,7 +1,3 @@
-#ifdef __OPENACC__
-#include<openacc.h>
-#endif
-
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
 #include "coreneuron_1.0/common/memory/nrnthread.h"
 #include "coreneuron_1.0/common/util/writer.h"
@@ -62,13 +58,7 @@ void mech_init_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
     double * restrict _p = _ml->data;
     int * restrict _ppvar = _ml->pdata;
 
-    //_PRAGMA_FOR_VECTOR_LOOP_
-    #ifdef __OPENACC__
-    #pragma acc parallel loop present(_ni[0:_cntml], \
-                                      _p[ml->nodecount*ml->szp], \
-                                      _ppvar[0:_cntml*ml->szdp], \
-                                      _vec_v[0:_num_compartment])
-    #endif
+    _PRAGMA_FOR_VECTOR_LOOP_
     for (int _iml = 0; _iml < _cntml; ++_iml)
     {
         int _nd_idx = _ni[_iml];
@@ -114,13 +104,7 @@ void mech_state_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
     int _num_compartment = _nt->end;
 
     /* insert compiler dependent ivdep like pragma */
-    //_PRAGMA_FOR_VECTOR_LOOP_
-    #ifdef __OPENACC__
-    #pragma acc parallel loop present(_ni[0:_cntml], \
-                                      _p[ml->nodecount*ml->szp], \
-                                      _ppvar[0:_cntml*ml->szdp], \
-                                      _vec_v[0:_num_compartment])
-    #endif
+    _PRAGMA_FOR_VECTOR_LOOP_
     for (int _iml = 0; _iml < _cntml; ++_iml)
     {
         A_AMPA = A_AMPA * A_AMPA_step ;
@@ -133,15 +117,12 @@ void mech_state_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 {
     double _rhs, _g, _v, v;
-
     int *_ni = _ml->nodeindices;
     int _cntml = _ml->nodecount;
     double * restrict _vec_rhs = _nt->_actual_rhs;
     double * restrict _vec_d = _nt->_actual_d;
-    #ifdef __SHADOW
     double * restrict _vec_shadow_rhs = _nt->_shadow_rhs;
     double * restrict _vec_shadow_d = _nt->_shadow_d;
-    #endif
     double * _nt_data = _nt->_data;
     int _size_data = _nt->_ndata;
     double * restrict _vec_v = _nt->_actual_v;
@@ -153,26 +134,7 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
     double gmax = 0.001;
 
     /* insert compiler dependent ivdep like pragma */
-    // _PRAGMA_FOR_VECTOR_LOOP_
-    #ifdef __OPENACC__
-    #ifdef __SHADOW
-    #pragma acc parallel loop present(_ni[0:_cntml], \
-                                      _p[ml->nodecount*ml->szp], \
-                                      _ppvar[0:_cntml*ml->szdp], \
-                                      _vec_v[0:_num_compartment], \
-                                      _nt_data[0:_size_data], \
-                                      _vec_shadow_rhs[0:_max_nodecount], \
-                                      _vec_shadow_d[0:_max_nodecount])
-    #else
-    #pragma acc parallel loop present(_ni[0:_cntml], \
-                                      _p[ml->nodecount*ml->szp], \
-                                      _ppvar[0:_cntml*ml->szdp], \
-                                      _nt_data[0:_size_data], \
-                                      _vec_v[0:_num_compartment], \
-                                      _vec_rhs[0:_num_compartment], \
-                                      _vec_d[0:_num_compartment])
-    #endif
-    #endif
+     _PRAGMA_FOR_VECTOR_LOOP_
     for (int _iml = 0; _iml < _cntml; ++_iml)
     {
         int _nd_idx = _ni[_iml];
@@ -191,47 +153,15 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
         _g *=  _mfact;
         _rhs *= _mfact;
 
-        #ifdef __SHADOW
         _vec_shadow_rhs[_iml] = _rhs;
         _vec_shadow_d[_iml] = _g;
-        #else
-        #pragma acc atomic update
-        _vec_rhs[_nd_idx] -= _rhs;
-        #pragma acc atomic update
-        _vec_d[_nd_idx] += _g;
-        #endif
    }
 
-   #ifndef __SHADOW
-   #ifdef __OPENACC__
-   #pragma acc update host (_vec_d[0:_num_compartment], \
-                           _vec_rhs[0:_num_compartment])
-   #endif
-   #endif
-/*
-    FILE *fp_d;
-    fp_d = fopen("vec_d.txt", "a+");
-
-    /// outputting results for comparison
-    for (int i=0;i<_num_compartment;++i)
-    {
-      fprintf(fp_d,"%lf\t%lf\n",_vec_d[i], _vec_rhs[i]);
-    }
-    fclose(fp_d);
-*/
-   #ifdef __SHADOW
-   #ifdef __OPENACC__
-   #pragma acc parallel loop present(_ni[0:_cntml], \
-                                     _vec_d[0:_num_compartment], \
-                                     _vec_rhs[0:_num_compartment], \
-                                     _vec_shadow_rhs[0:_max_nodecount], \
-                                     _vec_shadow_d[0:_max_nodecount])
-   #endif
+    _PRAGMA_FOR_VECTOR_LOOP_
    for (int _iml = 0; _iml < _cntml; ++_iml)
    {
        int _nd_idx = _ni[_iml];
        _vec_rhs[_nd_idx] -= _vec_shadow_rhs[_iml];
        _vec_d[_nd_idx] += _vec_shadow_d[_iml];
    }
-   #endif
 }
