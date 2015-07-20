@@ -12,6 +12,8 @@ add_library (coreneuron10_kernel
 add_library (coreneuron10_solver
              solver/hines.c
              common/util/reader.c
+             common/util/nrnthread_handler.c
              common/util/timer.c
              solver/main.c)
+
 

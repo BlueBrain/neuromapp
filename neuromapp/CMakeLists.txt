@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 2.8.10)
 project (neuromapp)
 
 #set( CMAKE_C_FLAGS  ${CMAKE_C_FLAGS} "-std=c99")
@@ -6,6 +6,9 @@ project (neuromapp)
 set(Boost_USE_STATIC_LIBS   ON)
 find_package(Boost 1.44 REQUIRED program_options unit_test_framework system)
 include_directories(${Boost_INCLUDE_DIRS})
+
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g ")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g ")
 
 find_package(OpenMP)
 if (OPENMP_FOUND)

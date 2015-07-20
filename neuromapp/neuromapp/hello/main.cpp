@@ -12,7 +12,7 @@
 namespace po = boost::program_options;
 
 /** help function provide the help for the user */
-int help(int argc, char* argv[], po::variables_map& vm){
+int help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce help message")
@@ -48,7 +48,7 @@ void content(po::variables_map const& vm){
     }
 }
 
-int hello_execute(int argc, char* argv[]){
+int hello_execute(int argc, char* const argv[]){
     try {
         po::variables_map vm; // it contains everything
         if(help(argc, argv, vm)) return 1;

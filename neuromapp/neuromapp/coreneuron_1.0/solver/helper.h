@@ -5,23 +5,26 @@
 #include <getopt.h>
 
 void solver_print_usage() {
-    printf("usage: solver --data [string]\n");
+    printf("usage: solver --data [string] --name [string]\n");
     printf("details: \n");
     printf("                 --data [path to the input] \n");
+    printf("                 --name [to internally reference the data] \n");
     exit(1);
 }
 
 
 struct input_parameters{
     char * d; // data set
+    char * name; // name
 };
 
 
-int solver_help(int argc, char* argv[], struct input_parameters * p)
+int solver_help(int argc, char* const argv[], struct input_parameters * p)
 {
   int c;
 
   p->d = "";
+  p->name = "coreneuron_1.0_solver_data";
 
   while (1)
   {
@@ -29,13 +32,14 @@ int solver_help(int argc, char* argv[], struct input_parameters * p)
       {
           {"help", no_argument, 0, 'h'},
           {"data",  required_argument,     0, 'd'},
+          {"name",  required_argument,     0, 'n'},
 
           {0, 0, 0, 0}
       };
       /* getopt_long stores the option index here. */
       int option_index = 0;
 
-      c = getopt_long (argc, argv, "d:",
+      c = getopt_long (argc, argv, "d:n:",
                        long_options, &option_index);
       /* Detect the end of the options. */
       if (c == -1)
@@ -44,6 +48,8 @@ int solver_help(int argc, char* argv[], struct input_parameters * p)
       switch (c)
       {
           case 'd': p->d = optarg;
+              break;
+          case 'n': p->name = optarg;
               break;
           case 'h':
               solver_print_usage();

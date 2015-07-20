@@ -3,10 +3,12 @@
 #include <string.h>
 #include <math.h>
 
+#include "utils/storage/storage.h"
+
 #include "coreneuron_1.0/kernel/helper.h"
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
-#include "coreneuron_1.0/common/util/reader.h"
+#include "coreneuron_1.0/common/util/nrnthread_handler.h"
 #include "coreneuron_1.0/common/util/writer.h"
 #include "coreneuron_1.0/common/util/timer.h"
 #include "coreneuron_1.0/common/memory/data_manager.h"
@@ -19,7 +21,7 @@
 void compute(NrnThread *nt,size_t mech_id, struct input_parameters* p);
 void compute_wrapper(NrnThread *nt, size_t mech_i, struct input_parameters* p);
 
-int coreneuron10_kernel_execute(int argc, char *argv[])
+int coreneuron10_kernel_execute(int argc, char *const argv[])
 {
 
     struct input_parameters p;
@@ -41,17 +43,15 @@ int coreneuron10_kernel_execute(int argc, char *argv[])
 
         #pragma omp parallel
         {
-            NrnThread nt;
-            read_nt_from_file(p.d, &nt);
+            NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
 
             printf("\n Finished Initialization!");
             fflush(stdout);
 
             int mech_id = 17; // atoi(argc[2]);
-            compute(&nt, mech_id,&p);
+            compute(nt, mech_id,&p);
         }
     }
-    printf("\n Finished Programme\n");
     return 0;
 }
 
@@ -100,5 +100,5 @@ void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
     }
 
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-    printf("\n CURRENT SOA State Version : %ld.%06d [s] %ld.%06ld [us]", tvDiff.tv_sec, tvDiff.tv_usec);
+    printf("\n CURRENT SOA State Version : %ld [s] %ld [us]", tvDiff.tv_sec, tvDiff.tv_usec);
 }

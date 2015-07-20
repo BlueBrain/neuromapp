@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "coreneuron_1.0/solver/hines.h"
 
 #define VEC_A(i) (_nt->_actual_a[(i)])

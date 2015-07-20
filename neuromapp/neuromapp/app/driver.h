@@ -32,22 +32,22 @@ namespace mapp{
     class driver{
         public:
 
-        void insert(const std::string name, int(*f)(int,char **) ){
-            m.insert(std::pair<std::string, int(*)(int,char **)>(name,f));
+        void insert(const std::string name, int(*f)(int,char *const *) ){
+            m.insert(std::pair<std::string, int(*)(int,char *const *)>(name,f));
         }
 
-        void execute(int argc, char * argv[]){
+        void execute(int argc, char * const argv[]){
             if(argc == 1)
                 usage();
             else{
-                std::map<std::string, int(*)(int,char **)>::const_iterator it;
+                std::map<std::string, int(*)(int,char *const *)>::const_iterator it;
                 it = m.find(std::string(argv[1]));
                 (it == m.end()) ? usage() : it->second(argc-1, &argv[1]);
             }
         }
 
         private:
-        std::map<std::string, int(*)(int,char **) > m;
+        std::map<std::string, int(*)(int,char * const *) > m;
     };
 
 }// end namespace

@@ -1,3 +1,3 @@
 #pragma once
 
-int hello_execute(int argc, char* argv[]);
+int hello_execute(int argc, char* const argv[]);

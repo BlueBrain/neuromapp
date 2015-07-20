@@ -2,15 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
+
+#include "utils/storage/storage.h"
 
 #include "coreneuron_1.0/solver/helper.h"
 #include "coreneuron_1.0/solver/hines.h"
 #include "coreneuron_1.0/solver/solver.h"
 #include "coreneuron_1.0/common/memory/nrnthread.h"
-#include "coreneuron_1.0/common/util/reader.h"
+#include "coreneuron_1.0/common/util/nrnthread_handler.h"
 #include "coreneuron_1.0/common/util/timer.h"
 
-int coreneuron10_solver_execute(int argc, char * argv[])
+int coreneuron10_solver_execute(int argc, char * const argv[])
 {
 
     struct input_parameters p;
@@ -23,17 +26,16 @@ int coreneuron10_solver_execute(int argc, char * argv[])
     }
     else
     {
-        NrnThread nt;
-        read_nt_from_file(p.d, &nt);
+
+        NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
 
         gettimeofday(&tvBegin, NULL);
-
-        nrn_solve_minimal(&nt);
-
+        nrn_solve_minimal(nt);
         gettimeofday(&tvEnd, NULL);
 
         timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-        printf("\n Time For Hines Solver : %ld.%06d [s] %ld.%06ld [us]", tvDiff.tv_sec, tvDiff.tv_usec);
+        printf("\n Time For Hines Solver : %ld [s] %ld [us]", tvDiff.tv_sec, tvDiff.tv_usec);
 
     }
+
 }

@@ -35,7 +35,7 @@ void read_iarray_from_file(FILE *hFile, int *data, int n) {
     //printf("\n%s", buf);
 }
 
-void read_nt_from_file(char *filename, NrnThread *nt) {
+void read_nt_from_file(const char *filename, NrnThread *nt) {
 
     int i;
     long int offset;
