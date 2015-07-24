@@ -53,10 +53,8 @@ void mech_init_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
     double v=0.0, _v = 0.0;
     int* _ni = _ml->nodeindices;
     int _cntml = _ml->nodecount;
-    double * restrict _nt_data = _nt->_data;
     double * restrict _vec_v = _nt->_actual_v;
     double * restrict _p = _ml->data;
-    int * restrict _ppvar = _ml->pdata;
 
     _PRAGMA_FOR_VECTOR_LOOP_
     for (int _iml = 0; _iml < _cntml; ++_iml)
@@ -93,15 +91,8 @@ void mech_init_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 
 void mech_state_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 {
-    double v=0.0, _v = 0.0;
-    int* _ni = _ml->nodeindices;
     int _cntml = _ml->nodecount;
-    double * restrict _nt_data = _nt->_data;
-    double * restrict _vec_v = _nt->_actual_v;
     double * restrict _p = _ml->data;
-    int * restrict _ppvar = _ml->pdata;
-
-    int _num_compartment = _nt->end;
 
     /* insert compiler dependent ivdep like pragma */
     _PRAGMA_FOR_VECTOR_LOOP_
@@ -116,7 +107,7 @@ void mech_state_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 
 void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 {
-    double _rhs, _g, _v, v;
+    double _rhs, _g = 0.0;
     int *_ni = _ml->nodeindices;
     int _cntml = _ml->nodecount;
     double * restrict _vec_rhs = _nt->_actual_rhs;
@@ -124,13 +115,10 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
     double * restrict _vec_shadow_rhs = _nt->_shadow_rhs;
     double * restrict _vec_shadow_d = _nt->_shadow_d;
     double * _nt_data = _nt->_data;
-    int _size_data = _nt->_ndata;
     double * restrict _vec_v = _nt->_actual_v;
     double * restrict _p = _ml->data;
     int *_ppvar = _ml->pdata;
 
-    int _num_compartment = _nt->end;
-    long _max_nodecount = _nt->max_nodecount;
     double gmax = 0.001;
 
     /* insert compiler dependent ivdep like pragma */

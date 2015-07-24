@@ -83,9 +83,9 @@ void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
     {
         gettimeofday(&tvBegin, NULL);
         if(strncmp(p->f,"state",5) == 0)
-             mech_state_NaTs2_t(nt, &(nt->ml[mech_id]));
+             mech_current_Ih(nt, &(nt->ml[mech_id]));
         if(strncmp(p->f,"current",7) == 0)
-             mech_current_NaTs2_t(nt, &(nt->ml[mech_id]));
+             mech_state_Ih(nt, &(nt->ml[mech_id]));
         gettimeofday(&tvEnd, NULL);
     }
 
@@ -100,5 +100,5 @@ void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
     }
 
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-    printf("\n CURRENT SOA State Version : %ld [s] %ld [us]", tvDiff.tv_sec, tvDiff.tv_usec);
+    printf("\n CURRENT SOA State Version : %ld [s] %d [us]", tvDiff.tv_sec, tvDiff.tv_usec);
 }

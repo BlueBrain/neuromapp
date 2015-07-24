@@ -22,17 +22,12 @@
 void mech_state_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
 {
     double _v, v;
-    int i, j;
-
     int *_ni = _ml->nodeindices;
     int _cntml = _ml->nodecount;
     double * restrict _p = _ml->data;
     int * restrict _ppvar = _ml->pdata;
     double * restrict _vec_v = _nt->_actual_v;
     double * restrict _nt_data = _nt->_data;
-    int _num_compartment = _nt->end;
-
-    const double _lqt = 2.952882641412121 ;
 
     /* insert compiler dependent ivdep like pragma */
     _PRAGMA_FOR_VECTOR_LOOP_
@@ -75,10 +70,9 @@ void mech_current_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
     double * _nt_data = _nt->_data;
     double * _vec_v = _nt->_actual_v;
 
-    double _rhs, _g, _v, v;
+    double _rhs, _g, _v;
     double _lgNaTs2_t , _lina ;
     int _nd_idx;
-    int _num_compartment = _nt->end;
 
     /* insert compiler dependent ivdep like pragma */
     _PRAGMA_FOR_VECTOR_LOOP_

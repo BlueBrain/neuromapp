@@ -5,3 +5,5 @@ target_link_libraries (app
                        coreneuron10_solver
                        storage
                        ${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG})
+
+install (TARGETS app DESTINATION bin)

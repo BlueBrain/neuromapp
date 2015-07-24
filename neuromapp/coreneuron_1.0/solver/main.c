@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <assert.h>
 
 #include "utils/storage/storage.h"
 
@@ -19,14 +18,10 @@ int coreneuron10_solver_execute(int argc, char * const argv[])
     struct input_parameters p;
     solver_help(argc, argv, &p);
 
-     if(argc < 2)
-    {
+    if(argc < 2){
         printf("\n Error! Provide directory path of data files! \n");
         exit(1);
-    }
-    else
-    {
-
+    }else{
         NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
 
         gettimeofday(&tvBegin, NULL);
@@ -34,8 +29,8 @@ int coreneuron10_solver_execute(int argc, char * const argv[])
         gettimeofday(&tvEnd, NULL);
 
         timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-        printf("\n Time For Hines Solver : %ld [s] %ld [us]", tvDiff.tv_sec, tvDiff.tv_usec);
-
+        printf("\n Time For Hines Solver : %ld [s] %d [us]", tvDiff.tv_sec, tvDiff.tv_usec);
     }
 
+    return 0;
 }

@@ -23,10 +23,8 @@ void mech_init_Ih(NrnThread* _nt, Mechanism *_ml){
     int _iml, _cntml;
     _ni = _ml->nodeindices;
     _cntml = _ml->nodecount;
-    double * restrict _nt_data = _nt->_data;
     double * restrict _vec_v = _nt->_actual_v;
     _p = _ml->data;
-    int * _ppvar = _ml->pdata;
 
     _PRAGMA_FOR_VECTOR_LOOP_
     for (_iml = 0; _iml < _cntml; ++_iml)
@@ -47,20 +45,19 @@ void mech_init_Ih(NrnThread* _nt, Mechanism *_ml){
     }
 }
 
-void mech_cur_Ih(NrnThread* _nt, Mechanism* _ml) {
+void mech_current_Ih(NrnThread* _nt, Mechanism* _ml) {
     double* _p;
     int* _ni;
-    double _rhs, _g, _v, v;
+    double _rhs, _g, _v;
     int _iml, _cntml;
     _ni = _ml->nodeindices;
     _cntml = _ml->nodecount;
     double ehcn = -45;
     double * restrict _vec_rhs = _nt->_actual_rhs;
     double * restrict _vec_d = _nt->_actual_d;
-    double * restrict _nt_data = _nt->_data;
     double * restrict _vec_v = _nt->_actual_v;
     _p = _ml->data;
-    int * restrict _ppvar = _ml->pdata;
+
 
     _PRAGMA_FOR_VECTOR_LOOP_
     for (_iml = 0; _iml < _cntml; ++_iml)
@@ -84,7 +81,6 @@ void mech_state_Ih(NrnThread* _nt, Mechanism* _ml) {
     double dt = 0.1;
     int* _ni;
     int _iml, _cntml;
-    double * restrict _nt_data = _nt->_data;
     double * restrict _vec_v = _nt->_actual_v;
 
     _ni = _ml->nodeindices;

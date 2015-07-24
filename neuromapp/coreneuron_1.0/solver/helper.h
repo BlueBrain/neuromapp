@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <stdio.h>
@@ -21,23 +22,27 @@ struct input_parameters{
 
 int solver_help(int argc, char* const argv[], struct input_parameters * p)
 {
-  int c;
+  int c=0;
 
   p->d = "";
   p->name = "coreneuron_1.0_solver_data";
+
+  optind=0;
+
 
   while (1)
   {
       static struct option long_options[] =
       {
-          {"help", no_argument, 0, 'h'},
-          {"data",  required_argument,     0, 'd'},
-          {"name",  required_argument,     0, 'n'},
-
-          {0, 0, 0, 0}
+          {"help", no_argument, NULL, 'h'},
+          {"data", required_argument,     NULL, 'd'},
+          {"name", required_argument,     NULL, 'n'},
+          {NULL, 0, NULL, 0}
       };
       /* getopt_long stores the option index here. */
       int option_index = 0;
+
+//      optreset=1;
 
       c = getopt_long (argc, argv, "d:n:",
                        long_options, &option_index);

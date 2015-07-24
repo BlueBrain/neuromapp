@@ -1,0 +1,26 @@
+#ifndef NEUROMAPP_PATH
+#define NEUROMAPP_PATH
+
+namespace mapp{
+     /** Helper to obtain the path for the input
+
+     This file is generated automatically by cmakes, it provide the path of the input data
+     for the tests.
+     */
+     struct helper_src_path{
+         const std::string static path(){
+             return "@PROJECT_SOURCE_DIR@";
+         }
+     };
+
+     /** Helper to obtain the path in the build directory
+
+     Data are saved under .zip format, they are unzip and put in the build directory
+     */
+     struct helper_build_path{
+         const std::string static path(){
+             return "@PROJECT_BINARY_DIR@";
+         }
+     };
+}
+#endif

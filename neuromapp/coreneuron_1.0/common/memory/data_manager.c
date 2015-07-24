@@ -12,17 +12,13 @@
 
 void setup_nrnthreads_on_device(NrnThread *nt) {
 
+#ifdef __OPENACC__
     int i;
-
     /* pointers for data struct on device, starting with d_ */
-
     NrnThread *d_nt; //NrnThread on device
     double *d__data;  // nrn_threads->_data on device
     Mechanism *d_ml;
 
-    printf("\n ----------- IN --------------- \n");
-
-#ifdef __OPENACC__
     printf("\n -----------COPYING DATA TO DEVICE --------------- \n");
 
 //    nt->_actual_rhs[0] = 13.4;
@@ -143,11 +139,10 @@ void setup_nrnthreads_on_device(NrnThread *nt) {
 
 void update_nrnthreads_on_host(NrnThread *nt)
 {
+#ifdef __OPENACC__
   int i, j;
-
   int ne = nt->end;
 
-#ifdef __OPENACC__
   acc_update_self(nt->_actual_rhs, ne*sizeof(double));
   acc_update_self(nt->_actual_d, ne*sizeof(double));
   acc_update_self(nt->_actual_a, ne*sizeof(double));
