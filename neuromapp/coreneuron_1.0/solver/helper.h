@@ -27,9 +27,6 @@ int solver_help(int argc, char* const argv[], struct input_parameters * p)
   p->d = "";
   p->name = "coreneuron_1.0_solver_data";
 
-  optind=0;
-
-
   while (1)
   {
       static struct option long_options[] =
@@ -41,9 +38,6 @@ int solver_help(int argc, char* const argv[], struct input_parameters * p)
       };
       /* getopt_long stores the option index here. */
       int option_index = 0;
-
-//      optreset=1;
-
       c = getopt_long (argc, argv, "d:n:",
                        long_options, &option_index);
       /* Detect the end of the options. */
@@ -64,9 +58,6 @@ int solver_help(int argc, char* const argv[], struct input_parameters * p)
 	      break;
       }
   }
-
   return 0 ;
-
-
 }
 

@@ -3,7 +3,7 @@ configure_file("${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/test/path.h.in"
                "${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/test/path.h")
 
 #list of tests
-set(tests file kernel solver)
+set(tests kernel solver)
 
 #loop over tests for creation
 foreach(i ${tests})
@@ -12,7 +12,7 @@ foreach(i ${tests})
                                    coreneuron10_solver
                                    storage ${Boost_LIBRARIES})
     if(SLURM_FOUND)
-    add_test(NAME ${i}test COMMAND ${SLURM_SRUN_COMMAND} --account=proj16 -p debug --time=00:00:10 ${i}test)
+    add_test(NAME ${i}test COMMAND ${SLURM_SRUN_COMMAND} --time=00:00:10 ${i}test)
     else()
     add_test(${i} ${i}test)
     endif()
