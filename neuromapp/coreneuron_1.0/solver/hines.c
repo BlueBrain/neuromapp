@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 
 #include "coreneuron_1.0/solver/hines.h"
 
@@ -20,6 +21,10 @@ void triang(NrnThread* _nt) {
 	int i, i2, i3;
 	i2 = _nt->ncell;
 	i3 = _nt->end;
+
+        assert(i2 >= 1);
+        assert(i3 >= i2 + 1);
+
 	for (i = i3 - 1; i >= i2; --i) {
 		p = VEC_A(i) / VEC_D(i);
 		VEC_D(_nt->_v_parent_index[i]) -= p * VEC_B(i);
