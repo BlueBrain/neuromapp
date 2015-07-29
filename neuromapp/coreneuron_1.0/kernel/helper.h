@@ -34,6 +34,8 @@ int kernel_help(int argc, char * const argv[], struct input_parameters * p)
   p->th = 1; // one omp thread by default
   p->name = "coreneuron_1.0_kernel_data";
 
+  optind = 1;
+
   while (1)
   {
       static struct option long_options[] =

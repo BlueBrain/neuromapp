@@ -27,6 +27,8 @@ int solver_help(int argc, char* const argv[], struct input_parameters * p)
   p->d = "";
   p->name = "coreneuron_1.0_solver_data";
 
+  optind = 1;
+
   while (1)
   {
       static struct option long_options[] =
