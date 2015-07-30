@@ -2,8 +2,8 @@
 #define _nrnthread_
 
 typedef struct Membrane {
-    int nodecount;
-    int szp;
+    int nodecount; // # of mechanism instances
+    int szp; // number of (double) needed per instance of mechanism (e.g. Na=,synapse 35)
     int szdp;
     int type;
     int is_art;

@@ -70,14 +70,15 @@ void read_nt_from_file(const char *filename, NrnThread *nt) {
     for (i=0; i<nt->nmech; i++) {
 
         Mechanism *ml = &nt->ml[i];
-        fscanf(hFile, "%d %d %d %d %d %ld\n", &(ml->type), &(ml->is_art), &(ml->nodecount), &(ml->szp), &(ml->szdp), &(ml->offset));
+        fscanf(hFile, "%d %d %d %d %d %ld\n", &(ml->type), &(ml->is_art),
+               &(ml->nodecount), &(ml->szp), &(ml->szdp), &(ml->offset));
         ml->data = nt->_data + offset;
         offset += ml->nodecount * ml->szp;
 
-	if ( nt->max_nodecount < ml->nodecount)
-		nt->max_nodecount = ml->nodecount;
+        if ( nt->max_nodecount < ml->nodecount)
+            nt->max_nodecount = ml->nodecount;
 
-//      printf("\n => Mechanism type %d is at index %d ", ml->type, i);
+        printf("\n => Mechanism type %d is at index %d ", ml->type, i);
 
         if (!ml->is_art) {
             posix_memalign((void **)&ml->nodeindices, 64, sizeof(int) * ml->nodecount);
@@ -88,7 +89,6 @@ void read_nt_from_file(const char *filename, NrnThread *nt) {
             posix_memalign((void **)&ml->pdata, 64, sizeof(int) * ml->nodecount*ml->szdp);
             read_iarray_from_file(hFile, ml->pdata, ml->nodecount*ml->szdp);
         }
-
     }
 
     /* parent indexes for linear algebra */

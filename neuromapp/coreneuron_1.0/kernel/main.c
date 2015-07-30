@@ -18,8 +18,8 @@
 #endif
 
 
-void compute(NrnThread *nt,size_t mech_id, struct input_parameters* p);
-void compute_wrapper(NrnThread *nt, size_t mech_i, struct input_parameters* p);
+void compute(NrnThread *nt, struct input_parameters* p);
+void compute_wrapper(NrnThread *nt, struct input_parameters* p);
 
 int coreneuron10_kernel_execute(int argc, char *const argv[])
 {
@@ -48,17 +48,16 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
             printf("\n Finished Initialization!");
             fflush(stdout);
 
-            int mech_id = 17; // atoi(argc[2]);
-            compute(nt, mech_id,&p);
+            compute(nt,&p);
         }
     }
     return 0;
 }
 
-void compute(NrnThread *nt, size_t mech_id, struct input_parameters *p)
+void compute(NrnThread *nt, struct input_parameters *p)
 {
     setup_nrnthreads_on_device(nt) ;
-    compute_wrapper(nt, mech_id,p);
+    compute_wrapper(nt,p);
 }
 
 ///
@@ -66,11 +65,11 @@ void compute(NrnThread *nt, size_t mech_id, struct input_parameters *p)
 // \param nt (In) Data structure for a neuron cell group containing all information
 // \param mech_id (In) id of the mechanism as ordered in bbpcore file. A translation table is required from mechanism
 // \                   id to bbpcoreid
-void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
+void compute_wrapper(NrnThread *nt, struct input_parameters *p)
 {
-
     if(strncmp(p->m,"Na",2) == 0)
     {
+        const size_t mech_id = 17;
         gettimeofday(&tvBegin, NULL);
         if(strncmp(p->f,"state",5) == 0)
              mech_state_NaTs2_t(nt, &(nt->ml[mech_id]));
@@ -81,6 +80,7 @@ void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
 
     if(strncmp(p->m,"Ih",2) == 0)
     {
+        const size_t mech_id = 10;
         gettimeofday(&tvBegin, NULL);
         if(strncmp(p->f,"state",5) == 0)
              mech_current_Ih(nt, &(nt->ml[mech_id]));
@@ -91,6 +91,7 @@ void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
 
     if(strncmp(p->m,"ProbAMPANMDA",12) == 0)
     {
+        const size_t mech_id = 18; //ProbAMPANMDA_EMS
         gettimeofday(&tvBegin, NULL);
         if(strncmp(p->f,"state",5) == 0)
             mech_state_ProbAMPANMDA_EMS(nt, &(nt->ml[mech_id]));
@@ -98,7 +99,6 @@ void compute_wrapper(NrnThread *nt, size_t mech_id, struct input_parameters *p)
             mech_current_ProbAMPANMDA_EMS(nt, &(nt->ml[mech_id]));
         gettimeofday(&tvEnd, NULL);
     }
-
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
     printf("\n CURRENT SOA State Version : %ld [s] %d [us]", tvDiff.tv_sec, tvDiff.tv_usec);
 }

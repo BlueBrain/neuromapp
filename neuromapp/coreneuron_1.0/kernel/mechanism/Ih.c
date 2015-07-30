@@ -69,8 +69,8 @@ void mech_current_Ih(NrnThread* _nt, Mechanism* _ml) {
         _lihcn = _lgIh * ( _v - ehcn ) ;
         _rhs = _lihcn;
         _g = _lgIh;
-	_vec_rhs[_nd_idx] -= _rhs;
-	_vec_d[_nd_idx] += _g;
+	    _vec_rhs[_nd_idx] -= _rhs;
+	    _vec_d[_nd_idx] += _g;
     }
 }
 
@@ -97,13 +97,13 @@ void mech_state_Ih(NrnThread* _nt, Mechanism* _ml) {
         v=_v;
         _llv = v ;
         if ( _llv  == - 154.9 ) {
-          _llv = _llv + 0.0001 ;
-          v = _llv ;
-          }
+           _llv = _llv + 0.0001 ;
+           v = _llv ;
+        }
         _lmAlpha = 0.001 * 6.43 * ( _llv + 154.9 ) / ( exp ( ( _llv + 154.9 ) / 11.9 ) - 1.0 ) ;
         _lmBeta =   0.001 * 193.0 * exp ( _llv / 33.1 ) ;
         _lmInf = _lmAlpha / ( _lmAlpha + _lmBeta ) ;
         _lmTau = 1.0 / ( _lmAlpha + _lmBeta ) ;
-         m = m + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / _lmTau)))*(- ( ( ( _lmInf ) ) / _lmTau ) / ( ( ( ( - 1.0) ) ) / _lmTau ) - m) ;
+        m = m + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / _lmTau)))*(- ( ( ( _lmInf ) ) / _lmTau ) / ( ( ( ( - 1.0) ) ) / _lmTau ) - m) ;
     }
 }
