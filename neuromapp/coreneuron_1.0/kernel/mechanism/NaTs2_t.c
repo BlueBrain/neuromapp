@@ -19,6 +19,49 @@
 #define _ion_ina _nt_data[_ppvar[1*_STRIDE]]
 #define _ion_dinadv _nt_data[_ppvar[2*_STRIDE]]
 
+void mech_init_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
+{
+    double _v, v;
+    int *_ni = _ml->nodeindices;
+    int _cntml = _ml->nodecount;
+    double * restrict _p = _ml->data;
+    int * restrict _ppvar = _ml->pdata;
+    double * restrict _vec_v = _nt->_actual_v;
+    double * restrict _nt_data = _nt->_data;
+
+    /* insert compiler dependent ivdep like pragma */
+    _PRAGMA_FOR_VECTOR_LOOP_
+    for (int _iml = 0; _iml < _cntml; ++_iml)
+    {
+        int _nd_idx = _ni[_iml];
+        _v = _vec_v[_nd_idx];
+        v=_v;
+        ena = _ion_ena;
+        double _lmAlpha , _lmBeta , _lmInf , _lmTau , _lhAlpha , _lhBeta , _lhInf , _lhTau , _llv=0.0;
+        double _lqt=2.952882641412121 ;
+
+        _llv = v;
+        if ( _llv  == - 32.0 )
+            _llv = _llv + 0.0001 ;
+
+        _lmAlpha = ( 0.182 * ( _llv - - 32.0 ) ) / ( 1.0 - ( exp ( - ( _llv - - 32.0 ) / 6.0 ) ) ) ;
+        _lmBeta = ( 0.124 * ( - _llv - 32.0 ) ) / ( 1.0 - ( exp ( - ( - _llv - 32.0 ) / 6.0 ) ) ) ;
+        _lmInf = _lmAlpha / ( _lmAlpha + _lmBeta ) ;
+        _lmTau = ( 1.0 / ( _lmAlpha + _lmBeta ) ) / _lqt ;
+
+        if ( _llv  == - 60.0 )
+          _llv = _llv + 0.0001 ;
+
+        _lhAlpha = ( - 0.015 * ( _llv - - 60.0 ) ) / ( 1.0 - ( exp ( ( _llv - - 60.0 ) / 6.0 ) ) ) ;
+        _lhBeta = ( - 0.015 * ( - _llv - 60.0 ) ) / ( 1.0 - ( exp ( ( - _llv - 60.0 ) / 6.0 ) ) ) ;
+        _lhInf = _lhAlpha / ( _lhAlpha + _lhBeta ) ;
+        _lhTau = ( 1.0 / ( _lhAlpha + _lhBeta ) ) / _lqt ;
+
+        m = _lmInf;
+        h = _lhInf;
+    }
+}
+
 void mech_state_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
 {
     double _v, v;

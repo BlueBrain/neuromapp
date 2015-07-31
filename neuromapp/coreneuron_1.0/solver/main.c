@@ -29,8 +29,8 @@ int coreneuron10_solver_execute(int argc, char * const argv[])
         gettimeofday(&tvEnd, NULL);
 
         timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-        printf("\n Time For Hines Solver : %ld [s] %d [us]", tvDiff.tv_sec, tvDiff.tv_usec);
-    }
+        printf("\n Time For Hines Solver : %ld [s] %ld [us]", tvDiff.tv_sec, (long) tvDiff.tv_usec);
 
+    }
     return 0;
 }

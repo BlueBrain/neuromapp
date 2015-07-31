@@ -13,6 +13,7 @@ namespace mapp{
         std::cout << "       hello <arg> \n";
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
+        std::cout << "       fullComputationStep <arg> \n";
         return 0;
     }
 

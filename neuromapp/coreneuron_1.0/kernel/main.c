@@ -100,5 +100,5 @@ void compute_wrapper(NrnThread *nt, struct input_parameters *p)
         gettimeofday(&tvEnd, NULL);
     }
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-    printf("\n CURRENT SOA State Version : %ld [s] %d [us]", tvDiff.tv_sec, tvDiff.tv_usec);
+    printf("\n CURRENT SOA State Version : %ld [s] %ld [us]", (long) tvDiff.tv_sec, (long) tvDiff.tv_usec);
 }

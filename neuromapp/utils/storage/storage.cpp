@@ -4,6 +4,9 @@ extern "C" {
 }
 #include "utils/storage/neuromapp_data.h"
 
+/**
+ * destructor of the storage class
+ */
 storage::~storage() {
 
     std::map < std::string, impl::container >::iterator it;
@@ -13,6 +16,9 @@ storage::~storage() {
 
 }
 
+/**
+ * represents a wrapper to the data structure responsible for safe deletion of data.
+ */
 struct safe_map_element_wrapper {
     map_element_t ptr;
     destroyer_function_pointer dtor;
@@ -46,6 +52,10 @@ private:
     size_t *k; // reference count
 };
 
+/**
+ * represents a wrapper to call the destructor function correctly
+ * i.e. a constructor to safe_map_element_wrapper
+ */
 struct safe_map_element_wrapper_maker {
     maker_function_pointer maker;
     context_t context;
@@ -56,6 +66,14 @@ struct safe_map_element_wrapper_maker {
     }
 };
 
+/**
+ * Gets a pointer to the data. If data has been already loaded, returns a pointer to the existing data (not a clone).
+ * @param name keyword referring to the data (user-defined)
+ * @param maker pointer to function that loads the data, if not internally existing
+ * @param context parameters to pass to the maker function above (if function not called, not used, NULL can be past)
+ * @param destroyer function pointer that will delete the data;
+ * @return pointer to the data
+ */
 map_element_t storage_get(const char * name,
                           maker_function_pointer maker,
                           context_t context,

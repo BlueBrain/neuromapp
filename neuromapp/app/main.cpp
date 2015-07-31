@@ -20,6 +20,7 @@ int main(int argc, char * const argv[]){
      d.insert("hello",hello_execute);
      d.insert("kernel",coreneuron10_kernel_execute);
      d.insert("solver",coreneuron10_solver_execute);
+     d.insert("fullComputationStep",coreneuron10_fullComputationStep_execute);
      std::cout << "Welcome to NeuroMapp! Please enter "
                << "the name of the miniapp you wish to execute "
                << "followed by any arguments you wish to pass to it."

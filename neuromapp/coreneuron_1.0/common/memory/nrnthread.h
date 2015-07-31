@@ -1,6 +1,9 @@
 #ifndef _nrnthread_
 #define _nrnthread_
 
+/**
+ * Represents the neuron membrane channels (in a compartment)
+ */
 typedef struct Membrane {
     int nodecount; // # of mechanism instances
     int szp; // number of (double) needed per instance of mechanism (e.g. Na=,synapse 35)
@@ -14,6 +17,9 @@ typedef struct Membrane {
     int *nodeindices;
 } Mechanism;
 
+/**
+ * A dataset representing a group of cells, their compartments, mechanisms, etc.
+ */
 typedef struct NrnTh{
     int _ndata;
     int nmech;

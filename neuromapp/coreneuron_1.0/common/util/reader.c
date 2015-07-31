@@ -78,7 +78,7 @@ void read_nt_from_file(const char *filename, NrnThread *nt) {
         if ( nt->max_nodecount < ml->nodecount)
             nt->max_nodecount = ml->nodecount;
 
-        printf("\n => Mechanism type %d is at index %d ", ml->type, i);
+        printf("=> Mechanism type %d is at index %d\n", ml->type, i);
 
         if (!ml->is_art) {
             posix_memalign((void **)&ml->nodeindices, 64, sizeof(int) * ml->nodecount);
