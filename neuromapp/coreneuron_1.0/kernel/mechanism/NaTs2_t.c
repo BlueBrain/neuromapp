@@ -37,8 +37,10 @@ void mech_state_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
         _v = _vec_v[_nd_idx];
         v=_v;
         ena = _ion_ena;
-        double _lmAlpha , _lmBeta , _lmInf , _lmTau , _lhAlpha , _lhBeta , _lhInf , _lhTau , _llv=0.0 , _lqt=0.0 ;
+        double _lmAlpha , _lmBeta , _lmInf , _lmTau , _lhAlpha , _lhBeta , _lhInf , _lhTau , _llv=0.0;
+        double _lqt=2.952882641412121 ;
 
+        _llv = v;
         if ( _llv  == - 32.0 )
             _llv = _llv + 0.0001 ;
 
@@ -56,7 +58,7 @@ void mech_state_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
         _lhInf = _lhAlpha / ( _lhAlpha + _lhBeta ) ;
         _lhTau = ( 1.0 / ( _lhAlpha + _lhBeta ) ) / _lqt ;
         h = h + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / _lhTau)))*(- ( ( ( _lhInf ) ) / _lhTau ) / ( ( ( ( - 1.0) ) ) / _lhTau ) - h) ;
-   }
+    }
 }
 
 void mech_current_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
@@ -87,7 +89,7 @@ void mech_current_NaTs2_t(NrnThread *_nt, Mechanism *_ml)
         _g = _lgNaTs2_t;
         _ion_dinadv += _lgNaTs2_t;
         _ion_ina += _lina ;
-	_vec_rhs[_nd_idx] -= _rhs;
-	_vec_d[_nd_idx] += _g;
+     	_vec_rhs[_nd_idx] -= _rhs;
+	    _vec_d[_nd_idx] += _g;
     }
 }
