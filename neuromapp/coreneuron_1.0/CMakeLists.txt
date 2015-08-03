@@ -1,4 +1,5 @@
 add_library (coreneuron10_kernel
+            kernel/helper.c
             kernel/mechanism/NaTs2_t.c
             kernel/mechanism/ProbAMPANMDA_EMS.c
             kernel/mechanism/Ih.c
@@ -11,6 +12,7 @@ add_library (coreneuron10_kernel
 
 
 add_library (coreneuron10_solver
+             solver/helper.c
              solver/hines.c
              common/util/reader.c
              common/util/nrnthread_handler.c
@@ -21,6 +23,7 @@ add_library (coreneuron10_fullComputationStep
              common/util/reader.c
              common/util/nrnthread_handler.c
              common/util/timer.c
+             fullComputationStep/helper.c
              fullComputationStep/main.c)
 
 target_link_libraries(coreneuron10_fullComputationStep coreneuron10_kernel)

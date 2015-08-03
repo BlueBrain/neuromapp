@@ -34,7 +34,7 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
     if(argc < 2)
     {
         printf("\n Error! Provide directory path of data files! \n");
-        exit(1);
+        return 1;
     }
     else
     {

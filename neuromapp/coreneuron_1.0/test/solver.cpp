@@ -9,7 +9,8 @@
 #include "coreneuron_1.0/solver/solver.h" // signature kernel application
 #include "coreneuron_1.0/solver/hines.h" // to call the solver library's API directly
 #include "coreneuron_1.0/test/path.h" // this file is generated automatically
-#include "coreneuron_1.0/test/helper.hpp" // common functionalities
+
+#include "coreneuron_1.0/test/helper.h" // common functionalities
 
 namespace bfs = ::boost::filesystem;
 
@@ -30,7 +31,6 @@ BOOST_AUTO_TEST_CASE(solver_test){
 
 BOOST_AUTO_TEST_CASE(simple_matrix_solver_test){
     //smallest matrix we can represent is a 3x3
-
     NrnThread nt;
 
     nt.ncell=1;
