@@ -103,3 +103,15 @@ void read_nt_from_file(const char *filename, NrnThread *nt) {
 
     fclose(hFile);
 }
+
+double * get_rhs(const  NrnThread *nt){
+    return nt->_data+0*nt->end;
+}
+
+double * get_d(const  NrnThread *nt){
+    return nt->_data+1*nt->end;
+}
+
+int get_end(const NrnThread * nt){
+    return nt->end;
+}

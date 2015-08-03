@@ -11,4 +11,13 @@ void print_iarray(int * data, int n);
 void write_darray_to_file(FILE *hFile, double *data, int n);
 void write_iarray_to_file(FILE *hFile, int *data, int n);
 
+/* get the rhs data for post processing */
+double* get_rhs(const NrnThread * nt);
+/* get the d data for post processing */
+double* get_d(const NrnThread * nt);
+/* get the end data for post processing */
+int get_end(const NrnThread * nt);
+
+
+
 #endif // _init_

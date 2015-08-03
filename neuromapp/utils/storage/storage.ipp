@@ -29,7 +29,8 @@ T & storage::get(std::string const & name, F f) {
 
     if ( it != M.end() ) {
         if ( *(it->second.tid_) != typeid(T) ) {
-            throw bad_type_exception(std::string("requested data of name") + name + "already exists but is of different type");
+            throw bad_type_exception(std::string("requested data of name") + name +
+                                     "already exists but is of different type");
         }
         return *(T*)(it->second.data_);
     }
@@ -45,11 +46,13 @@ T & storage::get(std::string const & name) {
 
     if ( it != M.end() ) {
         if ( *(it->second.tid_) != typeid(T) ) {
-            throw bad_type_exception(std::string("requested data of name ") + name + " already exists but is of different type");
+            throw bad_type_exception(std::string("requested data of name ") + name +
+                                     " already exists but is of different type");
         }
         return *(T*)(it->second.data_);
     }
     else {
-        throw bad_type_exception(std::string("requested data of name ") + name + " is not present in the storage and no constructor has been provided");
+        throw bad_type_exception(std::string("requested data of name ") + name +
+                                 " is not present in the storage and no constructor has been provided");
     }
 }

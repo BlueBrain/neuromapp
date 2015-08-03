@@ -43,3 +43,6 @@ add_subdirectory (neuromapp)
 execute_process(COMMAND unzip -o ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/bench.101392.zip
                               -d ${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/test/bench.101392)
 
+#prepare the ref solution for the test
+execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/rhs_d_ref.tar.gz
+                            -C    ${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/test)
