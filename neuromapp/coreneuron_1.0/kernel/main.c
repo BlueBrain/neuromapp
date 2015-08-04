@@ -12,6 +12,7 @@
 #include "coreneuron_1.0/common/util/writer.h"
 #include "coreneuron_1.0/common/util/timer.h"
 #include "coreneuron_1.0/common/memory/data_manager.h"
+#include "utils/error.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -25,33 +26,29 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
 {
 
     struct input_parameters p;
-    kernel_help(argc, argv, &p);
+    int error = MAPP_OK;
+    error = kernel_help(argc, argv, &p);
+    if(error != MAPP_OK)
+        return error;
 
 #ifdef _OPENMP
     omp_set_num_threads(p.th); // set up the number of thread
 #endif
 
-    if(argc < 2)
+    printf("\n Starting Initialization!");
+    fflush(stdout);
+
+    #pragma omp parallel
     {
-        printf("\n Error! Provide directory path of data files! \n");
-        return 1;
-    }
-    else
-    {
-        printf("\n Starting Initialization!");
+        NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
+
+        printf("\n Finished Initialization!");
         fflush(stdout);
 
-        #pragma omp parallel
-        {
-            NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
-
-            printf("\n Finished Initialization!");
-            fflush(stdout);
-
-            compute(nt,&p);
-        }
+        compute(nt,&p);
     }
-    return 0;
+
+    return error;
 }
 
 void compute(NrnThread *nt, struct input_parameters *p)

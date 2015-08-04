@@ -51,7 +51,7 @@ void content(po::variables_map const& vm){
 int hello_execute(int argc, char* const argv[]){
     try {
         po::variables_map vm; // it contains everything
-        if(help(argc, argv, vm)) return 1;
+        if(help(argc, argv, vm) != 0) return 1;
         content(vm); // execute the miniapp
     }
     catch(std::exception& e){

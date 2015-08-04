@@ -11,8 +11,35 @@
 #include "coreneuron_1.0/test/path.h" // this file is generated automatically
 
 #include "coreneuron_1.0/test/helper.h" // common functionalities
+#include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;
+
+BOOST_AUTO_TEST_CASE(helper_solver_test){
+    std::vector<std::string> command_v;
+    int error(mapp::MAPP_OK);
+
+    command_v.push_back("coreneuron10_solver_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("--data");
+    command_v.push_back("fake and wrong");
+
+    error = mapp::execute(command_v,coreneuron10_solver_execute);
+    BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
+
+    command_v.clear();
+    command_v.push_back("coreneuron10_solver_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("--tqrhqrhqethqhba"); // this does not exist
+
+    error = mapp::execute(command_v,coreneuron10_solver_execute);
+    BOOST_CHECK(error==mapp::MAPP_USAGE);
+
+    command_v.clear();
+    command_v.push_back("coreneuron10_solver_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("--help"); // help menu
+
+    error = mapp::execute(command_v,coreneuron10_solver_execute);
+    BOOST_CHECK(error==mapp::MAPP_USAGE);
+}
 
 BOOST_AUTO_TEST_CASE(solver_test){
     bfs::path p(mapp::path_unzip());

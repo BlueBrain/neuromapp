@@ -1,13 +1,12 @@
-#include "app/miniapp.h" // the list of the miniapp API
-#include "app/driver.h"
-
-
 #include <iostream>
 #include <string>
 #include <cstring>
 #include <vector>
 #include <algorithm>
 
+#include "app/miniapp.h" // the list of the miniapp API
+#include "app/driver.h"
+#include "app/driver_exception.h"
 
 char *convert(const std::string & s) {
     return strdup(s.c_str());
@@ -60,11 +59,14 @@ int main(int argc, char * const argv[]){
          std::vector<char*> command_vc;
          std::transform(command_v.begin(), command_v.end(), std::back_inserter(command_vc), convert);
 
-         try {
+         try{
              d.execute(command_v.size(), &command_vc[0] );
-         } catch(std::exception & e) {
+         }catch(mapp::driver_exception & e){
+             if(e.error_code != mapp::MAPP_USAGE)
+                 std::cerr << "caught exception: " << e.what() << "\n";
+         }catch(std::exception & e){
              std::cerr << "caught exception: " << e.what() << "\n";
-	 }
+         }
          std::cout << std::endl << ">? ";
     }
      return 0;

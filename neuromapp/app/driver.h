@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include "app/driver_exception.h"
+
 namespace mapp{
 
     int usage(){
@@ -43,7 +45,13 @@ namespace mapp{
             else{
                 std::map<std::string, int(*)(int,char *const *)>::const_iterator it;
                 it = m.find(std::string(argv[1]));
-                (it == m.end()) ? usage() : it->second(argc-1, &argv[1]);
+                if(it == m.end())
+                    usage();
+                else{
+                    int error = it->second(argc-1, &argv[1]);
+                    if(error)
+                        throw driver_exception(error);
+                }
             }
         }
 

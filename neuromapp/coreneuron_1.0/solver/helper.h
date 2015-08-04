@@ -5,5 +5,5 @@ struct input_parameters{
     char * name; // name
 };
 
-void solver_print_usage();
+int solver_print_usage();
 int solver_help(int argc, char* const argv[], struct input_parameters * p);

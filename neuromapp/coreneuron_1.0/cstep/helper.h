@@ -6,5 +6,5 @@ struct input_parameters{
     char * name; // name
 };
 
-void cstep_print_usage();
+int cstep_print_usage();
 int cstep_help(int argc, char * const argv[], struct input_parameters * p);

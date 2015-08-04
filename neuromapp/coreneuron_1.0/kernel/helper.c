@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "coreneuron_1.0/kernel/helper.h"
+#include "utils/error.h"
 
-void kernel_print_usage() {
+int kernel_print_usage() {
     printf("Usage: kernel --mechanism [string] --function [string] --data [string] --numthread [int] --name [string]\n");
     printf("Details: \n");
     printf("                 --mechanism [Na, ProbAMPANMDA or Ih] \n");
@@ -12,7 +15,25 @@ void kernel_print_usage() {
     printf("                 --data [path to the input] \n");
     printf("                 --numthread [threadnumber] \n");
     printf("                 --name [to internally reference the data] \n");
-    exit(1);
+    return MAPP_USAGE;
+}
+
+int kernel_help_function(const char* f)
+{
+    int error = MAPP_OK;
+    if((strncmp(f,"state",5) != 0) && (strncmp(f,"current",7) != 0))
+       error = MAPP_BAD_ARG;
+
+    return error;
+}
+
+int kernel_help_mechanism(const char* m)
+{
+    int error = MAPP_OK;
+    if((strncmp(m,"Na",2) != 0) && (strncmp(m,"Ih",3) != 0) && (strncmp(m,"ProbAMPANMDA",12) != 0))
+        error = MAPP_BAD_ARG;
+
+    return error;
 }
 
 int kernel_help(int argc, char * const argv[], struct input_parameters * p)
@@ -51,21 +72,32 @@ int kernel_help(int argc, char * const argv[], struct input_parameters * p)
 
       switch (c)
       {
-          case 'm': p->m = optarg;
+          case 'm':
+              if(kernel_help_mechanism(optarg) != MAPP_OK)
+                  return MAPP_BAD_ARG;
+              p->m = optarg;
               break;
-          case 'f': p->f = optarg;
+          case 'f':
+              if(kernel_help_function(optarg) != MAPP_OK)
+                  return MAPP_BAD_ARG;
+              p->f = optarg;
               break;
-          case 'd': p->d = optarg;
+          case 'd':
+              if(access(optarg, F_OK ) == -1 )
+                  return MAPP_BAD_DATA;
+              p->d = optarg;
               break;
-          case 't': p->th = atoi(optarg);
+          case 't':
+              p->th = atoi(optarg);
               break;
-          case 'n': p->name = optarg;
+          case 'n':
+              p->name = optarg;
               break;
           case 'h':
-              kernel_print_usage();
+              return kernel_print_usage();
               break;
           default:
-              kernel_print_usage ();
+              return kernel_print_usage ();
 	      break;
       }
   }

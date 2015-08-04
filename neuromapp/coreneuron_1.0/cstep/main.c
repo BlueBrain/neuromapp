@@ -19,18 +19,19 @@
 #include "coreneuron_1.0/common/util/nrnthread_handler.h"
 #include "coreneuron_1.0/common/util/timer.h"
 
+#include "utils/error.h"
+
 int getMechId(char * mechName);
 Mechanism* getMechFromString(NrnThread * nt, char * mechName);
 int coreneuron10_cstep_execute(int argc, char * const argv[]);
 
 int coreneuron10_cstep_execute(int argc, char * const argv[]) {
     struct input_parameters p;
-    cstep_help(argc, argv, &p);
 
-    if (argc < 2) {
-        printf("\n Error! Provide directory path of data files! \n");
-        return 1;
-    }
+    int error = MAPP_OK;
+    error = cstep_help(argc, argv, &p);
+    if(error != MAPP_OK)
+        return error;
 
     //Gets the data
     NrnThread * nt = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, dealloc_nrnthread);
@@ -55,5 +56,5 @@ int coreneuron10_cstep_execute(int argc, char * const argv[]) {
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
     
     printf("\nTime for full computational step: %ld [s] %ld [us]\n", tvDiff.tv_sec, (long) tvDiff.tv_usec);
-    return 0;
+    return error;
 }

@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <unistd.h>
 
 #include "coreneuron_1.0/solver/helper.h"
-
-void solver_print_usage() {
+#include "utils/error.h"
+int solver_print_usage() {
     printf("usage: solver --data [string] --name [string]\n");
     printf("details: \n");
     printf("                 --data [path to the input] \n");
     printf("                 --name [to internally reference the data] \n");
-    exit(1);
+    return MAPP_USAGE;
 }
 
 int solver_help(int argc, char* const argv[], struct input_parameters * p)
@@ -40,17 +41,20 @@ int solver_help(int argc, char* const argv[], struct input_parameters * p)
 
       switch (c)
       {
-          case 'd': p->d = optarg;
+          case 'd':
+              if(access(optarg, F_OK ) == -1 )
+                  return MAPP_BAD_DATA;
+              p->d = optarg;
               break;
           case 'n': p->name = optarg;
               break;
           case 'h':
-              solver_print_usage();
+              return solver_print_usage();
               break;
           default:
-              solver_print_usage ();
+              return solver_print_usage ();
 	      break;
       }
   }
-  return 0 ;
+  return MAPP_OK;
 }
