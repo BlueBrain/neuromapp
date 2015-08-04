@@ -19,16 +19,16 @@ add_library (coreneuron10_solver
              common/util/timer.c
              solver/main.c)
 
-add_library (coreneuron10_fullComputationStep
+add_library (coreneuron10_cstep
              common/util/reader.c
              common/util/nrnthread_handler.c
              common/util/timer.c
-             fullComputationStep/helper.c
-             fullComputationStep/main.c)
+             cstep/helper.c
+             cstep/main.c)
 
-target_link_libraries(coreneuron10_fullComputationStep coreneuron10_kernel)
+target_link_libraries(coreneuron10_cstep coreneuron10_kernel)
 
 add_subdirectory(test)
 
-install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_fullComputationStep DESTINATION lib)
-install (FILES kernel/kernel.h solver/solver.h fullComputationStep/fullComputationStep.h DESTINATION include)
+install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep DESTINATION lib)
+install (FILES kernel/kernel.h solver/solver.h cstep/cstep.h DESTINATION include)

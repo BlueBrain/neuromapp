@@ -3,12 +3,12 @@ configure_file("${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/test/path.h.in"
                "${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/test/path.h")
 
 #list of tests
-set(tests kernel solver fullComputationStep)
+set(tests kernel solver cstep)
 
 #loop over tests for creation
 foreach(i ${tests})
     add_executable(${i}test ${i}.cpp helper.cpp)
-    target_link_libraries(${i}test coreneuron10_fullComputationStep
+    target_link_libraries(${i}test coreneuron10_cstep
                                    coreneuron10_kernel
                                    coreneuron10_solver
                                    storage ${Boost_LIBRARIES})

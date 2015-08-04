@@ -2,22 +2,22 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-#include "coreneuron_1.0/fullComputationStep/helper.h"
+#include "coreneuron_1.0/cstep/helper.h"
 
-void fullComputationStep_print_usage() {
-    printf("Usage: fullComputationStep --data <input path> [--numthread int] [--name string]\n");
+void cstep_print_usage() {
+    printf("Usage: cstep --data <input path> [--numthread int] [--name string]\n");
     printf("Details: \n");
     printf("                 --data [path to the input]\n");
     printf("                 --numthread <threadnumber>\n");
     printf("                 --name <reference to internal data> \n");
 }
 
-int fullComputationStep_help(int argc, char * const argv[], struct input_parameters * p)
+int cstep_help(int argc, char * const argv[], struct input_parameters * p)
 {
   int c;
   p->d = "";
   p->th = 1; // one omp thread by default
-  p->name = "fullComputationStep_storage_name_helper";
+  p->name = "cstep_storage_name_helper";
 
   while (1)
   {
@@ -48,10 +48,10 @@ int fullComputationStep_help(int argc, char * const argv[], struct input_paramet
           case 'n': p->name = optarg;
               break;
           case 'h':
-              fullComputationStep_print_usage();
+              cstep_print_usage();
               break;
           default:
-              fullComputationStep_print_usage ();
+              cstep_print_usage ();
 	      break;
       }
   }

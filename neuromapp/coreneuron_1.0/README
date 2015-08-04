@@ -3,7 +3,7 @@ Description of the different files
     - kernel contains a specific miniapp of coreneuron 1.0 about the mechanism execution
     - solver contains a specific miniapp of coreneuron 1.0 about hines solver
     - spike contains a specific miniapp of coreneuron 1.0 about spike exchange
-    - fullComputationStep contains the combinaison of kernel and solver
+    - cstep contains the combinaison of kernel and solver
     - common contains file that are common to kernel/spike/solver mini app
 
 From technical point of view, and compilation facilities, every include of the miniapp have the coreneuron_1.0

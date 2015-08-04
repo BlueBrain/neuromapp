@@ -12,8 +12,8 @@
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
 
-#include "coreneuron_1.0/fullComputationStep/helper.h"
-#include "coreneuron_1.0/fullComputationStep/fullComputationStep.h"
+#include "coreneuron_1.0/cstep/helper.h"
+#include "coreneuron_1.0/cstep/cstep.h"
 
 #include "coreneuron_1.0/common/memory/nrnthread.h"
 #include "coreneuron_1.0/common/util/nrnthread_handler.h"
@@ -21,11 +21,11 @@
 
 int getMechId(char * mechName);
 Mechanism* getMechFromString(NrnThread * nt, char * mechName);
-int coreneuron10_fullComputationStep_execute(int argc, char * const argv[]);
+int coreneuron10_cstep_execute(int argc, char * const argv[]);
 
-int coreneuron10_fullComputationStep_execute(int argc, char * const argv[]) {
+int coreneuron10_cstep_execute(int argc, char * const argv[]) {
     struct input_parameters p;
-    fullComputationStep_help(argc, argv, &p);
+    cstep_help(argc, argv, &p);
 
     if (argc < 2) {
         printf("\n Error! Provide directory path of data files! \n");
