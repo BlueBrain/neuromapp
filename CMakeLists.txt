@@ -14,7 +14,7 @@ include(Compiler)
 string(REPLACE "-std=c++11" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
 set(Boost_USE_STATIC_LIBS  ON)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 
 
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)

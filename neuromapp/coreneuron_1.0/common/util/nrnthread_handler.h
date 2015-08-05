@@ -7,5 +7,6 @@
 
 void * make_nrnthread(void * filename);
 void dealloc_nrnthread(void * p);
+NrnThread* clone_nrnthread(NrnThread const* p);
 
 #endif

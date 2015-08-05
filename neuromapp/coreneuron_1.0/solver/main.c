@@ -23,7 +23,10 @@ int coreneuron10_solver_execute(int argc, char * const argv[])
         return error;
 
     NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
-
+    if(nt == NULL){
+        storage_clear(p.name);
+        return MAPP_BAD_DATA;
+    }
     gettimeofday(&tvBegin, NULL);
     nrn_solve_minimal(nt);
     gettimeofday(&tvEnd, NULL);

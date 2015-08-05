@@ -11,45 +11,51 @@
 #include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;
-
+/*
 BOOST_AUTO_TEST_CASE(helper_solver_test){
     std::vector<std::string> command_v;
     int error(mapp::MAPP_OK);
 
+    //no input
     command_v.push_back("coreneuron10_kernel_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--data");
-    command_v.push_back("fake and wrong");
-
     error = mapp::execute(command_v,coreneuron10_kernel_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
+    //wrong data
+    command_v.clear();
+    command_v.push_back("coreneuron10_kernel_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("--data");
+    command_v.push_back("fake and wrong");
+    error = mapp::execute(command_v,coreneuron10_kernel_execute);
+    BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
+
+    //wrong argument
     command_v.clear();
     command_v.push_back("coreneuron10_kernel_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--tqrhqrhqethqhba"); // this does not exist
-
     error = mapp::execute(command_v,coreneuron10_kernel_execute);
     BOOST_CHECK(error==mapp::MAPP_USAGE);
 
+    //call help
     command_v.clear();
     command_v.push_back("coreneuron10_kernel_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--help"); // help menu
-
     error = mapp::execute(command_v,coreneuron10_kernel_execute);
     BOOST_CHECK(error==mapp::MAPP_USAGE);
 
+    //wrong mechanism
     command_v.clear();
     command_v.push_back("coreneuron10_kernel_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--mechanism"); // help menu
     command_v.push_back("wrong");
-
     error = mapp::execute(command_v,coreneuron10_kernel_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_ARG);
 
+    //wrong function associate to mechanism
     command_v.clear();
     command_v.push_back("coreneuron10_kernel_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--function"); // help menu
     command_v.push_back("wrong");
-
     error = mapp::execute(command_v,coreneuron10_kernel_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_ARG);
 }
@@ -96,7 +102,7 @@ BOOST_AUTO_TEST_CASE(kernels_test){
         }
     }
 }
-
+*/
 BOOST_AUTO_TEST_CASE(kernels_reference_solution_test){
     bfs::path p(mapp::path_unzip());
     bool b = bfs::exists(p);
@@ -123,7 +129,7 @@ BOOST_AUTO_TEST_CASE(kernels_reference_solution_test){
 
     int error = mapp::MAPP_OK;
 
-    for(size_t i(0); i < 3 ;++i){
+    for(size_t i(0); i < 1 ;++i){
         // every run must be independant, so different name for the storage map
         command_v[0] = name;
         command_v[2] = mechanisms[i];

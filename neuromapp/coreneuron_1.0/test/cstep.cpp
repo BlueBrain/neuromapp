@@ -24,24 +24,30 @@ BOOST_AUTO_TEST_CASE(helper_solver_test){
     std::vector<std::string> command_v;
     int error(mapp::MAPP_OK);
 
+    //no data
     command_v.push_back("cstep_solver_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--data");
-    command_v.push_back("fake and wrong");
-
     error = mapp::execute(command_v,coreneuron10_cstep_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
+    //wrong data
+    command_v.clear();
+    command_v.push_back("cstep_solver_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("--data");
+    command_v.push_back("fake and wrong");
+    error = mapp::execute(command_v,coreneuron10_cstep_execute);
+    BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
+
+    //wrong argument
     command_v.clear();
     command_v.push_back("cstep_solver_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--qrhqrhqethqhba"); // this does not exist
-
     error = mapp::execute(command_v,coreneuron10_cstep_execute);
     BOOST_CHECK(error==mapp::MAPP_USAGE);
 
+    //helper
     command_v.clear();
     command_v.push_back("coreneuron10_solver_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--help"); // help menu
-
     error = mapp::execute(command_v,coreneuron10_cstep_execute);
     BOOST_CHECK(error==mapp::MAPP_USAGE);
 }

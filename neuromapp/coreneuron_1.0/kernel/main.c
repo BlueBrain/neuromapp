@@ -38,16 +38,25 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
     printf("\n Starting Initialization!");
     fflush(stdout);
 
-    #pragma omp parallel
-    {
-        NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
-
-        printf("\n Finished Initialization!");
-        fflush(stdout);
-
-        compute(nt,&p);
+    NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
+    if(nt == NULL){
+        storage_clear(p.name);
+        return MAPP_BAD_DATA;
     }
 
+    #pragma omp parallel
+    {
+        NrnThread * ntlocal = clone_nrnthread(nt);
+        #pragma omp barrier
+        compute(ntlocal,&p);
+        #pragma omp barrier
+        #pragma omp single
+        {
+            storage_put(p.name,ntlocal,dealloc_nrnthread); //enjoy debug
+            ntlocal=0;
+        }
+        if (ntlocal) dealloc_nrnthread(ntlocal);
+    }
     return error;
 }
 

@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "coreneuron_1.0/common/memory/nrnthread.h"
+#include "utils/error.h"
 
 void print_iarray(int * data, int n) {
     int i = 0;
@@ -35,7 +36,7 @@ void read_iarray_from_file(FILE *hFile, int *data, int n) {
     //printf("\n%s", buf);
 }
 
-void read_nt_from_file(const char *filename, NrnThread *nt) {
+int read_nt_from_file(const char *filename, NrnThread *nt) {
 
     int i;
     long int offset;
@@ -43,6 +44,9 @@ void read_nt_from_file(const char *filename, NrnThread *nt) {
     int ne;
 
     hFile = fopen(filename, "r");
+
+    if(hFile == NULL)
+        return MAPP_BAD_DATA; // the input does not exists stop;
 
     nt->dt = 0.025;
 
@@ -102,6 +106,7 @@ void read_nt_from_file(const char *filename, NrnThread *nt) {
     posix_memalign((void **)&nt->_shadow_d, 64, sizeof(double) *nt->max_nodecount);
 
     fclose(hFile);
+    return MAPP_OK;
 }
 
 double * get_rhs(const  NrnThread *nt){

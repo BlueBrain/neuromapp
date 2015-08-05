@@ -56,5 +56,6 @@ int solver_help(int argc, char* const argv[], struct input_parameters * p)
 	      break;
       }
   }
+
   return MAPP_OK;
 }

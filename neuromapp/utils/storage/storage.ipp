@@ -1,58 +1,59 @@
-namespace impl {
-
-    template < typename T >
-    void deleter(void * p) {
-        delete (T*)p;
-    };
-
-}
+// DEBUG ONLY:
+#include <iostream>
 
 template < typename T >
-T & storage::put_copy(std::string const & name, const T &x) {
+T &storage::put_copy(std::string const &name, const T &x) {
+    storage_map::iterator it = M.find(name);
 
-    std::map < std::string, impl::container >::iterator it = M.find(name);
-
-    if(it != M.end() ) // if the data already exists, make sure to delete it correctly before I overwrite everything with map.insert
-       impl::deleter<T>( it->second.data_ );
-
-    T * c = new T(x);
-
-    M.insert( std::make_pair(name, impl::container(c, &impl::deleter<T> ) ) );
+    T *c=0;
+    if (it != M.end()) {
+        it->second.destroy();
+        try {
+            c = new T(x);
+            it->second = impl::container(c);
+        }
+        catch (...) {
+            M.erase(it);
+            throw;
+        }
+    }
+    else {
+        c = new T(x);
+        M.insert(std::make_pair(name, impl::container(c)));
+    }
 
     return *c;
 }
 
-template < typename T, class F>
-T & storage::get(std::string const & name, F f) {
+template <typename T>
+T *storage::get_ptr(std::string const &name) {
+    storage_map::iterator it = M.find(name);
+    if (it==M.end()) return 0;
 
-    std::map < std::string, impl::container >::iterator it = M.find(name);
+    T *item=it->second.get<T>();
+    if (!item) throw bad_type_exception("type mismatch for item '"+name+"'");
 
-    if ( it != M.end() ) {
-        if ( *(it->second.tid_) != typeid(T) ) {
-            throw bad_type_exception(std::string("requested data of name") + name +
-                                     "already exists but is of different type");
-        }
-        return *(T*)(it->second.data_);
-    }
-    else {
-        return put_copy<T> ( name, f() );
-    }
+    return item;
+}
+
+template <typename T, class F>
+T &storage::get(std::string const &name, F make_item) {
+    T *item = get_ptr<T>(name);
+    if (!item) return put_copy<T>(name, make_item());
+
+    return *item;
 }
 
 template < typename T>
-T & storage::get(std::string const & name) {
+T &storage::get(std::string const & name) {
+    T *item = get_ptr<T>(name);
+    if (!item) throw missing_data("no entry named '"+name+"'");
 
-    std::map < std::string, impl::container >::iterator it = M.find(name);
+    return *item;
+}
 
-    if ( it != M.end() ) {
-        if ( *(it->second.tid_) != typeid(T) ) {
-            throw bad_type_exception(std::string("requested data of name ") + name +
-                                     " already exists but is of different type");
-        }
-        return *(T*)(it->second.data_);
-    }
-    else {
-        throw bad_type_exception(std::string("requested data of name ") + name +
-                                 " is not present in the storage and no constructor has been provided");
-    }
+template <typename T>
+bool storage::has(std::string const &name) const {
+    storage_map::iterator it = M.find(name);
+    return it!=M.end() && it->second.get<T>()!=0;
 }

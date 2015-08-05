@@ -35,6 +35,10 @@ int coreneuron10_cstep_execute(int argc, char * const argv[]) {
 
     //Gets the data
     NrnThread * nt = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, dealloc_nrnthread);
+    if(nt == NULL){
+        storage_clear(p.name);
+        return MAPP_BAD_DATA;
+    }
 
     //Initial mechanisms set-up already done in the input date (no need to call mech_init_Ih, etc)
     gettimeofday(&tvBegin, NULL);
