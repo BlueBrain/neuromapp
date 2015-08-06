@@ -60,6 +60,7 @@ public:
         k=r.k;
         if (*this) ++*k;
         assert_invariant();
+        return *this;
     }
 
     // true if not in empty state.

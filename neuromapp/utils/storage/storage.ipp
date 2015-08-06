@@ -54,6 +54,6 @@ T &storage::get(std::string const & name) {
 
 template <typename T>
 bool storage::has(std::string const &name) const {
-    storage_map::iterator it = M.find(name);
+    storage_map::const_iterator it = M.find(name);
     return it!=M.end() && it->second.get<T>()!=0;
 }
