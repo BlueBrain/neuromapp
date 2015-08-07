@@ -4,7 +4,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 
-#include "coreneuron_1.0/test/helper.h"
+#include "test/coreneuron_1.0/helper.h"
 
 extern "C" {
 #include "utils/storage/storage.h"
@@ -33,16 +33,17 @@ namespace mapp{
         double* ref_rhs = new double[size];
         double* ref_d = new double[size];
 
-        std::string data = "rhs_d_ref/rhs_d_"+mechanism;
+        std::string data = mapp::data_ref() + "rhs_d_"+mechanism;
 
 //        std::ofstream outfile(data);
 //        for(int i=0; i < size;++i)
 //            outfile << " "  << d[i] << " " <<  rhs[i] << "\n";
 
-        std::ifstream infile(data.c_str());
+        std::ifstream infile(data.c_str(),std::ifstream::in);
 
-        for(int i=0; i < size;++i)
-            infile >> ref_d[i] >> ref_rhs[i];
+        if(infile.good())
+            for(int i=0; i < size;++i)
+                infile >> ref_d[i] >> ref_rhs[i];
 
         infile.close();
 

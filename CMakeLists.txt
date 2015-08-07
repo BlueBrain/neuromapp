@@ -22,8 +22,6 @@ find_package(Boost 1.44 REQUIRED program_options unit_test_framework system file
 find_package(SLURM)
 #boost include
 include_directories(${Boost_INCLUDE_DIRS})
-#for files that are generated automatically
-include_directories(${PROJECT_BINARY_DIR}/neuromapp)
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g ")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g ")
@@ -38,11 +36,13 @@ enable_testing()
 
 include_directories(neuromapp)
 add_subdirectory (neuromapp)
+#test
+add_subdirectory (test)
 
 #prepare the input
 execute_process(COMMAND unzip -o ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/bench.101392.zip
-                              -d ${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/test/bench.101392)
+                              -d ${PROJECT_BINARY_DIR}/test/bench.101392)
 
 #prepare the ref solution for the test
 execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/rhs_d_ref.tar.gz
-                            -C    ${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/test)
+                            -C    ${PROJECT_BINARY_DIR}/test/)

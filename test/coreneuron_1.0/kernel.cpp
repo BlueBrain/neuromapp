@@ -6,12 +6,12 @@
 #include <boost/filesystem.hpp>
 
 #include "coreneuron_1.0/kernel/kernel.h" // signature kernel application
-#include "coreneuron_1.0/test/path.h" // this file is generated automatically
-#include "coreneuron_1.0/test/helper.h" // common functionalities
+#include "test/coreneuron_1.0/path.h" // this file is generated automatically
+#include "test/coreneuron_1.0/helper.h" // common functionalities
 #include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;
-/*
+
 BOOST_AUTO_TEST_CASE(helper_solver_test){
     std::vector<std::string> command_v;
     int error(mapp::MAPP_OK);
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(helper_solver_test){
 }
 
 BOOST_AUTO_TEST_CASE(kernels_test){
-    bfs::path p(mapp::path_unzip());
+    bfs::path p(mapp::data_test());
     bool b = bfs::exists(p);
     BOOST_CHECK(b); //data ready, live or die
 
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(kernels_test){
     vfunction.push_back("state");
     vfunction.push_back("current");
 
-    std::string path(mapp::path_unzip());
+    std::string path(mapp::data_test());
 
     std::vector<std::string>::iterator itm = vmechanism.begin();
 
@@ -102,14 +102,14 @@ BOOST_AUTO_TEST_CASE(kernels_test){
         }
     }
 }
-*/
+
 BOOST_AUTO_TEST_CASE(kernels_reference_solution_test){
-    bfs::path p(mapp::path_unzip());
+    bfs::path p(mapp::data_test());
     bool b = bfs::exists(p);
     BOOST_CHECK(b); //data ready, live or die
 
     std::string name("coreneuron_1.0_kernel_data");
-    std::string path(mapp::path_unzip());
+    std::string path(mapp::data_test());
 
     std::string mechanisms[3] = {"Na","Ih","ProbAMPANMDA"};
     std::string functors[2] = {"state","current"};
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(kernels_reference_solution_test){
 
     int error = mapp::MAPP_OK;
 
-    for(size_t i(0); i < 1 ;++i){
+    for(size_t i(0); i < 3 ;++i){
         // every run must be independant, so different name for the storage map
         command_v[0] = name;
         command_v[2] = mechanisms[i];

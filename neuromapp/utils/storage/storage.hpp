@@ -8,9 +8,11 @@
 #include <stdexcept>
 
 namespace impl {
+
     template <typename T>
     void default_deleter(void *p) { delete (T *)p; }
 
+    /** container is not templated because we need a map of different type */
     class container {
     public:
         template <typename T>
@@ -28,6 +30,13 @@ namespace impl {
             if (!data_) throw std::logic_error("impl::container get post-destroy");
             if (typeid(T)!=*tid_) return 0;
             else return (T *)data_;
+        }
+
+        template <typename T>
+        const T *get() const {
+            if (!data_) throw std::logic_error("impl::container get post-destroy");
+            if (typeid(T)!=*tid_) return 0;
+            else return (const T *)data_;
         }
 
     private:

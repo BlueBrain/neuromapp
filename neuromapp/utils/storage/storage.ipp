@@ -12,7 +12,7 @@ T &storage::put_copy(std::string const &name, const T &x) {
             c = new T(x);
             it->second = impl::container(c);
         }
-        catch (...) {
+        catch (...) { //case new fails 
             M.erase(it);
             throw;
         }
@@ -31,16 +31,14 @@ T *storage::get_ptr(std::string const &name) {
     if (it==M.end()) return 0;
 
     T *item=it->second.get<T>();
-    if (!item) throw bad_type_exception("type mismatch for item '"+name+"'");
-
+    if(!item) throw bad_type_exception("type mismatch for item '"+name+"'");
     return item;
 }
 
 template <typename T, class F>
 T &storage::get(std::string const &name, F make_item) {
     T *item = get_ptr<T>(name);
-    if (!item) return put_copy<T>(name, make_item());
-
+    if (!item) return put_copy<T>(name, make_item()); // call the functors, storage_ctor_wrapper()
     return *item;
 }
 

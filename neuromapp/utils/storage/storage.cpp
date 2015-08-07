@@ -55,10 +55,11 @@ public:
 
     ref_count_ptr &operator=(const ref_count_ptr &r) {
         if (this==&r) return *this;
+        reset();
         ptr=r.ptr;
         dtor=r.dtor;
         k=r.k;
-        if (*this) ++*k;
+        if (*this) ++*k; // call operator bool() test if k != 0
         assert_invariant();
         return *this;
     }
@@ -73,9 +74,10 @@ public:
     }
 
     void reset() {
+        // If I am empty return
         if (!*this) return;
 
-        if (!--*k) {
+        if (!--*k) { /* --*k == 0 */
             delete k;
             k=0;
             ptr=0;
@@ -93,6 +95,7 @@ private:
         // must be either in empty state, with k zero,
         // or k must be non-zero and *k>0, and ptr!=0.
         if (k) {
+            //(test *k==0)
             if (!*k) throw std::logic_error("ref_count_ptr: k!=0 but *k==0");
             if (!ptr) throw std::logic_error("ref_count_ptr: k!=0 but ptr==0");
         }

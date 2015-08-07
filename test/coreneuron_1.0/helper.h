@@ -3,12 +3,18 @@
 #include <string>
 #include <vector>
 
-#include "coreneuron_1.0/test/path.h" // this file is generated automatically
+#include "test/coreneuron_1.0/path.h" // this file is generated automatically
 
 namespace mapp{
-    /** helper for the path of the unzip file */
-    inline std::string path_unzip(){
-        return mapp::helper_build_path::path()+"/neuromapp/coreneuron_1.0/test/bench.101392/bench.101392";
+    /** helper for the path of the input data */
+    inline std::string data_test(){
+        return mapp::helper_build_path::test_data_path()+"bench.101392/bench.101392";
+    }
+
+
+    /** helper for the path of the reference solution  */
+    inline std::string data_ref(){
+        return mapp::helper_build_path::test_data_path()+"rhs_d_ref/";
     }
 
     /** helper to convert a vector<string> to char * argv[] */

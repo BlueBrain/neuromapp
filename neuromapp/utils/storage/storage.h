@@ -8,6 +8,11 @@ typedef void (*storage_dtor)(void *);
  * and the functional constructor by a void * returning function that
  * takes a single void * context argument. */
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** C interface return void* to cast by the user */
 void *storage_get(const char *name, storage_ctor maker,
                   storage_ctor_context context, storage_dtor destroyer );
@@ -17,3 +22,7 @@ void storage_put(const char *name, void *item, storage_dtor dtor);
 
 void storage_clear(const char *name);
 
+
+#ifdef __cplusplus
+}
+#endif

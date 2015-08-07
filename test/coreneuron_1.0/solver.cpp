@@ -8,15 +8,16 @@
 
 #include "coreneuron_1.0/solver/solver.h" // signature kernel application
 #include "coreneuron_1.0/solver/hines.h" // to call the solver library's API directly
-#include "coreneuron_1.0/test/path.h" // this file is generated automatically
 
-#include "coreneuron_1.0/test/helper.h" // common functionalities
+#include "test/coreneuron_1.0/path.h" // this file is generated automatically
+#include "test/coreneuron_1.0/helper.h" // common functionalities
 #include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;
 
 BOOST_AUTO_TEST_CASE(helper_solver_test){
     std::vector<std::string> command_v;
+    std::string path(mapp::data_test());
     int error(mapp::MAPP_OK);
 
     //no input
@@ -48,11 +49,11 @@ BOOST_AUTO_TEST_CASE(helper_solver_test){
 }
 
 BOOST_AUTO_TEST_CASE(solver_test){
-    bfs::path p(mapp::path_unzip());
+    bfs::path p(mapp::data_test());
     bool b = bfs::exists(p);
     BOOST_CHECK(b); //data ready, live or die
 
-    std::string path(mapp::path_unzip());
+    std::string path(mapp::data_test());
     std::vector<std::string> command_v;
     command_v.push_back("coreneuron10_solver_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--data");

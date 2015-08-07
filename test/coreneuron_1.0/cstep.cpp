@@ -14,8 +14,8 @@ extern "C" {
 }
 
 #include "coreneuron_1.0/cstep/cstep.h" // signature kernel application
-#include "coreneuron_1.0/test/path.h" // this file is generated automatically
-#include "coreneuron_1.0/test/helper.h" // common functionalities
+#include "test/coreneuron_1.0/path.h" // this file is generated automatically
+#include "test/coreneuron_1.0/helper.h" // common functionalities
 #include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(helper_solver_test){
 }
 
 BOOST_AUTO_TEST_CASE(cstep_reference_solution_test){
-    bfs::path p(mapp::path_unzip());
+    bfs::path p(mapp::data_test());
     bool b = bfs::exists(p);
     BOOST_CHECK(b); //data ready, live or die
 
@@ -61,11 +61,11 @@ BOOST_AUTO_TEST_CASE(cstep_reference_solution_test){
     std::vector<std::string> command_v;
     command_v.push_back("coreneuron10_cstep");
     command_v.push_back("--data");
-    command_v.push_back(mapp::path_unzip());
+    command_v.push_back(mapp::data_test());
     command_v.push_back("--name");
     command_v.push_back("coreneuron10_cstep");
 
     int num = mapp::execute(command_v,coreneuron10_cstep_execute);
     BOOST_CHECK(num==0);
-    mapp::helper_check(command_v[4],"cstep",mapp::path_unzip());
+    mapp::helper_check(command_v[4],"cstep",mapp::data_test());
 }
