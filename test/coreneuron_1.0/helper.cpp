@@ -16,7 +16,8 @@ namespace mapp{
     /** helper to execute the miniapp */
     int execute(std::vector<std::string> &v, int(*ptf)(int,char * const *)){
         std::vector<char*> command_vc;
-        std::transform(v.begin(), v.end(), std::back_inserter(command_vc), mapp::convert);
+        for(std::vector<std::string>::iterator it = v.begin(); it != v.end(); it++)
+	    command_vc.push_back((char*) it->c_str());
         return ptf(command_vc.size(), &command_vc[0]);
     }
 

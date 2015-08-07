@@ -1,5 +1,8 @@
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <iterator>
+#include <algorithm>
 #include <cstring>
 #include <vector>
 #include <algorithm>
@@ -7,10 +10,7 @@
 #include "app/miniapp.h" // the list of the miniapp API
 #include "app/driver.h"
 #include "app/driver_exception.h"
-
-char *convert(const std::string & s) {
-    return strdup(s.c_str());
-}
+#include "utils/argv_data.h"
 
 int main(int argc, char * const argv[]){
      mapp::driver d;
@@ -30,45 +30,32 @@ int main(int argc, char * const argv[]){
 
      while(1) {
          std::string command;
-         std::getline (std::cin, command);
+         std::getline(std::cin, command);
+
          // I need to split the string into an array of strings to pass it
          // in an argv style
          std::vector<std::string> command_v;
-         command_v.push_back(std::string(argv[0]));
-         size_t end_of_next_word = 0;
-         size_t beginning_of_next_word;
-         while(1) {
-             beginning_of_next_word = command.find_first_not_of(" ", end_of_next_word);
-             if( beginning_of_next_word != std::string::npos) {
-                 end_of_next_word = command.find_first_of(" ", beginning_of_next_word);
-                 if ( end_of_next_word != std::string::npos) {
-                     command_v.push_back(command.substr(beginning_of_next_word, end_of_next_word - beginning_of_next_word));
-                 } else { // we are at the very end of the string
-                          // and there is no trailing whitespace
-                          // but we still want to keep the last argument
-                     command_v.push_back(command.substr(
-                                beginning_of_next_word, command.length() - beginning_of_next_word));
-                 }
-             } else {
-                 break;
-             }
-         }
+         command_v.push_back(argv[0]);
+
+         std::istringstream command_stream(command);
+         std::istream_iterator<std::string> wb(command_stream),we;
+         std::copy(wb,we,std::back_inserter(command_v));
 
          if( command_v[1].compare("quit") == 0 ) break;
 
-         std::vector<char*> command_vc;
-         std::transform(command_v.begin(), command_v.end(), std::back_inserter(command_vc), convert);
+         argv_data A(command_v.begin(),command_v.end());
 
-         try{
-             d.execute(command_v.size(), &command_vc[0] );
-         }catch(mapp::driver_exception & e){
+         try {
+             d.execute(A.argc(),A.argv());
+         } catch(mapp::driver_exception & e) {
              if(e.error_code != mapp::MAPP_USAGE)
                  std::cerr << "caught exception: " << e.what() << "\n";
-         }catch(std::exception & e){
+         } catch(std::exception & e) {
              std::cerr << "caught exception: " << e.what() << "\n";
          }
          std::cout << std::endl << ">? ";
-    }
+     }
+
      return 0;
 }
 

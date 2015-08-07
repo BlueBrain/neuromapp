@@ -27,7 +27,22 @@ BOOST_AUTO_TEST_CASE(container_test){
     impl::container c(&a);
     double* b = c.get<double>();
     BOOST_CHECK(*b==0.0);
+
+    int *x = c.get<int>();
+    BOOST_CHECK(x==(int *)0);
 }
+
+struct log_deletes {
+    explicit log_deletes(int value_): value(value_) {}
+    ~log_deletes() { count+=value; }
+
+    int value;
+
+    static int count;
+    static void reset_count() { count=0; }
+};
+
+int log_deletes::count=0;
 
 BOOST_AUTO_TEST_CASE(storage_test){
     storage s;
@@ -47,6 +62,39 @@ BOOST_AUTO_TEST_CASE(storage_test){
 
     BOOST_CHECK_THROW(s.get<int>("wrongname"), missing_data);
     BOOST_CHECK_THROW(s.get<double>("int"), bad_type_exception);
+
+    log_deletes x(3);
+    log_deletes &sx = s.get<log_deletes>("logdel",make_delay(x));
+
+    log_deletes::reset_count();
+    BOOST_CHECK(log_deletes::count==0);
+
+    s.put_copy("logdel",make_delay(100));
+    BOOST_CHECK(log_deletes::count==3);
+}
+
+static int dealloc_count;
+static void *identity(void *p) { return p; }
+
+static void inc_dealloc_count(void *p) {
+    ++dealloc_count;
+}
+
+BOOST_AUTO_TEST_CASE(storage_test_c_wrapper){
+    const char *name="c_wrapper_data";
+    storage_clear(name);
+
+    dealloc_count=0;
+
+    int value=3;
+    int *v_ptr=(int *)storage_get(name,identity,(void *)&value,inc_dealloc_count);
+
+    BOOST_CHECK(v_ptr==&value);
+    BOOST_CHECK(*v_ptr==3);
+    BOOST_CHECK(dealloc_count==0);
+
+    storage_clear(name);
+    BOOST_CHECK(dealloc_count==1);
 }
 
 BOOST_AUTO_TEST_CASE(NrnThread_test){

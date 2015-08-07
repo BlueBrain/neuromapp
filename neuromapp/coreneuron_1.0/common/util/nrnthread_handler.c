@@ -42,8 +42,8 @@ void dealloc_nrnthread(void * p) {
     free(nt->_data);
     nt->_data = NULL;
 
+    free(nt);
     nt = NULL;
-
 }
 
 static void *memcpy_align(void *s, size_t align, size_t size) {

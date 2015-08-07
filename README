@@ -28,6 +28,6 @@ This directory provides an example of how could be design a miniapp (C++)
 	- neuronmapp/ll-counter
 
 This directory contains a miniapp about latency measurement on the X86 and Power
-architecture
+architecture.
 
 

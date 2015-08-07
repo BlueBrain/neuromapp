@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
+#include "utils/argv_data.h"
 #include "test/coreneuron_1.0/path.h" // this file is generated automatically
 
 namespace mapp{
@@ -10,7 +10,6 @@ namespace mapp{
     inline std::string data_test(){
         return mapp::helper_build_path::test_data_path()+"bench.101392/bench.101392";
     }
-
 
     /** helper for the path of the reference solution  */
     inline std::string data_ref(){
@@ -23,7 +22,11 @@ namespace mapp{
     }
 
     /** helper to execute the miniapp */
-    int execute(std::vector<std::string> &v, int(*ptf)(int,char * const *));
+    template <typename C>
+    int execute(const C &v, int(*ptf)(int,char * const *)) {
+        argv_data A(v.begin(),v.end());
+        return ptf(A.argc(),A.argv());
+    }
 
     /** helper to compare to debug solution */
     void helper_check(std::string const& name, std::string const& mechanism, std::string const& path);
