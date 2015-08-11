@@ -20,7 +20,7 @@ int solver_help(int argc, char* const argv[], struct input_parameters * p)
   p->d = "";
   p->name = "coreneuron_1.0_solver_data";
 
-  optind = 1;
+  optind = 0;
 
   while (1)
   {
