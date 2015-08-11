@@ -15,7 +15,7 @@ storage::~storage() {
 }
 
 /**
- * clear item 
+ * clear item
  */
 void storage::clear(std::string const &name) {
     storage_map::iterator it = M.find(name);
@@ -78,6 +78,7 @@ public:
         if (!*this) return;
 
         if (!--*k) { /* --*k == 0 */
+            dtor(ptr); // clean up memory
             delete k;
             k=0;
             dtor(ptr);
@@ -85,7 +86,7 @@ public:
         }
         assert_invariant();
     }
-        
+
     ~ref_count_ptr() {
         reset();
         assert_invariant();
@@ -107,51 +108,6 @@ private:
     size_t *k;
 };
 
-#if 0
-/**
- * represents a wrapper to the data structure responsible for safe deletion of data.
- */
-struct safe_map_element_wrapper {
-    map_element_t ptr;
-    destroyer_function_pointer dtor;
-
-    safe_map_element_wrapper(): ptr(NULL), dtor(NULL), k(new size_t(0)) {}
-
-    safe_map_element_wrapper(map_element_t ptr_,destroyer_function_pointer dtor_): ptr(ptr_), dtor(dtor_), k(new size_t(1)) { debug("ctor"); }
-
-    safe_map_element_wrapper(const safe_map_element_wrapper &x): ptr(x.ptr), dtor(x.dtor), k(x.k) { ++*k; debug("copy ctor"); }
-
-    safe_map_element_wrapper &operator=(const safe_map_element_wrapper &x) {
-        if (&x!=this) {
-            ptr=x.ptr;
-            dtor=x.dtor;
-            k=x.k;
-            ++*k;
-        }
-        debug("op=");
-        return *this;
-    }
-
-    ~safe_map_element_wrapper() {
-        debug("dtor entry");
-        if (*k>1) --*k;
-        else {
-            dtor(ptr);
-            ptr = NULL;
-            *k=0;
-        }
-        // TODO: clean up leak on k.
-        debug("dtor exit");
-    };
-
-    void debug(const char *tag) {
-        std::cerr << "storage debug [" << tag << "]: me=" << this << "; ptr=" << ptr << "; *k=" << *k << "\n";
-    }
-
-private:
-    size_t *k; // reference count
-};
-#endif
 
 /**
  * Functional object to construct ref_count_ptr owning the

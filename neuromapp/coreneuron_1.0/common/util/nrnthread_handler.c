@@ -73,7 +73,6 @@ void dealloc_nrnthread(void * p) {
     nt->_data = NULL;
     free(nt);
     nt = NULL;
-
 }
 
 static void *memcpy_align(void *s, size_t align, size_t size) {
@@ -142,7 +141,7 @@ NrnThread* clone_nrnthread(NrnThread const* p){
 
     posix_memalign((void **)&nt->_shadow_rhs, 64, sizeof(double) *nt->max_nodecount);
     posix_memalign((void **)&nt->_shadow_d, 64, sizeof(double) *nt->max_nodecount);
-    
+
     return nt;
 }
 

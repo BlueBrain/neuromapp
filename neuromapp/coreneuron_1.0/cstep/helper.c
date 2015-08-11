@@ -22,7 +22,7 @@ int cstep_help(int argc, char * const argv[], struct input_parameters * p)
   p->th = 1; // one omp thread by default
   p->name = "cstep_storage_name_helper";
 
-  optind = 1;
+  optind = 0;
 
   while (1)
   {

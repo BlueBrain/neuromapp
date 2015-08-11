@@ -9,7 +9,7 @@
 namespace mapp{
 
     int usage(){
-        std::cout << "Usage: < >  means optionnal \n";
+        std::cout << "Usage: < >  means optional \n";
         std::cout << "   miniapp --help provides the help of your miniapp \n \n";
         std::cout << "   The list of the following miniapps are available: \n";
         std::cout << "       hello <arg> \n";
