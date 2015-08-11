@@ -81,7 +81,6 @@ public:
             dtor(ptr); // clean up memory
             delete k;
             k=0;
-            dtor(ptr);
             ptr=0;
         }
         assert_invariant();
