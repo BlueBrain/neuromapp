@@ -16,8 +16,7 @@ namespace impl {
     class container {
     public:
         template <typename T>
-        explicit container(T * d, void (*deleter)(void *)=impl::default_deleter<T>):
-            data_((void *)d), tid_(&typeid(T)), del_(deleter) {};
+        explicit container(T * d, void (*deleter)(void *)=impl::default_deleter<T>):data_((void *)d), tid_(&typeid(T)), del_(deleter) {};
 
         void destroy() {
             if (!data_) throw std::logic_error("impl::container double destroy");

@@ -80,6 +80,7 @@ public:
         if (!--*k) { /* --*k == 0 */
             delete k;
             k=0;
+            dtor(ptr);
             ptr=0;
         }
         assert_invariant();

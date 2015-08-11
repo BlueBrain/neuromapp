@@ -46,3 +46,13 @@ execute_process(COMMAND unzip -o ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/
 #prepare the ref solution for the test
 execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/rhs_d_ref.tar.gz
                             -C    ${PROJECT_BINARY_DIR}/test/)
+
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc
+                           ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+                           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                           COMMENT "Generating API documentation with Doxygen" VERBATIM
+                     )
+endif()
