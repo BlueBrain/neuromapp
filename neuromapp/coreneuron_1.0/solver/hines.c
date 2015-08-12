@@ -1,3 +1,30 @@
+/*
+ * Neuromapp - hines.c, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * Cremonesi Francesco - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * francesco.cremonesi@epfl.ch
+ * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+
+/**
+ * @file neuromapp/coreneuron_1.0/solver/hines.c
+ * Implements the hines solver
+ */
+
 #include <stdio.h>
 #include <assert.h>
 
@@ -9,13 +36,11 @@
 #define VEC_RHS(i) (_nt->_actual_rhs[(i)])
 #define VEC_V(i) (_nt->_actual_v[(i)])
 
-/* solve the matrix equation */
 void nrn_solve_minimal(NrnThread* _nt) {
 	triang(_nt);
 	bksub(_nt);
 }
 
-/* triangularization of the matrix equations */
 void triang(NrnThread* _nt) {
 	double p;
 	int i, i2, i3;
@@ -32,7 +57,6 @@ void triang(NrnThread* _nt) {
 	}
 }
 
-/* back substitution to finish solving the matrix equations */
 void bksub(NrnThread* _nt) {
 	int i, i1, i2, i3;
 	i1 = 0;
@@ -52,4 +76,3 @@ void bksub(NrnThread* _nt) {
 #undef VEC_D
 #undef VEC_RHS
 #undef VEC_V
-

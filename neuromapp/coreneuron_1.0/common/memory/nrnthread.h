@@ -23,11 +23,11 @@
  * Implements data structure of coreneuron1.0
  */
 
-#ifndef _MAPP_NRNTHREAD_
-#define _MAPP_NRNTHREAD_
+#ifndef MAPP_NRNTHREAD_
+#define MAPP_NRNTHREAD_
 
 /** \struct Membrane
- * \brief Represents the neuron membrane channels (in a compartment)
+ *  \brief Represents the neuron membrane channels (in a compartment)
  */
 typedef struct Membrane {
     /* Total number of mechanism */

@@ -1,13 +1,41 @@
+/*
+ * Neuromapp - ProbAMPANMDA_EMS.c, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * Pramod Kumbhar - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * paramod.kumbhar@epfl.ch
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+
+/**
+ * @file neuromapp/coreneuron_1.0/kernel/mechanism/ProbAMPANMDA_EMS.c
+ * Implementation of the ProbAMPANMDA_EMS kernels
+ */
+
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
 #include "coreneuron_1.0/common/memory/nrnthread.h"
 #include "coreneuron_1.0/common/util/writer.h"
 #include "coreneuron_1.0/common/util/vectorizer.h"
 
+/** stride for the SoA layout */
 #define _STRIDE _cntml + _iml
+/** time */
 #define t _nt->_t
-//#define dt _nt->_dt
+/** step time */
 #define dt 0.001
-
+/** Alias to get  */
 #define tau_r_AMPA _p[0*_STRIDE]
 #define tau_d_AMPA _p[1*_STRIDE]
 #define tau_r_NMDA _p[2*_STRIDE]

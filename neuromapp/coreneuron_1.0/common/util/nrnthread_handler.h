@@ -27,8 +27,8 @@
  * Implements function for the allocation, initialisation and copy of the memory for coreneuron1.0
  */
 
-#ifndef _MAPP_NRNTHREAD_HANDLER_H
-#define _MAPP_NRNTHREAD_HANDLER_H
+#ifndef MAPP_NRNTHREAD_HANDLER_H
+#define MAPP_NRNTHREAD_HANDLER_H
 
 #include <stdlib.h>
 #include "coreneuron_1.0/common/memory/nrnthread.h"

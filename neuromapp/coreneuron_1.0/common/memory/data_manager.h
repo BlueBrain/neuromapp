@@ -25,8 +25,8 @@
  * Implements openacc technology for coreneuron1.0
  */
 
-#ifndef _MAPP_DATA_MANAGER_
-#define _MAPP_DATA_MANAGER_
+#ifndef MAPP_DATA_MANAGER_
+#define MAPP_DATA_MANAGER_
 
 /** \fn void setup_nrnthreads_on_device(NrnThread *nt)
     \brief allocate and transfert data on device using openacc technology

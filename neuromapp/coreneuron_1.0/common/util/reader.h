@@ -25,8 +25,8 @@
  * Implements function for the input data reading
  */
 
-#ifndef _MAPP_INIT_
-#define _MAPP_INIT_
+#ifndef MAPP_INIT_
+#define MAPP_INIT_
 
 #include <stdio.h>
 #include <stdlib.h>

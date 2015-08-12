@@ -1,4 +1,4 @@
-add_executable (app main.cpp)
+add_executable (app driver.cpp main.cpp)
 target_link_libraries (app
                        hello
                        coreneuron10_kernel

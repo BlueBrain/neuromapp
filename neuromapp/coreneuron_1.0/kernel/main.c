@@ -1,3 +1,29 @@
+/*
+ * Neuromapp - main.c, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * Pramod Kumbhar - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * paramod.kumbhar@epfl.ch
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+
+/**
+ * @file neuromapp/coreneuron_1.0/cstep/main.c
+ * Implements a miniapp combining  the compute kernel and the Hines solver of coreneuron 1.0
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,8 +44,11 @@
 #include <omp.h>
 #endif
 
-
-void compute(NrnThread *nt, struct input_parameters* p);
+/** \fn compute_wrapper(NrnThread *nt, struct input_parameters* p)
+    \brief Start the computation of kernel following the input parameter
+    \param nt the data structure where all the datas are saved
+    \param p input parameters where are defined the wanted computation
+ */
 void compute_wrapper(NrnThread *nt, struct input_parameters* p);
 
 int coreneuron10_kernel_execute(int argc, char *const argv[])
@@ -32,11 +61,8 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
         return error;
 
 #ifdef _OPENMP
-    omp_set_num_threads(p.th); // set up the number of thread
+    omp_set_num_threads(p.th);
 #endif
-
-    printf("\n Starting Initialization!");
-    fflush(stdout);
 
     NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
     if(nt == NULL){
@@ -48,11 +74,11 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
     {
         NrnThread * ntlocal = clone_nrnthread(nt);
         #pragma omp barrier
-        compute(ntlocal,&p);
+        compute_wrapper(ntlocal,&p);
         #pragma omp barrier
         #pragma omp single
         {
-            storage_put(p.name,ntlocal,dealloc_nrnthread); //enjoy debug
+            storage_put(p.name,ntlocal,dealloc_nrnthread);
             ntlocal=0;
         }
         if (ntlocal) dealloc_nrnthread(ntlocal);
@@ -60,17 +86,6 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
     return error;
 }
 
-void compute(NrnThread *nt, struct input_parameters *p)
-{
-    setup_nrnthreads_on_device(nt) ;
-    compute_wrapper(nt,p);
-}
-
-///
-// \brief compute
-// \param nt (In) Data structure for a neuron cell group containing all information
-// \param mech_id (In) id of the mechanism as ordered in bbpcore file. A translation table is required from mechanism
-// \                   id to bbpcoreid
 void compute_wrapper(NrnThread *nt, struct input_parameters *p)
 {
     if(strncmp(p->m,"Na",2) == 0)
@@ -97,7 +112,7 @@ void compute_wrapper(NrnThread *nt, struct input_parameters *p)
 
     if(strncmp(p->m,"ProbAMPANMDA",12) == 0)
     {
-        const size_t mech_id = 18; //ProbAMPANMDA_EMS
+        const size_t mech_id = 18;
         gettimeofday(&tvBegin, NULL);
         if(strncmp(p->f,"state",5) == 0)
             mech_state_ProbAMPANMDA_EMS(nt, &(nt->ml[mech_id]));

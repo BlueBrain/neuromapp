@@ -1,3 +1,32 @@
+/*
+ * Neuromapp - helper.c, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * Cremonesi Francesco - Swiss Federal Institute of technology in Lausanne,
+ * Sam Yates - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * francesco.cremonesi@epfl.ch
+ * sam.yates@epfl.ch
+ * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+
+/**
+ * @file neuromapp/coreneuron_1.0/kernel/kernel.c
+ * Implements the helper function of the kernel miniapp
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -32,7 +61,6 @@ int kernel_help_mechanism(const char* m)
     int error = MAPP_OK;
     if((strncmp(m,"Na",2) != 0) && (strncmp(m,"Ih",3) != 0) && (strncmp(m,"ProbAMPANMDA",12) != 0))
         error = MAPP_BAD_ARG;
-
     return error;
 }
 
