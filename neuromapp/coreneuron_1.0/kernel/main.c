@@ -34,10 +34,10 @@
 #include "coreneuron_1.0/kernel/helper.h"
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
-#include "coreneuron_1.0/common/util/nrnthread_handler.h"
-#include "coreneuron_1.0/common/util/writer.h"
-#include "coreneuron_1.0/common/util/timer.h"
 #include "coreneuron_1.0/common/memory/data_manager.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
+#include "coreneuron_1.0/common/util/nrnthread_handler.h"
+#include "coreneuron_1.0/common/util/timer.h"
 #include "utils/error.h"
 
 #ifdef _OPENMP
@@ -64,24 +64,24 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
     omp_set_num_threads(p.th);
 #endif
 
-    NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, dealloc_nrnthread);
+    NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, free_nrnthread);
     if(nt == NULL){
         storage_clear(p.name);
         return MAPP_BAD_DATA;
     }
 
-    #pragma omp parallel
+    //#pragma omp parallel
     {
-        NrnThread * ntlocal = clone_nrnthread(nt);
+        NrnThread * ntlocal = (NrnThread *) clone_nrnthread(nt);
         #pragma omp barrier
         compute_wrapper(ntlocal,&p);
         #pragma omp barrier
         #pragma omp single
         {
-            storage_put(p.name,ntlocal,dealloc_nrnthread);
+            storage_put(p.name,ntlocal,free_nrnthread);
             ntlocal=0;
         }
-        if (ntlocal) dealloc_nrnthread(ntlocal);
+        if (ntlocal) free_nrnthread(ntlocal);
     }
     return error;
 }

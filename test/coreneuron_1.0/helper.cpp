@@ -33,8 +33,8 @@
 
 extern "C" {
 #include "utils/storage/storage.h"
-#include "coreneuron_1.0/common/util/nrnthread_handler.h"
 #include "coreneuron_1.0/common/memory/nrnthread.h"
+#include "coreneuron_1.0/common/util/nrnthread_handler.h"
 }
 
 namespace mapp{
@@ -50,11 +50,11 @@ namespace mapp{
     void helper_check(std::string const& name, std::string const& mechanism, std::string const& path){
         //extract what we need d and rhs
         NrnThread * nt = (NrnThread *) storage_get (name.c_str(),
-                                                    make_nrnthread, (void*)path.c_str(), dealloc_nrnthread);
+                                                    make_nrnthread, (void*)path.c_str(), free_nrnthread);
 
-        int size = get_end(nt);
-        double* rhs = get_rhs(nt); // compute solutiom rhs
-        double* d = get_d(nt); // compute solutiom d
+        int size = nt->end;
+        double* rhs = nt->_actual_rhs; // compute solutiom rhs
+        double* d = nt->_actual_d;  // compute solutiom d
 
         double* ref_rhs = new double[size];
         double* ref_d = new double[size];

@@ -56,7 +56,7 @@ int coreneuron10_cstep_execute(int argc, char * const argv[]) {
         return error;
 
     //Gets the data
-    NrnThread * nt = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, dealloc_nrnthread);
+    NrnThread * nt = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
     if(nt == NULL){
         storage_clear(p.name);
         return MAPP_BAD_DATA;

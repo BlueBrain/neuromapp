@@ -24,7 +24,8 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/common/util/nrnthread_handler.h
- * Implements function for the allocation, initialisation and copy of the memory for coreneuron1.0
+ * Implements storage-API compatible functions for the allocation
+ * and deallocation of NrnThread structures.
  */
 
 #ifndef MAPP_NRNTHREAD_HANDLER_H
@@ -32,29 +33,41 @@
 
 #include <stdlib.h>
 #include "coreneuron_1.0/common/memory/nrnthread.h"
-#include "coreneuron_1.0/common/util/reader.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** \fn void * make_nrnthread(void * filename)
-    \brief allocate and load data from file
-    \param filename path
-*/
-void * make_nrnthread(void * filename);
+/** \fn void *make_nrnthread(void *filename)
+    \brief Allocate NrnThread object and load data from file
+    \param filename path (as void * context variable)
+    \return Pointer to the constructed NrnThread object,
+            or NULL on error.
 
-/** \fn void dealloc_nrnthread(void * p);
-    \brief deallocat the memory
-    \param p data to deallocate
+    Allocated NrnThread objects should be freed with
+    free_nrnthread().
 */
-void dealloc_nrnthread(void * p);
+void *make_nrnthread(void *filename);
 
-/** \fn NrnThread* clone_nrnthread(NrnThread const* p);
-    \brief clone the NrnThread data for the OMP benchmark
-    \param NrnThread data of the master thread
+/** \fn void *clone_nrnthread(void *nrn)
+    \brief Allocate a new NrnThread object on the heap and initialise
+           with data from the NrnThread object pointed to by nrn.
+           
+    \param p pointer to existing NrnThread object (as void * context variable)
+    \return Pointer to the allocated and constructed NrnThread object,
+            or NULL on error.
+
+    Allocated NrnThread objects should be freed with
+    free_nrnthread().
 */
-NrnThread* clone_nrnthread(NrnThread const* p);
+void *clone_nrnthread(void *p);
+
+
+/** \fn void free_nrnthread(void * p);
+    \brief Deallocate NrnThread data and free NrnThread object itself.
+    \param p Pointer to heap-allocated NrnThread object.
+*/
+void free_nrnthread(void *p);
 
 #ifdef __cplusplus
 }

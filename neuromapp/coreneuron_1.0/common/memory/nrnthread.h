@@ -26,10 +26,12 @@
 #ifndef MAPP_NRNTHREAD_
 #define MAPP_NRNTHREAD_
 
+#include <stdio.h>
+
 /** \struct Membrane
  *  \brief Represents the neuron membrane channels (in a compartment)
  */
-typedef struct Membrane {
+typedef struct Mechanism {
     /* Total number of mechanism */
     int nodecount;
     /** Total number of variables in mechanism (e.g. 18 in Na) */
@@ -51,7 +53,7 @@ typedef struct Membrane {
 /** \struct NrnTh
  *  \brief A dataset representing a group of cells, their compartments, mechanisms, etc,
  */
-typedef struct NrnTh{
+typedef struct NrnThread {
     int _ndata;
     int nmech;
     /** Total number of Cell */
@@ -60,7 +62,7 @@ typedef struct NrnTh{
     int end;
     /** step time */
     double dt;
-    /** Total data allocated in once (contiguous) with a memory allocator */
+    /** Total non-mechanism data allocated in one (contiguous) region */
     double *_data;
     /** Righ hand side of the sparse matrix, alias in _data */
     double *_actual_rhs;
@@ -84,7 +86,42 @@ typedef struct NrnTh{
     Mechanism *ml;
     /** indexing of neuroni for linear algebra */
     int* _v_parent_index;
-
 } NrnThread;
+
+/** \brief Construct NrnThread from file.
+ *  \param fh File handle used for reading.
+ *  \param nt NrnThread structure to write to.
+ *  \return non-zero on error.
+ *
+ *  The NrnThread object resulting from a successful construction
+ *  should be destroyed with the nrnthread_dealloc() function.
+ */
+int nrnthread_read(FILE *fh, NrnThread *nt);
+
+/** \brief Serialise NrnThread to file.
+ *  \param fh File handle used for writing.
+ *  \param nt NrnThread structure to write.
+ *  \return non-zero on error.
+ *
+ *  The serialized data can be read with nrnthread_read().
+ */
+int nrnthread_write(FILE *fh, const NrnThread *nt);
+
+/** \brief Copy NrnThread data to new NrnThread.
+ *  \param p The NenThread object to copy.
+ *  \param nt The target NrnThread.
+ *  \return non-zero on error.
+ *
+ *  Any data held in nt will be overwritten.
+ *  Copied NrnThread data should be deallocated with
+ *  nrnthread_dealloc().
+ */
+int nrnthread_copy(const NrnThread *p, NrnThread *nt);
+
+/** \brief Deallocate NrnThread data constructed by nrnthread_read() or nrnthread_clone().
+ *  \param nt The NenThread object to destroy.
+ *  \return non-zero on error.
+ */
+int nrnthread_dealloc(NrnThread *nt);
 
 #endif

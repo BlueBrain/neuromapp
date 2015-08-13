@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(NrnThread_test){
     std::string name("name");
 
     NrnThread * nt = (NrnThread *) storage_get (name.c_str(),make_nrnthread,
-                                                (void*)wrongpath.c_str(), dealloc_nrnthread);
+                                                (void*)wrongpath.c_str(), free_nrnthread);
     BOOST_CHECK(nt==NULL);
     if(nt == NULL){
         storage_clear(name.c_str());

@@ -27,9 +27,7 @@
 #ifndef MAPP_KERNEL_MECHANISM_
 #define MAPP_KERNEL_MECHANISM_
 
-#include <math.h>
-
-#include "coreneuron_1.0/common/util/reader.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
 
 /** \fn mech_init_NaTs2_t(NrnThread *nt, Mechanism *ml)
     \brief initialisation kernel for the NaTs2_t channel mechanism

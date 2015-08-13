@@ -24,9 +24,10 @@
  * Implementation of the ProbAMPANMDA_EMS kernels
  */
 
+#include <math.h>
+
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
 #include "coreneuron_1.0/common/memory/nrnthread.h"
-#include "coreneuron_1.0/common/util/writer.h"
 #include "coreneuron_1.0/common/util/vectorizer.h"
 
 /** stride for the SoA layout */

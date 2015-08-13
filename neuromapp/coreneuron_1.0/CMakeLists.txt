@@ -1,8 +1,7 @@
 add_library (coreneuron10_common
             common/memory/data_manager.c
+            common/memory/nrnthread.c
             common/util/nrnthread_handler.c
-            common/util/reader.c
-            common/util/writer.c
             common/util/timer.c)
 
 

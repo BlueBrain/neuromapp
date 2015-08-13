@@ -40,11 +40,5 @@ void setup_nrnthreads_on_device(NrnThread *nt);
 */
 void update_nrnthreads_on_host(NrnThread *nt);
 
-/** \fn void compare(NrnThread *nt, NrnThread *nt_old)
-    \brief compare two data structure
-    \param nt the new data
-    \param nt_old reference data structure
-*/
-void compare(NrnThread *nt, NrnThread *nt_old);
 
 #endif
