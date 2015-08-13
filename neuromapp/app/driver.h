@@ -38,7 +38,7 @@ namespace mapp{
     /** \fn int usage()
         \brief Print the usage of the driver
      */
-    int usage();
+    void usage();
 
     /** \class Driver for the execution of the miniapps
 

@@ -1,4 +1,5 @@
 
+
 /*
  * Neuromapp - driver.cpp, Copyright (c), 2015,
  * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
@@ -28,7 +29,7 @@
 
 namespace mapp{
 
-    int usage(){
+    void usage(){
         std::cout << "Usage: < >  means optional \n";
         std::cout << "   miniapp --help provides the help of your miniapp \n \n";
         std::cout << "   The list of the following miniapps are available: \n";
@@ -36,7 +37,6 @@ namespace mapp{
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
         std::cout << "       fullComputationStep <arg> \n";
-        return 0;
     }
 
     void driver::insert(const std::string name, int(*f)(int,char *const *) ){

@@ -1,5 +1,5 @@
 /*
- * Neuromapp - hello.cpp, Copyright (c), 2015,
+ * Neuromapp - app.cpp, Copyright (c), 2015,
  * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
  * timothee.ewart@epfl.ch,
  * All rights reserved.
@@ -19,18 +19,28 @@
  */
 
 /**
- * @file neuromapp/test/hello/hello.cpp
- *  Test on the Hello world !
+ * @file neuromapp/test/app/app.cpp
+ *  The the main app e.g. the driver
  */
 
-#define BOOST_TEST_MODULE HelloTest
-#include "hello/hello.h"
+#define BOOST_TEST_MODULE AppTest
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_CASE(hello_test){
-    char arg1[]="--name=world";
-    char arg2[]="NULL";
-    char * const argv[] = {arg1, arg2};
+#include "neuromapp/app/driver.h"
+
+template<int n>
+int foo(int argc, char * const argv[]){
+    return n;
+}
+
+BOOST_AUTO_TEST_CASE(app_test){
+    mapp::driver d;
+    char arg0[]="dummy";
+    char arg1[]="foo";
+    char * const argv[] = {arg0,arg1};
     int argc = 2;
-    BOOST_CHECK(hello_execute(argc,argv)==0);
+    int(*f)(int,char * const*);
+    f = foo<mapp::MAPP_UNKNOWN_ERROR>;
+    d.insert("foo",f);
+    BOOST_CHECK_THROW(d.execute(argc,argv), mapp::driver_exception);
 }
