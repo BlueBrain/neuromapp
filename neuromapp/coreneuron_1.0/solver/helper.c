@@ -39,7 +39,7 @@ int solver_print_usage() {
     printf("usage: solver --data [string] --name [string]\n");
     printf("details: \n");
     printf("                 --data [path to the input] \n");
-    printf("                 --name [to internally reference the data] \n");
+    printf("                 --name [to internally reference the data, default name coreneuron_1.0_solver_data] \n");
     return MAPP_USAGE;
 }
 

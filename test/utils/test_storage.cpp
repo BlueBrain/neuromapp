@@ -38,6 +38,8 @@
 #include "utils/storage/storage.h"
 #include "utils/storage/storage.hpp"
 
+/** \cond */
+
 template <class T>
 struct delay {
     T value;
@@ -47,16 +49,6 @@ struct delay {
 
 template <class T>
 delay<T> make_delay(T x) { return delay<T>(x); }
-
-BOOST_AUTO_TEST_CASE(container_test){
-    double a(0.0);
-    impl::container c(&a);
-    double* b = c.get<double>();
-    BOOST_CHECK(*b==0.0);
-
-    int *x = c.get<int>();
-    BOOST_CHECK(x==(int *)0);
-}
 
 struct log_deletes {
     explicit log_deletes(int value_): value(value_) {}
@@ -69,6 +61,18 @@ struct log_deletes {
 };
 
 int log_deletes::count=0;
+/** \endcond */
+
+BOOST_AUTO_TEST_CASE(container_test){
+    double a(0.0);
+    impl::container c(&a);
+    double* b = c.get<double>();
+    BOOST_CHECK(*b==0.0);
+
+    int *x = c.get<int>();
+    BOOST_CHECK(x==(int *)0);
+}
+
 
 BOOST_AUTO_TEST_CASE(storage_test){
     storage s;
@@ -91,6 +95,8 @@ BOOST_AUTO_TEST_CASE(storage_test){
 
     log_deletes x(3);
     log_deletes &sx = s.get<log_deletes>("logdel",make_delay(x));
+
+    (void)sx; // Only checking non-const reference access and delete counts.
 
     log_deletes::reset_count();
     BOOST_CHECK(log_deletes::count==0);

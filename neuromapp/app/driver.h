@@ -33,6 +33,8 @@
 
 #include "app/driver_exception.h"
 
+
+//! Generic namespace for all the miniapps
 namespace mapp{
 
     /** \fn int usage()
@@ -40,11 +42,12 @@ namespace mapp{
      */
     void usage();
 
-    /** \class Driver for the execution of the miniapps
+    /** \class driver for the execution of the miniapps
 
-    \brief The driver encapsulates functional of all miniapp, the key is the name
-    of the miniapp, the use should provide the a function, XXXX_execute function respecting
-    the tiny API.
+    \brief The driver encapsulates functional of all miniapp.
+     
+    the key is the name of the miniapp, the use should provide the a function, XXXX_execute function respecting
+    the tiny API.   
 
         int XXXX_execute(int argc, char* argv);
 

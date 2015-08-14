@@ -31,8 +31,9 @@
 #include <vector>
 #include <algorithm>
 
-/** @brief Container for argc, argv data.
- */
+namespace mapp {
+
+/** @brief Container for argc, argv data.*/
 
 struct argv_data {
     /** Default constructor.
@@ -100,5 +101,7 @@ private:
     std::vector<char> argv_buf;
     std::vector<char *> argv_;
 };
+
+}
 
 #endif

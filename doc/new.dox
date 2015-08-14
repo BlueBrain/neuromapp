@@ -1,0 +1,43 @@
+/*!
+
+\page Page3 New miniapp
+
+\section nm1 Implementation
+
+The NeuroMapp framework is flexible, and allow you to implement new miniapp or 
+improve an existing one. For this the API of the miniapp is very light and simple.
+Here we provide you, information for C/C++ language. 
+
+The minimum for a miniapp is
+
+\li \c A main function with classical: int argc, char * const argv[] argument
+\li \c Your miniapp should be compiled like a library
+\li \c Provide a helper
+
+For the first point your main function must look like:
+
+\code{.cpp}
+int myname_execute(int argc, char* const argv[]);
+#ifdef __cplusplus
+     extern "C" {
+#endif
+    int myname_execute_execute(int argc, char *const argv[]);
+#ifdef __cplusplus
+} //end extern "C"
+#endif
+\endcode
+
+The extern "C" is mandatory is you have developed your application in C (the driver is in C++).
+Your miniapp MUST have a helper to provide information for the user.
+For a C++ program, we encourage to use boost::program_option. For a C
+application getoptlong can do the job. Please have a look in the hello project (C++)
+and the solver (C) to get inspiration. Moreover your new application MUST
+have a complet set of tests.
+
+When it is done the user modifies the neuromapp/app/main.cpp and neuromapp/app/miniapp.h.
+It should also modify CMake to introduce the new files, tests and library.
+
+*/
+
+
+

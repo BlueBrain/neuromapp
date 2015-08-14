@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-/** \struct Membrane
+/** \struct Mechanism
  *  \brief Represents the neuron membrane channels (in a compartment)
  */
 typedef struct Mechanism {
@@ -50,7 +50,7 @@ typedef struct Mechanism {
     int *nodeindices;
 } Mechanism;
 
-/** \struct NrnTh
+/** \struct NrnThread
  *  \brief A dataset representing a group of cells, their compartments, mechanisms, etc,
  */
 typedef struct NrnThread {

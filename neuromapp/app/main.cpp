@@ -37,8 +37,9 @@
 #include "app/driver_exception.h"
 #include "utils/argv_data.h"
 
-/** \brief the main program interacting with the user. The program is command line interactive.
-*/
+
+
+/** \brief the main program interacting with the user. The program is command line interactive. */
 int main(int argc, char * const argv[]){
      mapp::driver d;
      d.insert("hello",hello_execute);
@@ -70,7 +71,7 @@ int main(int argc, char * const argv[]){
 
          if( command_v[1].compare("quit") == 0 ) break;
 
-         argv_data A(command_v.begin(),command_v.end());
+         mapp::argv_data A(command_v.begin(),command_v.end());
 
          try {
              d.execute(A.argc(),A.argv());

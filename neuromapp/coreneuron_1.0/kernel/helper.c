@@ -43,7 +43,7 @@ int kernel_print_usage() {
     printf("                 --function [state or current] \n");
     printf("                 --data [path to the input] \n");
     printf("                 --numthread [threadnumber] \n");
-    printf("                 --name [to internally reference the data] \n");
+    printf("                 --name [to internally reference the data, default name coreneuron_1.0_kernel_data] \n");
     return MAPP_USAGE;
 }
 

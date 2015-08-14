@@ -42,7 +42,7 @@ int cstep_print_usage() {
     printf("Details: \n");
     printf("                 --data [path to the input]\n");
     printf("                 --numthread <threadnumber>\n");
-    printf("                 --name <reference to internal data> \n");
+    printf("                 --name [to internally reference the data, default name coreneuron_1.0_cstep_data] \n");
     return MAPP_USAGE;
 }
 
@@ -51,7 +51,7 @@ int cstep_help(int argc, char * const argv[], struct input_parameters * p)
   int c;
   p->d = "";
   p->th = 1; // one omp thread by default
-  p->name = "cstep_storage_name_helper";
+  p->name = "coreneuron_1.0_cstep_data";
 
   optind = 0;
 

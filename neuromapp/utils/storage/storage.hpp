@@ -1,4 +1,34 @@
-#pragma once
+/*
+ * Neuromapp - storage.hpp, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * Cremonesi Francesco - Swiss Federal Institute of technology in Lausanne,
+ * Sam Yates - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * francesco.cremonesi@epfl.ch
+ * sam.yates@epfl.ch
+ * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+
+/**
+ * @file neuromapp/utils/storage/storage.hpp
+ *  implementation of the storage container
+ */
+
+#ifndef MAPP_STORAGE_HPP
+#define MAPP_STORAGE_HPP
 
 #include <string>
 #include <map>
@@ -7,12 +37,15 @@
 #include <iostream>
 #include <stdexcept>
 
+//! namespace spcific for the storage implementation only
 namespace impl {
 
     template <typename T>
     void default_deleter(void *p) { delete (T *)p; }
 
-    /** container is not templated because we need a map of different type */
+    /** \class container Generic type for the storage container (std::map)
+        \brief Generic type for the storage container (std::map)
+     */
     class container {
     public:
         template <typename T>
@@ -45,31 +78,52 @@ namespace impl {
     };
 }
 
+/** \struct bad_type_exception
+    \brief  exception generator for type error in the storage
+ */
 struct bad_type_exception: public std::runtime_error {
     explicit bad_type_exception(const std::string &what_str): std::runtime_error(what_str) {}
 };
 
+/** \struct missing_data 
+    \brief  exception generator for missing data in the storage
+ */
 struct missing_data : public std::runtime_error {
     explicit missing_data(const std::string &what_str): std::runtime_error(what_str) {}
 };
 
+/** \class storage 
+    \brief store the different data set associated to a giben key provided by the user
+ */
 class storage {
 public:
     storage() {};
     ~storage();
 
+    /** put a copy of a given data set*/
     template <typename T>
     T &put_copy(std::string const &name, const T &x);
 
+    /** get a data set if it does not exist 
+        \param name the data set
+        \param f functor for the initialisation
+     */
     template <typename T, class F>
     T &get(std::string const &name, F f);
 
+    /* Get the data set 
+        \param name the data set
+     */
     template <typename T>
     T &get(const std::string &name);
 
+    /* Check if the data set exist 
+        \param looking a data set
+     */
     template <typename T>
     bool has(const std::string &name) const;
 
+    /** clean up */
     void clear(const std::string &name);
 
 private:
@@ -80,3 +134,5 @@ private:
 };
 
 #include "storage.ipp"
+
+#endif

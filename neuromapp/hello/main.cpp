@@ -38,7 +38,7 @@
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
 
-/** \fn help(int argc, char *const argv[], boost::program_options::variables_map& vm)
+/** \fn help(int argc, char *const argv[], po::variables_map& vm)
     \brief Helper using boost program option to facilitate the command line manipulation
     \param argc number of argument from the command line
     \param argv the command line from the driver or external call
@@ -87,7 +87,7 @@ void content(po::variables_map const& vm){
 int hello_execute(int argc, char* const argv[]){
     try {
         po::variables_map vm; // it contains everything
-        if(help(argc, argv, vm) != 0) return 1;
+        if(int error = help(argc, argv, vm)) return error;
         content(vm); // execute the miniapp
     }
     catch(std::exception& e){

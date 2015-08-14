@@ -1,3 +1,32 @@
+/*
+ * Neuromapp - storage.cpp, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * Cremonesi Francesco - Swiss Federal Institute of technology in Lausanne,
+ * Sam Yates - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * francesco.cremonesi@epfl.ch
+ * sam.yates@epfl.ch
+ * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+
+/**
+ * @file neuromapp/utils/storage/storage.cpp
+ *  implementation of the storage class
+ */
+
 #include "utils/storage/storage.hpp"
 extern "C" {
 #include "utils/storage/storage.h"
@@ -9,7 +38,6 @@ extern "C" {
 /**
  * destructor of the storage class
  */
-
 storage::~storage() {
     for (storage_map::iterator i=M.begin();i!=M.end();++i) i->second.destroy();
 }
@@ -25,8 +53,8 @@ void storage::clear(std::string const &name) {
     }
 }
 
-/**
- * Reference-counted managed pointer.
+/** \class ref_count_ptr
+ * \brief Reference-counted managed pointer.
  *
  * ref_count_ptr is either in an 'empty' state, or owns a pointer and
  * positive reference count.
@@ -38,7 +66,6 @@ void storage::clear(std::string const &name) {
  *
  * Not thread-safe.
  */
-
 class ref_count_ptr {
 public:
     ref_count_ptr(): ptr(0), dtor(0), k(0) {}
@@ -108,8 +135,8 @@ private:
 };
 
 
-/**
- * Functional object to construct ref_count_ptr owning the
+/** \struct storage_ctor_wrapper
+ * \brief Functional object to construct ref_count_ptr owning the
  * result of calling the provided maker function.
  */
 struct storage_ctor_wrapper {
@@ -147,8 +174,7 @@ void storage_put(const char *name, void *item, storage_dtor dtor) {
     neuromapp_data.put_copy(name, ref_count_ptr(item,dtor));
 }
 
+/** cleaning the library */
 void storage_clear(const char *name) {
     neuromapp_data.clear(name);
 }
-
-

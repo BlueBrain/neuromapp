@@ -36,7 +36,8 @@ namespace mapp{
         std::cout << "       hello <arg> \n";
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
-        std::cout << "       fullComputationStep <arg> \n";
+        std::cout << "       cstep <arg> \n";
+        std::cout << "   quit to exit \n";
     }
 
     void driver::insert(const std::string name, int(*f)(int,char *const *) ){
