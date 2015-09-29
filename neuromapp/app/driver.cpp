@@ -26,6 +26,7 @@
  */
 
 #include "app/driver.h"
+#include "test/coreneuron_1.0/helper.h"
 
 namespace mapp{
 
@@ -38,6 +39,9 @@ namespace mapp{
         std::cout << "       solver <arg> \n";
         std::cout << "       cstep <arg> \n";
         std::cout << "   quit to exit \n";
+        std::cout << "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
+        std::cout << "\n";
+        std::cout << "       "+mapp::data_test()+" \n";
     }
 
     void driver::insert(const std::string name, int(*f)(int,char *const *) ){

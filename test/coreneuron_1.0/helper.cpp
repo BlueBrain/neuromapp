@@ -77,7 +77,7 @@ namespace mapp{
             BOOST_CHECK_CLOSE( ref_d[i], d[i], 0.01 );
             BOOST_CHECK_CLOSE( ref_rhs[i], rhs[i], 0.01 );
         }
-        
+
         delete [] ref_rhs;
         delete [] ref_d;
     }
