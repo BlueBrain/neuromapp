@@ -31,5 +31,3 @@ TODO: make build scripts for library and include files
 TODO: make test code into unit tests
 
 TODO: add compile-type #if guards on architecture-specific code
-
-

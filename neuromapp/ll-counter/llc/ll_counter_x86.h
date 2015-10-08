@@ -7,8 +7,10 @@ struct x86_tsc {
     typedef uint64_t value_type;
     value_type read() {
         uint64_t v;
-        asm volatile("rdtscp \n\t"
-          : "=A"(v) :: "%rcx" );
+        asm volatile("rdtscp;"
+                     "shl $32, %%rdx;"
+                     "or %%rdx ,%%rax;"
+          : "=A"(v) : : "%rcx", "%rdx" );
         return v;
     }
     double counter_dt() const { return 0; }
