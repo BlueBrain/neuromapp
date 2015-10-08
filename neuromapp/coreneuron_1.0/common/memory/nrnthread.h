@@ -28,12 +28,15 @@
 
 #include <stdio.h>
 
+
 /** \struct Mechanism
  *  \brief Represents the neuron membrane channels (in a compartment)
  */
 typedef struct Mechanism {
     /* Total number of mechanism */
     int nodecount;
+    /* Total number of mechanism with pad*/
+    int nodecount_pad;
     /** Total number of variables in mechanism (e.g. 18 in Na) */
     int szp;
     /** Total number of ion variable in mechanism (usually 3/4 in mechanism) */
@@ -60,6 +63,8 @@ typedef struct NrnThread {
     int ncell;
     /** Total number of compartment */
     int end;
+    /** Total number of compartment with padding*/
+    int end_pad;
     /** step time */
     double dt;
     /** Total non-mechanism data allocated in one (contiguous) region */

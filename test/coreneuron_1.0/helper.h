@@ -23,7 +23,7 @@
  *  Helper for starting all the miniapp
  */
 
-#include <string>
+#include <string.h>
 
 #include "utils/argv_data.h"
 #include "test/coreneuron_1.0/path.h" // this file is generated automatically

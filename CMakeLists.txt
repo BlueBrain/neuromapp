@@ -20,7 +20,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
 find_package(Boost 1.44 REQUIRED program_options unit_test_framework system filesystem)
 find_package(SLURM)
-#boost include
+# boost include
 include_directories(${Boost_INCLUDE_DIRS})
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g ")

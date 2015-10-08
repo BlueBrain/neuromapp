@@ -30,8 +30,10 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "coreneuron_1.0/common/memory/nrnthread.h"
+#include "coreneuron_1.0/common/memory/memory.h"
 #include "utils/error.h"
 
 int nrnthread_dealloc(NrnThread *nt) {
@@ -66,7 +68,8 @@ int nrnthread_dealloc(NrnThread *nt) {
 
 static void *memcpy_align(void *s, size_t align, size_t size) {
     void *d;
-    posix_memalign(&d, align, size);
+    int b1 = posix_memalign(&d, align, size);
+    assert(b1 == 0);
     memcpy(d, s, size);
     return d;
 }
@@ -82,7 +85,9 @@ int nrnthread_copy(const NrnThread *p, NrnThread *nt){
     nt->_data = memcpy_align(p->_data, 64, sizeof(double) * nt->_ndata);
 
     nt->end = p->end;
-    ne = nt->end;
+    nt->end_pad = p->end_pad;
+
+    ne = nt->end_pad;
 
     nt->_actual_rhs = nt->_data + 0*ne;
     nt->_actual_d = nt->_data + 1*ne;
@@ -94,7 +99,7 @@ int nrnthread_copy(const NrnThread *p, NrnThread *nt){
     offset = 6*ne;
     nt->nmech = p->nmech;
 
-    nt->ml = (Mechanism *) calloc(sizeof(Mechanism), nt->nmech);
+    nt->ml = (Mechanism *)ecalloc_align(nt->nmech, NRN_SOA_BYTE_ALIGN, sizeof(Mechanism));
     nt->max_nodecount = 0;
 
     for (i=0; i<nt->nmech; i++) {
@@ -104,30 +109,34 @@ int nrnthread_copy(const NrnThread *p, NrnThread *nt){
         ml->type = pml->type;
         ml->is_art = pml->is_art;
         ml->nodecount = pml->nodecount;
+        ml->nodecount_pad = pml->nodecount_pad;
         ml->szp = pml->szp;
         ml->szdp = pml->szdp;
         ml->offset = pml->offset;
         ml->data = nt->_data + offset;
         offset += ml->nodecount * ml->szp;
 
-        if ( nt->max_nodecount < ml->nodecount)
-            nt->max_nodecount = ml->nodecount;
+        if ( nt->max_nodecount < ml->nodecount_pad)
+            nt->max_nodecount = ml->nodecount_pad;
 
         if (!ml->is_art)
-            ml->nodeindices = memcpy_align(pml->nodeindices, 64, sizeof(int) * ml->nodecount);
+            ml->nodeindices = memcpy_align(pml->nodeindices, NRN_SOA_BYTE_ALIGN, sizeof(int) *
+                                            ml->nodecount_pad);
 
         if (ml->szdp)
-            ml->pdata=memcpy_align(pml->pdata, 64, sizeof(int) * ml->nodecount*ml->szdp);
+            ml->pdata = memcpy_align(pml->pdata, NRN_SOA_BYTE_ALIGN, sizeof(int)
+                                     * ml->nodecount_pad*ml->szdp);
+
     }
 
     /* parent indexes for linear algebra */
-    nt->_v_parent_index=memcpy_align(p->_v_parent_index, 64, sizeof(int) * ne);
+    nt->_v_parent_index=memcpy_align(p->_v_parent_index, NRN_SOA_BYTE_ALIGN, sizeof(int) * ne);
 
     /* no of cells in the dataset */
     nt->ncell = p->ncell;
 
-    posix_memalign((void **)&nt->_shadow_rhs, 64, sizeof(double) *nt->max_nodecount);
-    posix_memalign((void **)&nt->_shadow_d, 64, sizeof(double) *nt->max_nodecount);
+    nt->_shadow_rhs = (double*)ecalloc_align(nrn_soa_padded_size(nt->max_nodecount,0),NRN_SOA_BYTE_ALIGN, sizeof(double));
+    nt->_shadow_d = (double*)ecalloc_align(nrn_soa_padded_size(nt->max_nodecount,0),NRN_SOA_BYTE_ALIGN, sizeof(double));
 
     return MAPP_OK;
 }
@@ -187,11 +196,14 @@ int nrnthread_read(FILE *hFile, NrnThread *nt) {
     nt->dt = 0.025;
 
     fscanf(hFile, "%d\n", &nt->_ndata);
-    posix_memalign( (void **) &nt->_data, 64, sizeof(double) * nt->_ndata);
+    nt->_data =  (double*)ecalloc_align(nt->_ndata, NRN_SOA_BYTE_ALIGN, sizeof(double));
+
     read_nrnthread_darray(hFile, nt->_data, nt->_ndata);
 
     fscanf(hFile, "%d\n", &nt->end);
-    ne = nt->end;
+    fscanf(hFile, "%d\n", &nt->end_pad);
+
+    ne = nt->end_pad;
 
     nt->_actual_rhs = nt->_data + 0*ne;
     nt->_actual_d = nt->_data + 1*ne;
@@ -203,43 +215,44 @@ int nrnthread_read(FILE *hFile, NrnThread *nt) {
     offset = 6*ne;
     fscanf(hFile, "%d\n", &nt->nmech);
 
-    nt->ml = (Mechanism *) calloc(sizeof(Mechanism), nt->nmech);
+    nt->ml = (Mechanism *)ecalloc_align(nt->nmech, NRN_SOA_BYTE_ALIGN, sizeof(Mechanism));
 
     nt->max_nodecount = 0;
 
     for (i=0; i<nt->nmech; i++) {
 
         Mechanism *ml = &nt->ml[i];
-        fscanf(hFile, "%d %d %d %d %d %ld\n", &(ml->type), &(ml->is_art),
-               &(ml->nodecount), &(ml->szp), &(ml->szdp), &(ml->offset));
+        fscanf(hFile, "%d %d %d %d %d %d %ld\n", &(ml->type), &(ml->is_art),
+               &(ml->nodecount), &(ml->nodecount_pad), &(ml->szp), &(ml->szdp), &(ml->offset));
         ml->data = nt->_data + offset;
-        offset += ml->nodecount * ml->szp;
+        offset += ml->nodecount_pad * ml->szp;
 
-        if ( nt->max_nodecount < ml->nodecount)
-            nt->max_nodecount = ml->nodecount;
+        if ( nt->max_nodecount < ml->nodecount_pad)
+            nt->max_nodecount = ml->nodecount_pad;
 
         printf("=> Mechanism type %d is at index %d\n", ml->type, i);
 
-        if (!ml->is_art) {
-            posix_memalign((void **)&ml->nodeindices, 64, sizeof(int) * ml->nodecount);
-            read_nrnthread_iarray(hFile, ml->nodeindices, ml->nodecount);
+        if (!ml->is_art){
+            ml->nodeindices = (int*)ecalloc_align(ml->nodecount_pad, NRN_SOA_BYTE_ALIGN, sizeof(int));
+            read_nrnthread_iarray(hFile, ml->nodeindices, ml->nodecount_pad);
         }
 
-        if (ml->szdp) {
-            posix_memalign((void **)&ml->pdata, 64, sizeof(int) * ml->nodecount*ml->szdp);
-            read_nrnthread_iarray(hFile, ml->pdata, ml->nodecount*ml->szdp);
+        if (ml->szdp){
+            ml->pdata = (int*)ecalloc_align(ml->nodecount_pad*ml->szdp, NRN_SOA_BYTE_ALIGN, sizeof(int));
+            read_nrnthread_iarray(hFile, ml->pdata, ml->nodecount_pad*ml->szdp);
         }
+
     }
 
     /* parent indexes for linear algebra */
-    posix_memalign((void **)&nt->_v_parent_index, 64, sizeof(int) * ne);
+    nt->_v_parent_index = (int*)ecalloc_align(ne, NRN_SOA_BYTE_ALIGN, sizeof(int));;
     read_nrnthread_iarray(hFile, nt->_v_parent_index, ne);
 
     /* no of cells in the dataset */
     fscanf(hFile, "%d\n", &nt->ncell);
 
-    posix_memalign((void **)&nt->_shadow_rhs, 64, sizeof(double) *nt->max_nodecount);
-    posix_memalign((void **)&nt->_shadow_d, 64, sizeof(double) *nt->max_nodecount);
+    nt->_shadow_rhs = (double*)ecalloc_align(nrn_soa_padded_size(nt->max_nodecount,0),NRN_SOA_BYTE_ALIGN, sizeof(double));
+    nt->_shadow_d = (double*)ecalloc_align(nrn_soa_padded_size(nt->max_nodecount,0),NRN_SOA_BYTE_ALIGN, sizeof(double));
 
     return MAPP_OK;
 }
@@ -253,7 +266,7 @@ int nrnthread_write(FILE *hFile, const NrnThread *nt) {
     write_nrnthread_darray(hFile, nt->_data, nt->_ndata);
 
     fprintf(hFile, "%d\n", nt->end);
-    ne = nt->end;
+    ne = nt->end_pad;
 
     offset = 6*ne;
     fprintf(hFile, "%d\n", nt->nmech);
