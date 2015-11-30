@@ -1,0 +1,131 @@
+/*!
+
+\page Page2 Tutorial
+
+\section tu1 Hello World
+
+Let experiment the driver of the miniapp with the hello word, as indicate in the previous section, start the driver:
+
+\code{.sh}
+    ./bin/app
+    Welcome to NeuroMapp! Please enter the name of the miniapp you wish to execute followed by any arguments you wish to pass to it.
+    Please avoid preceding and trailing whitespace!
+    To finish type quit
+    >?
+\endcode
+
+Executing the helper of the driver, we obtain the list of the miniapp available and the requirement to run it
+
+\code{.sh}
+    ./bin/app
+>? help
+Usage: < >  means optional
+   miniapp --help provides the help of your miniapp
+
+   The list of the following miniapps are available:
+       hello <arg>
+       kernel <arg>
+       solver <arg>
+       fullComputationStep <arg>
+   quit to exit 
+   The miniapp: kernel, solver, cstep can use the provided data set: 
+
+       /Users/ewart/Documents/miniapps/b/test/bench.101392/bench.101392 
+\endcode
+
+If we have a particular look on the help function, it provides the different options for this program
+
+\code{.sh}
+>? hello --help
+Allowed options:
+  --help                produce help message
+  --name arg (=world)   who ?
+  --numthread arg (=1)  number of OMP thread
+\endcode
+
+If we run the program with two thread and a given name
+
+\code{.sh}
+>? hello --numthread=2 --name=BlueBrain
+Hello BlueBrain, total thread: 2, thread id: 0
+Hello BlueBrain, total thread: 2, thread id: 1
+\endcode
+
+\section tu2 Miniapps options
+
+All the miniapps follow the same scheme, a helper that provide options. We summarise all options of all miniapps in the next
+Table
+
+<TABLE BORDER="1">
+<CAPTION> Options of the miniapp  </CAPTION>
+ <TR>
+ <TH>                  </TH>
+ <TH> hello      </TH>
+ <TH> solver     </TH>
+ <TH> kernel     </TH>
+ <TH> cstep     </TH>
+ </TR>
+ <TR>
+ <TH> —help  </TH>
+ <TD  align="center">  Print helper   </TD>
+ <TD  align="center">  Print helper   </TD>
+ <TD  align="center">  Print helper   </TD>
+ <TD  align="center">  Print helper   </TD>
+ </TR>
+ <TR>
+ <TH> —data  </TH>
+ <TD  align="center">  -  </TD>
+ <TD  align="center">  input file   </TD>
+ <TD  align="center">  input file   </TD>
+ <TD  align="center">  input file   </TD>
+ </TR>
+ </TR>
+ <TR>
+ <TH> —name  </TH>
+ <TD  align="center">  world </TD>
+ <TD  align="center">  storage key   </TD>
+ <TD  align="center">  storage key   </TD>
+ <TD  align="center">  storage key   </TD>
+ </TR>
+ <TR>
+ <TH> —numthread  </TH>
+ <TD  align="center">  number OMP thread  </TD>
+ <TD  align="center">  -   </TD>
+ <TD  align="center">  number OMP thread   </TD>
+ <TD  align="center">  -   </TD>
+ </TR>
+ </TR>
+ <TR>
+ <TH> —mechanism  </TH>
+ <TD  align="center">  -  </TD>
+ <TD  align="center">  -   </TD>
+ <TD  align="center">  looking mechanism [Na, ProbAMPANMDA or Ih]  </TD>
+ <TD  align="center">  -   </TD>
+ </TR>
+ </TR>
+ <TR>
+ <TH> —function  </TH>
+ <TD  align="center">  -  </TD>
+ <TD  align="center">  -   </TD>
+ <TD  align="center">  looking function [state or current]   </TD>
+ <TD  align="center">  -   </TD>
+ </TR>
+</TABLE>
+
+In details the "name" and "data" options are the most important. The "name" option is a key
+for the input data. When a miniapp (e.g. solver) is run, the data are saved in memory with a default key
+(coreneuron_1.0_<name_mini_app>_data), but the user can provide a specific key. Then, for a second
+run the key is the same the data will be reused, it not necessary to provide the data set (if you are looking for the same one).
+
+\note We provide a tiny set of input data to run that is uncompressed during the Makefile generation in the build directory: 
+build/test/bench.101392/bench.101392 
+
+\section tu3 Miniapps performance metrics
+
+The only available metric on the mini-app is the time to solution. This metric is inside the "kernel", "solver" and "cstep" mini-app
+
+
+*/
+
+
+

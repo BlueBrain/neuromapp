@@ -1,0 +1,38 @@
+/*!
+
+\mainpage Neuromapp notice
+
+The purpose of the Neuromapp framework is to reproduce the main functionality of the CoreNeuron 1.0 code. 
+The key functionalities of the code has been extracted and code 
+in (mini)-application of hundreds of lines. Therefore, everybody who has an interested
+on this application can explore it and improve it in a new version. It is the main
+point of Neuromapp, propose basement for user and explore new version to improve the
+performance.
+
+For his first release the Neuromapp framework supports the "kernel" mini-application that 
+reproduces the computation of selected mechanism of CoreNeuron. The "solver" mini-application
+that is the implementation of the Hines solver (Similar to the Thomas Solver) and then
+"cstep" that mixes the solver and kernel to reproduce a pseudo computation step time.
+
+Moreover the framework provides a tiny memory manager that reproduces the actual
+memory scheme of CoreNeuron. We extend a bit the possibility of the memory manager
+to allow multiplication run between miniapp without reloading the memory.
+
+To conclude, we also provide a "Hello" project to help the user to implement new miniapp, 
+or alternative to the existing one.
+
+\section Definitions
+
+In this section, we give the three main definitions that will be used in the documentation 
+
+
+\li \c \b skeleton\b, the skeleton is combination of mini-app, due to the large number
+of combination mini-app can not really be mixed directly, the developer must create a new mini-app that will interleave the needed mini-app/functions (like the "step" mini-app)
+
+\li \c \b mini-app\b, the mini-app reproduce a key functionality of a application, the 
+best example in Neuromapp is the "solver" mini-app, the resolution of a space matrices using the Hines solver. A mini-app can be composed of several kernels. A kernel is limited to hundreds of lines \a e.g.\a the state function of the homonym "kernel" mini-app 
+
+\li \c \b kernel\b, a kernel is the computational part of the mini-app, it can be a solver, a computation routine, \a etc\a …
+
+
+*/

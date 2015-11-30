@@ -45,9 +45,9 @@ namespace mapp{
     /** \class driver for the execution of the miniapps
 
     \brief The driver encapsulates functional of all miniapp.
-     
+
     the key is the name of the miniapp, the use should provide the a function, XXXX_execute function respecting
-    the tiny API.   
+    the tiny API.
 
         int XXXX_execute(int argc, char* argv);
 

@@ -1,0 +1,54 @@
+/*!
+
+\page Page1 Compilation, Installation and execution
+
+\section  Pre-requirement
+
+The Neuromapp framework needs cmake, a normal compiler and the boost library. The boost library is utilised for the
+the testing framework. After cloning the framework, simply create a build directory, and run cmake as usual.
+
+\code{.sh}
+    mkdir build // create the build directory
+    cd build
+    cmake .. // generate Makefile
+    make  // compile 
+    make test // execute the test target
+    make install // if you want to install 
+    make doc //create the doxygen doc
+\endcode
+
+All the miniapps are organised around a driver program. The execution is easy, in the bin install directory
+just execute the "app". 
+
+\code{.sh}
+    ./bin/app
+    Welcome to NeuroMapp! Please enter the name of the miniapp you wish to execute followed by any arguments you wish to pass to it.
+    Please avoid preceding and trailing whitespace!
+    To finish type quit
+    >? 
+\endcode
+
+It is interactive, it will wait which miniapp you are looking with needed arguments.
+In the next table is summarised the list of the miniapps.
+
+<TABLE BORDER="1">
+<CAPTION>  List of the miniapp  </CAPTION>
+ <TR>
+ <TH>                  </TH>
+ <TH> hello      </TH>
+ <TH> solver     </TH>
+ <TH> kernel     </TH>
+ <TH> cstep     </TH>
+ </TR>
+ <TR>
+ <TH> topic  </TH>
+ <TD  align="center">  Hello world   </TD>
+ <TD  align="center">  Hines solver   </TD>
+ <TD  align="center">  computation kernel   </TD>
+ <TD  align="center">  pseudo step time   </TD>
+ </TR>
+</TABLE>
+
+ Let see that in the next tutorial, how interact with this miniapp.
+
+*/
