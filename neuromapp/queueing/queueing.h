@@ -1,7 +1,7 @@
 /*
- * Neuromapp - miniapp.h, Copyright (c), 2015,
- * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Neuromapp - queueing.h, Copyright (c), 2015,
+ * Kai Langen - Swiss Federal Institute of technology in Lausanne,
+ * kai.langen@epfl.ch,
  * All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,17 +19,18 @@
  */
 
 /**
- * @file neuromapp/app/miniapp.h
- * all include
+ * @file neuromapp/queueing/queueing.h
+ * Declaration for the queuing_execute function from main.cpp
  */
 
-#ifndef MAPP_APP_
-#define MAPP_APP_
+#ifndef MAPP_QUEUEING_EXECUTE_
+#define MAPP_QUEUEING_EXECUTE_
 
-#include "hello/hello.h"
-#include "queueing/queueing.h"
-#include "coreneuron_1.0/kernel/kernel.h"
-#include "coreneuron_1.0/solver/solver.h"
-#include "coreneuron_1.0/cstep/cstep.h"
+/** \fn queuing_execute(int argc, char *const argv[])
+    \param argc number of argument from the command line
+    \param argv the command line from the driver or external call
+    \return error message from mapp::mapp_error
+ */
+int queueing_execute(int argc, char* const argv[]);
 
 #endif

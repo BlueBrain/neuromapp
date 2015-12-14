@@ -1,7 +1,7 @@
 /*
- * Neuromapp - miniapp.h, Copyright (c), 2015,
- * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Neuromapp - test.cpp, Copyright (c), 2015,
+ * Kai Langen - Swiss Federal Institute of technology in Lausanne,
+ * kai.langen@epfl.ch,
  * All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,17 +19,26 @@
  */
 
 /**
- * @file neuromapp/app/miniapp.h
- * all include
+ * @file neuromapp/test/queuing/test.cpp
+ *  Test on the Queueing Miniapp.
  */
 
-#ifndef MAPP_APP_
-#define MAPP_APP_
+#define BOOST_TEST_MODULE QueueingTest
+#include <boost/test/unit_test.hpp>
+#include <boost/test/test_case_template.hpp>
+#include <boost/filesystem.hpp>
 
-#include "hello/hello.h"
+#include "test/coreneuron_1.0/helper.h"
+#include <vector>
 #include "queueing/queueing.h"
-#include "coreneuron_1.0/kernel/kernel.h"
-#include "coreneuron_1.0/solver/solver.h"
-#include "coreneuron_1.0/cstep/cstep.h"
+#include "utils/error.h"
 
-#endif
+namespace bfs = ::boost::filesystem;
+
+BOOST_AUTO_TEST_CASE(queueing_test){
+    char arg1[]="--numthread=8";
+    char * const argv[] = {arg1};
+    int argc = 1;
+    BOOST_CHECK(queueing_execute(argc,argv)==0);
+}
+
