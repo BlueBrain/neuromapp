@@ -24,15 +24,13 @@
  */
 
 #include <iostream>
-#include <string>
-#include <time.h>
 #include <ctime>
+#include <boost/program_options.hpp>
+#include <sys/time.h>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include <boost/program_options.hpp>
 
 #include "queueing/pool.h"
 #include "queueing/queueing.h"
@@ -52,13 +50,18 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce help message")
-    ("numthread", po::value<int>()->default_value(2),
-     "number of OMP thread (must be greater than 1)")
-    ("eventsper", po::value<int>()->default_value(20),
+    ("numthread", po::value<int>()->default_value(1),
+     "number of OMP thread")
+    ("eventsper", po::value<int>()->default_value(50),
      "number of events created per time step.")
     ("simtime", po::value<int>()->default_value(5000),
      "number of time steps in the simulation")
+    ("runs", po::value<int>()->default_value(1),
+     "how many times the executable is run")
+    ("percent-ite", po::value<int>()->default_value(90),
+     "the percentage of inter-thread events out of total events")
     ("verbose","provides additional outputs during execution");
+    //future options : fraction of interthread events
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -68,10 +71,27 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         return mapp::MAPP_USAGE;
     }
 
-#ifdef _OPENMP
-    if(vm["numthread"].as<int>() < 2){
+    if(vm["numthread"].as<int>() < 1){
 	return mapp::MAPP_BAD_ARG;
     }
+
+    if(vm["eventsper"].as<int>() < 1){
+	return mapp::MAPP_BAD_ARG;
+    }
+
+    if(vm["simtime"].as<int>() < 1){
+	return mapp::MAPP_BAD_ARG;
+    }
+
+   if(vm["runs"].as<int>() < 1){
+	return mapp::MAPP_BAD_ARG;
+    }
+
+   if(vm["percent-ite"].as<int>() < 0){
+	return mapp::MAPP_BAD_ARG;
+    }
+
+#ifdef _OPENMP
     omp_set_num_threads(vm["numthread"].as<int>());
 #endif
     return mapp::MAPP_OK;
@@ -82,20 +102,25 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     \param vm encapsulate the command line and all needed informations
  */
 void queueing_miniapp(po::variables_map const& vm){
-    std::clock_t start;
-    double duration;
-    Pool pl(vm["numthread"].as<int>(), vm.count("verbose"),
-		    vm["eventsper"].as<int>());
+    long long sum = 0;
+    struct timeval start, end;
+    for(int i = 0; i < vm["runs"].as<int>(); ++i){
+    	Pool pl(vm.count("verbose"), vm["eventsper"].as<int>(), vm["percent-ite"].as<int>());
 
-    start = std::clock();
-    for(int i = 0; i < vm["simtime"].as<int>(); ++i){
-	pl.checkThresh(vm["simtime"].as<int>());
-	pl.enqueueAll();
-	pl.deliverAll();
+	gettimeofday(&start, NULL);
+	//Actual queueing simulation
+	for(int j = 0; j < vm["simtime"].as<int>(); ++j){
+		pl.timeStep(vm["simtime"].as<int>());
+		pl.handleSpike(vm["simtime"].as<int>());
+	}
+    	gettimeofday(&end, NULL);
+
+    	long long diff_ms = 1000 * (end.tv_sec - start.tv_sec) + \
+		   (end.tv_usec - start.tv_usec) / 1000;
+    	sum += diff_ms;
+    	std::cout<<"run "<<i<<": "<<diff_ms<<" ms"<<std::endl;
     }
-    duration = (std::clock() - start ) / (double) CLOCKS_PER_SEC;
-
-    std::cout<<"Time: "<<duration<<std::endl;
+    std::cout<<"average run time: "<<sum/(vm["runs"].as<int>())<<" ms"<<std::endl;
 }
 
 int queueing_execute(int argc, char* const argv[]){

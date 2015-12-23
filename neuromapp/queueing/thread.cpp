@@ -24,51 +24,48 @@
  */
 
 #include <iostream>
+#include <cassert>
 #include "queueing/thread.h"
 
-NrnThreadData::NrnThreadData(int i, int verbose){
-	id_ = i;
-	v_ = verbose;
+NrnThreadData::NrnThreadData(){
 	qe_ = new Queue();
 	sent_ = 0;
 	enqueued_ = 0;
+	delivered_ = 0;
 }
 
 NrnThreadData::~NrnThreadData(){
-	if(v_){
-		std::cout<<"Thread "<<id_<<" sent: "<<sent_<<std::endl;
-		std::cout<<"Thread "<<id_<<" enqueued: "<<enqueued_<<std::endl;
-	}
 	delete qe_;
 }
 
-void NrnThreadData::interThreadSend(double d, double tt, int dst, Pool& p){
-	Event* it = new Event(d,tt);
+void NrnThreadData::interThreadSend(double d, double tt){
+	Event ite(d,tt);
 	sent_++;
-	p.lock();
-	p.push(it, dst);
-	p.unlock();
+	inter_thread_events_.push(ite);
 }
 
-void NrnThreadData::enqueueMyEvents(Pool& p){
-	Event* ite;
-	p.lock();
-	for (int i = 0; i < p.size(id_); ++i){
-		ite = p.pull(id_, i);
+void NrnThreadData::enqueueMyEvents(){
+	waitfree_queue<Event>::node* x = inter_thread_events_.pop_all();
+	Event ite;
+	while(x){
 		enqueued_++;
-		selfSend(ite->data_, ite->t_);
+		waitfree_queue<Event>::node* tmp = x;
+		ite = tmp->data;
+		selfSend(ite.data_, ite.t_);
+		x = x->next;
+		delete tmp;
 	}
-	p.clear(id_);
-	p.unlock();
 }
 
 void NrnThreadData::selfSend(double d, double tt){
 	qe_->insert(tt, d);
 }
 
-bool NrnThreadData::deliver(int til){
+bool NrnThreadData::deliver(int id, int til){
 	Event *q;
+	delivered_++;
 	if(q = (qe_->atomic_dq(til))){
+		assert((int)q->data_ == id);
 //		POINT_RECEIVE()
 		return true;
 	}

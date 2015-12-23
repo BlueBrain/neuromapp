@@ -23,9 +23,11 @@
  * Contains Pool class declaration.
  */
 
-#include <omp.h>
-#include "queueing/container.h"
 #include "queueing/thread.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #ifndef pool_h
 #define pool_h
@@ -34,93 +36,57 @@ class NrnThreadData;
 
 class Pool {
 private:
-	int numThreads_;
+	int cell_groups_;
 	int time_;
-	int eventsPerStep_;
+	int v_;
+	int percent_ITE_;
+	int events_per_step_;
 	int all_sent_;
 	int all_enqueued_;
+	int all_delivered_;
+	int all_spiked_;
 
-	NrnThreadData** threadDatas;
-	/// Vector for inter thread events
-	std::vector<Event*>* interThreadEvents;
-	omp_lock_t* mut_;
+	NrnThreadData* threadDatas;
 
 public:
-	/** \fn Pool(int nt,int verbose, int eventsPer)
-	    \brief Initializes a pool with an interThreadEvents and threadDatas array
-	    \param nt number of threads
-	    \param verbose verbose mode: 1 = ON, 0 = OFF
-	    \eventsPer number of events per time step
+	/** \fn Pool(int verbose, int eventsPer, int percent_ITE_)
+	    \brief initializes a Pool with a threadDatas array
+	    \param verbose verbose mode: 1 = on, 0 = off
+	    \param events_per_step_ number of events per time step
+	    \param percent_ITE_ is the percentage of inter-thread events
 	 */
 	Pool(int,int,int);
 
 	/** \fn ~Pool()
-	    \brief destroys interThreadEvents and threadDatas. Frees mutex.
+	    \brief destroys threadDatas.
 	 */
 	~Pool();
 
-/***********************
-MULTI_THREADED FUNCTIONS
-************************/
-
-	/** \fn void checkThresh(int totalTime)
-	    \brief Every thread generates events which are sent to random destination threads
+	/** \fn void timeStep(int totalTime)
+	    \brief master function to call generate, enqueue, and deliver
 	    \param totalTime tells the provides the total simulation time
 	 */
-	void checkThresh(int);
+	void timeStep(int);
 
-	/** \fn void enqueueAll()
-	    \brief every thread pushes its interThreadEvents arrays onto its priority queue
+	/** \fn void generateEvents(int totalTime, int myID)
+	    \brief creates events which are sent to random destination threads
+	    \param totalTime tells the provides the total simulation time
+	    \param i the thread index
 	 */
-	void enqueueAll();
+	void generateEvents(int,int);
 
-	/** \fn void deliverAll()
-	    \brief every thread pops events (with time up to current time)
-	    from their queue and delivers the events
+	/** \fn void handleSpike(int totalTime)
+	    \brief compensates for the spike exchange by adding events every 5 timesteps
+	    \param totalTime tells the provides the total simulation time
 	 */
-	void deliverAll();
+	void handleSpike(int);
 
-
-/***************************
-INTERTHREAD EVENTS ACCESSORS
-****************************/
-	/** \fn void push(Event* it,int dst)
-	    \brief pushes event onto the it-events array of dst. Increments all_sent.
-	    \param it the item to be pushed
-	    \param dst the destination thread
+	/** \fn int chooseDst(int myID)
+	    \brief Generates a random destination according to the variable percent_ITE_
+	    \param myID the thread index
+	    \return destination
 	 */
-	inline void push(Event* it, int dst){all_sent_++;interThreadEvents[dst].push_back(it);}
-
-	/** \fn Event* pull(int id,int it)
-	    \brief accesses interThreadEvents[id][it]. Increments all_enqueued.
-	    \param id specifies interThreadEvents array to access
-	    \param it the index of the array to be accessed
-	 */
-	inline Event* pull(int id, int it){all_enqueued_++;return interThreadEvents[id][it];}
-
-	/** \fn int size(int id)
-	    \brief accesses interThreadEvents[id].size()
-	    \param id specifies interThreadEvents array to access
-	    \return accessed element
-	 */
-	inline int size(int id){return interThreadEvents[id].size();}
-
-	/** \fn void clear(int)
-	    \brief clears the specified interThreadEvents array
-	    \param id specifies which array to clear
-	    \return array size
-	 */
-	inline void clear(int id){interThreadEvents[id].clear();}
-
-	/** \fn void lock()
-	    \brief aquire mutex
-	 */
-	inline void lock(){if (mut_) {omp_set_lock(mut_);}}
-
-	/** \fn void unlock()
-	    \brief release mutex
-	 */
-	inline void unlock(){if (mut_) {omp_unset_lock(mut_);}}
+	int chooseDst(int);
 };
 
 #endif

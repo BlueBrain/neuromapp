@@ -27,46 +27,48 @@
 #define thread_h
 
 #include <queue>
+#include <vector>
 #include "queueing/container.h"
-#include "queueing/pool.h"
+#include "lockless_queue.h"
 
-class Pool;
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 class NrnThreadData{
 private:
-	int id_;
-	int v_;
-	int sent_;
-	int enqueued_;
 	Queue *qe_;
+	/// vector for inter thread events
+	waitfree_queue<Event> inter_thread_events_;
 
 public:
-	/** \fn NrnThreadData(int i,int verbose)
+	int sent_;
+	int enqueued_;
+	int delivered_;
+
+	/** \fn NrnThreadData()
 	    \brief initializes NrnThreadData and creates a new priority queue
 	    \param i provides the thread id for this NrnThreadData
 	    \param verbose verbose mode: 1 = ON, 0 = OFF
 	 */
-	NrnThreadData(int,int);
+	NrnThreadData();
 
 	/** \fn ~NrnThreadData()
 	    \brief frees queue and destroys NrnThreadData object
 	 */
 	~NrnThreadData();
 
-	/** \fn void interThreadSend(double d, double tt, int dst, Pool& p)
+	/** \fn void interThreadSend(double d, double tt)
 	    \brief sends an Event to the destination thread's array
 	    \param d the event's data value
 	    \param tt the event's time value
-	    \param dst the destination thread
-	    \param p the Pool containing the interThreadEvents arrays
 	 */
-	void interThreadSend(double,double,int,Pool&);
+	void interThreadSend(double,double);
 
-	/** \fn void enqeueMyEvents(Pool& p)
-	    \brief (for this thread) push all the events from my array to my priority queue
-	    \param p the Pool containing the interThreadEvents arrays
+	/** \fn void enqeueMyEvents()
+	    \brief (for this thread) push all the events from my inter_thread_events_ to my priority queue
 	 */
-	void enqueueMyEvents(Pool&);
+	void enqueueMyEvents();
 
 	/** \fn void selfSend(double d, double tt)
 	    \brief send an item directly to my priority queue
@@ -75,11 +77,11 @@ public:
 	 */
 	void selfSend(double,double);
 
-	/** \fn bool deliver(int til)
+	/** \fn bool deliver(int id, int til)
 	    \brief dequeue all items with time < til
+	    \param id used in sanity check to verify destination
 	    \param til the current time. compared against event times
 	 */
-	bool deliver(int);
+	bool deliver(int,int);
 };
-
 #endif

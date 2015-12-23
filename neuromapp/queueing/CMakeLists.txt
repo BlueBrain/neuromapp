@@ -6,4 +6,4 @@ add_library (queueing
 
 
 install (TARGETS queueing DESTINATION lib)
-install (FILES container.h pool.h queueing.h thread.h DESTINATION include)
+install (FILES container.h pool.h queueing.h thread.h lockless_queue.h DESTINATION include)
