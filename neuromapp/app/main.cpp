@@ -32,6 +32,11 @@
 #include <vector>
 #include <algorithm>
 
+#ifdef NEUROMAPP_CURSOR
+    #include <readline/readline.h>
+    #include <readline/history.h>
+#endif
+
 #include "app/miniapp.h" // the list of the miniapp API
 #include "app/driver.h"
 #include "app/driver_exception.h"
@@ -56,16 +61,21 @@ int main(int argc, char * const argv[]){
                << "To finish type quit"
                << std::endl
                << ">? ";
-
+     char* input;
      while(1) {
-         std::string command;
-         std::getline(std::cin, command);
+#ifdef NEUROMAPP_CURSOR
+	input = readline("");
+	add_history(input);
+	std::string command(input);
+#else
+	std::string command;
+	std::getline(std::cin, command);
+#endif
 
          // I need to split the string into an array of strings to pass it
          // in an argv style
          std::vector<std::string> command_v;
          command_v.push_back(argv[0]);
-
          std::istringstream command_stream(command);
          std::istream_iterator<std::string> wb(command_stream),we;
          std::copy(wb,we,std::back_inserter(command_v));

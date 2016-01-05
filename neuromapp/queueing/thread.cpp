@@ -63,9 +63,9 @@ void NrnThreadData::selfSend(double d, double tt){
 
 bool NrnThreadData::deliver(int id, int til){
 	Event *q;
-	delivered_++;
 	if(q = (qe_->atomic_dq(til))){
 		assert((int)q->data_ == id);
+	        delivered_++;
 //		POINT_RECEIVE()
 		return true;
 	}
