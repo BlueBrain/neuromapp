@@ -29,7 +29,7 @@
 #include <queue>
 #include <vector>
 #include "queueing/container.h"
-#include "lockless_queue.h"
+#include "queueing/lockless_queue.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -42,7 +42,7 @@ private:
 	waitfree_queue<Event> inter_thread_events_;
 
 public:
-	int sent_;
+	int ite_received_;
 	int enqueued_;
 	int delivered_;
 

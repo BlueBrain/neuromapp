@@ -26,24 +26,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
 #include <time.h>
 #include <ctime>
 #include "queueing/pool.h"
 #include "queueing/thread.h"
+#include "utils/storage/neuromapp_data.h"
 
-const int min_delay = 5;
-const int percent_spike = 3;
-
-Pool::Pool(int verbose, int eventsPer, int pITE){
+Pool::Pool(bool verbose, int eventsPer, int pITE, bool isSpike){
     events_per_step_ = eventsPer;
     percent_ITE_ = pITE;
     v_ = verbose;
-    cell_groups_ = 8;
+    cell_groups_ = 64;
     time_ = 0;
-    all_sent_ = 0;
+    all_ite_received_ = 0;
     all_enqueued_ = 0;
     all_delivered_ = 0;
     all_spiked_ = 0;
+
+    if(isSpike)
+	percent_spike_ = 3;
+    else
+	percent_spike_ = 0;
 
     //Generate ThreadData array
     threadDatas = new NrnThreadData[cell_groups_];
@@ -51,23 +55,27 @@ Pool::Pool(int verbose, int eventsPer, int pITE){
 
 Pool::~Pool(){
     for(int i=0; i < cell_groups_; ++i){
-	all_sent_ += threadDatas[i].sent_;
+	all_ite_received_ += threadDatas[i].ite_received_;
 	all_enqueued_ += threadDatas[i].enqueued_;
 	all_delivered_ += threadDatas[i].delivered_;
 	if(v_){
-	    std::cout<<"Thread "<<i<<" sent: "<<threadDatas[i].sent_<<std::endl;
-	    std::cout<<"Thread "<<i<<" enqueued: "<<threadDatas[i].enqueued_<<std::endl;
-	    std::cout<<"Thread "<<i<<" delivered: "<<threadDatas[i].delivered_<<std::endl;
+	    std::cout<<"Cellgroup "<<i<<" ite received: "<<threadDatas[i].ite_received_<<std::endl;
+	    std::cout<<"Cellgroup "<<i<<" enqueued: "<<threadDatas[i].enqueued_<<std::endl;
+	    std::cout<<"Cellgroup "<<i<<" delivered: "<<threadDatas[i].delivered_<<std::endl;
 	}
     }
 
     delete [] threadDatas;
     if(v_){
-    	std::cout<<"Total sent: "<<all_sent_<<std::endl;
-    	std::cout<<"Total enqueued: "<<all_enqueued_<<std::endl;
-    	std::cout<<"Total delivered: "<<all_delivered_<<std::endl;
-    	std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
+	std::cout<<"Total inter-thread received: "<<all_ite_received_<<std::endl;
+	std::cout<<"Total enqueued: "<<all_enqueued_<<std::endl;
+	std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
+	std::cout<<"Total delivered: "<<all_delivered_<<std::endl;
     }
+    neuromapp_data.put_copy("inter_received",all_ite_received_);
+    neuromapp_data.put_copy("enqueued",all_enqueued_);
+    neuromapp_data.put_copy("spikes",all_spiked_);
+    neuromapp_data.put_copy("delivered",all_delivered_);
 }
 
 void Pool::timeStep(int totalTime){
@@ -81,14 +89,19 @@ void Pool::timeStep(int totalTime){
 }
 
 void Pool::handleSpike(int totalTime){
-    int max_dt = totalTime/10;
-    if( (time_ % ::min_delay) == 0){
+    int diff;
+    if(totalTime < 10)
+        diff = 1;
+    else
+	diff = rand() % (totalTime/10);
+
+    if( (time_ % min_delay_) == 0){
 	//serial distribution of spike events to inter-thread events
-	int num_spikes = ::min_delay * cell_groups_ * events_per_step_ * ::percent_spike / 100;
+	int num_spikes = min_delay_ * cell_groups_ * events_per_step_ * percent_spike_ / 100;
 	int dst;
 	double data, tt;
 	for(int i = 0; i < num_spikes; ++i){
-	   tt = (double)(time_ + (rand() % max_dt) + ::min_delay);
+	   tt = (double)(time_ + diff + min_delay_);
 	   dst = rand() % cell_groups_;
 	   data = (double)dst;
 	   threadDatas[dst].selfSend(data, tt);
@@ -98,32 +111,39 @@ void Pool::handleSpike(int totalTime){
 }
 
 void Pool::generateEvents(int totalTime, int myID){
-    //Generate threads, have each thread check their netcons
-    //and send events to destination threads.
-    int max_dt = totalTime/10;
+    //events can be generated with time range: (current time) to (current time + 10%)
+    int diff;
+if(totalTime < 10)
+        diff = 1;
+    else
+        diff = rand() % (totalTime/10);
     /// Simulated target of a NetCon and the event time
     double tt;
     double data = 0;
     int dst_nt;
     srand(time(NULL));
     for(int j=0; j < events_per_step_; ++j){
-	//set time_ to be some time in the future t + dt
-	tt = (double)(time_ + (rand() % max_dt));
-	dst_nt = chooseDst(myID);
+	//set time_ to be some time in the future t + diff
+	tt = (double)(time_ + diff);
+	if(percent_ITE_ > 0){
+	    dst_nt = chooseDst(myID);
+	}
+	else{
+	    dst_nt = myID;
+	}
 	data = (double)dst_nt;
 	if (dst_nt == myID) {
 	    threadDatas[dst_nt].selfSend(data, tt);
 	}
 	else {
-	    threadDatas[dst_nt].interThreadSend(data, tt + ::min_delay);
+	    threadDatas[dst_nt].interThreadSend(data, tt + min_delay_);
 	}
     }
 }
 
 int Pool::chooseDst(int myID){
     int dst = myID;
-    if ((rand() % 100) < percent_ITE_){
-    	//destination is another thread
+    if ((rand() % 100) < percent_ITE_){ //if destination is another thread
 	while(dst == myID){
 	    dst = rand() % cell_groups_;
 	}

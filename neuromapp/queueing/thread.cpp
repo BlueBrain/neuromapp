@@ -29,7 +29,7 @@
 
 NrnThreadData::NrnThreadData(){
 	qe_ = new Queue();
-	sent_ = 0;
+	ite_received_ = 0;
 	enqueued_ = 0;
 	delivered_ = 0;
 }
@@ -40,7 +40,7 @@ NrnThreadData::~NrnThreadData(){
 
 void NrnThreadData::interThreadSend(double d, double tt){
 	Event ite(d,tt);
-	sent_++;
+	ite_received_++;
 	inter_thread_events_.push(ite);
 }
 
@@ -48,7 +48,6 @@ void NrnThreadData::enqueueMyEvents(){
 	waitfree_queue<Event>::node* x = inter_thread_events_.pop_all();
 	Event ite;
 	while(x){
-		enqueued_++;
 		waitfree_queue<Event>::node* tmp = x;
 		ite = tmp->data;
 		selfSend(ite.data_, ite.t_);
@@ -58,14 +57,15 @@ void NrnThreadData::enqueueMyEvents(){
 }
 
 void NrnThreadData::selfSend(double d, double tt){
+	enqueued_++;
 	qe_->insert(tt, d);
 }
 
 bool NrnThreadData::deliver(int id, int til){
 	Event *q;
 	if(q = (qe_->atomic_dq(til))){
-		assert((int)q->data_ == id);
 	        delivered_++;
+		assert((int)q->data_ == id);
 //		POINT_RECEIVE()
 		return true;
 	}

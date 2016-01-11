@@ -60,6 +60,7 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
      "how many times the executable is run")
     ("percent-ite", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
+    ("spike-enabled","determines whether or not to include spike events")
     ("verbose","provides additional outputs during execution");
     //future options : fraction of interthread events
 
@@ -87,7 +88,7 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
 	return mapp::MAPP_BAD_ARG;
     }
 
-   if(vm["percent-ite"].as<int>() < 0){
+   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-ite"].as<int>() > 100) ){
 	return mapp::MAPP_BAD_ARG;
     }
 
@@ -105,7 +106,8 @@ void queueing_miniapp(po::variables_map const& vm){
     long long sum = 0;
     struct timeval start, end;
     for(int i = 0; i < vm["runs"].as<int>(); ++i){
-    	Pool pl(vm.count("verbose"), vm["eventsper"].as<int>(), vm["percent-ite"].as<int>());
+    	Pool pl(vm.count("verbose"), vm["eventsper"].as<int>(),
+		vm["percent-ite"].as<int>(), vm.count("spike-enabled"));
 
 	gettimeofday(&start, NULL);
 	//Actual queueing simulation

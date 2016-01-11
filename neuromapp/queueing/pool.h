@@ -38,13 +38,15 @@ class Pool {
 private:
 	int cell_groups_;
 	int time_;
-	int v_;
+	bool v_;
 	int percent_ITE_;
 	int events_per_step_;
-	int all_sent_;
+	int all_ite_received_;
 	int all_enqueued_;
 	int all_delivered_;
 	int all_spiked_;
+	const static int min_delay_ = 5;
+	int percent_spike_;
 
 	NrnThreadData* threadDatas;
 
@@ -54,8 +56,9 @@ public:
 	    \param verbose verbose mode: 1 = on, 0 = off
 	    \param events_per_step_ number of events per time step
 	    \param percent_ITE_ is the percentage of inter-thread events
+	    \param isSpike determines whether or not there are spike events
 	 */
-	Pool(int,int,int);
+	Pool(bool,int,int,bool);
 
 	/** \fn ~Pool()
 	    \brief destroys threadDatas.

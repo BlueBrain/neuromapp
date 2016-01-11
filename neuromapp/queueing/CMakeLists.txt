@@ -1,8 +1,8 @@
 add_library (queueing
-	    container.cpp
-	    main.cpp
-	    pool.cpp
-	    thread.cpp)
+	     container.cpp
+	     main.cpp
+	     pool.cpp
+	     thread.cpp)
 
 
 install (TARGETS queueing DESTINATION lib)
