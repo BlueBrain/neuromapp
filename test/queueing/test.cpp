@@ -41,13 +41,14 @@
 namespace bfs = ::boost::filesystem;
 
 BOOST_AUTO_TEST_CASE(queueing_test){
-    char arg1[]="--numthread=8";
-    char arg2[]="--eventsper=25";
-    char arg3[]="--simtime=50";
-    char arg4[]="--runs=1";
-    char arg5[]="--percent-ite=90";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
-    int argc = 5;
+    char arg1[]="NULL";
+    char arg2[]="--numthread=8";
+    char arg3[]="--eventsper=25";
+    char arg4[]="--simtime=50";
+    char arg5[]="--runs=1";
+    char arg6[]="--percent-ite=90";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+    int argc = 6;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
     neuromapp_data.clear("inter_received");
     neuromapp_data.clear("enqueued");
@@ -56,22 +57,29 @@ BOOST_AUTO_TEST_CASE(queueing_test){
 }
 
 BOOST_AUTO_TEST_CASE(full_ite){
-    char arg1[]="--numthread=8";
-    char arg2[]="--eventsper=25";
-    char arg3[]="--simtime=25";
-    char arg4[]="--runs=1";
-    char arg5[]="--percent-ite=100";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
-    int argc = 5;
+    char arg1[]="NULL";
+    char arg2[]="--numthread=8";
+    char arg3[]="--eventsper=25";
+    char arg4[]="--simtime=25";
+    char arg5[]="--runs=1";
+    char arg6[]="--percent-ite=100";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+    int argc = 6;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
     std::string key1("inter_received");
     BOOST_CHECK(neuromapp_data.has<int>(key1));
+    std::string key2("enqueued");
+    BOOST_CHECK(neuromapp_data.has<int>(key2));
+    std::string key3("spikes");
+    BOOST_CHECK(neuromapp_data.has<int>(key3));
 
     const int simtime = 25;
     const int cellgroups = 64;
     const int eventsper = 25;
     //verify the correct number of inter-thread events were received
-    BOOST_CHECK(neuromapp_data.get<int>(key1) == (simtime * cellgroups * eventsper));
+    BOOST_CHECK(neuromapp_data.get<int>(key1) <= (simtime * cellgroups * eventsper));
+    BOOST_CHECK(neuromapp_data.get<int>(key2) <= (simtime * cellgroups * eventsper));
+    BOOST_CHECK(neuromapp_data.get<int>(key3) == 0);
     neuromapp_data.clear("inter_received");
     neuromapp_data.clear("enqueued");
     neuromapp_data.clear("delivered");
@@ -79,18 +87,19 @@ BOOST_AUTO_TEST_CASE(full_ite){
 }
 
 BOOST_AUTO_TEST_CASE(no_ite){
-    char arg1[]="--numthread=8";
-    char arg2[]="--eventsper=25";
-    char arg3[]="--simtime=25";
-    char arg4[]="--runs=1";
-    char arg5[]="--percent-ite=0";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
-    int argc = 5;
+    char arg1[]="NULL";
+    char arg2[]="--numthread=8";
+    char arg3[]="--eventsper=25";
+    char arg4[]="--simtime=25";
+    char arg5[]="--runs=1";
+    char arg6[]="--percent-ite=0";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+    int argc = 6;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
 
     std::string key1("inter_received");
-    std::string key2("enqueued");
     BOOST_CHECK(neuromapp_data.has<int>(key1));
+    std::string key2("enqueued");
     BOOST_CHECK(neuromapp_data.has<int>(key2));
 
     const int simtime = 25;
@@ -107,14 +116,15 @@ BOOST_AUTO_TEST_CASE(no_ite){
 }
 
 BOOST_AUTO_TEST_CASE(spike_enabled){
-    char arg1[]="--numthread=8";
-    char arg2[]="--eventsper=25";
-    char arg3[]="--simtime=25";
-    char arg4[]="--runs=1";
-    char arg5[]="--percent-ite=0";
-    char arg6[]="--spike-enabled";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    int argc = 6;
+    char arg1[]="NULL";
+    char arg2[]="--numthread=8";
+    char arg3[]="--eventsper=25";
+    char arg4[]="--simtime=25";
+    char arg5[]="--runs=1";
+    char arg6[]="--percent-ite=0";
+    char arg7[]="--spike-enabled";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
+    int argc = 7;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
 
     std::string key1("spikes");

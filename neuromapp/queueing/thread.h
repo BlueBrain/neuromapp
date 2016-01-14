@@ -29,7 +29,7 @@
 #include <queue>
 #include <vector>
 #include "queueing/container.h"
-#include "queueing/lockless_queue.h"
+#include "queueing/spinlock_queue.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -39,7 +39,7 @@ class NrnThreadData{
 private:
 	Queue *qe_;
 	/// vector for inter thread events
-	waitfree_queue<Event> inter_thread_events_;
+	spinlock_queue<Event> inter_thread_events_;
 
 public:
 	int ite_received_;

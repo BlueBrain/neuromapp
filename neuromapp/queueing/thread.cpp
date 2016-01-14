@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <unistd.h>
 #include "queueing/thread.h"
 
 NrnThreadData::NrnThreadData(){
@@ -45,10 +46,10 @@ void NrnThreadData::interThreadSend(double d, double tt){
 }
 
 void NrnThreadData::enqueueMyEvents(){
-	waitfree_queue<Event>::node* x = inter_thread_events_.pop_all();
+	spinlock_queue<Event>::node* x = inter_thread_events_.pop_all();
 	Event ite;
 	while(x){
-		waitfree_queue<Event>::node* tmp = x;
+		spinlock_queue<Event>::node* tmp = x;
 		ite = tmp->data;
 		selfSend(ite.data_, ite.t_);
 		x = x->next;
@@ -66,6 +67,7 @@ bool NrnThreadData::deliver(int id, int til){
 	if(q = (qe_->atomic_dq(til))){
 	        delivered_++;
 		assert((int)q->data_ == id);
+		usleep(10);
 //		POINT_RECEIVE()
 		return true;
 	}
