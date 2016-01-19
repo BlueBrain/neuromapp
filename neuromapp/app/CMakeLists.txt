@@ -5,6 +5,7 @@ add_executable (app driver.cpp main.cpp)
 target_link_libraries (app
                        hello
 		       queueing
+                       spike
                        coreneuron10_kernel
                        coreneuron10_solver
                        coreneuron10_cstep

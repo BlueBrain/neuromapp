@@ -1,7 +1,7 @@
 /*
- * Neuromapp - miniapp.h, Copyright (c), 2015,
- * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Neuromapp - test.cpp, Copyright (c), 2015,
+ * Kai Langen - Swiss Federal Institute of technology in Lausanne,
+ * kai.langen@epfl.ch,
  * All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,18 +19,28 @@
  */
 
 /**
- * @file neuromapp/app/miniapp.h
- * all include
+ * @file neuromapp/test/queuing/test.cpp
+ *  Test on the Spike Miniapp.
  */
 
-#ifndef MAPP_APP_
-#define MAPP_APP_
+#define BOOST_TEST_MODULE SpikeTest
+#include <boost/test/unit_test.hpp>
+#include <boost/test/test_case_template.hpp>
+#include <boost/filesystem.hpp>
+#include <vector>
 
-#include "hello/hello.h"
-#include "queueing/queueing.h"
+#include "test/coreneuron_1.0/helper.h"
 #include "spike/spike.h"
-#include "coreneuron_1.0/kernel/kernel.h"
-#include "coreneuron_1.0/solver/solver.h"
-#include "coreneuron_1.0/cstep/cstep.h"
+#include "spike/mpispikegraph.h"
+#include "utils/error.h"
 
-#endif
+namespace bfs = ::boost::filesystem;
+
+BOOST_AUTO_TEST_CASE(spike_setup_test){
+    MPI::Init(NULL,NULL);
+    DistributedSpikeGraph dsg(4,3,2,1);
+
+
+    MPI::finalize();
+}
+
