@@ -1,7 +1,7 @@
 /*
- * Neuromapp - miniapp.h, Copyright (c), 2015,
- * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Neuromapp - key-value.h, Copyright (c), 2015,
+ * Judit Planas - Swiss Federal Institute of technology in Lausanne,
+ * judit.planas@epfl.ch,
  * All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,19 +19,19 @@
  */
 
 /**
- * @file neuromapp/app/miniapp.h
- * all include
+ * @file neuromapp/key-value/key-value.h
+ * Key-value Miniapp
  */
 
-#ifndef MAPP_APP_
-#define MAPP_APP_
+#ifndef MAPP_KEYVALUE_EXECUTE_
+#define MAPP_KEYVALUE_EXECUTE_
 
-#include "hello/hello.h"
-#include "queueing/queueing.h"
-#include "spike/spike.h"
-#include "coreneuron_1.0/kernel/kernel.h"
-#include "coreneuron_1.0/solver/solver.h"
-#include "coreneuron_1.0/cstep/cstep.h"
-#include "key-value/key-value.h"
+/** \fn keyvalue_execute(int argc, char *const argv[])
+    \brief Key-value Miniapp
+    \param argc number of argument from the command line
+    \param argv the command line from the driver or external call
+    \return error message from mapp::mapp_error
+ */
+int keyvalue_execute(int argc, char* const argv[]);
 
 #endif
