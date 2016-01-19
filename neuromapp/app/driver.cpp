@@ -41,6 +41,7 @@ namespace mapp{
         std::cout << "       solver <arg> \n";
         std::cout << "       cstep <arg> \n";
         std::cout << "       queueing <arg> \n";
+        std::cout << "       keyvalue <arg> \n";
         std::cout << "   quit to exit \n";
         std::cout << "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
         std::cout << "\n";
