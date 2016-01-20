@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/utils/storage/storage.cpp
- *  implementation of the storage class
+ * \brief implementation of the storage class
  */
 
 #include "utils/storage/storage.hpp"

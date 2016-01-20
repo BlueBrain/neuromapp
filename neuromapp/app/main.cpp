@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/app/main.cpp
- * the main program
+ * \brief the main program
  */
 
 #include <iostream>

@@ -22,7 +22,7 @@
 
 /**
  * @file neuromapp/app/driver.cpp
- * Driver implementation
+ * \brief Driver implementation
  */
 #include <string.h>
 #include "app/driver.h"
@@ -39,6 +39,7 @@ namespace mapp{
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
         std::cout << "       cstep <arg> \n";
+        std::cout << "       queueing <arg> \n";
         std::cout << "   quit to exit \n";
         std::cout << "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
         std::cout << "\n";

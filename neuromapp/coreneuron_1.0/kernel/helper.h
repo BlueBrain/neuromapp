@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/kernel/helper.h
- * Implements the helper of the cstep miniapp
+ * \brief Implements the helper of the cstep miniapp
  */
 
 #ifndef MAPP_KERNEL_HELPER_

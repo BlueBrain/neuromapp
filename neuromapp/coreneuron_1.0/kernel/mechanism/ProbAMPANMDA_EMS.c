@@ -21,7 +21,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/kernel/mechanism/ProbAMPANMDA_EMS.c
- * Implementation of the ProbAMPANMDA_EMS kernels
+ * \brief Implementation of the ProbAMPANMDA_EMS kernels
  */
 
 #include <math.h>
@@ -76,47 +76,6 @@
 #define _tsav _p[36*_STRIDE]
 #define _nd_area  _nt_data[_ppvar[0*_STRIDE]]
 #define _p_rng  _nt->_vdata[_ppvar[2*_STRIDE]]
-
-void mech_init_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
-{
-    double v=0.0, _v = 0.0;
-    int* _ni = _ml->nodeindices;
-    int _cntml = _ml->nodecount;
-    double * restrict _vec_v = _nt->_actual_v;
-    double * restrict _p = _ml->data;
-
-    _PRAGMA_FOR_VECTOR_LOOP_
-    for (int _iml = 0; _iml < _cntml; ++_iml)
-    {
-        int _nd_idx = _ni[_iml];
-        _tsav = -1e20;
-        _v = _vec_v[_nd_idx];
-        v = _v;
-        A_NMDA = 0.;
-        A_AMPA = 0.;
-        B_NMDA = 0.;
-        B_AMPA = 0.;
-        double _ltp_AMPA , _ltp_NMDA ;
-        Rstate = 1.0 ;
-        tsyn_fac = 0.0 ;
-        u = u0 ;
-        A_AMPA = 0.0 ;
-        B_AMPA = 0.0 ;
-        A_NMDA = 0.0 ;
-        B_NMDA = 0.0 ;
-        _ltp_AMPA = ( tau_r_AMPA * tau_d_AMPA ) / ( tau_d_AMPA - tau_r_AMPA ) * log ( tau_d_AMPA / tau_r_AMPA ) ;
-        _ltp_NMDA = ( tau_r_NMDA * tau_d_NMDA ) / ( tau_d_NMDA - tau_r_NMDA ) * log ( tau_d_NMDA / tau_r_NMDA ) ;
-        factor_AMPA = - exp ( - _ltp_AMPA / tau_r_AMPA ) + exp ( - _ltp_AMPA / tau_d_AMPA ) ;
-        factor_AMPA = 1.0 / factor_AMPA ;
-        factor_NMDA = - exp ( - _ltp_NMDA / tau_r_NMDA ) + exp ( - _ltp_NMDA / tau_d_NMDA ) ;
-        factor_NMDA = 1.0 / factor_NMDA ;
-        A_AMPA_step = exp ( dt * ( ( - 1.0 ) / tau_r_AMPA ) ) ;
-        B_AMPA_step = exp ( dt * ( ( - 1.0 ) / tau_d_AMPA ) ) ;
-        A_NMDA_step = exp ( dt * ( ( - 1.0 ) / tau_r_NMDA ) ) ;
-        B_NMDA_step = exp ( dt * ( ( - 1.0 ) / tau_d_NMDA ) ) ;
-    }
-
-}
 
 void mech_state_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 {

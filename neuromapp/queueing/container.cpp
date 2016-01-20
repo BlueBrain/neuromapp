@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/container.cpp
- * Contains Queue and Event class implementation
+ * \brief Contains Queue and Event class implementation
  */
 
 #include <stdio.h>
@@ -42,16 +42,16 @@ Queue::~Queue() {
 void Queue::insert(double tt, double d) {
     Event *i = new Event(d,tt);
     if(!least_){
-	least_ = i;
+        least_ = i;
     }
     else{
-	if(tt < least_->t_){
-	    pq_que.push(make_QPair(least_));
-	    least_ = i;
+        if(tt < least_->t_){
+            pq_que.push(make_QPair(least_));
+            least_ = i;
 	}
 	else{
-	    pq_que.push(make_QPair(i));
-	}
+            pq_que.push(make_QPair(i));
+        }
     }
 }
 

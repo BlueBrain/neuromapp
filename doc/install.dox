@@ -38,14 +38,16 @@ In the next table is summarised the list of the miniapps.
  <TH> hello      </TH>
  <TH> solver     </TH>
  <TH> kernel     </TH>
- <TH> cstep     </TH>
+ <TH> cstep      </TH>
+ <TH> queueing   </TH>
  </TR>
  <TR>
  <TH> topic  </TH>
- <TD  align="center">  Hello world   </TD>
- <TD  align="center">  Hines solver   </TD>
- <TD  align="center">  computation kernel   </TD>
+ <TD  align="center">  Hello world  </TD>
+ <TD  align="center">  Hines solver </TD>
+ <TD  align="center">  computation kernel </TD>
  <TD  align="center">  pseudo step time   </TD>
+ <TD  align="center">  queueing coreneuron </TD>
  </TR>
 </TABLE>
 

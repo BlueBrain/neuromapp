@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/container.h
- * Contains Queue and Event class declaration
+ * \brief Contains Queue and Event class declaration
  */
 
 #include <stdio.h>

@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/main.cpp
- * Handles queueing for inter-thread event exchange
+ * \brief Handles queueing for inter-thread event exchange
  */
 
 #include <iostream>
@@ -53,7 +53,7 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     ("numthread", po::value<int>()->default_value(1),
      "number of OMP thread")
     ("eventsper", po::value<int>()->default_value(50),
-     "number of events created per time step.")
+     "number of events created per time step")
     ("simtime", po::value<int>()->default_value(5000),
      "number of time steps in the simulation")
     ("runs", po::value<int>()->default_value(1),

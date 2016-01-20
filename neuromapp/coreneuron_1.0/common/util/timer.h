@@ -21,7 +21,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/common/util/timer.h
- * provide function for time measuremnt
+ * \brief provide function for time measuremnt
  */
 
 #ifndef MAPP_TIMER_

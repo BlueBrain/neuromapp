@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/app/miniapp.h
- * all include
+ * \brief all include
  */
 
 #ifndef MAPP_APP_

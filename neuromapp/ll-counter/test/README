@@ -1,2 +1,0 @@
-These are just test/demo sources, though the aim is to turn them into unit tests.
-Compile with -I../src and -lrt

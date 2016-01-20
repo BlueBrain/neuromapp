@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/hello/main.cpp
- * Hello Word Miniapp
+ * \brief Hello Word Miniapp
  */
 
 #include <iostream>

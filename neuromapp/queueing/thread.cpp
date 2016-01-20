@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/thread.cpp
- * Contains NrnThreadData implementation.
+ * \brief Contains NrnThreadData implementation.
  */
 
 #include <iostream>
@@ -64,10 +64,10 @@ void NrnThreadData::selfSend(double d, double tt){
 
 bool NrnThreadData::deliver(int id, int til){
 	Event *q;
-	if(q = (qe_->atomic_dq(til))){
+	if((q = (qe_->atomic_dq(til)))){
 	        delivered_++;
 		assert((int)q->data_ == id);
-		usleep(10);
+	//	usleep(10);
 //		POINT_RECEIVE()
 		return true;
 	}

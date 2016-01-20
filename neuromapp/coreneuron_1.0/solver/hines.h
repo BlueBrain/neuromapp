@@ -2,7 +2,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/solver/hines.h
- * Implements the Hines solver
+ * \brief Implements the Hines solver
  */
 
 #ifndef MAPP_SOLVER_HINES_

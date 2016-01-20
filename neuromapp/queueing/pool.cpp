@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/pool.cpp
- * Contains Pool class implementation.
+ * \brief Contains Pool class implementation.
  */
 
 #include <stdio.h>
@@ -55,22 +55,23 @@ Pool::Pool(bool verbose, int eventsPer, int pITE, bool isSpike){
 
 Pool::~Pool(){
     for(int i=0; i < cell_groups_; ++i){
-	all_ite_received_ += threadDatas[i].ite_received_;
-	all_enqueued_ += threadDatas[i].enqueued_;
-	all_delivered_ += threadDatas[i].delivered_;
-	if(v_){
-	    std::cout<<"Cellgroup "<<i<<" ite received: "<<threadDatas[i].ite_received_<<std::endl;
-	    std::cout<<"Cellgroup "<<i<<" enqueued: "<<threadDatas[i].enqueued_<<std::endl;
-	    std::cout<<"Cellgroup "<<i<<" delivered: "<<threadDatas[i].delivered_<<std::endl;
-	}
+        all_ite_received_ += threadDatas[i].ite_received_;
+        all_enqueued_ += threadDatas[i].enqueued_;
+        all_delivered_ += threadDatas[i].delivered_;
+        if(v_){
+            std::cout<<"Cellgroup "<<i<<" ite received: "<<threadDatas[i].ite_received_<<std::endl;
+            std::cout<<"Cellgroup "<<i<<" enqueued: "<<threadDatas[i].enqueued_<<std::endl;
+            std::cout<<"Cellgroup "<<i<<" delivered: "<<threadDatas[i].delivered_<<std::endl;
+        }
     }
 
     delete [] threadDatas;
+
     if(v_){
-	std::cout<<"Total inter-thread received: "<<all_ite_received_<<std::endl;
-	std::cout<<"Total enqueued: "<<all_enqueued_<<std::endl;
-	std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
-	std::cout<<"Total delivered: "<<all_delivered_<<std::endl;
+        std::cout<<"Total inter-thread received: "<<all_ite_received_<<std::endl;
+        std::cout<<"Total enqueued: "<<all_enqueued_<<std::endl;
+        std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
+        std::cout<<"Total delivered: "<<all_delivered_<<std::endl;
     }
     neuromapp_data.put_copy("inter_received",all_ite_received_);
     neuromapp_data.put_copy("enqueued",all_enqueued_);
@@ -79,9 +80,9 @@ Pool::~Pool(){
 }
 
 void Pool::timeStep(int totalTime){
-#pragma omp parallel for schedule(static,1)
+    #pragma omp parallel for schedule(static,1)
     for(int i=0; i < cell_groups_; ++i){
-	generateEvents(totalTime,i);
+        generateEvents(totalTime,i);
     	threadDatas[i].enqueueMyEvents(); //Have threads enqueue their interThreadEvents
     	while(threadDatas[i].deliver(i, time_)); // deliver
     }

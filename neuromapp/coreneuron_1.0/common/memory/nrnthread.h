@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/common/memory/nrnthread.h
- * Implements data structure of coreneuron1.0
+ * \brief Implements data structure of coreneuron1.0
  */
 
 #ifndef MAPP_NRNTHREAD_

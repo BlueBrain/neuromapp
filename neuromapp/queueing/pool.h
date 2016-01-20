@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/pool.h
- * Contains Pool class declaration.
+ * \brief Contains Pool class declaration.
  */
 
 #include "queueing/thread.h"

@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/thread.h
- * Contains NrnThreadData class declaration.
+ * \brief Contains NrnThreadData class declaration.
  */
 
 #ifndef thread_h

@@ -22,7 +22,7 @@
 
 /**
  * @file neuromapp/utils/error.h
- *  devine the error for C/C++ interface
+ * \brief devine the error for C/C++ interface
  */
 
 
