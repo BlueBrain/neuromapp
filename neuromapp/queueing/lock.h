@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/lock.h
- * Contains OMPLock and DummyLock class declaration.
+ * \brief Contains OMPLock and DummyLock class declaration.
  */
 
 #ifndef MAPP_LOCK_H_
