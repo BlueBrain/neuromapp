@@ -55,14 +55,21 @@ public:
 		}
 	};
 
-	/** \fn ~Queue()
-	    \brief empties the priority queue
+	/** \fn remove_negative()
+	    \brief removes all negative-time events from the queue
 	 */
-	~Queue();
+	void remove_negative();
+
+	/** \fn valid_time()
+	    \brief checks whether the priority queue top item can be popped
+		\return true if criteria is met else false
+	 */
+	bool valid_time(double tt);
 
 	/** \fn Event* atomic_dq(double til)
 	    \brief pops a single event off of the queue with time < til
 	    \param til a double value compared against top time.
+		\return the popped item
 	 */
 	Event atomic_dq(double til);
 
@@ -79,7 +86,6 @@ public:
 	QPair make_QPair(Event p) { return QPair(p.t_,p); }
 
 private:
-	Event least_;
 	std::priority_queue<QPair, std::vector<QPair>, less_time> pq_que;
 };
 

@@ -97,10 +97,11 @@ public:
 	    \return true if event delivered, else false
 	 */
 	bool deliver(int id, int til){
-		Event q = (qe_.atomic_dq(til));
-		if(q.set_){
+		qe_.remove_negative();
+		if(qe_.valid_time(til)){
+			Event q = qe_.atomic_dq(til);
 		    delivered_++;
-		//	assert((int)q.data_ == id);
+			assert((int)q.data_ == id);
 			usleep(10);
 //			POINT_RECEIVE()
 			return true;

@@ -29,44 +29,29 @@
 #include <stdarg.h>
 #include "queueing/container.h"
 
-Queue::~Queue() {
-    while(pq_que.size()) {
-      //  delete pq_que.top().second;
-        pq_que.pop();
-    }
-    //delete least_;
+void Queue::insert(double tt, double d) {
+    Event i(d,tt);
+    pq_que.push(make_QPair(i));
 }
 
-void Queue::insert(double tt, double d) {
-    Event i(d,tt,true);
-    if(!least_.set_){
-        least_ = i;
-    }
-    else if(tt < least_.t_){
-            pq_que.push(make_QPair(least_));
-            least_ = i;
-	}
-	else{
-            pq_que.push(make_QPair(i));
-    }
+void Queue::remove_negative(){
+	//remove all negative time events
+    while(!pq_que.empty() && (pq_que.top().first < 0.))
+        pq_que.pop();
+}
+
+bool Queue::valid_time(double tt){
+    if(!pq_que.empty() && pq_que.top().first <= tt)
+			return true;
+	return false;
 }
 
 Event Queue::atomic_dq(double tt) {
-    Event q = Event();
-    if (least_.set_ && (least_.t_ <= tt)) {
-        q = least_;
-            while(!pq_que.empty() && (pq_que.top().second.t_ < 0.))
-            {
-		//		delete pq_que.top().second;
-                pq_que.pop();
-            }
-            if(pq_que.size()) {
-                least_ = pq_que.top().second;
-                pq_que.pop();
-            }else{
-                least_ = Event();
-            }
-    }
+	Event q= Event();
+    if(!pq_que.empty() && pq_que.top().first <= tt) {
+        q = pq_que.top().second;
+        pq_que.pop();
+	}
     return q;
 }
 
