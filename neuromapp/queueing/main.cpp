@@ -33,6 +33,7 @@
 #endif
 
 #include "queueing/pool.h"
+#include "queueing/thread.h"
 #include "queueing/queueing.h"
 #include "utils/error.h"
 
@@ -56,12 +57,11 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
      "number of events created per time step")
     ("simtime", po::value<int>()->default_value(5000),
      "number of time steps in the simulation")
-    ("runs", po::value<int>()->default_value(1),
-     "how many times the executable is run")
     ("percent-ite", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
     ("spike-enabled","determines whether or not to include spike events")
-    ("verbose","provides additional outputs during execution");
+    ("verbose","provides additional outputs during execution")
+    ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector");
     //future options : fraction of interthread events
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -72,25 +72,17 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         return mapp::MAPP_USAGE;
     }
 
-    if(vm["numthread"].as<int>() < 1){
-	return mapp::MAPP_BAD_ARG;
-    }
+    if(vm["numthread"].as<int>() < 1)
+		return mapp::MAPP_BAD_ARG;
 
-    if(vm["eventsper"].as<int>() < 1){
-	return mapp::MAPP_BAD_ARG;
-    }
+    if(vm["eventsper"].as<int>() < 1)
+		return mapp::MAPP_BAD_ARG;
 
-    if(vm["simtime"].as<int>() < 1){
-	return mapp::MAPP_BAD_ARG;
-    }
+    if(vm["simtime"].as<int>() < 1)
+		return mapp::MAPP_BAD_ARG;
 
-   if(vm["runs"].as<int>() < 1){
-	return mapp::MAPP_BAD_ARG;
-    }
-
-   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-ite"].as<int>() > 100) ){
-	return mapp::MAPP_BAD_ARG;
-    }
+   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-ite"].as<int>() > 100) )
+		return mapp::MAPP_BAD_ARG;
 
 #ifdef _OPENMP
     omp_set_num_threads(vm["numthread"].as<int>());
@@ -98,31 +90,40 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     return mapp::MAPP_OK;
 }
 
+/**
+ * \fnrun_sim
+ * \brief the actual queueing simulation
+ */
+template<int I>
+void run_sim(Pool<I> &pl, po::variables_map const&vm){
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    for(int j = 0; j < vm["simtime"].as<int>(); ++j){
+        pl.timeStep(vm["simtime"].as<int>());
+		pl.handleSpike(vm["simtime"].as<int>());
+    }
+	pl.accumulate_stats();
+    gettimeofday(&end, NULL);
+    long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
+	std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+}
+
 /** \fn queueing_miniapp(po::variables_map const& vm)
     \brief Execute the queing miniapp
     \param vm encapsulate the command line and all needed informations
  */
 void queueing_miniapp(po::variables_map const& vm){
-    long long sum = 0;
-    struct timeval start, end;
-    for(int i = 0; i < vm["runs"].as<int>(); ++i){
-    	Pool pl(vm.count("verbose"), vm["eventsper"].as<int>(),
-		vm["percent-ite"].as<int>(), vm.count("spike-enabled"));
+	bool spike = vm.count("spike-enabled");
 
-	gettimeofday(&start, NULL);
-	//Actual queueing simulation
-	for(int j = 0; j < vm["simtime"].as<int>(); ++j){
-		pl.timeStep(vm["simtime"].as<int>());
-		pl.handleSpike(vm["simtime"].as<int>());
-	}
-    	gettimeofday(&end, NULL);
+	bool verbose = vm.count("verbose");
 
-    	long long diff_ms = 1000 * (end.tv_sec - start.tv_sec) + \
-		   (end.tv_usec - start.tv_usec) / 1000;
-    	sum += diff_ms;
-    	std::cout<<"run "<<i<<": "<<diff_ms<<" ms"<<std::endl;
+    if(vm.count("spinlock")){
+   		Pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike);
+		run_sim(pl,vm);
+    } else {
+   		Pool<mutex> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike);
+		run_sim(pl,vm);
     }
-    std::cout<<"average run time: "<<sum/(vm["runs"].as<int>())<<" ms"<<std::endl;
 }
 
 int queueing_execute(int argc, char* const argv[]){

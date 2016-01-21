@@ -45,10 +45,9 @@ BOOST_AUTO_TEST_CASE(queueing_test){
     char arg2[]="--numthread=8";
     char arg3[]="--eventsper=25";
     char arg4[]="--simtime=50";
-    char arg5[]="--runs=1";
-    char arg6[]="--percent-ite=90";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    int argc = 6;
+    char arg5[]="--percent-ite=90";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg5};
+    int argc = 5;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
     neuromapp_data.clear("inter_received");
     neuromapp_data.clear("enqueued");
@@ -61,10 +60,9 @@ BOOST_AUTO_TEST_CASE(full_ite){
     char arg2[]="--numthread=8";
     char arg3[]="--eventsper=25";
     char arg4[]="--simtime=25";
-    char arg5[]="--runs=1";
-    char arg6[]="--percent-ite=100";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    int argc = 6;
+    char arg5[]="--percent-ite=100";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg5};
+    int argc = 5;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
     std::string key1("inter_received");
     BOOST_CHECK(neuromapp_data.has<int>(key1));
@@ -91,10 +89,9 @@ BOOST_AUTO_TEST_CASE(no_ite){
     char arg2[]="--numthread=8";
     char arg3[]="--eventsper=25";
     char arg4[]="--simtime=25";
-    char arg5[]="--runs=1";
-    char arg6[]="--percent-ite=0";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    int argc = 6;
+    char arg5[]="--percent-ite=0";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg5};
+    int argc = 5;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
 
     std::string key1("inter_received");
@@ -120,11 +117,10 @@ BOOST_AUTO_TEST_CASE(spike_enabled){
     char arg2[]="--numthread=8";
     char arg3[]="--eventsper=25";
     char arg4[]="--simtime=25";
-    char arg5[]="--runs=1";
-    char arg6[]="--percent-ite=0";
-    char arg7[]="--spike-enabled";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6, arg7};
-    int argc = 7;
+    char arg5[]="--percent-ite=0";
+    char arg6[]="--spike-enabled";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+    int argc = 6;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
 
     std::string key1("spikes");

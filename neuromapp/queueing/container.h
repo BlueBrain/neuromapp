@@ -30,52 +30,41 @@
 #include <map>
 #include <utility>
 
-#ifndef container_h
-#define container_h
+#ifndef MAPP_CONTAINER_H_
+#define MAPP_CONTAINER_H_
 
-class Event;
-
-class Event {
-public:
+struct Event {
 	/** \fn Event(double,double)
 	    \brief Initializes an event with data d and time t
 	    \param d event data
 	    \param t event time
 	 */
-	Event(double d, double t):data_(d),t_(t){};
-
-	/** \fn Queue()
-	    \brief Default constructor, sets fields to 0
-	 */
-	Event():data_(0),t_(0.){};
-	virtual ~Event(){};
-
+	explicit Event(double d=double(), double t=double(), bool s=false):data_(d),t_(t),set_(s){};
+    bool set_;
 	double data_;
 	double t_;
 };
 
 class Queue {
 public:
-	typedef std::pair<double, Event*> QPair;
+	typedef std::pair<double, Event> QPair;
+
 	struct less_time{
-	    bool operator() (const QPair &x, const QPair &y) const {return x.first > y.first;}
+	    bool operator() (const QPair &x, const QPair &y) const {
+				return x.first > y.first;
+		}
 	};
 
-	/** \fn Queue()
-	    \brief Creates the queue. least_ set to 0
-	 */
-	Queue();
-
 	/** \fn ~Queue()
-	    \brief pops every remaining element off of the queue and destroys queue
+	    \brief empties the priority queue
 	 */
-	virtual ~Queue();
+	~Queue();
 
 	/** \fn Event* atomic_dq(double til)
 	    \brief pops a single event off of the queue with time < til
 	    \param til a double value compared against top time.
 	 */
-	Event* atomic_dq(double til);
+	Event atomic_dq(double til);
 
 	/** \fn void insert(double t, double data)
 	    \brief inserts an event with time t and data value
@@ -84,10 +73,13 @@ public:
 	 */
 	void insert(double t, double data);
 
+	/** \fn make_QPair
+	 *  \brief creates a QPair from an event
+	 */
+	QPair make_QPair(Event p) { return QPair(p.t_,p); }
+
 private:
-	Event* least_;
-	QPair make_QPair(Event *p) { return QPair(p->t_,p); }
-	//double least_t_nolock(){if (least_) { return least_->t_;}else{return 1e15;}}
+	Event least_;
 	std::priority_queue<QPair, std::vector<QPair>, less_time> pq_que;
 };
 

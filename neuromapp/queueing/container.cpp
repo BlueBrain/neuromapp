@@ -29,23 +29,21 @@
 #include <stdarg.h>
 #include "queueing/container.h"
 
-Queue::Queue() {
-    least_ = 0;
-}
-
 Queue::~Queue() {
     while(pq_que.size()) {
+      //  delete pq_que.top().second;
         pq_que.pop();
     }
+    //delete least_;
 }
 
 void Queue::insert(double tt, double d) {
-    Event *i = new Event(d,tt);
-    if(!least_){
+    Event i(d,tt);
+    if(!&least_){
         least_ = i;
     }
     else{
-        if(tt < least_->t_){
+        if(tt < least_.t_){
             pq_que.push(make_QPair(least_));
             least_ = i;
 	}
@@ -55,19 +53,20 @@ void Queue::insert(double tt, double d) {
     }
 }
 
-Event *Queue::atomic_dq(double tt) {
-    Event *q = 0;
-    if (least_ && least_->t_ <= tt) {
+Event Queue::atomic_dq(double tt) {
+    Event q = Event();
+    if (&least_ && least_.t_ <= tt) {
         q = least_;
-            while(pq_que.size() && pq_que.top().second->t_ < 0.)
+            while(!pq_que.empty() && (pq_que.top().second.t_ < 0.))
             {
+		//		delete pq_que.top().second;
                 pq_que.pop();
             }
             if(pq_que.size()) {
                 least_ = pq_que.top().second;
                 pq_que.pop();
             }else{
-                least_ = NULL;
+                least_ = Event();
             }
     }
     return q;
