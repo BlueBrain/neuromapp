@@ -52,9 +52,6 @@ private:
 	bool v_;
 	int percent_ITE_;
 	int events_per_step_;
-	int all_ite_received_;
-	int all_enqueued_;
-	int all_delivered_;
 	int all_spiked_;
 	const static int min_delay_ = 5;
 	int percent_spike_;
@@ -71,29 +68,44 @@ public:
 	    \param isSpike determines whether to use spinlock implementation instead of mutex
 	 */
 	explicit Pool(bool verbose=false, int eventsPer=0, int pITE=0, bool isSpike=0):
-			events_per_step_(eventsPer), percent_ITE_(pITE), v_(verbose), time_(0),
-			all_ite_received_(0), all_enqueued_(0), all_delivered_(0), all_spiked_(0){
-				percent_spike_ = isSpike ? 3:0;
-				std::cout<<"isSpike = "<<isSpike<<std::endl;
-	    		srand(time(NULL));
+			v_(verbose), events_per_step_(eventsPer), percent_ITE_(pITE),
+			all_spiked_(0), time_(0){
+		percent_spike_ = isSpike ? 3:0;
+		std::cout<<"isSpike = "<<isSpike<<std::endl;
+   		srand(time(NULL));
 	}
 
 	/** \fn accumulate_stats()
 	    \brief accumulates statistics from the threadData array and stores them using impl::storage
 	 */
 	void accumulate_stats(){
-		//all_ite_received_ = std::accumulate(threadDatas.begin().all_received_,threadDatas.end(),0);
-		//all_enqueued_ = std::accumulate(threadDatas.begin(),threadDatas.end(),0);
-		//all_delivered_ = std::accumulate(threadDatas.begin(),threadDatas.end(),0);
+		int all_ite_received = 0;
+		int all_enqueued = 0;
+		int all_delivered = 0;
     	for(int i=0; i < threadDatas.size(); ++i){
-			all_ite_received_ += threadDatas[i].ite_received_;
-			all_enqueued_ += threadDatas[i].enqueued_;
-			all_delivered_ += threadDatas[i].delivered_;
+			all_ite_received += threadDatas[i].ite_received_;
+			all_enqueued += threadDatas[i].enqueued_;
+			all_delivered += threadDatas[i].delivered_;
+			if(v_){
+				std::cout<<"Cellgroup "<<i<<" ite received: "
+				<<threadDatas[i].ite_received_<<std::endl;
+				std::cout<<"Cellgroup "<<i<<" enqueued: "<<
+				threadDatas[i].enqueued_<<std::endl;
+				std::cout<<"Cellgroup "<<i<<" delivered: "<<
+				threadDatas[i].delivered_<<std::endl;
+			}
 		}
-		neuromapp_data.put_copy("inter_received", all_ite_received_);
-		neuromapp_data.put_copy("enqueued", all_enqueued_);
+
+		if(v_){
+			std::cout<<"Total inter-thread received: "<<all_ite_received<<std::endl;
+			std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
+			std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
+			std::cout<<"Total delivered: "<<all_delivered<<std::endl;
+		}
+		neuromapp_data.put_copy("inter_received", all_ite_received);
+		neuromapp_data.put_copy("enqueued", all_enqueued);
 	    neuromapp_data.put_copy("spikes", all_spiked_);
-	    neuromapp_data.put_copy("delivered", all_delivered_);
+	    neuromapp_data.put_copy("delivered", all_delivered);
 	}
 
 	/** \fn void timeStep(int totalTime)
@@ -182,24 +194,4 @@ public:
 	}
 };
 
-/*
-	void verbose(){
-		if(v_){
-			std::cout<<"Cellgroup "<<i<<" ite received: "
-			<<threadDatas[i].ite_received_<<std::endl;
-			std::cout<<"Cellgroup "<<i<<" enqueued: "<<
-			threadDatas[i].enqueued_<<std::endl;
-			std::cout<<"Cellgroup "<<i<<" delivered: "<<
-			threadDatas[i].delivered_<<std::endl;
-		}
-	}
-
-	if(v_){
-		std::cout<<"Total inter-thread received: "<<all_ite_received_<<std::endl;
-		std::cout<<"Total enqueued: "<<all_enqueued_<<std::endl;
-		std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
-		std::cout<<"Total delivered: "<<all_delivered_<<std::endl;
-	}
-	}
-*/
 #endif

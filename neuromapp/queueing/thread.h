@@ -100,7 +100,7 @@ public:
 		Event q = (qe_.atomic_dq(til));
 		if(q.set_){
 		    delivered_++;
-			assert((int)q.data_ == id);
+		//	assert((int)q.data_ == id);
 			usleep(10);
 //			POINT_RECEIVE()
 			return true;
@@ -152,14 +152,15 @@ inline void NrnThreadData<spinlock>::interThreadSend(double d, double tt){
 
 template<>
 inline void NrnThreadData<spinlock>::enqueueMyEvents(){
-	spinlock_queue<Event>::node* x = inter_thread_events_.q_.pop_all();
-	spinlock_queue<Event>::node* tmp = x;
+	spinlock_queue<Event>::node* head = inter_thread_events_.q_.pop_all();
+	spinlock_queue<Event>::node* elem = NULL;
 	Event ite = Event();
-	while(x){
-		ite = tmp->data;
+	while(head){
+		elem = head;
+		ite = elem->data;
 		selfSend(ite.data_, ite.t_);
-		x = x->next;
-		delete tmp;
+		head = head->next;
+		delete elem;
 	}
 }
 

@@ -27,16 +27,7 @@
 #define MAPP_LOCK_H_
 
 #ifdef _OPENMP
-	#include <omp.h>
-#endif
-
-class DummyLock{
-public:
-	DummyLock(){}
-	~DummyLock(){}
-	void acquire(){}
-	void release(){}
-};
+#include <omp.h>
 
 class OMPLock{
 private:
@@ -63,4 +54,14 @@ public:
 	 */
 	inline void release(){omp_unset_lock(&mut_);}
 };
+#endif
+
+class DummyLock{
+public:
+	DummyLock(){}
+	~DummyLock(){}
+	void acquire(){}
+	void release(){}
+};
+
 #endif

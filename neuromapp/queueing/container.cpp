@@ -38,24 +38,22 @@ Queue::~Queue() {
 }
 
 void Queue::insert(double tt, double d) {
-    Event i(d,tt);
-    if(!&least_){
+    Event i(d,tt,true);
+    if(!least_.set_){
         least_ = i;
     }
-    else{
-        if(tt < least_.t_){
+    else if(tt < least_.t_){
             pq_que.push(make_QPair(least_));
             least_ = i;
 	}
 	else{
             pq_que.push(make_QPair(i));
-        }
     }
 }
 
 Event Queue::atomic_dq(double tt) {
     Event q = Event();
-    if (&least_ && least_.t_ <= tt) {
+    if (least_.set_ && (least_.t_ <= tt)) {
         q = least_;
             while(!pq_que.empty() && (pq_que.top().second.t_ < 0.))
             {

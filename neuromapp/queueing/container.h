@@ -40,9 +40,9 @@ struct Event {
 	    \param t event time
 	 */
 	explicit Event(double d=double(), double t=double(), bool s=false):data_(d),t_(t),set_(s){};
-    bool set_;
 	double data_;
 	double t_;
+    bool set_;
 };
 
 class Queue {
