@@ -5,7 +5,7 @@
 \section  Pre-requirement
 
 The Neuromapp framework needs cmake, a normal compiler and the boost library. The boost library is utilised for the
-the testing framework. After cloning the framework, simply create a build directory, and run cmake as usual.
+the testing framework. After cloning the framework, simply create a build directory, and run cmake
 
 \code{.sh}
     mkdir build // create the build directory
@@ -17,7 +17,7 @@ the testing framework. After cloning the framework, simply create a build direct
     make doc //create the doxygen doc
 \endcode
 
-All the miniapps are organised around a driver program. The execution is easy, in the bin install directory
+All the miniapps are organised around a driver program. The execution is easy. In the bin install directory
 just execute the "app". 
 
 \code{.sh}
@@ -51,6 +51,12 @@ In the next table is summarised the list of the miniapps.
  </TR>
 </TABLE>
 
- Let see that in the next tutorial, how interact with this miniapp.
+If you know what you are doing, you can execute your miniapp directly
+
+\code{.sh}
+    ./bin/app hello —name Suisse
+\endcode
+
+Let see that in the next tutorial, how interact with this miniapp.
 
 */

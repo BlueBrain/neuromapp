@@ -1,5 +1,5 @@
 The Neuronm(ini)app(lication) provides miniapplications that simulate the
-behaviour of neurosience application. For its first release, the Neuromapp
+behaviour of neuroscience application. For its first release, the Neuromapp
 framework focuses on CoreNeuron application.
 
 The framework is organised under the form
@@ -15,19 +15,15 @@ of new applications.
 This directory contains miniapps (C)  about the main behaviour of first release
 of coreneuron. 3 miniapps are available: kernel, solver and spike
 
-	kernel: This miniapp extracts the computation kernel of CoreNeuron,
+	 kernel: This miniapp extracts the computation kernel of CoreNeuron,
                 the miniapp focus on the vectorization by the compiler
         solver: This miniapp extracts the linear algbra solver of CoreNeuron,
                 the Hines solver (similar to Thomas Solver for 3 bands matrix)
-        spike: This miniapp simulates the spike exchange between neurons.
 
-	- hello
+	 - hello
 
 This directory provides an example of how could be design a miniapp (C++)
 
-	- neuronmapp/ll-counter
+        - queuing: T
 
-This directory contains a miniapp about latency measurement on the X86 and Power
-architecture.
-
-
+This miniapp simulates the queueing system of CoreNeuron.
