@@ -22,7 +22,8 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/cstep/cstep.h
- * Implements a miniapp combining kernel and solver miniapp
+ * \brief Implements a miniapp combining kernel and solver miniapp
+ *
  */
 
 #ifndef MAPP_CSTEP_EXECUTE_

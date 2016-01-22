@@ -22,7 +22,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/solver/solver.h
- * Implements a miniapp on the Hines solver of coreneuron 1.0
+ * \brief Implements a miniapp on the Hines solver of coreneuron 1.0
  */
 
 #ifndef MAPP_SOLVER_EXECUTE_

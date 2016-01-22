@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/app/driver_exception.h
- * Driver implementation
+ * \brief Driver exception
  */
 
 #ifndef MAPP_DRIVER_EXCEPTION

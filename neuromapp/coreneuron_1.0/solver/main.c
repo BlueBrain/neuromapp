@@ -22,7 +22,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/solver/main.c
- * Miniapp about the Hines Solver
+ * \brief Miniapp about the Hines Solver
  */
 
 #include <stdio.h>

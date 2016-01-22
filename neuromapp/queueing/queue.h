@@ -1,5 +1,5 @@
 /*
- * Neuromapp - container.h, Copyright (c), 2015,
+ * Neuromapp - queue.h, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,8 +19,8 @@
  */
 
 /**
- * @file neuromapp/queueing/container.h
- * Contains Queue and Event class declaration
+ * @file neuromapp/queueing/queue.h
+ * \brief Contains Queue and Event class declaration
  */
 
 #include <stdio.h>
@@ -30,52 +30,50 @@
 #include <map>
 #include <utility>
 
-#ifndef container_h
-#define container_h
+#ifndef MAPP_CONTAINER_H_
+#define MAPP_CONTAINER_H_
 
-class Event;
+namespace queueing {
 
-class Event {
-public:
+struct event {
 	/** \fn Event(double,double)
 	    \brief Initializes an event with data d and time t
 	    \param d event data
 	    \param t event time
 	 */
-	Event(double d, double t):data_(d),t_(t){};
-
-	/** \fn Queue()
-	    \brief Default constructor, sets fields to 0
-	 */
-	Event():data_(0),t_(0.){};
-	virtual ~Event(){};
-
+	explicit event(double d=double(), double t=double(), bool s=false):data_(d),t_(t),set_(s){};
 	double data_;
 	double t_;
+    bool set_;
 };
 
-class Queue {
+class queue {
 public:
-	typedef std::pair<double, Event*> QPair;
+	typedef std::pair<double, event> qpair;
+
 	struct less_time{
-	    bool operator() (const QPair &x, const QPair &y) const {return x.first > y.first;}
+	    bool operator() (const qpair &x, const qpair &y) const {
+				return x.first > y.first;  // ? is_more, more_time ?
+		}
 	};
 
-	/** \fn Queue()
-	    \brief Creates the queue. least_ set to 0
+	/** \fn remove_negative()
+	    \brief removes all negative-time events from the queue
 	 */
-	Queue();
+	void remove_negative();
 
-	/** \fn ~Queue()
-	    \brief pops every remaining element off of the queue and destroys queue
+	/** \fn valid_time()
+	    \brief checks whether the priority queue top item can be popped
+		\return true if criteria is met else false
 	 */
-	virtual ~Queue();
+	bool valid_time(double tt);
 
 	/** \fn Event* atomic_dq(double til)
 	    \brief pops a single event off of the queue with time < til
 	    \param til a double value compared against top time.
+		\return the popped item
 	 */
-	Event* atomic_dq(double til);
+	event atomic_dq(double til);
 
 	/** \fn void insert(double t, double data)
 	    \brief inserts an event with time t and data value
@@ -85,10 +83,8 @@ public:
 	void insert(double t, double data);
 
 private:
-	Event* least_;
-	QPair make_QPair(Event *p) { return QPair(p->t_,p); }
-	//double least_t_nolock(){if (least_) { return least_->t_;}else{return 1e15;}}
-	std::priority_queue<QPair, std::vector<QPair>, less_time> pq_que;
+	std::priority_queue<qpair, std::vector<qpair>, less_time> pq_que;
 };
 
+}
 #endif

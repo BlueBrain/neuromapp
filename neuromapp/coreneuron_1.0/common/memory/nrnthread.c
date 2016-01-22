@@ -23,8 +23,8 @@
 */
 
 /**
- * @file neuromapp/coreneuron_1.0/common/util/nrnthread_handler.c
- * Implements function for the allocation, initialisation and copy of the memory for coreneuron1.0
+ * @file neuromapp/coreneuron_1.0/common/memory/nrnthread.c
+ * \brief Implements function for the allocation, initialisation and copy of the memory for coreneuron1.0
  */
 
 
@@ -230,7 +230,7 @@ int nrnthread_read(FILE *hFile, NrnThread *nt) {
         if ( nt->max_nodecount < ml->nodecount_pad)
             nt->max_nodecount = ml->nodecount_pad;
 
-        printf("=> Mechanism type %d is at index %d\n", ml->type, i);
+       // printf("=> Mechanism type %d is at index %d\n", ml->type, i);
 
         if (!ml->is_art){
             ml->nodeindices = (int*)ecalloc_align(ml->nodecount_pad, NRN_SOA_BYTE_ALIGN, sizeof(int));

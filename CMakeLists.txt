@@ -8,6 +8,7 @@ set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 set(VERSION_ABI "1")
 
+option (NEUROMAPP_CURSOR "Allow the use of cursors during input" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake)
 include(Compiler)
@@ -31,6 +32,29 @@ if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
+if(NEUROMAPP_CURSOR)
+    MESSAGE(STATUS "Using Cursors")
+    add_definitions(-DNEUROMAPP_CURSOR)
+
+    if(NOT READLINE_FOUND)
+	find_path(READLINE_INCLUDE_DIR readline/readline.h
+	    HINTS ${READLINE_ROOT_DIR} PATH_SUFFIXES include)
+	find_library(READLINE_LIBRARY readline
+	    HINTS ${READLINE_ROOT_DIR} PATH_SUFFIXES lib)
+	find_library(NCURSES_LIBRARY ncurses)   # readline depends on libncurses
+	mark_as_advanced(READLINE_INCLUDE_DIR READLINE_LIBRARY NCURSES_LIBRARY)
+
+	include(FindPackageHandleStandardArgs)
+	find_package_handle_standard_args(Readline DEFAULT_MSG
+	READLINE_LIBRARY NCURSES_LIBRARY READLINE_INCLUDE_DIR)
+
+	set(READLINE_INCLUDE_DIRS ${READLINE_INCLUDE_DIR})
+	set(READLINE_LIBRARIES ${READLINE_LIBRARY} ${NCURSES_LIBRARY})
+    endif(NOT READLINE_FOUND)
+
+endif(NEUROMAPP_CURSOR)
+
 
 enable_testing()
 

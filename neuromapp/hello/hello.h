@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/hello/hello.h
- * Hello Word Miniapp
+ * \brief Hello Word Miniapp
  */
 
 #ifndef MAPP_HELLO_EXECUTE_

@@ -21,7 +21,7 @@
 
 /**
  * @file neuromapp/app/driver.h
- * Driver implementation
+ * \brief  Driver declaration
  */
 
 #ifndef MAPP_DRIVER_

@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/kernel/kernel.c
- * Implements the helper function of the kernel miniapp
+ * \brief Implements the helper function of the kernel miniapp
  */
 
 #include <stdio.h>

@@ -21,7 +21,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/cstep/main.c
- * Implements a miniapp combining  the compute kernel and the Hines solver of coreneuron 1.0
+ * \brief Implements a miniapp combining  the compute kernel and the Hines solver of coreneuron 1.0
  */
 
 #include <stdio.h>
