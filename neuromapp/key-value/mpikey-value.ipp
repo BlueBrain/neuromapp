@@ -1,8 +1,5 @@
 #include <iostream>
 #include <cstdlib>
-#include <unistd.h>
-
-
 #include <mpi.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -15,28 +12,8 @@
 #include "key-value/skv/skv_store.h"
 #endif
 
-KeyValueBench::KeyValueBench(int rank, int size){
-    rank_ = rank;
-    num_procs_ = size;
-    num_threads_ = 1;
-
-    kv_store_ = NULL;
-    voltages_size_ = 0;
-}
-
-KeyValueBench::~KeyValueBench(){
-    if(rank_ == 0){
-    }
-}
-
-
-
-
-
-
-
-
-void KeyValueBench::parseArgs(int argc, char * argv[], KeyValueArgs & args)
+template<int h>
+void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 {
 	for (int i = 1; i < argc; i++) {
 		std::string param(argv[i]);
@@ -95,7 +72,8 @@ void KeyValueBench::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 }
 
 
-void KeyValueBench::init(KeyValueArgs & args) {
+template<int h>
+void KeyValueBench<h>::init(KeyValueArgs & args) {
 
 
 	if (args.backend_ == "skv") {
@@ -211,7 +189,8 @@ void KeyValueBench::init(KeyValueArgs & args) {
 
 }
 
-void KeyValueBench::cleanup(KeyValueArgs & args) {
+template<int h>
+void KeyValueBench<h>::cleanup(KeyValueArgs & args) {
 	std::cout << "Removing inserted values" << std::endl;
 
 	//for (float st = 0; st < args.st_; st += args.md_) {
@@ -248,7 +227,8 @@ void KeyValueBench::cleanup(KeyValueArgs & args) {
 
 
 
-void KeyValueBench::run(KeyValueArgs & args, KeyValueStats &stats) {
+template<int h>
+void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 
 	init(args);
 
@@ -287,7 +267,8 @@ void KeyValueBench::run(KeyValueArgs & args, KeyValueStats &stats) {
 
 
 
-void KeyValueBench::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
+template<int h>
+void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 #if 1
 	// OPENMP lower than 4.0, no task deps support
 
@@ -348,7 +329,8 @@ void KeyValueBench::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 }
 
 
-void KeyValueBench::run_task(KeyValueArgs & args) {
+template<int h>
+void KeyValueBench<h>::run_task(KeyValueArgs & args) {
 #if 0
 	// OPENMP 4.0 or later, support for task deps
 
