@@ -59,8 +59,8 @@ struct InterThread<mutex>{
 #endif
 };
 
-template<int I>
-struct InterThread{
+template<>
+struct InterThread<spinlock>{
 	/// linked-list for inter thread events
 	spinlock_queue<event> q_;
 };
@@ -99,9 +99,8 @@ public:
 	    \return true if event delivered, else false
 	 */
 	bool deliver(int id, int til){
-		qe_.remove_negative();
-		if(qe_.valid_time(til)){
-			event q = qe_.atomic_dq(til);
+		event q;
+		if(qe_.atomic_dq(til,q)){
 		    delivered_++;
 			assert((int)q.data_ == id);
 			usleep(10);
