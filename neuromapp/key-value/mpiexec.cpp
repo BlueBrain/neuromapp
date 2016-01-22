@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-#include "mpikey-value.h"
+#include "key-value/mpikey-value.h"
 
 int main(int argc, char* argv[]) {
 
@@ -12,8 +12,7 @@ int main(int argc, char* argv[]) {
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
 
-#if 1
-	KeyValueBench bench(rank, size);
+    KeyValueBench<none> bench(rank, size);
 	KeyValueArgs args;
 	KeyValueStats stats;
 
@@ -22,18 +21,14 @@ int main(int argc, char* argv[]) {
 	MPI::COMM_WORLD.Barrier();
 
 	bench.run(args, stats);
-#endif
 
 	MPI::COMM_WORLD.Barrier();
 
 	std::cout << "Bye bye from " << rank << std::endl;
 	std::cout.flush();
 
-	MPI::COMM_WORLD.Barrier();
-
     MPI::Finalize();
 
-#if 1
 	if (rank == 0) {
 		std::cout << "Overall performance (" << size << " " << (size == 1? "process" : "processes") << "):" << std::endl
 				<< "  I/O: " << stats.mean_iops_ << " kIOPS" << std::endl
@@ -45,8 +40,6 @@ int main(int argc, char* argv[]) {
 				<< args.cg_ << "," << args.backend_ << "," << ( args.async_ ? "async" : "sync" )<< ","<< std::fixed << stats.mean_iops_ << ","
 				<< stats.mean_mbw_ << std::endl;
 	}
-#endif
 
 	return 0;
-
 }
