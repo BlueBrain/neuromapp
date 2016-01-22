@@ -1,5 +1,5 @@
 /*
- * Neuromapp - container.cpp, Copyright (c), 2015,
+ * Neuromapp - queue.cpp, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/container.cpp
+ * @file neuromapp/queueing/queue.cpp
  * \brief Contains Queue and Event class implementation
  */
 
@@ -27,27 +27,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include "queueing/container.h"
+#include <utility>
 
-void Queue::insert(double tt, double d) {
-    Event i(d,tt);
-    pq_que.push(make_QPair(i));
+#include "queueing/queue.h"
+
+namespace queueing {
+
+void queue::insert(double tt, double d) {
+    pq_que.push(std::make_pair(d,event(d,tt)));
 }
 
-void Queue::remove_negative(){
+void queue::remove_negative(){
 	//remove all negative time events
     while(!pq_que.empty() && (pq_que.top().first < 0.))
         pq_que.pop();
 }
 
-bool Queue::valid_time(double tt){
+bool queue::valid_time(double tt){
     if(!pq_que.empty() && pq_que.top().first <= tt)
-			return true;
+        return true;
 	return false;
 }
 
-Event Queue::atomic_dq(double tt) {
-	Event q= Event();
+event queue::atomic_dq(double tt) {
+	event q;
     if(!pq_que.empty() && pq_que.top().first <= tt) {
         q = pq_que.top().second;
         pq_que.pop();
@@ -55,3 +58,4 @@ Event Queue::atomic_dq(double tt) {
     return q;
 }
 
+}

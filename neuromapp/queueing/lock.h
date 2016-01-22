@@ -29,6 +29,8 @@
 #ifdef _OPENMP
 #include <omp.h>
 
+namespace queueing {
+
 class OMPLock{
 private:
 	omp_lock_t mut_;
@@ -54,7 +56,11 @@ public:
 	 */
 	inline void release(){omp_unset_lock(&mut_);}
 };
+
+}
 #endif
+
+namespace queueing {
 
 class DummyLock{
 public:
@@ -64,4 +70,5 @@ public:
 	void release(){}
 };
 
+}
 #endif

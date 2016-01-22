@@ -32,6 +32,8 @@
 #ifndef MAPP_SPINLOCK_QUEUE_
 #define MAPP_SPINLOCK_QUEUE_
 
+namespace queueing {
+
 template<typename T>
 class spinlock_queue {
 public:
@@ -73,4 +75,5 @@ private:
    node* head_;
 };
 
+}
 #endif

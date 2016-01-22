@@ -42,6 +42,8 @@
 #ifndef MAPP_POOL_H_
 #define MAPP_POOL_H_
 
+namespace queueing {
+
 template<int I>
 class NrnThreadData;
 
@@ -194,4 +196,5 @@ public:
 	}
 };
 
+}
 #endif

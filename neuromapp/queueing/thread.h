@@ -32,13 +32,15 @@
 #include <cassert>
 #include <unistd.h>
 
-#include "queueing/container.h"
+#include "queueing/queue.h"
 #include "queueing/spinlock_queue.h"
 #include "queueing/lock.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+namespace queueing {
 
 enum Implementation {mutex, spinlock};
 
@@ -48,8 +50,8 @@ struct InterThread;
 template<>
 struct InterThread<mutex>{
 	/// vector for inter thread events
-	spinlock_queue<Event> inter_thread_events_;
-	std::vector<Event> q_;
+	spinlock_queue<event> inter_thread_events_;
+	std::vector<event> q_;
 #ifdef _OPENMP
 	OMPLock lock_;
 #else
@@ -60,13 +62,13 @@ struct InterThread<mutex>{
 template<int I>
 struct InterThread{
 	/// linked-list for inter thread events
-	spinlock_queue<Event> q_;
+	spinlock_queue<event> q_;
 };
 
 template<int I>
 class NrnThreadData{
 private:
-	Queue qe_;
+	queue qe_;
 	InterThread<I> inter_thread_events_;
 public:
 	int ite_received_;
@@ -99,7 +101,7 @@ public:
 	bool deliver(int id, int til){
 		qe_.remove_negative();
 		if(qe_.valid_time(til)){
-			Event q = qe_.atomic_dq(til);
+			event q = qe_.atomic_dq(til);
 		    delivered_++;
 			assert((int)q.data_ == id);
 			usleep(10);
@@ -126,7 +128,7 @@ public:
 template<>
 inline void NrnThreadData<mutex>::interThreadSend(double d, double tt){
 	inter_thread_events_.lock_.acquire();
-	Event ite(d,tt,true);
+	event ite(d,tt,true);
 	ite_received_++;
 	inter_thread_events_.q_.push_back(ite);
 	inter_thread_events_.lock_.release();
@@ -135,7 +137,7 @@ inline void NrnThreadData<mutex>::interThreadSend(double d, double tt){
 template<>
 inline void NrnThreadData<mutex>::enqueueMyEvents(){
 	inter_thread_events_.lock_.acquire();
-	Event ite = Event();
+	event ite = event();
 	for(int i = 0; i < inter_thread_events_.q_.size(); ++i){
 		ite = inter_thread_events_.q_[i];
 		selfSend(ite.data_, ite.t_);
@@ -146,16 +148,16 @@ inline void NrnThreadData<mutex>::enqueueMyEvents(){
 
 template<>
 inline void NrnThreadData<spinlock>::interThreadSend(double d, double tt){
-	Event ite(d,tt,true);
+	event ite(d,tt,true);
 	ite_received_++;
 	inter_thread_events_.q_.push(ite);
 }
 
 template<>
 inline void NrnThreadData<spinlock>::enqueueMyEvents(){
-	spinlock_queue<Event>::node* head = inter_thread_events_.q_.pop_all();
-	spinlock_queue<Event>::node* elem = NULL;
-	Event ite = Event();
+	spinlock_queue<event>::node* head = inter_thread_events_.q_.pop_all();
+	spinlock_queue<event>::node* elem = NULL;
+	event ite = event();
 	while(head){
 		elem = head;
 		ite = elem->data;
@@ -165,4 +167,5 @@ inline void NrnThreadData<spinlock>::enqueueMyEvents(){
 	}
 }
 
+} //endnamespace
 #endif

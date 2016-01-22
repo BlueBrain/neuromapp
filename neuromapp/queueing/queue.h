@@ -1,5 +1,5 @@
 /*
- * Neuromapp - container.h, Copyright (c), 2015,
+ * Neuromapp - queue.h, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/container.h
+ * @file neuromapp/queueing/queue.h
  * \brief Contains Queue and Event class declaration
  */
 
@@ -33,25 +33,27 @@
 #ifndef MAPP_CONTAINER_H_
 #define MAPP_CONTAINER_H_
 
-struct Event {
+namespace queueing {
+
+struct event {
 	/** \fn Event(double,double)
 	    \brief Initializes an event with data d and time t
 	    \param d event data
 	    \param t event time
 	 */
-	explicit Event(double d=double(), double t=double(), bool s=false):data_(d),t_(t),set_(s){};
+	explicit event(double d=double(), double t=double(), bool s=false):data_(d),t_(t),set_(s){};
 	double data_;
 	double t_;
     bool set_;
 };
 
-class Queue {
+class queue {
 public:
-	typedef std::pair<double, Event> QPair;
+	typedef std::pair<double, event> qpair;
 
 	struct less_time{
-	    bool operator() (const QPair &x, const QPair &y) const {
-				return x.first > y.first;
+	    bool operator() (const qpair &x, const qpair &y) const {
+				return x.first > y.first;  // ? is_more, more_time ?
 		}
 	};
 
@@ -71,7 +73,7 @@ public:
 	    \param til a double value compared against top time.
 		\return the popped item
 	 */
-	Event atomic_dq(double til);
+	event atomic_dq(double til);
 
 	/** \fn void insert(double t, double data)
 	    \brief inserts an event with time t and data value
@@ -80,13 +82,9 @@ public:
 	 */
 	void insert(double t, double data);
 
-	/** \fn make_QPair
-	 *  \brief creates a QPair from an event
-	 */
-	QPair make_QPair(Event p) { return QPair(p.t_,p); }
-
 private:
-	std::priority_queue<QPair, std::vector<QPair>, less_time> pq_que;
+	std::priority_queue<qpair, std::vector<qpair>, less_time> pq_que;
 };
 
+}
 #endif

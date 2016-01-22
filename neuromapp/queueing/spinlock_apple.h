@@ -28,6 +28,8 @@
 
 #include <libkern/OSAtomic.h>
 
+namespace queueing {
+
 typedef int pthread_spinlock_t;
 
 /** \fn pthread_spin_init(pthread_spinlock_t *lock, int pshared)
@@ -67,4 +69,5 @@ inline void pthread_spin_unlock(pthread_spinlock_t *lock) {
     return OSSpinLockUnlock(lock);
 }
 
+}
 #endif
