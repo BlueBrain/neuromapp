@@ -1,19 +1,12 @@
 #include <iostream>
 #include <cstdlib>
-
-//#include <string>
-//#include <cstring>
-//#include <sstream>
-//#include <vector>
-
-
 #include <unistd.h>
-
-//#include <stdlib.h>
 
 
 #include <mpi.h>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include "key-value/mpikey-value.h"
 #include "key-value/map/map_store.h"
@@ -76,10 +69,14 @@ void KeyValueBench::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 	}
 
 
-#pragma omp parallel
+     #pragma omp parallel
 	{
+        #ifdef _OPENMP
 		num_threads_ = omp_get_num_threads();
-	}
+        #endif
+        num_threads_ = 1;
+
+    }
 
 	if (rank_ == 0) {
 		std::cout << "Using the following configuration:" << std::endl

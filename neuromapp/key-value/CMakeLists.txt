@@ -64,10 +64,11 @@ endif()
 add_executable(MPI_Exec_kv mpiexec.cpp)
 
 # SKV link flags must be after SKV_LIBRARIES
+set(MPI_LIBRARIES ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
 #target_link_libraries (MPI_Exec_kv mpikey-value map_store ${SKV_LIBRARIES} ${skv_link_flags} ${MPI_LIBRARIES})
 
 # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-target_link_libraries (MPI_Exec_kv mpikey-value map_store ${SKV_LIBRARIES} ${skv_link_flags})
+target_link_libraries (MPI_Exec_kv mpikey-value map_store ${SKV_LIBRARIES} ${skv_link_flags} ${MPI_LIBRARIES})
 
 if (MPI_COMPILE_FLAGS)
 	set_target_properties(MPI_Exec_kv PROPERTIES

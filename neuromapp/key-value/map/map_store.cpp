@@ -20,10 +20,10 @@
 KeyValueMap::KeyValueMap(int mpiRank, bool threadSafe, std::string pdsName) : KeyValueIface(), _rank(mpiRank), _numReaders(0), _numWriters(0)
 {
 	if (threadSafe) {
-		_nRdLock = new MyOMPLock();
-		_nWtLock = new MyOMPLock();
-		_readersLock = new MyOMPLock();
-		_writersLock = new MyOMPLock();
+//		_nRdLock = new MyOMPLock();
+//		_nWtLock = new MyOMPLock();
+//		_readersLock = new MyOMPLock();
+//		_writersLock = new MyOMPLock();
 	} else {
 		_nRdLock = new MyDummyLock();
 		_nWtLock = new MyDummyLock();
