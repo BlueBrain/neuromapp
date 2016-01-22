@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/queueing.h
- * Declaration for the queuing_execute function from main.cpp
+ * \brief Declaration for the queuing_execute function from main.cpp
  */
 
 #ifndef MAPP_QUEUEING_EXECUTE_

@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/utils/storage/storage.ipp
- *  implementation of the storage container
+ * \brief implementation of the storage container
  */
 
 #include <iostream>

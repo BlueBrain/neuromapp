@@ -21,8 +21,8 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/common/util/memory.h
- * Implements function alignement/padding helper functions
+ * @file neuromapp/coreneuron_1.0/common/memory/memory.c
+ * \brief Implements function alignement/padding helper functions
  */
 
 #include <stdlib.h>

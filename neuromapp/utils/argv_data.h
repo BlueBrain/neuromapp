@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/utils/argv_data.h
- *  encapuslate and construct argv form the command line for C miniapp
+ *  \brief encapuslate and construct argv form the command line for C miniapp
  */
 
 #ifndef MAPP_ARGV_DATA_

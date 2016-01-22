@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/queueing/thread.h
- * Contains NrnThreadData class declaration.
+ * \brief Contains NrnThreadData class declaration.
  */
 
 #ifndef thread_h
@@ -28,21 +28,50 @@
 
 #include <queue>
 #include <vector>
-#include "queueing/container.h"
-#include "lockless_queue.h"
+#include <iostream>
+#include <cassert>
+#include <unistd.h>
+
+#include "queueing/queue.h"
+#include "queueing/spinlock_queue.h"
+#include "queueing/lock.h"
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
+namespace queueing {
+
+enum Implementation {mutex, spinlock};
+
+template<int I>
+struct InterThread;
+
+template<>
+struct InterThread<mutex>{
+	/// vector for inter thread events
+	spinlock_queue<event> inter_thread_events_;
+	std::vector<event> q_;
+#ifdef _OPENMP
+	OMPLock lock_;
+#else
+	DummyLock lock_;
+#endif
+};
+
+template<int I>
+struct InterThread{
+	/// linked-list for inter thread events
+	spinlock_queue<event> q_;
+};
+
+template<int I>
 class NrnThreadData{
 private:
-	Queue *qe_;
-	/// vector for inter thread events
-	waitfree_queue<Event> inter_thread_events_;
-
+	queue qe_;
+	InterThread<I> inter_thread_events_;
 public:
-	int sent_;
+	int ite_received_;
 	int enqueued_;
 	int delivered_;
 
@@ -51,37 +80,92 @@ public:
 	    \param i provides the thread id for this NrnThreadData
 	    \param verbose verbose mode: 1 = ON, 0 = OFF
 	 */
-	NrnThreadData();
+	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {}
 
-	/** \fn ~NrnThreadData()
-	    \brief frees queue and destroys NrnThreadData object
+	/** \fn void selfSend(double d, double tt)
+	 *  \brief send an item directly to my priority queue
+	 *  \param d the Event's data value
+	 *  \param tt the Event's time value
+	 **/
+	void selfSend(double d, double tt){
+		enqueued_++;
+		qe_.insert(tt, d);
+	}
+
+	/** \fn bool deliver(int id, int til)
+	    \brief dequeue all items with time < til
+	    \param id used in sanity check to verify destination
+	    \param til the current time. compared against event times
+	    \return true if event delivered, else false
 	 */
-	~NrnThreadData();
+	bool deliver(int id, int til){
+		qe_.remove_negative();
+		if(qe_.valid_time(til)){
+			event q = qe_.atomic_dq(til);
+		    delivered_++;
+			assert((int)q.data_ == id);
+			usleep(10);
+//			POINT_RECEIVE()
+			return true;
+		}
+		return false;
+	}
 
 	/** \fn void interThreadSend(double d, double tt)
 	    \brief sends an Event to the destination thread's array
 	    \param d the event's data value
 	    \param tt the event's time value
 	 */
-	void interThreadSend(double,double);
+	void interThreadSend(double d, double tt) {}
 
 	/** \fn void enqeueMyEvents()
-	    \brief (for this thread) push all the events from my inter_thread_events_ to my priority queue
+	    \brief (for this thread) push all the events from my
+	    ites_ to my priority queue
 	 */
-	void enqueueMyEvents();
-
-	/** \fn void selfSend(double d, double tt)
-	    \brief send an item directly to my priority queue
-	    \param d the Event's data value
-	    \param tt the Event's time value
-	 */
-	void selfSend(double,double);
-
-	/** \fn bool deliver(int id, int til)
-	    \brief dequeue all items with time < til
-	    \param id used in sanity check to verify destination
-	    \param til the current time. compared against event times
-	 */
-	bool deliver(int,int);
+	void enqueueMyEvents() {}
 };
+
+template<>
+inline void NrnThreadData<mutex>::interThreadSend(double d, double tt){
+	inter_thread_events_.lock_.acquire();
+	event ite(d,tt,true);
+	ite_received_++;
+	inter_thread_events_.q_.push_back(ite);
+	inter_thread_events_.lock_.release();
+}
+
+template<>
+inline void NrnThreadData<mutex>::enqueueMyEvents(){
+	inter_thread_events_.lock_.acquire();
+	event ite = event();
+	for(int i = 0; i < inter_thread_events_.q_.size(); ++i){
+		ite = inter_thread_events_.q_[i];
+		selfSend(ite.data_, ite.t_);
+	}
+	inter_thread_events_.q_.clear();
+	inter_thread_events_.lock_.release();
+}
+
+template<>
+inline void NrnThreadData<spinlock>::interThreadSend(double d, double tt){
+	event ite(d,tt,true);
+	ite_received_++;
+	inter_thread_events_.q_.push(ite);
+}
+
+template<>
+inline void NrnThreadData<spinlock>::enqueueMyEvents(){
+	spinlock_queue<event>::node* head = inter_thread_events_.q_.pop_all();
+	spinlock_queue<event>::node* elem = NULL;
+	event ite = event();
+	while(head){
+		elem = head;
+		ite = elem->data;
+		selfSend(ite.data_, ite.t_);
+		head = head->next;
+		delete elem;
+	}
+}
+
+} //endnamespace
 #endif

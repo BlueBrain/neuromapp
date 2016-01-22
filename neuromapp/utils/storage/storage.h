@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/utils/storage/storage.h
- *  implementation of the storage class
+ * \brief implementation of the storage class
  */
 
 #ifndef MAPP_STORAGE_

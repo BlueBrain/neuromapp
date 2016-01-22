@@ -21,7 +21,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/common/util/vectorizer.h
- * provide macro for the vectorization
+ * \brief provide macro for the vectorization
  */
 #ifndef MAPP_VECTORIZER_
 #define MAPP_VECTORIZER_

@@ -26,7 +26,8 @@ Usage: < >  means optional
        hello <arg>
        kernel <arg>
        solver <arg>
-       fullComputationStep <arg>
+       cstep <arg>
+       queueing <arg>
    quit to exit 
    The miniapp: kernel, solver, cstep can use the provided data set: 
 
@@ -57,16 +58,18 @@ All the miniapps follow the same scheme, a helper that provide options. We summa
 Table
 
 <TABLE BORDER="1">
-<CAPTION> Options of the miniapp  </CAPTION>
+<CAPTION> Common Options of the miniapps  </CAPTION>
  <TR>
  <TH>                  </TH>
  <TH> hello      </TH>
  <TH> solver     </TH>
  <TH> kernel     </TH>
  <TH> cstep     </TH>
+ <TH> queueing     </TH>
  </TR>
  <TR>
  <TH> —help  </TH>
+ <TD  align="center">  Print helper   </TD>
  <TD  align="center">  Print helper   </TD>
  <TD  align="center">  Print helper   </TD>
  <TD  align="center">  Print helper   </TD>
@@ -78,6 +81,7 @@ Table
  <TD  align="center">  input file   </TD>
  <TD  align="center">  input file   </TD>
  <TD  align="center">  input file   </TD>
+ <TD  align="center">  -   </TD>
  </TR>
  </TR>
  <TR>
@@ -86,6 +90,7 @@ Table
  <TD  align="center">  storage key   </TD>
  <TD  align="center">  storage key   </TD>
  <TD  align="center">  storage key   </TD>
+ <TD  align="center">  -   </TD>
  </TR>
  <TR>
  <TH> —numthread  </TH>
@@ -93,24 +98,10 @@ Table
  <TD  align="center">  -   </TD>
  <TD  align="center">  number OMP thread   </TD>
  <TD  align="center">  -   </TD>
- </TR>
- </TR>
- <TR>
- <TH> —mechanism  </TH>
- <TD  align="center">  -  </TD>
- <TD  align="center">  -   </TD>
- <TD  align="center">  looking mechanism [Na, ProbAMPANMDA or Ih]  </TD>
- <TD  align="center">  -   </TD>
- </TR>
- </TR>
- <TR>
- <TH> —function  </TH>
- <TD  align="center">  -  </TD>
- <TD  align="center">  -   </TD>
- <TD  align="center">  looking function [state or current]   </TD>
- <TD  align="center">  -   </TD>
+ <TD  align="center">  number OMP thread   </TD>
  </TR>
 </TABLE>
+
 
 In details the "name" and "data" options are the most important. The "name" option is a key
 for the input data. When a miniapp (e.g. solver) is run, the data are saved in memory with a default key
@@ -120,10 +111,54 @@ run the key is the same the data will be reused, it not necessary to provide the
 \note We provide a tiny set of input data to run that is uncompressed during the Makefile generation in the build directory: 
 build/test/bench.101392/bench.101392 
 
+The kernel miniapp has additional options to specify the study mechanism and the corresponding function
+
+<TABLE BORDER="1">
+<CAPTION> Additional option of the miniapp kernel  </CAPTION>
+ <TR>
+ <TH> —mechanism  </TH>
+ <TD  align="center">  looking mechanism [Na, ProbAMPANMDA or Ih]  </TD>
+ </TR>
+ <TR>
+ <TH> —function  </TH>
+ <TD  align="center">  looking function [state or current]   </TD>
+ </TR>
+</TABLE>
+
+The queueing miniapp has additional options to study the queueing
+
+<TABLE BORDER="1">
+<CAPTION> Additional option of the miniapp kernel  </CAPTION>
+ <TR>
+ <TH> —eventsper  </TH>
+ <TD  align="center">  number of events created per time step  </TD>
+ </TR>
+ <TR>
+ <TH> —simtime  </TH>
+ <TD  align="center">  number of time steps in the simulation   </TD>
+ </TR>
+ <TR>
+ <TH> —runs  </TH>
+ <TD  align="center">  how many times the executable is run   </TD>
+ </TR>
+ <TR>
+ <TH> —percent-ite   </TH>
+ <TD  align="center">  the percentage of inter-thread events out of total events   </TD>
+ </TR>
+ <TR>
+ <TH> —spike-enabled  </TH>
+ <TD  align="center">  determines whether or not to include spike events   </TD>
+ </TR>
+ <TR>
+ <TH> —verbose  </TH>
+ <TD  align="center">  provides additional outputs during execution   </TD>
+ </TR>
+</TABLE>
+
+
 \section tu3 Miniapps performance metrics
 
-The only available metric on the mini-app is the time to solution. This metric is inside the "kernel", "solver" and "cstep" mini-app
-
+The only available metric common to all mini-apps is the time to solution. The queueing mini-app can provide additional options, see the helper for information.
 
 */
 

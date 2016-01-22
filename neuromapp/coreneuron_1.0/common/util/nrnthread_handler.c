@@ -22,6 +22,12 @@
 * License along with this library.
 */
 
+/**
+ * @file neuromapp/coreneuron_1.0/common/util/nrnthread_handler.h
+ * \brief Implements storage-API compatible functions for the allocation
+ * and deallocation of NrnThread structures.
+ */
+
 #include "coreneuron_1.0/common/memory/nrnthread.h"
 #include "coreneuron_1.0/common/util/nrnthread_handler.h"
 

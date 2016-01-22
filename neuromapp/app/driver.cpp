@@ -22,7 +22,7 @@
 
 /**
  * @file neuromapp/app/driver.cpp
- * Driver implementation
+ * \brief Driver implementation
  */
 #include <string.h>
 #include "app/driver.h"
