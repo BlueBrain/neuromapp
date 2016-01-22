@@ -68,6 +68,27 @@ class KeyValueStats {
 		~KeyValueStats() {}
 };
 
+enum handle {
+	none = 0,
+	skv
+};
+
+template<int h>
+struct trait_handle;
+
+template<>
+struct trait_handle<none>{
+		typedef void* value_type;
+};
+
+template<>
+struct trait_handle<skv>{
+#ifdef SKV_IBM
+		typedef skv_client_cmd_ext_hdl_t value_type;
+#endif
+};
+
+template<int h = none>
 class KeyValueBench {
 private:
 
@@ -81,13 +102,8 @@ private:
 
 	std::vector<int> gids_;
 
-#ifdef SKV_IBM
-	std::vector<skv_client_cmd_ext_hdl_t> ins_handles_;
-	std::vector<skv_client_cmd_ext_hdl_t> rem_handles_;
-#else
-	std::vector<void *> ins_handles_;
-	std::vector<void *> rem_handles_;
-#endif
+	std::vector<typename trait_handle<h>::value_type > ins_handles_;
+	std::vector<typename trait_handle<h>::value_type> rem_handles_;
 
 public:
 	/** \fn KeyValueBench(int rank, int size)
@@ -95,51 +111,44 @@ public:
 	    \param rank the rank of this processes
 	    \param size the number of MPI processes
 	 */
-	KeyValueBench(int rank, int size);
-
-	/** \fn ~KeyValueBench()
-	    \brief delete ~KeyValueBench object
-	 */
-	~KeyValueBench();
+	explicit KeyValueBench(int rank = 0, int size = 1) : rank_(rank), num_procs_ (size), num_threads_(1),
+			kv_store_(NULL), voltages_size_(0) {}
 
 	/** \fn getNumThreads()
 	    \brief return the number of OpenMP threads
 	 */
-	int getNumThreads() { return num_threads_; }
-
-
+	inline int getNumThreads() { return num_threads_; }
 
 	/** \fn parseArgs(int argc, char* argv[], KeyValueArgs &args)
 	    \brief parse user arguments and set simulation parameters
 	 */
-	void parseArgs(int argc, char* argv[], KeyValueArgs &args);
+	inline void parseArgs(int argc, char* argv[], KeyValueArgs &args);
 
 	/** \fn init(KeyValueArgs &args)
 	    \brief initialize the data structures needed for the simulation
 	 */
-	void init(KeyValueArgs &args);
+	inline void init(KeyValueArgs &args);
 
 	/** \fn cleanup(KeyValueArgs &args)
 	    \brief clean up the data structures created for the simulation
 	 */
-	void cleanup(KeyValueArgs &args);
+	inline void cleanup(KeyValueArgs &args);
 
 	/** \fn run(KeyValueArgs &args, KeyValueStats &stats)
 	    \brief run the I/O simulation, calls init and cleanup as well
 	 */
-	void run(KeyValueArgs &args, KeyValueStats &stats);
+	inline void run(KeyValueArgs &args, KeyValueStats &stats);
 
 	/** \fn run_loop(KeyValueArgs &args)
 	    \brief run the I/O simulation as a single, large OpenMP loop
 	 */
-	void run_loop(KeyValueArgs &args, KeyValueStats &stats);
+	inline void run_loop(KeyValueArgs &args, KeyValueStats &stats);
 
 	/** \fn run_task(KeyValueArgs &args)
 	    \brief run the I/O simulation as OpenMP tasks and dependencies
 	 */
-	void run_task(KeyValueArgs &args);
-
-
+	inline void run_task(KeyValueArgs &args);
 };
 
+#include "key-value/mpikey-value.ipp"
 #endif
