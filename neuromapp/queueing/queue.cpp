@@ -34,28 +34,16 @@
 namespace queueing {
 
 void queue::insert(double tt, double d) {
-    pq_que.push(std::make_pair(d,event(d,tt)));
+    pq_que.push(event(d,tt));
 }
 
-void queue::remove_negative(){
-	//remove all negative time events
-    while(!pq_que.empty() && (pq_que.top().first < 0.))
+bool queue::atomic_dq(double tt, event& q) {
+    if(!pq_que.empty() && pq_que.top().t_ <= tt) {
+        q = pq_que.top();
         pq_que.pop();
-}
-
-bool queue::valid_time(double tt){
-    if(!pq_que.empty() && pq_que.top().first <= tt)
-        return true;
-	return false;
-}
-
-event queue::atomic_dq(double tt) {
-	event q;
-    if(!pq_que.empty() && pq_que.top().first <= tt) {
-        q = pq_que.top().second;
-        pq_que.pop();
+		return true;
 	}
-    return q;
+    return false;
 }
 
 }

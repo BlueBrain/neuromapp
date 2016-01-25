@@ -49,31 +49,19 @@ struct event {
 
 class queue {
 public:
-	typedef std::pair<double, event> qpair;
-
-	struct less_time{
-	    bool operator() (const qpair &x, const qpair &y) const {
-				return x.first > y.first;  // ? is_more, more_time ?
+	struct is_more{
+	    bool operator() (const event &x, const event &y) const {
+				return x.t_ > y.t_;
 		}
 	};
 
-	/** \fn remove_negative()
-	    \brief removes all negative-time events from the queue
-	 */
-	void remove_negative();
-
-	/** \fn valid_time()
-	    \brief checks whether the priority queue top item can be popped
-		\return true if criteria is met else false
-	 */
-	bool valid_time(double tt);
-
-	/** \fn Event* atomic_dq(double til)
+	/** \fn Event* atomic_dq(double til, event q)
 	    \brief pops a single event off of the queue with time < til
 	    \param til a double value compared against top time.
-		\return the popped item
+	    \param q is assigned to the popped event.
+		\return true if popped, else false
 	 */
-	event atomic_dq(double til);
+	bool atomic_dq(double til, event& q);
 
 	/** \fn void insert(double t, double data)
 	    \brief inserts an event with time t and data value
@@ -83,7 +71,7 @@ public:
 	void insert(double t, double data);
 
 private:
-	std::priority_queue<qpair, std::vector<qpair>, less_time> pq_que;
+	std::priority_queue<event, std::vector<event>, is_more> pq_que;
 };
 
 }
