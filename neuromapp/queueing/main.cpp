@@ -96,7 +96,7 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
  * \fnrun_sim
  * \brief the actual queueing simulation
  */
-template<int I>
+template<implementation I>
 void run_sim(Pool<I> &pl, po::variables_map const&vm){
     struct timeval start, end;
     gettimeofday(&start, NULL);

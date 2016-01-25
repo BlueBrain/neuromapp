@@ -44,10 +44,10 @@
 
 namespace queueing {
 
-template<int I>
+template<implementation I>
 class NrnThreadData;
 
-template<int I>
+template<implementation I>
 class Pool {
 private:
 	int time_;

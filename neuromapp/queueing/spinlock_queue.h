@@ -42,7 +42,7 @@ public:
         node* next;
     };
 
-    spinlock_queue() : head_(NULL) {pthread_spin_init(&lock_,0);}
+    spinlock_queue() : head_(NULL), size_(0) {pthread_spin_init(&lock_,0);}
 
     ~spinlock_queue(){
         pthread_spin_destroy(&lock_);
@@ -53,12 +53,15 @@ public:
         }
     }
 
+    size_t size(){return size_;}
+
     void push(const T &data){
         node* n = new node;
         n->data = data;
         pthread_spin_lock(&lock_);
         n->next = head_;
         head_ = n;
+		++size_;
         pthread_spin_unlock(&lock_);
     }
 
@@ -66,13 +69,15 @@ public:
         pthread_spin_lock(&lock_);
         node* original_head = head_;
         head_ = NULL;
+		size_ = 0;
         pthread_spin_unlock(&lock_);
         return original_head;
     }
 
 private:
-   pthread_spinlock_t lock_;
-   node* head_;
+    size_t size_;
+    pthread_spinlock_t lock_;
+    node* head_;
 };
 
 }

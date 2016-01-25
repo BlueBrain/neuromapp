@@ -42,9 +42,9 @@
 
 namespace queueing {
 
-enum Implementation {mutex, spinlock};
+enum implementation {mutex, spinlock};
 
-template<int I>
+template<implementation I>
 struct InterThread;
 
 template<>
@@ -65,7 +65,7 @@ struct InterThread<spinlock>{
 	spinlock_queue<event> q_;
 };
 
-template<int I>
+template<implementation I>
 class NrnThreadData{
 private:
 	queue qe_;
@@ -103,12 +103,25 @@ public:
 		if(qe_.atomic_dq(til,q)){
 		    delivered_++;
 			assert((int)q.data_ == id);
-			usleep(10);
-//			POINT_RECEIVE()
+
+			// Use imitation of the point_receive calculation time (ms).
+			// Varies per a specific simulation case.
+			//usleep(10);
+
 			return true;
 		}
 		return false;
 	}
+
+	/** \fn interThreadSize()
+	 *  \return the size of inter_thread_events_
+	 */
+	size_t interThreadSize(){return inter_thread_events_.q_.size();}
+
+    /** \fn PQSize()
+	 *  \return the size of qe_
+	 */
+	size_t PQSize(){return qe_.size();}
 
 	/** \fn void interThreadSend(double d, double tt)
 	    \brief sends an Event to the destination thread's array
