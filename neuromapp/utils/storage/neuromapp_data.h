@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/utils/storage/neuromapp_data.h
- *  global object for the storage
+ * \brief  global object for the storage
  */
 
 #ifndef MAPP_NEUROMAPP_DATA_

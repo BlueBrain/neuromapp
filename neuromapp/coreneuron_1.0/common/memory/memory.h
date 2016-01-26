@@ -21,8 +21,8 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/common/util/memory.h
- * declation function alignement/padding helper functions
+ * @file neuromapp/coreneuron_1.0/common/memory/memory.h
+ * \brief declaration function alignement/padding helper functions
  */
 
 #define NRN_SOA_PAD 4 // here one AVX

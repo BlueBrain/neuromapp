@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/kernel/kernel.h
- * Implements a miniapp on the compute kernel of coreneuron 1.0
+ * \brief Implements a miniapp on the compute kernel of coreneuron 1.0
  */
 
 #ifndef MAPP_KERNEL_EXECUTE_

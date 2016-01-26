@@ -5,11 +5,6 @@
 #include <cassert>
 #include "spike/mpispikegraph.h"
 
-DistributedSpikeGraph::~DistributedSpikeGraph(){
-    inNeighbors_.clear();
-    outNeighbors_.clear();
-}
-
 void DistributedSpikeGraph::setup(){
     MpiSpikeGraph::setup();
 
@@ -17,36 +12,36 @@ void DistributedSpikeGraph::setup(){
     std::vector<int> isInputNeighbor(num_procs_, 0);
     int neighborNum;
     for(int i = 0; i < inputPresyns_.size(); ++i){
-	neighborNum = inputPresyns_[i] / num_out_;
-	++isInputNeighbor[neighborNum];
+		neighborNum = inputPresyns_[i] / num_out_;
+		++isInputNeighbor[neighborNum];
     }
 
+	//create edges for neighbor processes
+	//no more than one edge can exist for each neighbor process
     for(int i = 0; i < num_procs_; ++i){
-	if(isInputNeighbor[i]){
-	    inNeighbors_.push_back(i);
-	}
+		if(isInputNeighbor[i])
+	    	inNeighbors_.push_back(i);
     }
 
     if(rank_ == 0){
-	std::cout<<"MPI Process "<<rank_<<" has "<<inNeighbors_.size()<<" in neighbors: ";
-	for(int i = 0; i < inNeighbors_.size(); ++i){
-	    std::cout<<inNeighbors_[i]<<", ";
-	}
-	std::cout<<std::endl;
+		std::cout<<"MPI Process "<<rank_<<" has "<<inNeighbors_.size()<<" in neighbors: ";
+		for(int i = 0; i < inNeighbors_.size(); ++i){
+		    std::cout<<inNeighbors_[i]<<", ";
+		}
+		std::cout<<std::endl;
     }
 
-    //exchange inCnts
     int allInCnt[num_procs_];
     int inCnt = inNeighbors_.size();
     MPI_Allgather(&inCnt, 1, MPI_INT, allInCnt, 1, MPI_INT, MPI_COMM_WORLD);
-    //Get the displacements
     int displ[num_procs_];
     displ[0] = 0;
     for(int i = 1; i < num_procs_; ++i){
         displ[i] = displ[i-1] + allInCnt[i-1];
     }
 
-    //Then distribute the inputPresyn info to every other process using allgatherv
+    //distribute the inNeighbor info to every other process using allgatherv
+    //use this to generate outNeighbor list
     int allInNeighbors[num_procs_ * num_procs_];
     MPI_Allgatherv(&inNeighbors_[0], inNeighbors_.size(), MPI_INT, &(allInNeighbors),
   		   allInCnt, displ, MPI_INT, MPI_COMM_WORLD);
@@ -55,17 +50,17 @@ void DistributedSpikeGraph::setup(){
         for(int j = displ[i]; j < (displ[i] + allInCnt[i]); ++j){
             //if I am the inNeighbor for another node, add that node to my outNeighbors_ list
             if(allInNeighbors[j] == rank_){
-		outNeighbors_.push_back(i);
-	    }
-	}
+				outNeighbors_.push_back(i);
+	    	}
+		}
     }
 
     if(rank_ == 0){
-	std::cout<<"MPI Process "<<rank_<<" has "<<outNeighbors_.size()<<" out neighbors: ";
-	for(int i = 0; i < outNeighbors_.size(); ++i){
-	    std::cout<<outNeighbors_[i]<<", ";
-	}
-	std::cout<<std::endl;
+		std::cout<<"MPI Process "<<rank_<<" has "<<outNeighbors_.size()<<" out neighbors: ";
+		for(int i = 0; i < outNeighbors_.size(); ++i){
+	    	std::cout<<outNeighbors_[i]<<", ";
+		}
+		std::cout<<std::endl;
     }
 
     MPI_Dist_graph_create_adjacent(MPI_COMM_WORLD, inNeighbors_.size(), &inNeighbors_[0],
@@ -73,35 +68,34 @@ void DistributedSpikeGraph::setup(){
 				   MPI_UNWEIGHTED, MPI_INFO_NULL, false, &neighborhood_);
 }
 
-void DistributedSpikeGraph::allgather(int size, std::vector<int> &sizeBuf){
+void DistributedSpikeGraph::allgather(){
+	SpikeItem sitem;
+    sendBuf.clear();
+	for(int i = 0; i < events_per_; ++i){
+		sitem = create_spike();
+		sendBuf.push_back(sitem);
+	}
     //gather how many events each neighbor is sending
-    MPI_Neighbor_allgather(&size, 1, MPI_LONG_LONG_INT, &sizeBuf[0], 1,
-MPI_LONG_LONG_INT, neighborhood_);
+	sizeBuf.resize(inNeighbors_.size());
+	int size = events_per_;
+    MPI_Neighbor_allgather(&size, 1, MPI_INT, &sizeBuf[0], 1,
+	MPI_INT, neighborhood_);
 }
 
-void DistributedSpikeGraph::allgatherv(std::vector<SpikeItem> &send,
-std::vector<int> &sizeBuf, std::vector<SpikeItem> &recv){
+void DistributedSpikeGraph::allgatherv(){
     //get the displacements
-    int totalCnt;
     int displ[inNeighbors_.size()];
     displ[0] = 0;
     if(inNeighbors_.size() > 0){
-        totalCnt = sizeBuf[0];
         for(int i=1; i < inNeighbors_.size(); ++i){
-	    totalCnt += sizeBuf[i];
-	    displ[i] = displ[i-1] + sizeBuf[i-1];
+	    	displ[i] = displ[i-1] + sizeBuf[i-1];
+		}
 	}
-    }
-    else{
-	totalCnt = 0;
-    }
 
     //next distribute items to every other process using allgatherv
-    MPI_Neighbor_allgatherv(&send[0], send.size(), mpi_spikeItem,
-		   &recv[0], &sizeBuf[0], displ, mpi_spikeItem, neighborhood_);
+	recvBuf.resize(events_per_ * inNeighbors_.size());
+    MPI_Neighbor_allgatherv(&sendBuf[0], sendBuf.size(), mpi_spikeItem_,
+		   &recvBuf[0], &sizeBuf[0], displ, mpi_spikeItem_, neighborhood_);
 
-    send.clear();
-    sizeBuf.clear();
+	total_received_ += recvBuf.size();
 }
-
-

@@ -21,7 +21,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/cstep/main.c
- * Implements a miniapp combining  the compute kernel and the Hines solver of coreneuron 1.0
+ * \brief Implements a miniapp combining  the compute kernel and the Hines solver of coreneuron 1.0
  */
 
 #include <stdio.h>
@@ -34,7 +34,6 @@
 #include "coreneuron_1.0/kernel/helper.h"
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
-#include "coreneuron_1.0/common/memory/data_manager.h"
 #include "coreneuron_1.0/common/memory/nrnthread.h"
 #include "coreneuron_1.0/common/util/nrnthread_handler.h"
 #include "coreneuron_1.0/common/util/timer.h"
@@ -121,5 +120,6 @@ void compute_wrapper(NrnThread *nt, struct input_parameters *p)
         gettimeofday(&tvEnd, NULL);
     }
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
-    printf("\n CURRENT SOA State Version : %ld [s] %ld [us]", (long) tvDiff.tv_sec, (long) tvDiff.tv_usec);
+    printf("\n CURRENT SOA State Version : %s; %s: %ld [s], %ld [us]",
+           p->m, p->f, (long) tvDiff.tv_sec, (long) tvDiff.tv_usec);
 }

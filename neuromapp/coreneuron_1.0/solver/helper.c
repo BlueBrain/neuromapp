@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/solver/helper.c
- * Implements the helper function of the solver miniapp
+ * \brief Implements the helper function of the solver miniapp
  */
 
 

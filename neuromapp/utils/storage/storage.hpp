@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/utils/storage/storage.hpp
- *  implementation of the storage container
+ * \brief implementation of the storage container
  */
 
 #ifndef MAPP_STORAGE_HPP

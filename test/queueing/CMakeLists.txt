@@ -1,4 +1,5 @@
 add_executable(queueingtest test.cpp)
+install (FILES test_header.hpp DESTINATION include)
 target_link_libraries(queueingtest storage queueing ${Boost_LIBRARIES})
 
 if(SLURM_FOUND)

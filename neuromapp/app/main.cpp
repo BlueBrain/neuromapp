@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/app/main.cpp
- * the main program
+ * \brief the main program
  */
 
 #include <iostream>
@@ -46,6 +46,7 @@
 
 /** \brief the main program interacting with the user. The program is command line interactive. */
 int main(int argc, char * const argv[]){
+
      mapp::driver d;
      d.insert("hello",hello_execute);
      d.insert("queueing",queueing_execute);
@@ -53,6 +54,20 @@ int main(int argc, char * const argv[]){
      d.insert("kernel",coreneuron10_kernel_execute);
      d.insert("solver",coreneuron10_solver_execute);
      d.insert("cstep",coreneuron10_cstep_execute);
+
+     //direct run
+     if(argv[1] != NULL){
+         try {
+             d.execute(argc,argv);
+         } catch(mapp::driver_exception & e) {
+             if(e.error_code != mapp::MAPP_USAGE)
+                 std::cerr << "caught exception: " << e.what() << "\n";
+         } catch(std::exception & e) {
+                 std::cerr << "caught exception: " << e.what() << "\n";
+         }
+         return 0;
+     }
+
      std::cout << "Welcome to NeuroMapp! Please enter "
                << "the name of the miniapp you wish to execute "
                << "followed by any arguments you wish to pass to it."
@@ -62,17 +77,17 @@ int main(int argc, char * const argv[]){
                << "To finish type quit"
                << std::endl
                << ">? ";
-     char* input;
+
+     // interactive run
      while(1) {
 #ifdef NEUROMAPP_CURSOR
-	input = readline("");
-	add_history(input);
-	std::string command(input);
+         input = readline("");
+         add_history(input);
+         std::string command(input);
 #else
-	std::string command;
-	std::getline(std::cin, command);
+         std::string command;
+         std::getline(std::cin, command);
 #endif
-
          // I need to split the string into an array of strings to pass it
          // in an argv style
          std::vector<std::string> command_v;

@@ -14,7 +14,8 @@ install (FILES spike.h DESTINATION include)
 add_library (distributedgraph distributedgraph.cpp mpispikegraph.cpp)
 
 install (TARGETS distributedgraph DESTINATION lib)
-install (FILES mpigraph.h DESTINATION include)
+install (FILES mpispikegraph.h algos.hpp DESTINATION include)
+target_link_libraries (distributedgraph storage)
 
 #Add an MPI executable
 add_executable(MPI_Exec mpiexec.cpp)

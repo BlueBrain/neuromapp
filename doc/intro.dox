@@ -2,8 +2,9 @@
 
 \mainpage Neuromapp notice
 
-The purpose of the Neuromapp framework is to reproduce the main functionality of the CoreNeuron 1.0 code. 
-The key functionalities of the code has been extracted and code 
+The purpose of the Neuromapp framework is to reproduce the main functionality of the BBP neuroscience applications.
+We are focusing for this first release on the functionality of CoreNeuron 1.0.
+The key functionalities of the code has been extracted, and  code 
 in (mini)-application of hundreds of lines. Therefore, everybody who has an interested
 on this application can explore it and improve it in a new version. It is the main
 point of Neuromapp, propose basement for user and explore new version to improve the

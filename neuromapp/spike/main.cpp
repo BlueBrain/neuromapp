@@ -45,6 +45,7 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce this help message")
+    //("distributed", "determines whether to use the original implementation or a distributed graph")
     ("numproc", po::value<size_t>()->default_value(7), "the number of MPI processes")
     ("eventsper", po::value<size_t>()->default_value(3), "average number of events generated per dt")
     ("numOut", po::value<size_t>()->default_value(3), "number of output presyns (gids) per process")
@@ -62,7 +63,7 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
 	return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["numIn"].as<size_t>() > (vm["numproc"].as<size_t>() * vm["numOut"].as<size_t>())){
+    if(vm["numIn"].as<size_t>() > (vm["numOut"].as<size_t>() * (vm["numproc"].as<size_t>() - 1))){
 	std::cout<<"numIn must be less than the total number of gids (numproc * numOut)"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }

@@ -30,7 +30,7 @@ int myname_execute(int argc, char* const argv[]);
 The extern "C" is mandatory is you have developed your application in C (the driver is in C++).
 Your miniapp MUST have a helper to provide information for the user.
 For a C++ program, we encourage to use boost::program_option. For a C
-application getoptlong can do the job. Please have a look in the hello project (C++)
+application getopt can do the job. Please have a look in the hello project (C++)
 and the solver (C) to get inspiration. Moreover your new application MUST
 have a complet set of tests.
 

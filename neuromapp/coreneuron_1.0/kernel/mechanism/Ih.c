@@ -21,7 +21,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/kernel/mechanism/Ih.c
- * Implementation of the Ih kernels
+ * \brief Implementation of the Ih kernels
  */
 
 #include <math.h>
@@ -39,35 +39,6 @@
 #define Dm _p[3*_STRIDE]
 #define _v_unused _p[4*_STRIDE]
 #define _g_unused _p[5*_STRIDE]
-
-void mech_init_Ih(NrnThread* _nt, Mechanism *_ml){
-    double* _p;
-    double _v, v;
-    int* _ni;
-    int _iml, _cntml;
-    _ni = _ml->nodeindices;
-    _cntml = _ml->nodecount;
-    double * restrict _vec_v = _nt->_actual_v;
-    _p = _ml->data;
-
-    _PRAGMA_FOR_VECTOR_LOOP_
-    for (_iml = 0; _iml < _cntml; ++_iml)
-    {
-       int _nd_idx = _ni[_iml];
-       _v = _vec_v[_nd_idx];
-       v = _v;
-       double _lmAlpha , _lmBeta , _lmInf , _llv ;
-       _llv = v ;
-       if ( _llv  == - 154.9 ) {
-          _llv = _llv + 0.0001 ;
-          v = _llv ;
-       }
-       _lmAlpha =  0.001 * 6.43 * ( _llv + 154.9 ) / ( exp ( ( _llv + 154.9 ) / 11.9 ) - 1.0 ) ;
-       _lmBeta =  0.001 * 193.0 * exp ( _llv / 33.1 ) ;
-       _lmInf = _lmAlpha / ( _lmAlpha + _lmBeta ) ;
-       m = _lmInf ;
-    }
-}
 
 void mech_current_Ih(NrnThread* _nt, Mechanism* _ml) {
     double* _p;
@@ -128,6 +99,6 @@ void mech_state_Ih(NrnThread* _nt, Mechanism* _ml) {
         _lmBeta =   0.001 * 193.0 * exp ( _llv / 33.1 ) ;
         _lmInf = _lmAlpha / ( _lmAlpha + _lmBeta ) ;
         _lmTau = 1.0 / ( _lmAlpha + _lmBeta ) ;
-        m = m + (1. - exp(dt*(( ( ( - 1.0 ) ) ) / _lmTau)))*(- ( ( ( _lmInf ) ) / _lmTau ) / ( ( ( ( - 1.0) ) ) / _lmTau ) - m) ;
+        m = m + (1.-exp(dt*((((-1.0)))/_lmTau)))*(-(((_lmInf))/_lmTau)/((((-1.0)))/_lmTau)-m) ;
     }
 }

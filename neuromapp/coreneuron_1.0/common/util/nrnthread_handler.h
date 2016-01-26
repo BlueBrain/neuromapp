@@ -24,7 +24,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/common/util/nrnthread_handler.h
- * Implements storage-API compatible functions for the allocation
+ * \brief Implements storage-API compatible functions for the allocation
  * and deallocation of NrnThread structures.
  */
 

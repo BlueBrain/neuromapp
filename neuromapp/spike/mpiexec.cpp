@@ -5,11 +5,13 @@
 #include <cassert>
 
 #include "spike/mpispikegraph.h"
+#include "utils/storage/neuromapp_data.h"
 #include "spike/algos.hpp"
 
 int main(int argc, char* argv[]) {
     assert(argc == 5);
     MPI::Init(argc, argv);
+	MPI_Datatype mpi_spikeItem = createMpiItemType(mpi_spikeItem);
 
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -18,27 +20,28 @@ int main(int argc, char* argv[]) {
     int simTime = atoi(argv[3]);
     int numIn = atoi(argv[4]);
 
-    assert(numIn < (size * numOut));
+    assert(numIn <= (numOut * (size - 1)));
 
-    DistributedSpikeGraph dsg(size, rank, numOut, numIn);
-    dsg.setup();
-    std::vector<SpikeItem> sendBuf;
-    std::vector<SpikeItem> recvBuf;
-    std::vector<int> sizeBuf;
+    MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
 
-    for(int i = 0; i < simTime; ++i){
+//	if(isDistrubuted)
+//    	sg = DistributedSpikeGraph(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+
+    sg.setup();
+
 	//generate messages (or not) every time step.
-//	generate_spikes<DistributedSpikeGraph, SpikeItem, std::vector<SpikeItem> >
-	(dsg, eventsPer, sendBuf);
-	//exchange messages every 5dt
-	if((i % 5) == 0){
-//	    allgather< DistributedSpikeGraph>(dsg, sendBuf.size(), sizeBuf);
-//	    allgatherv< DistributedSpikeGraph>(dsg,sendBuf,sizeBuf,recvBuf);
-//	    filter< DistributedSpikeGraph, std::vector<SpikeItem> >(dsg, recvBuf.size(), recvBuf);
-	}
+    allgather(sg);
+    allgatherv(sg);
+
+    size_t result = 0;
+    for(size_t i = 0; i < sg.recvBuf.size(); ++i){
+		if(sg.matches(sg.recvBuf[i]))
+		    ++result;
     }
 
-    dsg.freeMpiItemType();
+	sg.reduce_stats();
+
+    MPI_Type_free(&mpi_spikeItem);
     MPI::Finalize();
     return 0;
 }
