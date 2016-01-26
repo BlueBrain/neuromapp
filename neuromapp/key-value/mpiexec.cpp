@@ -5,14 +5,14 @@
 
 #include "key-value/mpikey-value.h"
 
-int main(int argc, char* argv[]) {
+int toto(int argc, char* argv[]) {
 
-    MPI::Init(argc, argv);
+    MPI::Init();
 
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
 
-    KeyValueBench<none> bench(rank, size);
+    KeyValueBench<keyvalue::map> bench(rank, size);
 	KeyValueArgs args;
 	KeyValueStats stats;
 

@@ -31,17 +31,32 @@
 
 namespace keyvalue{
 
+enum selector { map = 0, skv, lldb };
+
 class meta{
 public:
-    typedef std::pair<void*,std::size_t> value_pair;
+    typedef std::pair<double*,std::size_t> value_pair;
 
-    /** \fn meta(std::string const& s, std::pair<void*,std::size_t> const& v_pair;)
+    /** \fn meta(std::string const& s, std::pair<double*,std::size_t> const& v_pair)
 	    \brief constructor of the meta information
 	    \param s the key encapsulate the key value and its size
 	    \param v_pair the value encapsulate the value pointer and the corresping size
     */
     explicit meta(std::string const& s = std::string(),
-                   value_pair const& p = std::make_pair((void*)NULL,0)):k(s),vp(p){
+                   value_pair const& p = std::make_pair((double*)NULL,0)):k(s),vp(p){
+    }
+
+    /** \fn meta(std::string const& s, double* p, std::size_t n)
+	    \brief constructor of the meta information
+	    \param s the key encapsulate the key value and its size
+	    \param p the data
+        \param n size of the data
+    */
+    explicit meta(std::string const& s = std::string(),
+                  double* p = (double*)NULL,
+                  std::size_t n = 0){
+        k = s;
+        vp = std::make_pair(p,n);
     }
 
     /** \fn key()
@@ -68,14 +83,14 @@ public:
     /** \fn value() 
         \brief modify the pointer of the memory
      */
-    inline void* & value() {
+    inline double* & value() {
         return vp.first;
     }
 
     /** \fn value()
         \brief read the pointer of the memory
      */
-    inline void* const & value() const {
+    inline double* const & value() const {
         return vp.first;
     }
 
@@ -106,7 +121,14 @@ typedef int skv_client_cmd_ext_hdl_t; // for compilation
 class meta_skv : public meta {
 public:
     explicit meta_skv(std::string const& s = std::string(),
-                      value_pair const& p = std::make_pair((void*)NULL,0)): meta(s,p) {
+                      value_pair const& p = std::make_pair((double*)NULL,0)): meta(s,p) {
+        rem_handles_ = skv_client_cmd_ext_hdl_t();
+        ins_handles_ = skv_client_cmd_ext_hdl_t();
+    }
+    
+    explicit meta_skv(std::string const& s = std::string(),
+                  double* p = (double*)NULL,
+                  std::size_t n = 0): meta(s,p,n) {
         rem_handles_ = skv_client_cmd_ext_hdl_t();
         ins_handles_ = skv_client_cmd_ext_hdl_t();
     }
@@ -130,6 +152,19 @@ public:
     private:
         skv_client_cmd_ext_hdl_t rem_handles_;
         skv_client_cmd_ext_hdl_t ins_handles_;
+    };
+
+    template<selector s>
+    struct meta_trait;
+    
+    template<>
+    struct meta_trait<map>{
+        typedef meta meta_type;
+    };
+
+    template<>
+    struct meta_trait<skv>{
+        typedef meta_skv meta_type;
     };
 
 } //end namespace

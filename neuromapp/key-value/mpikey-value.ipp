@@ -19,7 +19,7 @@
 #endif
 
 
-template<int h>
+template<keyvalue::selector h>
 void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 {
 	for (int i = 1; i < argc; i++) {
@@ -79,11 +79,8 @@ void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 }
 
 
-template<int h>
+template<keyvalue::selector h>
 void KeyValueBench<h>::init(KeyValueArgs & args) {
-
-
-
 
      //Should create an object of type keyvalue_handle<...>, ... = skv, map, ldb
 	if (args.backend() == "skv") {
@@ -116,7 +113,7 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 
     int num_its = args.st() / args.dt();
 
-    voltages_size_ = (((args.usecase() * 4096) / 2.5) * 350);
+    voltages_size_ = 100; //(((args.usecase() * 4096) / 2.5) * 350);
 
     if (args.backend() == "skv") {
         // Reduce the size to avoid SKV hanging
@@ -131,11 +128,24 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
     int cg_size = voltages_size_ / args.cg();
     int first_size = cg_size + (voltages_size_ % args.cg());
 
+
+    keyvalue::group<keyvalue::selector::map> g(cg_size);
+    g.push_back(keyvalue::nrnthread(first_size));
+    g.push_back(keyvalue::nrnthread(20));
+    g.push_back(keyvalue::nrnthread(35));
+    g.push_back(keyvalue::nrnthread(40));
+    
+    kv_store_->insert_meta(g.meta_at(2));
+
+    
     voltages_[0].reserve(first_size);
+
 
     for (int i = 1; i < args.cg(); i++) {
         voltages_[i].reserve(cg_size);
+        g.push_back(keyvalue::nrnthread(cg_size));
     }
+    
 	float voltage = 0.1;
 	float inc_v = 1.3;
 	float max_v = 75.0;
@@ -198,7 +208,7 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 
 }
 
-template<int h>
+template<keyvalue::selector h>
 void KeyValueBench<h>::cleanup(KeyValueArgs & args) {
 	std::cout << "Removing inserted values" << std::endl;
 
@@ -233,7 +243,7 @@ void KeyValueBench<h>::cleanup(KeyValueArgs & args) {
 //	delete skv_;
 }
 
-template<int h>
+template<keyvalue::selector h>
 void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 
 	init(args);
@@ -278,7 +288,7 @@ void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 
 
 
-template<int h>
+template<keyvalue::selector h>
 void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 #if 1
 	// OPENMP lower than 4.0, no task deps support
@@ -339,7 +349,7 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 }
 
 
-template<int h>
+template<keyvalue::selector h>
 void KeyValueBench<h>::run_task(KeyValueArgs & args) {
 #if 0
 	// OPENMP 4.0 or later, support for task deps

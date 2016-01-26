@@ -34,6 +34,9 @@
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
 
+
+int toto(int argc , char* argv[]);
+
 /** \fn keyvalue_help(int argc, char *const argv[], po::variables_map& vm)
     \brief Helper using boost program option to facilitate the command line manipulation
     \param argc number of argument from the command line
@@ -140,6 +143,8 @@ void keyvalue_content(po::variables_map const& vm){
     command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np << " /Users/ewart/Documents/miniapps/bx/neuromapp/key-value/Debug/MPI_Exec_kv -b " << backend
     		<< " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
     		<< " -md " << md << " -dt " << dt << " -cg " << cg;
+    char** tata;
+    toto(0,tata);
 
     //command << "srun -n 4 neuromapp/key-value/mpiexec";
 
@@ -149,7 +154,7 @@ void keyvalue_content(po::variables_map const& vm){
 
 	std::cout << "Running command " << command.str() << std::endl;
 
-	system(command.str().c_str());
+	//system(command.str().c_str());
 
 }
 
