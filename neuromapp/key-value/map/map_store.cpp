@@ -66,6 +66,35 @@ void KeyValueMap::insert(const int * key, unsigned int keySize, const double * v
 
 }
 
+void KeyValueMap::insert_meta(const keyvalue::meta& m)
+{
+	/****************************************/
+	_readersLock->lock();
+	while (_numReaders > 0) {}
+	_writersLock->lock();
+	while (_numReaders > 0) {}
+	_nWtLock->lock();
+	_numWriters++;
+	_nWtLock->unlock();
+	while (_numReaders > 0) {}
+	/****************************************/
+    
+		int elems = m.value_size()/sizeof(double);
+		std::vector<double> * v = new std::vector<double>(elems); //m.value(),m.value()+elems);
+    
+		_map_meta.insert(std::make_pair(m.key(),v));
+		_valSizes_meta.insert(std::make_pair(m.key(),m.key_size()));
+
+	/****************************************/
+	_nWtLock->lock();
+	_numWriters--;
+	_nWtLock->unlock();
+	_writersLock->unlock();
+	_readersLock->unlock();
+	/****************************************/
+
+}
+
 
 
 int KeyValueMap::retrieve(const int * key, unsigned int keySize, double * value, unsigned int valueSize, void * handle, bool async)

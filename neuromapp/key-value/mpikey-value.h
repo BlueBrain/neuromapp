@@ -148,27 +148,24 @@ class KeyValueStats {
 		~KeyValueStats() {}
 };
 
-enum handle {
-	none = 0,
-	skv
-};
 
-template<int h>
+
+template<keyvalue::selector h>
 struct trait_handle;
 
 template<>
-struct trait_handle<none>{
+struct trait_handle<keyvalue::selector::map>{
 		typedef void* value_type;
 };
 
 template<>
-struct trait_handle<skv>{
+struct trait_handle<keyvalue::selector::skv>{
 #ifdef SKV_IBM
 		typedef skv_client_cmd_ext_hdl_t value_type;
 #endif
 };
 
-template<int h = none>
+template<keyvalue::selector h = keyvalue::map>
 class KeyValueBench {
 private:
 
@@ -183,8 +180,6 @@ private:
 	std::vector<std::vector<double> > voltages_;
     std::vector<int > gids_ ;
     int voltages_size_;
-
-    keyvalue::group data;
 
     //the data
 	std::vector<typename trait_handle<h>::value_type > ins_handles_;
