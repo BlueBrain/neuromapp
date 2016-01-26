@@ -36,8 +36,8 @@ int main(int argc, char* argv[]) {
 
 		// CSV output data format: miniapp_name, num_procs, num_threads/proc, usecase, simtime (ms), mindelay (ms), dt (ms),
 		// cell_groups, backend, sync/async, iops (kIOP/S), bw (GB/s)
-		std::cout << "IOMAPP," << size << "," << bench.getNumThreads() << "," << args.usecase_ << "," << args.st_ << "," << args.md_ << "," << args.dt_ << ","
-				<< args.cg_ << "," << args.backend_ << "," << ( args.async_ ? "async" : "sync" )<< ","<< std::fixed << stats.mean_iops_ << ","
+		std::cout << "IOMAPP," << size << "," << bench.getNumThreads() << "," << args.usecase() << "," << args.st() << "," << args.md() << "," << args.dt() << ","
+				<< args.cg() << "," << args.backend() << "," << ( args.async() ? "async" : "sync" )<< ","<< std::fixed << stats.mean_iops_ << ","
 				<< stats.mean_mbw_ << std::endl;
 	}
 

@@ -17,6 +17,7 @@
 
 
 #include <skv/client/skv_client.hpp>
+#includef "key-value/meta.h"
 
 
 
