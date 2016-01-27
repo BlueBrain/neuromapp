@@ -165,6 +165,23 @@ struct trait_handle<keyvalue::selector::skv>{
 #endif
 };
 
+struct mpi{
+
+    int rank_;
+    int num_procs_;
+    int num_threads_;
+};
+
+
+template<class T>
+struct benchmark {
+    typedef T value_type;
+
+
+};
+
+
+
 template<keyvalue::selector h = keyvalue::map>
 class KeyValueBench {
 private:
@@ -184,6 +201,9 @@ private:
     //the data
 	std::vector<typename trait_handle<h>::value_type > ins_handles_;
 	std::vector<typename trait_handle<h>::value_type> rem_handles_;
+
+    typedef keyvalue::meta meta_type;
+    keyvalue::group<meta_type> g;
 
 public:
 	/** \fn KeyValueBench(int rank, int size)
@@ -223,6 +243,9 @@ public:
 	    \brief run the I/O simulation as a single, large OpenMP loop
 	 */
 	inline void run_loop(KeyValueArgs &args, KeyValueStats &stats);
+
+    inline void run_loop_meta(KeyValueArgs &args, KeyValueStats &stats);
+
 
 	/** \fn run_task(KeyValueArgs &args)
 	    \brief run the I/O simulation as OpenMP tasks and dependencies

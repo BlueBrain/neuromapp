@@ -127,19 +127,11 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 
     int cg_size = voltages_size_ / args.cg();
     int first_size = cg_size + (voltages_size_ % args.cg());
-
-
-    keyvalue::group<keyvalue::selector::map> g(cg_size);
-    g.push_back(keyvalue::nrnthread(first_size));
-    g.push_back(keyvalue::nrnthread(20));
-    g.push_back(keyvalue::nrnthread(35));
-    g.push_back(keyvalue::nrnthread(40));
-    
-    kv_store_->insert_meta(g.meta_at(2));
-
-    
     voltages_[0].reserve(first_size);
 
+
+    g = keyvalue::group<meta_type>(cg_size);
+    g.push_back(keyvalue::nrnthread(first_size));
 
     for (int i = 1; i < args.cg(); i++) {
         voltages_[i].reserve(cg_size);
@@ -254,7 +246,7 @@ void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 	int comp_time_us = 100 * args.usecase() * 1000;
 
 
-
+    run_loop_meta(args, stats);
 #if _OPENMP < 201307
 	run_loop(args, stats);
 #else
@@ -534,6 +526,67 @@ void KeyValueBench<h>::run_task(KeyValueArgs & args) {
 
 }
 
+
+/********************************************************************************************************/
+
+template<keyvalue::selector h>
+void KeyValueBench<h>::run_loop_meta(KeyValueArgs & args, KeyValueStats & stats) {
+#if 1
+    // OPENMP lower than 4.0, no task deps support
+
+    KeyValueMap_meta kvm;
+
+    int comp_time_us = 100 * args.usecase() * 1000;
+
+    for (float st = 0; st < args.st(); st += args.md()) {
+        for (float md = 0; md < args.md(); md += args.dt()) {
+
+            usleep(comp_time_us);
+
+            int reqs = args.cg();
+            unsigned int bytes = voltages_size_ * sizeof(double);
+
+
+
+            double start = MPI_Wtime();
+
+            #pragma omp parallel for
+            for (int cg = 0; cg < args.cg(); cg++)
+                kvm.insert(g.meta_at(cg));
+        
+
+//            for (int cg = 0; args.async() && cg < args.cg(); cg++) {
+//                kv_store_->wait(&ins_handles_[handle_idx + cg]);
+//            }
+
+            double end = MPI_Wtime();
+
+            double time = end - start; // seconds
+            double iops = reqs / time; // I/O ops/s
+            double mbw = (bytes / time) / (1024 * 1024); // MB/s
+
+            // Add the results for every iteration
+            stats.rank_iops_ += iops;
+            stats.rank_mbw_ += mbw;
+
+            double g_iops = 0, g_mbw = 0;
+
+            MPI_Allreduce( &iops, &g_iops, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+            MPI_Allreduce( &mbw, &g_mbw, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+
+            MPI_Barrier(MPI_COMM_WORLD);
+            
+            if (rank_ == 0) {
+                std::cout << "Values inserted for sim time " << st << ", min delay " << md << ", global performance:" << std::endl
+                << "  Time: " << time << " s. (rank 0)" << std::endl
+                << "  I/O: " << iops << " IOPS" << std::endl
+                << "  BW: " << mbw << " MB/s" << std::endl;
+            }
+        }
+    }
+#endif
+    
+}
 
 
 
