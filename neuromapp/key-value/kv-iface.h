@@ -30,6 +30,7 @@
 #include <string>
 #include <utility>
 
+#include "key-value/meta.h"
 //template<int h = none> // skv or none
 //struct
 
@@ -46,7 +47,6 @@ public:
 	virtual void remove (const int * key, unsigned int keySize, void * handle = NULL, bool async = false) = 0;
 
 	virtual void wait (void * handle) {}
-
 };
 
 #endif /* kviface_h */
