@@ -18,6 +18,7 @@
 #include "key-value/skv/skv_store.h"
 #endif
 
+#include "neuromapp/utils/mpi/print.h"
 
 template<keyvalue::selector h>
 void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
@@ -48,7 +49,7 @@ void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 			args.cg() = std::atoi(argv[i + 1]);
 			i++;
 		} else {
-			std::cout << "Ignoring invalid parameter: " << argv[i] << std::endl;
+			std::cout << mapp::mpi_filter_master() << "Ignoring invalid parameter: " << argv[i] << std::endl;
 		}
 	}
 
@@ -62,8 +63,7 @@ void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 
     }
 
-	if (rank_ == 0) {
-		std::cout << "Using the following configuration:" << std::endl
+    std::cout << mapp::mpi_filter_master() << "Using the following configuration:" << std::endl
 				<< "    " << "Key-Value backend: " << args.backend() << std::endl
 				<< "    " << (args.async() ? "Asynchronous" : "Synchronous") << " SKV API" << std::endl
 				<< "    " << "Using " << (args.flash() ? "flash memory" : "disk") << " as storage" << std::endl
@@ -75,7 +75,6 @@ void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 				<< "    " << args.procs() << (args.procs() == 1 ? " MPI process" : " MPI processes") << std::endl
 				<< "    " << args.threads() << (args.threads() == 1 ? " OpenMP thread" : " OpenMP threads") << std::endl
 				<< std::endl;
-	}
 }
 
 
@@ -113,7 +112,7 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 
     int num_its = args.st() / args.dt();
 
-    voltages_size_ = 100; //(((args.usecase() * 4096) / 2.5) * 350);
+    voltages_size_ = (((args.usecase() * 4096) / 2.5) * 350);
 
     if (args.backend() == "skv") {
         // Reduce the size to avoid SKV hanging
@@ -255,19 +254,19 @@ void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 
 	cleanup(args);
 
-	stats.rank_iops_ = stats.rank_iops_ / args.dt();
-	stats.rank_mbw_ = stats.rank_mbw_ / args.dt();
+	stats.rank_iops() = stats.rank_iops() / args.dt();
+	stats.rank_mbw() = stats.rank_mbw() / args.dt();
 
-	std::cout << "[" << rank_ << "] I/O: " << stats.rank_iops_ << " IOPS; BW: " << stats.rank_mbw_ << " MB/s" << std::endl;
+	std::cout << "[" << rank_ << "] I/O: " << stats.rank_iops() << " IOPS; BW: " << stats.rank_mbw() << " MB/s" << std::endl;
 
-    MPI_Allreduce( &stats.rank_iops_, &stats.mean_iops_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
-    MPI_Allreduce( &stats.rank_mbw_, &stats.mean_mbw_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+    MPI_Allreduce( &stats.rank_iops(), &stats.mean_iops(), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+    MPI_Allreduce( &stats.rank_mbw(), &stats.mean_mbw(), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
 
     // Unit conversion
     // IOPS --> KIOPS
-    stats.mean_iops_ = stats.mean_iops_ / 1000;
+    stats.mean_iops() = stats.mean_iops() / 1000;
     // MB/s --> GB/s
-    stats.mean_mbw_ = stats.mean_mbw_ / 1024;
+    stats.mean_mbw() = stats.mean_mbw() / 1024;
 
     // Mean values per node
     //stats.mean_iops_ = stats.mean_iops_ / num_procs_;
@@ -282,6 +281,7 @@ void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 
 template<keyvalue::selector h>
 void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
+        std::cout << " judith version " << std::endl;
 #if 1
 	// OPENMP lower than 4.0, no task deps support
 
@@ -318,8 +318,8 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 				double mbw = (bytes / time) / (1024 * 1024); // MB/s
 
 				// Add the results for every iteration
-				stats.rank_iops_ += iops;
-				stats.rank_mbw_ += mbw;
+				stats.rank_iops() += iops;
+				stats.rank_mbw() += mbw;
 
 				double g_iops = 0, g_mbw = 0;
 
@@ -328,12 +328,11 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 
 				MPI_Barrier(MPI_COMM_WORLD);
 
-				if (rank_ == 0) {
-					std::cout << "Values inserted for sim time " << st << ", min delay " << md << ", global performance:" << std::endl
-							<< "  Time: " << time << " s. (rank 0)" << std::endl
-							<< "  I/O: " << iops << " IOPS" << std::endl
-							<< "  BW: " << mbw << " MB/s" << std::endl;
-				}
+                std::cout <<  mapp::mpi_filter_master() << "Values inserted for sim time " << st
+                          << ", min delay " << md << ", global performance:" << std::endl
+                          << "  Time: " << time << " s. (rank 0)" << std::endl
+                          << "  I/O: " << iops << " IOPS" << std::endl
+                          << "  BW: " << mbw << " MB/s" << std::endl;
 			}
 		}
 #endif
@@ -509,18 +508,15 @@ void KeyValueBench<h>::run_task(KeyValueArgs & args) {
 
 		MPI_Barrier(MPI_COMM_WORLD);
 
-		if (mpi_rank == 0) {
-			//std::cout << "Values inserted for sim time " << st << ", min delay " << md << ", global performance:" << std::endl
-			std::cout << "Values inserted, global performance:" << std::endl
-					<< "MPI_Wtime resolution: " << MPI_Wtick() << std::endl
-					<< "  Theoretical computation time is: " << 0.93 * num_its * (comp_time_us) << " us." << std::endl
-					<< "  Computed sleep time is: " << sleep_time << " us." << std::endl
-					<< "  Computation time reference without I/O: " << (end - start) << " s. (rank 0)" << std::endl
-					<< "  Computation time with I/O: " << (end_io - start_io) << " s. (rank 0)" << std::endl
-					<< "  Time: " << time << " s. (rank 0)" << std::endl
-					<< "  I/O: " << iops << " IOPS" << std::endl
-					<< "  BW: " << mbw << " MB/s" << std::endl;
-		}
+        std::cout <<  mapp::mpi_filter_master()() << "Values inserted, global performance:" << std::endl
+                  << "MPI_Wtime resolution: " << MPI_Wtick() << std::endl
+                  << "  Theoretical computation time is: " << 0.93 * num_its * (comp_time_us) << " us." << std::endl
+                  << "  Computed sleep time is: " << sleep_time << " us." << std::endl
+                  << "  Computation time reference without I/O: " << (end - start) << " s. (rank 0)" << std::endl
+                  << "  Computation time with I/O: " << (end_io - start_io) << " s. (rank 0)" << std::endl
+                  << "  Time: " << time << " s. (rank 0)" << std::endl
+                  << "  I/O: " << iops << " IOPS" << std::endl
+                  << "  BW: " << mbw << " MB/s" << std::endl;
 
 #endif
 
@@ -531,61 +527,54 @@ void KeyValueBench<h>::run_task(KeyValueArgs & args) {
 
 template<keyvalue::selector h>
 void KeyValueBench<h>::run_loop_meta(KeyValueArgs & args, KeyValueStats & stats) {
-#if 1
-    // OPENMP lower than 4.0, no task deps support
+    std::cout << " tim version " << std::endl;
 
     KeyValueMap_meta kvm;
 
     int comp_time_us = 100 * args.usecase() * 1000;
+
+    int reqs = args.cg();
+    unsigned int bytes = voltages_size_ * sizeof(double);
+    double time, start, end, iops, mbw;
 
     for (float st = 0; st < args.st(); st += args.md()) {
         for (float md = 0; md < args.md(); md += args.dt()) {
 
             usleep(comp_time_us);
 
-            int reqs = args.cg();
-            unsigned int bytes = voltages_size_ * sizeof(double);
-
-
-
-            double start = MPI_Wtime();
+            start = MPI_Wtime();
 
             #pragma omp parallel for
             for (int cg = 0; cg < args.cg(); cg++)
                 kvm.insert(g.meta_at(cg));
-        
 
-//            for (int cg = 0; args.async() && cg < args.cg(); cg++) {
-//                kv_store_->wait(&ins_handles_[handle_idx + cg]);
-//            }
 
-            double end = MPI_Wtime();
+            #pragma omp parallel for
+            for (int cg = 0; cg < args.cg(); cg++)
+                kvm.wait(g.meta_at(cg));
 
-            double time = end - start; // seconds
-            double iops = reqs / time; // I/O ops/s
-            double mbw = (bytes / time) / (1024 * 1024); // MB/s
+            end = MPI_Wtime();
+
+            time = end - start; // seconds
+            iops = reqs / time; // I/O ops/s
+            mbw = (bytes / time) / (1024 * 1024); // MB/s
 
             // Add the results for every iteration
-            stats.rank_iops_ += iops;
-            stats.rank_mbw_ += mbw;
+            stats.rank_iops() += iops;
+            stats.rank_mbw() += mbw;
 
             double g_iops = 0, g_mbw = 0;
 
-            MPI_Allreduce( &iops, &g_iops, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
-            MPI_Allreduce( &mbw, &g_mbw, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
-
-            MPI_Barrier(MPI_COMM_WORLD);
+            MPI_Reduce( &iops, &g_iops, 1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD );
+            MPI_Reduce( &mbw, &g_mbw, 1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD );
             
-            if (rank_ == 0) {
-                std::cout << "Values inserted for sim time " << st << ", min delay " << md << ", global performance:" << std::endl
-                << "  Time: " << time << " s. (rank 0)" << std::endl
-                << "  I/O: " << iops << " IOPS" << std::endl
-                << "  BW: " << mbw << " MB/s" << std::endl;
-            }
+            std::cout <<  mapp::mpi_filter_master() << "Values inserted for sim time "
+                      << st << ", min delay " << md << ", global performance:" << std::endl
+                      << "  Time: " << time << " s. (rank 0)" << std::endl
+                      << "  I/O: "  << iops << " IOPS" << std::endl
+                      << "  BW: "   << mbw << " MB/s" << std::endl;
         }
     }
-#endif
-    
 }
 
 

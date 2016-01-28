@@ -4,6 +4,7 @@
  */
 
 #include "map_store.h"
+#include "key-value/mpi/tools.h"
 
 #include <iostream>
 #include <cstring>
@@ -12,7 +13,8 @@
 
 #include <cassert>
 
-KeyValueMap::KeyValueMap(int mpiRank, bool threadSafe, std::string pdsName) : KeyValueIface(), _rank(mpiRank), _numReaders(0), _numWriters(0){
+
+KeyValueMap::KeyValueMap(int mpiRank, bool threadSafe, std::string pdsName) : KeyValueIface(), _numReaders(0), _numWriters(0){
 	if (threadSafe) {
 //		_nRdLock = new MyOMPLock();
 //		_nWtLock = new MyOMPLock();
@@ -24,14 +26,12 @@ KeyValueMap::KeyValueMap(int mpiRank, bool threadSafe, std::string pdsName) : Ke
 		_readersLock = new MyDummyLock();
 		_writersLock = new MyDummyLock();
 	}
-	std::cout << "[" << _rank << "] initialized skv map successfully" << std::endl;
 }
 
 
 KeyValueMap::~KeyValueMap(){
 	_map.clear();
 	_valSizes.clear();
-	std::cout << "[" << _rank << "] Finalized successfully" << std::endl;
 }
 
 
@@ -92,7 +92,7 @@ int KeyValueMap::retrieve(const int * key, unsigned int keySize, double * value,
 
 		if (valueSize < size) {
 			std::cout
-			<< "[" << _rank << "] Key-value retrieve FAILED: "
+			<< "[" << _rank<< "] Key-value retrieve FAILED: "
 			<< " given value size too small, it should be " << size << " bytes" << std::endl;
 
 			/****************************************/
@@ -159,8 +159,9 @@ void KeyValueMap::remove(const int * key, unsigned int keySize, void * handle, b
 
 
 
-KeyValueMap_meta::KeyValueMap_meta(int mpiRank, bool threadSafe, std::string pdsName):
-                    _rank(mpiRank), _numReaders(0), _numWriters(0){
+KeyValueMap_meta::KeyValueMap_meta(bool threadSafe, std::string pdsName):
+                               _numReaders(0), _numWriters(0){
+                                   _rank = keyvalue::master.rank();
     if (threadSafe) {
         //		_nRdLock = new MyOMPLock();
         //		_nWtLock = new MyOMPLock();

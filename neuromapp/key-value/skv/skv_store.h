@@ -26,7 +26,6 @@ class KeyValueSkv : public KeyValueIface {
 	typedef enum { SKV_NONE, SKV_INIT, SKV_CONNECT, SKV_PDS } SKV_STATE;
 
 private:
-	int				_rank;
 	SKV_STATE		_skvState;
 	skv_client_t	_skvClient;
 	skv_pds_id_t	_pdsId;

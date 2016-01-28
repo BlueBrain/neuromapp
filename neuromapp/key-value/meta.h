@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+
 namespace keyvalue{
 
 enum selector { map = 0, skv, lldb };
@@ -124,7 +125,7 @@ typedef int skv_client_cmd_ext_hdl_t; // for compilation
 
 class meta_skv : public meta {
 public:
-    typedef typename meta::value_type value_type;
+    typedef meta::value_type value_type;
     typedef value_type* pointer;
     typedef value_type const* const_pointer;
 

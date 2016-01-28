@@ -139,13 +139,45 @@ public:
 
 class KeyValueStats {
 	public:
-		double mean_iops_;
+    KeyValueStats():mean_iops_(0.), mean_mbw_(0.), rank_iops_(0.), rank_mbw_(0.){}
+
+    inline double& mean_iops(){
+        return mean_iops_;
+    }
+
+    inline double const& mean_iops() const{
+        return mean_iops_;
+    }
+
+    inline double& mean_mbw(){
+        return mean_mbw_;
+    }
+
+    inline double const& mean_mbw() const{
+        return mean_mbw_;
+    }
+
+    inline double& rank_iops(){
+        return rank_iops_;
+    }
+
+    inline double const& rank_iops() const{
+        return rank_iops_;
+    }
+
+    inline double& rank_mbw(){
+        return rank_mbw_;
+    }
+
+    inline double const& rank_mbw() const{
+        return rank_mbw_;
+    }
+
+    private:
+        double mean_iops_;
 		double mean_mbw_;
 		double rank_iops_;
 		double rank_mbw_;
-
-		KeyValueStats() : mean_iops_(0.), mean_mbw_(0.), rank_iops_(0.), rank_mbw_(0.) {}
-		~KeyValueStats() {}
 };
 
 
@@ -173,13 +205,26 @@ struct mpi{
 };
 
 
-template<class T>
-struct benchmark {
-    typedef T value_type;
+typedef keyvalue::meta meta_type;
 
 
+class benchmark{
+public:
+
+    /** \fun benchmark(std::size_t choice, std::size_t qmb = 4096)
+        \brief compute the total number of compartment (2.5 = 2.5 MB per neuron, 350 compartiment per neuron)
+        qmp = 4096 25% of the memory of a compute node of the BG/Q
+     */
+    benchmark(std::size_t choice, std::size_t qmb = 4096){
+        size = choice * qmb / 2.5 * 350 ;
+    }
+
+
+
+private:
+    /** correspond to the total number of compartement */
+    std::size_t size;
 };
-
 
 
 template<keyvalue::selector h = keyvalue::map>
@@ -202,7 +247,6 @@ private:
 	std::vector<typename trait_handle<h>::value_type > ins_handles_;
 	std::vector<typename trait_handle<h>::value_type> rem_handles_;
 
-    typedef keyvalue::meta meta_type;
     keyvalue::group<meta_type> g;
 
 public:

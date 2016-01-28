@@ -11,14 +11,14 @@
 
 #include "key-value/kv-iface.h"
 #include "key-value/lock.h"
-
 #include "key-value/meta.h"
+
 
 
 class KeyValueMap : public KeyValueIface {
 
 private:
-	int											_rank;
+    int											        _rank;
 	std::multimap<int, std::vector<double> *>	_map;
 	std::multimap<int, unsigned int>			_valSizes;
 
@@ -67,13 +67,15 @@ private:
 
 
 public:
-    explicit KeyValueMap_meta (int mpiRank = 0, bool threadSafe = false, std::string pdsName = "");
+    explicit KeyValueMap_meta (bool threadSafe = false, std::string pdsName = "");
     ~KeyValueMap_meta();
     void insert (const keyvalue::meta& m);
     int retrieve (keyvalue::meta& m);
     void remove (const keyvalue::meta& m);
+    void wait (const keyvalue::meta& m){}; //empty for the futur if async;
 };
 
 
 
 #endif /* MAP_STORE_H_ */
+

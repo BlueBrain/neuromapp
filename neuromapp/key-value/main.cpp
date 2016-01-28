@@ -120,7 +120,6 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
     \param vm encapsulate the command line and all needed informations
  */
 void keyvalue_content(po::variables_map const& vm){
-    std::cout << "Run Key-value benchmark" << std::endl;
 
     int np = vm["numproc"].as<int>();
     int nt = vm["numthread"].as<int>(); // Should we check OMP_NUM_THREADS env var also? --> 'char * getenv (const char *name)'
