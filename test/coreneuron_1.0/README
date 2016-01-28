@@ -1,0 +1,15 @@
+
+cstep.cpp
+
+- fullComputationalStep_reference_solution_test: Test rhs and d after a full computation test
+
+kernels.cpp
+
+- kernels_test: Test the correct executions of all mechanisms
+- kernels_reference_solution_test: Test kernel with a reference solution, the reference solutions come from a "debug run"
+      of the input data in coreneuron_1.0/common/data/bench.101392
+
+solver.cpp
+
+- solver_test: Test the correct execution of the solver
+- simple_matrix_solver_test: Test the solver on a simple 3x3 matrices, compare to an exact solution

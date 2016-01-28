@@ -1,0 +1,49 @@
+#Global directive
+
+This file gives the main directive to add a new miniapp in the framework
+
+Your miniapp is a library, and you should code only one functioni following
+the API:
+
+	- NAME_OF_MY_MINI_APP_execute(int argc, char* argv)
+
+When you library is ready, you should provide a command iline argument helper.
+Altough we give you freedom, please follow the guideline. If you are coding
+a C++ library, please use boost program option, else for C library use
+something similar.
+
+Helper guide line:
+
+Main app help
+
+     ./neuromapp/app/app --help
+      Usage: < >  means optionnal
+         miniapp --help provide the help of your miniapp
+
+         The list of the following miniapps are available:
+             hello <arg>
+             cnkernel <arg>
+
+miniapp help
+
+	app <miniapp> --help
+
+The help should provide a brief description and the listing of the different options.
+Per example for the CoreNeuron kernel application, we have:
+
+     ./neuromapp/app/app kernel --help
+     Usage: cnkernels --mechanism [string] --function [string] --data [string] --numthread [int]
+     Details:
+                     --mechanism [Na, ProbAMPANMDA or Ih]
+                     --function [state or current]
+                     --data [path to the input]
+                     --numthread [threadnumber]
+
+When your library is ready you will have to modify:
+        - miniapp.h //  add the .h of your library
+        - driver.h // add the function to the main application, the name of your function in the helper
+        - CMakeLists.txt // add your library
+
+To run miniapp
+
+	app <miniapp> [args]
