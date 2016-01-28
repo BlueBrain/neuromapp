@@ -36,6 +36,8 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <boost/lexical_cast.hpp>
 
+#include "key-value/mpi/tools.h"
+
 namespace keyvalue{
 
 boost::random::uniform_real_distribution<double>  RandomDouble = boost::random::uniform_real_distribution<double>(-75,75);
@@ -94,7 +96,8 @@ public:
         \brief push_back a nrnthread group and do the initialisation
         of the uuid and the meta data */
     void push_back(nrnthread const& v){
-        std::string uuid = boost::uuids::to_string(generator());
+        std::string uuid = boost::uuids::to_string(generator())
+                            + boost::lexical_cast<std::string>(keyvalue::master.rank());
         data.push_back(v);
         gid.push_back(uuid);
         m.push_back(meta_type(uuid,data.back().front_pointer(),v.size()));
