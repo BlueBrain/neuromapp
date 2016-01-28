@@ -13,17 +13,14 @@ of new applications.
 	- neuronmapp/coreneuron_1.0
 
 This directory contains miniapps (C)  about the main behaviour of first release
-of coreneuron, 2 miniapps are available: kernel and solver
+of coreneuron, 3 miniapps are available: kernel and solver
 
-	 kernel: This miniapp extracts the computation kernel of CoreNeuron,
-                the miniapp focus on the vectorization by the compiler
-         solver: This miniapp extracts the linear algbra solver of CoreNeuron,
-                the Hines solver (similar to Thomas Solver for 3 bands matrix)
+	 kernel: This miniapp extracts the computation kernel of CoreNeuron, the miniapp focuses on the vectorization by the compiler
+         solver: This miniapp extracts the linear algbra solver of CoreNeuron, the Hines solver (similar to Thomas Solver for 3 bands matrix)
+	 cstep: It combines the kernel and the solver to mimic a step time of neuron simulator
 
-	 - hello
+	 queuing: This miniapp simulates the queueing system of CoreNeuron.
 
-This directory provides an example of how could be design a miniapp (C++)
+Moreover the hello directory provides informations to create a new miniapp
 
-        - queuing:
-
-This miniapp simulates the queueing system of CoreNeuron.
+	 hello :This directory provides an example of how could be design a miniapp (C++)
