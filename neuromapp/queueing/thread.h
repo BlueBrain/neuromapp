@@ -32,6 +32,12 @@
 #include <cassert>
 #include <unistd.h>
 
+#include "coreneuron_1.0/kernel/mechanism/mechanism.h"
+#include "coreneuron_1.0/kernel/helper.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
+#include "coreneuron_1.0/common/util/nrnthread_handler.h"
+#include "coreneuron_1.0/solver/hines.h"
+#include "utils/storage/storage.h"
 #include "queueing/queue.h"
 #include "queueing/spinlock_queue.h"
 #include "queueing/lock.h"
@@ -69,6 +75,7 @@ template<implementation I>
 class NrnThreadData{
 private:
 	queue qe_;
+	NrnThread* nt_;
 	InterThread<I> inter_thread_events_;
 public:
 	int ite_received_;
@@ -80,7 +87,17 @@ public:
 	    \param i provides the thread id for this NrnThreadData
 	    \param verbose verbose mode: 1 = ON, 0 = OFF
 	 */
-	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {}
+	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {
+		input_parameters p;
+		char name[] = "coreneuron_1.0_cstep_data";
+		char data[] ="/home/langen/dev/m3/b/test/bench.101392/bench.101392";
+		p.name = name;
+		p.d = data;
+    	nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
+		if(nt_ == NULL){
+			storage_clear(p.name);
+		}
+	}
 
 	/** \fn void selfSend(double d, double tt)
 	 *  \brief send an item directly to my priority queue
@@ -107,7 +124,20 @@ public:
 			// Use imitation of the point_receive calculation time (ms).
 			// Varies per a specific simulation case.
 			//usleep(10);
+//			for(int i = 0; i < 10; ++i){
+    			//Load mechanisms
+    			mech_current_NaTs2_t(nt_,&(nt_->ml[17]));
+    			mech_current_Ih(nt_,&(nt_->ml[10]));
+    			mech_current_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
 
+    			//Call solver
+    			nrn_solve_minimal(nt_);
+
+	    		//Update the states
+	    		mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
+	    		mech_state_Ih(nt_,&(nt_->ml[10]));
+    			mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
+//			}
 			return true;
 		}
 		return false;
