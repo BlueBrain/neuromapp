@@ -119,9 +119,12 @@ public:
 	    #pragma omp parallel for schedule(static,1)
 	    for(int i=0; i < size; ++i){
 			generateEvents(totalTime,i);
+
 			threadDatas[i].enqueueMyEvents();
 			//Have threads enqueue their interThreadEvents
 			while(threadDatas[i].deliver(i, time_)); // deliver
+
+			threadDatas[i].l_algebra();
 	    }
 	    time_++;
 	}

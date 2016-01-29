@@ -38,6 +38,7 @@
 #include "coreneuron_1.0/common/util/nrnthread_handler.h"
 #include "coreneuron_1.0/solver/hines.h"
 #include "utils/storage/storage.h"
+
 #include "queueing/queue.h"
 #include "queueing/spinlock_queue.h"
 #include "queueing/lock.h"
@@ -90,7 +91,7 @@ public:
 	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {
 		input_parameters p;
 		char name[] = "coreneuron_1.0_cstep_data";
-		char data[] ="/home/langen/dev/m3/b/test/bench.101392/bench.101392";
+		char data[] ="./test/bench.101392/bench.101392";
 		p.name = name;
 		p.d = data;
     	nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
@@ -109,6 +110,24 @@ public:
 		qe_.insert(tt, d);
 	}
 
+	/** \fn void l_algebra()
+	 *  \brief performs the mechanism calculations/updates for linear algebra
+	 */
+	void l_algebra(){
+   		//Update the current
+   		mech_current_NaTs2_t(nt_,&(nt_->ml[17]));
+   		mech_current_Ih(nt_,&(nt_->ml[10]));
+   		mech_current_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
+
+ 		//Call solver
+   		nrn_solve_minimal(nt_);
+
+    	//Update the states
+    	mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
+    	mech_state_Ih(nt_,&(nt_->ml[10]));
+   		mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
+	}
+
 	/** \fn bool deliver(int id, int til)
 	    \brief dequeue all items with time < til
 	    \param id used in sanity check to verify destination
@@ -124,20 +143,6 @@ public:
 			// Use imitation of the point_receive calculation time (ms).
 			// Varies per a specific simulation case.
 			//usleep(10);
-//			for(int i = 0; i < 10; ++i){
-    			//Load mechanisms
-    			mech_current_NaTs2_t(nt_,&(nt_->ml[17]));
-    			mech_current_Ih(nt_,&(nt_->ml[10]));
-    			mech_current_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
-
-    			//Call solver
-    			nrn_solve_minimal(nt_);
-
-	    		//Update the states
-	    		mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
-	    		mech_state_Ih(nt_,&(nt_->ml[10]));
-    			mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
-//			}
 			return true;
 		}
 		return false;
