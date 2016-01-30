@@ -36,7 +36,9 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <boost/lexical_cast.hpp>
 
-#include "key-value/mpi/tools.h"
+#include "key-value/utils/tools.h"
+
+#include <utility>
 
 namespace keyvalue{
 
@@ -51,7 +53,8 @@ double RandomNumber() {
 /** group of cell, simple buffer of memory */
 class nrnthread{
 public:
-    typedef std::vector<double> container_type;
+    typedef double value_type;
+    typedef std::vector<value_type> container_type;
 
     /** \function nrnthread(std::size_t n = 0)
         \brief allocate the maint container */
@@ -70,9 +73,9 @@ public:
         \brief get the front pointer of the main containter */
     inline container_type::const_pointer front_pointer() const{
         assert(cellgroup.size() > 0);
-        return &cellgroup.front();
+        return &cellgroup.front(); // this is the pointer of the vector
     }
-
+    
 private:
     /** container, contiguous buffer i.e. std::vector */
     container_type cellgroup;
@@ -97,7 +100,7 @@ public:
         of the uuid and the meta data */
     void push_back(nrnthread const& v){
         std::string uuid = boost::uuids::to_string(generator())
-                            + boost::lexical_cast<std::string>(keyvalue::master.rank());
+                            + boost::lexical_cast<std::string>(keyvalue::utils::master.rank());
         data.push_back(v);
         gid.push_back(uuid);
         m.push_back(meta_type(uuid,data.back().front_pointer(),v.size()));
@@ -113,6 +116,22 @@ public:
      \brief get a given element of the meta data, write */
     typename std::vector<meta_type>::reference meta_at(std::size_t i) {
         return m.at(i);
+    }
+    
+    /**  \fun helper_sun
+    \brief functor to calculate the number of elements (size) of the group
+    \note template<class first, class init> does not work */
+    struct helper_sum{
+        void operator()(std::vector<nrnthread>::iterator first, nrnthread::value_type init) {
+            init += (*first).size();
+        };
+    };
+
+    /** \fun total_size() const
+    \brief return the total number of element of the memory 
+    */
+    inline std::size_t total_size() const {
+        return std::accumulate(data.begin(),data.end(),helper_sum());
     }
 
 private:

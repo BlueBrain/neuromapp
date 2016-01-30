@@ -21,8 +21,22 @@
 #include "neuromapp/utils/mpi/print.h"
 
 template<keyvalue::selector h>
-void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
+void KeyValueBench<h>::parseArgs(int argc, char * argv[], argvs & args)
 {
+    std::vector<std::string> param(argv+1, argv+argc);
+
+
+    std::vector<std::string>::iterator it = find (param.begin(), param.end(), "-b");
+    if (it != param.end())
+        args.backend() = *(it+1);
+        
+    
+    std::cout << "Element found in myvector: " << *it << '\n';
+
+
+
+
+
 	for (int i = 1; i < argc; i++) {
 		std::string param(argv[i]);
 
@@ -79,7 +93,7 @@ void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
 
 
 template<keyvalue::selector h>
-void KeyValueBench<h>::init(KeyValueArgs & args) {
+void KeyValueBench<h>::init(argvs & args) {
 
      //Should create an object of type keyvalue_handle<...>, ... = skv, map, ldb
 	if (args.backend() == "skv") {
@@ -129,12 +143,8 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
     voltages_[0].reserve(first_size);
 
 
-    g = keyvalue::group<meta_type>(cg_size);
-    g.push_back(keyvalue::nrnthread(first_size));
-
     for (int i = 1; i < args.cg(); i++) {
         voltages_[i].reserve(cg_size);
-        g.push_back(keyvalue::nrnthread(cg_size));
     }
     
 	float voltage = 0.1;
@@ -200,7 +210,7 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 }
 
 template<keyvalue::selector h>
-void KeyValueBench<h>::cleanup(KeyValueArgs & args) {
+void KeyValueBench<h>::cleanup(argvs & args) {
 	std::cout << "Removing inserted values" << std::endl;
 
 	//for (float st = 0; st < args.st_; st += args.md_) {
@@ -235,17 +245,10 @@ void KeyValueBench<h>::cleanup(KeyValueArgs & args) {
 }
 
 template<keyvalue::selector h>
-void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
+void KeyValueBench<h>::run(argvs & args, stats &stats) {
 
 	init(args);
 
-
-    
-
-	int comp_time_us = 100 * args.usecase() * 1000;
-
-
-    run_loop_meta(args, stats);
 #if _OPENMP < 201307
 	run_loop(args, stats);
 #else
@@ -268,19 +271,14 @@ void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
     // MB/s --> GB/s
     stats.mean_mbw() = stats.mean_mbw() / 1024;
 
-    // Mean values per node
-    //stats.mean_iops_ = stats.mean_iops_ / num_procs_;
-    //stats.mean_mbw_ = stats.mean_mbw_ / num_procs_;
-
     MPI_Barrier(MPI_COMM_WORLD);
 
 
 }
 
 
-
 template<keyvalue::selector h>
-void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
+void KeyValueBench<h>::run_loop(argvs & args, stats & stats) {
         std::cout << " judith version " << std::endl;
 #if 1
 	// OPENMP lower than 4.0, no task deps support
@@ -328,7 +326,7 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 
 				MPI_Barrier(MPI_COMM_WORLD);
 
-                std::cout <<  mapp::mpi_filter_master() << "Values inserted for sim time " << st
+                std::cout << "Values inserted for sim time " << st
                           << ", min delay " << md << ", global performance:" << std::endl
                           << "  Time: " << time << " s. (rank 0)" << std::endl
                           << "  I/O: " << iops << " IOPS" << std::endl
@@ -341,8 +339,10 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 
 
 template<keyvalue::selector h>
-void KeyValueBench<h>::run_task(KeyValueArgs & args) {
+void KeyValueBench<h>::run_task(argvs & args) {
 #if 0
+    	int comp_time_us = 100 * args.usecase() * 1000;
+
 	// OPENMP 4.0 or later, support for task deps
 
 		double start, end, start_io, end_io;
@@ -521,61 +521,4 @@ void KeyValueBench<h>::run_task(KeyValueArgs & args) {
 #endif
 
 }
-
-
-/********************************************************************************************************/
-
-template<keyvalue::selector h>
-void KeyValueBench<h>::run_loop_meta(KeyValueArgs & args, KeyValueStats & stats) {
-    std::cout << " tim version " << std::endl;
-
-    KeyValueMap_meta kvm;
-
-    int comp_time_us = 100 * args.usecase() * 1000;
-
-    int reqs = args.cg();
-    unsigned int bytes = voltages_size_ * sizeof(double);
-    double time, start, end, iops, mbw;
-
-    for (float st = 0; st < args.st(); st += args.md()) {
-        for (float md = 0; md < args.md(); md += args.dt()) {
-
-            usleep(comp_time_us);
-
-            start = MPI_Wtime();
-
-            #pragma omp parallel for
-            for (int cg = 0; cg < args.cg(); cg++)
-                kvm.insert(g.meta_at(cg));
-
-
-            #pragma omp parallel for
-            for (int cg = 0; cg < args.cg(); cg++)
-                kvm.wait(g.meta_at(cg));
-
-            end = MPI_Wtime();
-
-            time = end - start; // seconds
-            iops = reqs / time; // I/O ops/s
-            mbw = (bytes / time) / (1024 * 1024); // MB/s
-
-            // Add the results for every iteration
-            stats.rank_iops() += iops;
-            stats.rank_mbw() += mbw;
-
-            double g_iops = 0, g_mbw = 0;
-
-            MPI_Reduce( &iops, &g_iops, 1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD );
-            MPI_Reduce( &mbw, &g_mbw, 1, MPI_DOUBLE, MPI_SUM,0, MPI_COMM_WORLD );
-            
-            std::cout <<  mapp::mpi_filter_master() << "Values inserted for sim time "
-                      << st << ", min delay " << md << ", global performance:" << std::endl
-                      << "  Time: " << time << " s. (rank 0)" << std::endl
-                      << "  I/O: "  << iops << " IOPS" << std::endl
-                      << "  BW: "   << mbw << " MB/s" << std::endl;
-        }
-    }
-}
-
-
 

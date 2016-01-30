@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/key-value/mpikey-value.h
- * contains declaration for the KeyValueBench class and its related classes KeyValueArgs and KeyValueStats
+ * contains declaration for the KeyValueBench class and its related classes argvs and stats
  */
 
 
@@ -29,12 +29,16 @@
 
 #include <mpi.h>
 #include <vector>
+#include <numeric>
+#include <functional>
 
 #include "key-value/kv-iface.h"
 #include "key-value/meta.h"
 #include "key-value/memory.h"
+#include "key-value/utils/tools.h"
+#include "key-value/map/map_store.h"
 
-class KeyValueArgs {
+class argvs {
 private:
     int			procs_;
     int			threads_;
@@ -46,16 +50,19 @@ private:
     float		md_;
     float		dt_;
     int			cg_;
+    int         voltages_size_;
 
 public:
-    explicit KeyValueArgs(int procs = 1, int threads = 1 , std::string backend = "map", bool async = false,
+    explicit argvs(int procs = 1, int threads = 1 , std::string backend = "map", bool async = false,
                  bool flash = false, int uc = 1, float st = 1., float md = 0.1, float dt = 0.025, int cg = 1) :
 					procs_(procs), threads_(threads), backend_(backend), async_(async),
-					flash_(flash), usecase_(uc), st_(st), md_(md), dt_(dt), cg_(cg) {}
+					flash_(flash), usecase_(uc), st_(st), md_(md), dt_(dt), cg_(cg),
+                    voltages_size_(usecase_*4096/2.5*350){}
 
-    ~KeyValueArgs(){}
-
-
+    inline int voltage_size() const{
+        return voltages_size_;
+    }
+    
     inline int procs() const {
         return procs_;
     }
@@ -94,6 +101,10 @@ public:
 
     inline int cg() const{
         return cg_;
+    }
+    
+    inline int &voltage_size(){
+        return voltages_size_;
     }
 
     inline int &procs()  {
@@ -137,9 +148,9 @@ public:
     }
 };
 
-class KeyValueStats {
+class stats {
 	public:
-    KeyValueStats():mean_iops_(0.), mean_mbw_(0.), rank_iops_(0.), rank_mbw_(0.){}
+    stats():mean_iops_(0.), mean_mbw_(0.), rank_iops_(0.), rank_mbw_(0.){}
 
     inline double& mean_iops(){
         return mean_iops_;
@@ -180,8 +191,6 @@ class KeyValueStats {
 		double rank_mbw_;
 };
 
-
-
 template<keyvalue::selector h>
 struct trait_handle;
 
@@ -196,36 +205,6 @@ struct trait_handle<keyvalue::selector::skv>{
 		typedef skv_client_cmd_ext_hdl_t value_type;
 #endif
 };
-
-struct mpi{
-
-    int rank_;
-    int num_procs_;
-    int num_threads_;
-};
-
-
-typedef keyvalue::meta meta_type;
-
-
-class benchmark{
-public:
-
-    /** \fun benchmark(std::size_t choice, std::size_t qmb = 4096)
-        \brief compute the total number of compartment (2.5 = 2.5 MB per neuron, 350 compartiment per neuron)
-        qmp = 4096 25% of the memory of a compute node of the BG/Q
-     */
-    benchmark(std::size_t choice, std::size_t qmb = 4096){
-        size = choice * qmb / 2.5 * 350 ;
-    }
-
-
-
-private:
-    /** correspond to the total number of compartement */
-    std::size_t size;
-};
-
 
 template<keyvalue::selector h = keyvalue::map>
 class KeyValueBench {
@@ -247,54 +226,51 @@ private:
 	std::vector<typename trait_handle<h>::value_type > ins_handles_;
 	std::vector<typename trait_handle<h>::value_type> rem_handles_;
 
-    keyvalue::group<meta_type> g;
-
 public:
 	/** \fn KeyValueBench(int rank, int size)
 	    \brief set up benchmark processes and threads
 	    \param rank the rank of this processes
 	    \param size the number of MPI processes
 	 */
-	explicit KeyValueBench(int rank = 0, int size = 1) : rank_(rank), num_procs_ (size), num_threads_(1),
-			kv_store_(NULL) {}
+	explicit KeyValueBench(int rank = 0, int size = 1) : rank_(rank), num_procs_ (size), num_threads_(1),kv_store_(NULL){
+            rank_ = keyvalue::utils::master.rank();
+            num_procs_ = keyvalue::utils::master.size();
+    }
 
 	/** \fn getNumThreads()
 	    \brief return the number of OpenMP threads
 	 */
 	inline int getNumThreads() { return num_threads_; }
 
-	/** \fn parseArgs(int argc, char* argv[], KeyValueArgs &args)
+	/** \fn parseArgs(int argc, char* argv[], argvs &args)
 	    \brief parse user arguments and set simulation parameters
 	 */
-	inline void parseArgs(int argc, char* argv[], KeyValueArgs &args);
+	inline void parseArgs(int argc, char* argv[], argvs &args);
 
-	/** \fn init(KeyValueArgs &args)
+	/** \fn init(argvs &args)
 	    \brief initialize the data structures needed for the simulation
 	 */
-	inline void init(KeyValueArgs &args);
+	inline void init(argvs &args);
 
-	/** \fn cleanup(KeyValueArgs &args)
+	/** \fn cleanup(argvs &args)
 	    \brief clean up the data structures created for the simulation
 	 */
-	inline void cleanup(KeyValueArgs &args);
+	inline void cleanup(argvs &args);
 
-	/** \fn run(KeyValueArgs &args, KeyValueStats &stats)
+	/** \fn run(argvs &args, stats &stats)
 	    \brief run the I/O simulation, calls init and cleanup as well
 	 */
-	inline void run(KeyValueArgs &args, KeyValueStats &stats);
+	inline void run(argvs &args, stats &stats);
 
-	/** \fn run_loop(KeyValueArgs &args)
+	/** \fn run_loop(argvs &args)
 	    \brief run the I/O simulation as a single, large OpenMP loop
 	 */
-	inline void run_loop(KeyValueArgs &args, KeyValueStats &stats);
+	inline void run_loop(argvs &args, stats &stats);
 
-    inline void run_loop_meta(KeyValueArgs &args, KeyValueStats &stats);
-
-
-	/** \fn run_task(KeyValueArgs &args)
+	/** \fn run_task(argvs &args)
 	    \brief run the I/O simulation as OpenMP tasks and dependencies
 	 */
-	inline void run_task(KeyValueArgs &args);
+	inline void run_task(argvs &args);
 };
 
 #include "key-value/mpikey-value.ipp"
