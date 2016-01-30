@@ -52,18 +52,20 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
     ("numproc,p", po::value<int>()->default_value(1), "[int]    Number of MPI processes")
     ("numthread,t", po::value<int>()->default_value(1), "[int]    Number of OpenMP threads")
 
-    ("backend,b", po::value<std::string>()->default_value("map"), "[string] Key-value store backend to use. Supported backends: map (STL map), skv (IBM SKV), ldb (LevelDB)")
+    ("backend,b", po::value<std::string>()->default_value("map"), "[string] Key-value store backend to use. \
+                  Supported backends: map (STL map), skv (IBM SKV), ldb (LevelDB)")
     ("async,a", "If available, use the asynchronous API of the key-value backend")
     ("flash,f", "If available, use flash memory as storage")
-    ("usecase,u", po::value<int>()->default_value(1), "[int]    Use case to simulate. Creates a data set size of: 1 (25% BG/Q node DRAM, 4 GB), 2 (50% DRAM, 8 GB), 3 (75% DRAM, 12 GB)")
+    ("usecase,u", po::value<int>()->default_value(1), "[int] Use case to simulate. Creates a data set size of: \
+                  1 (25% BG/Q node DRAM, 4 GB), 2 (50% DRAM, 8 GB), 3 (75% DRAM, 12 GB)")
     ("st", po::value<float>()->default_value(1.0), "[float]  Simulation time in ms")
     ("md", po::value<float>()->default_value(0.1), "[float]  Min delay in ms")
     ("dt", po::value<float>()->default_value(0.025), "[float]  Delta time in ms")
-    ("cg", po::value<int>()->default_value(0), "[int]    Number of cell groups per process, must be at least equal to the number of OpenMP threads, --numthread by default");
+    ("cg", po::value<int>()->default_value(0), "[int]    Number of cell groups per process, \
+                  must be at least equal to the number of OpenMP threads, --numthread by default");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
-
 
     if(vm["numproc"].as<int>() < 1){
         std::cout << "Error: numproc must be at least 1." << std::endl;
@@ -74,7 +76,6 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
         std::cout << "Error: numthread must be at least 1." << std::endl;
         return mapp::MAPP_BAD_ARG;
     }
-
 
     if((vm["backend"].as<std::string>() != "map")
             && (vm["backend"].as<std::string>() != "skv")

@@ -3,15 +3,15 @@
  *
  */
 
-#include "map_store.h"
-#include "key-value/mpi/tools.h"
 
 #include <iostream>
 #include <cstring>
 #include <sstream>
 #include <vector>
-
 #include <cassert>
+
+#include "key-value/map/map_store.h"
+#include "key-value/utils/tools.h"
 
 
 KeyValueMap::KeyValueMap(int mpiRank, bool threadSafe, std::string pdsName) : KeyValueIface(), _numReaders(0), _numWriters(0){
@@ -161,7 +161,7 @@ void KeyValueMap::remove(const int * key, unsigned int keySize, void * handle, b
 
 KeyValueMap_meta::KeyValueMap_meta(bool threadSafe, std::string pdsName):
                                _numReaders(0), _numWriters(0){
-                                   _rank = keyvalue::master.rank();
+                                   _rank = keyvalue::utils::master.rank();
     if (threadSafe) {
         //		_nRdLock = new MyOMPLock();
         //		_nWtLock = new MyOMPLock();

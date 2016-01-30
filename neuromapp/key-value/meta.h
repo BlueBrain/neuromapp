@@ -128,7 +128,7 @@ public:
     typedef meta::value_type value_type;
     typedef value_type* pointer;
     typedef value_type const* const_pointer;
-
+    
     /** \fn meta(std::string const& s, std::pair<double*,std::size_t> const& v_pair)
 	    \brief constructor of the meta information
 	    \param s the key encapsulate the key value and its size
@@ -136,8 +136,7 @@ public:
      */
     explicit meta_skv(std::string const& s = std::string(),
                        value_pair const& p = std::make_pair((pointer)NULL,0)): meta(s,p) {
-        rem_handles_ = skv_client_cmd_ext_hdl_t();
-        ins_handles_ = skv_client_cmd_ext_hdl_t();
+                       pair_handle = std::make_pair(skv_client_cmd_ext_hdl_t(),skv_client_cmd_ext_hdl_t());
     }
 
     /** \fn meta(std::string const& s, double* p, std::size_t n)
@@ -149,43 +148,62 @@ public:
     explicit meta_skv(std::string const& s = std::string(),
                   const_pointer p = (pointer) NULL,
                   std::size_t n = 0): meta(s,p,n) {
-        rem_handles_ = skv_client_cmd_ext_hdl_t();
-        ins_handles_ = skv_client_cmd_ext_hdl_t();
-    }
-
-    /** \fun rem_handles() const
-        \brief get the handle read only 
-     */
-    inline skv_client_cmd_ext_hdl_t const* rem_handles() const{
-        return &rem_handles_;
-    }
-
-    /** \fun rem_handles()
-     \brief get the handle write only
-     */
-    inline skv_client_cmd_ext_hdl_t* rem_handles() {
-        return &rem_handles_;
+                  pair_handle = std::make_pair(skv_client_cmd_ext_hdl_t(),skv_client_cmd_ext_hdl_t());
     }
 
     /** \fun ins_handles() const
      \brief get the handle read only
      */
     inline skv_client_cmd_ext_hdl_t const* ins_handles() const{
-        return &ins_handles_;
+        return &pair_handle.first;
     }
 
     /** \fun ins_handles()
      \brief get the handle write only
      */
     inline skv_client_cmd_ext_hdl_t* ins_handles() {
-        return &ins_handles_;
+        return &pair_handle.first;
     }
-        
+
+    /** \fun rem_handles() const
+        \brief get the handle read only 
+     */
+    inline skv_client_cmd_ext_hdl_t const* rem_handles() const{
+        return &pair_handle.second;
+    }
+
+    /** \fun rem_handles()
+     \brief get the handle write only
+     */
+    inline skv_client_cmd_ext_hdl_t* rem_handles() {
+        return &pair_handle.second;
+    }
+
+    /** \fun full_reset()
+     \brief reset the two skv handle (insert/retrieve)
+     */
+    inline void full_reset(){
+        insert_reset();
+        insert_reset();
+    }
+
+    /** \fun insert_reset()
+     \brief reset insert handle
+     */
+    void insert_reset(){
+        pair_handle.first = skv_client_cmd_ext_hdl_t();
+    }
+
+    /** \fun retrieve_reset()
+     \brief reset retrieve handle
+     */
+    void retrieve_reset(){
+        pair_handle.second = skv_client_cmd_ext_hdl_t();
+    }
+    
     private:
-        /** handle specific to skv */
-        skv_client_cmd_ext_hdl_t rem_handles_;
-        /** handle specific to skv */
-        skv_client_cmd_ext_hdl_t ins_handles_;
+        /** pair of handle <insert,retrieve> */
+        std::pair<skv_client_cmd_ext_hdl_t,skv_client_cmd_ext_hdl_t> pair_handle;
     };
 
 } //end namespace
