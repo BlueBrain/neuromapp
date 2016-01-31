@@ -23,17 +23,6 @@
 template<keyvalue::selector h>
 void KeyValueBench<h>::parseArgs(int argc, char * argv[], argvs & args)
 {
-    std::vector<std::string> param(argv+1, argv+argc);
-
-
-    std::vector<std::string>::iterator it = find (param.begin(), param.end(), "-b");
-    if (it != param.end())
-        args.backend() = *(it+1);
-        
-    
-    std::cout << "Element found in myvector: " << *it << '\n';
-
-
 
 
 

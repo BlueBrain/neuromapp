@@ -55,7 +55,7 @@ public:
         \brief compute the total number of compartment (2.5 = 2.5 MB per neuron, 350 compartiment per neuron)
         4096 MB, 25% of the memory of a compute node of the BG/Q
      */
-    benchmark(argvs const& args = argvs()):a(args){
+    benchmark(argument const& args = argument()):a(args){
         s = args.voltage_size();
         int cg_size = s / args.cg();
         int first_size = cg_size + (s % args.cg());
@@ -89,7 +89,7 @@ public:
     
     /** \fun get_args() const
         \brief return the argument */
-    argvs const & get_args() const {
+    argument const & get_args() const {
         return a;
     }
     
@@ -99,7 +99,7 @@ private:
     /** mpi + thread info */
     parallel p;
     /** reference on the arguments structure */
-    argvs const & a;
+    argument const & a;
     /** correspond to the total number of compartement */
     std::size_t s;
 };
@@ -108,7 +108,7 @@ template<class M>
 void run_loop(benchmark<M> const& b){
     // extract the group of memory
     keyvalue::group<M> const& g = b.get_group();
-    argvs const& a = b.get_args();
+    argument const& a = b.get_args();
     
     // build the needed function in function of the backend
     KeyValueMap_meta kvmap;
@@ -155,7 +155,7 @@ void run_loop(benchmark<M> const& b){
     template<class M>
     void statistic(benchmark<M> const& b, std::vector<double>& vtime){
         // extract the arguements
-        argvs const& a = b.get_args();
+        argument const& a = b.get_args();
 
         int reqs = a.cg();
         int bytes = a.voltage_size() * sizeof(double);
@@ -178,7 +178,7 @@ void run_loop(benchmark<M> const& b){
         g_mbw *= bytes/(1024.*1024.);
 
         std::cout << " g_iops " << g_iops << " IOPS \n "
-                << " g_mbw "  << g_mbw << " MB/s \n " ;
+                  << " g_mbw "  << g_mbw << " MB/s \n " ;
     }
 
 

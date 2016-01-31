@@ -9,44 +9,15 @@
 
 typedef keyvalue::meta meta_type;
 
-int toto(int argc, char* argv[]) {
-    KeyValueBench<keyvalue::map> bench;
-    
-    argument a;
-    
-	argvs args;
+int main(int argc, char* argv[]) {
 
-	bench.parseArgs(argc, argv, args);
-    
+    // build argument from the command line
+    argument a(argc, argv);
+    std::cout << a << std::endl;
     // build the bench infunction of the arguement
-    benchmark<meta_type> b(args);
+    benchmark<meta_type> b(a);
     //bench
     run_loop(b);
     
-    double bb = 2;
-    
-    bb /= 1;
-    
-
-
-//    KeyValueBench<keyvalue::map> bench;
-//	argvs args;
-//	stats stats;
-
-//	bench.parseArgs(argc, argv, args);
-
-//	bench.run(args, stats);
-//
-//    std::cout <<  mapp::mpi_filter_master() << "Overall performance ("
-//              <<  keyvalue::mpi::master.size() << "):" << std::endl
-//              << "  I/O: " << stats.mean_iops() << " kIOPS" << std::endl
-//              << "  BW: " << stats.mean_mbw() << " GB/s" << std::endl;
-//
-//    std::cout << "IOMAPP," << keyvalue::mpi::master.size()  << "," << bench.getNumThreads()
-//              << "," << args.usecase() << "," << args.st() << "," << args.md()
-//              << "," << args.dt() << "," << args.cg() << "," << args.backend()
-//              << "," << ( args.async() ? "async" : "sync" )<< ","<< std::fixed << stats.mean_iops()
-//              << "," << stats.mean_mbw() << std::endl;
-
 	return 0;
 }
