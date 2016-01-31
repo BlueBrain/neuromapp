@@ -118,22 +118,6 @@ public:
         return m.at(i);
     }
     
-    /**  \fun helper_sun
-    \brief functor to calculate the number of elements (size) of the group
-    \note template<class first, class init> does not work */
-    struct helper_sum{
-        void operator()(std::vector<nrnthread>::iterator first, nrnthread::value_type init) {
-            init += (*first).size();
-        };
-    };
-
-    /** \fun total_size() const
-    \brief return the total number of element of the memory 
-    */
-    inline std::size_t total_size() const {
-        return std::accumulate(data.begin(),data.end(),helper_sum());
-    }
-
 private:
     /** the group of cell */
     std::vector<nrnthread> data;
