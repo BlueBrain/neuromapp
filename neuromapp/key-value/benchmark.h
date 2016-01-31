@@ -23,30 +23,6 @@
 #include "key-value/utils/tools.h"
 #include "key-value/utils/arguments.h"
 
-
-class parallel{
-public:
-    explicit parallel(){
-        rank = keyvalue::utils::master.rank();
-        size = keyvalue::utils::master.size();
-        threads = 1;
-    }
-    
-    inline int get_rank() const{
-        return rank;
-    }
-    
-    inline int get_size() const{
-        return size;
-    }
-    
-    inline int get_threads() const{
-        return threads;
-    }
-private:
-    int rank,size,threads;
-};
-
 template<class M>
 class benchmark{
 public:
@@ -67,20 +43,6 @@ public:
             g.push_back(keyvalue::nrnthread(cg_size));
     }
     
-    /** \fun size() const 
-        \brief return the total size, carefull memory is dynamic an update
-         of the size may be usefull 
-    */
-    inline std::size_t size() const {
-        return s;
-    }
-
-    /** \fun update_size() const 
-        \brief if we complete the container the size changes, must be updated */
-    inline std::size_t update_size() const {
-        return g.total_size();
-    }
-    
     /** \fun get_group() const
         \brief get the groupe i.e. the memory */
     keyvalue::group<meta_type> const& get_group() const{
@@ -96,8 +58,6 @@ public:
 private:
     /** memory for the bench */
     keyvalue::group<meta_type> g;
-    /** mpi + thread info */
-    parallel p;
     /** reference on the arguments structure */
     argument const & a;
     /** correspond to the total number of compartement */
