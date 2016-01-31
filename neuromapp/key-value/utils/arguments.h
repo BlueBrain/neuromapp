@@ -31,20 +31,23 @@ public:
 					flash_(flash), usecase_(uc), st_(st), md_(md), dt_(dt), cg_(cg),
                     voltages_size_(usecase_*4096/2.5*350){}
     
-    argument(int argc, char * argv[]){
-        std::vector<std::string> v(argv+1, argv+argc);
-        argument_helper(v,"-b",backend(),to_string());
-        argument_helper(v,"-st",backend(),to_double());
-        argument_helper(v,"-md",backend(),to_double());
-        argument_helper(v,"-dt",backend(),to_double());
-        argument_helper(v,"-cg",backend(),to_int());
-        argument_helper(v,"-uc",backend(),to_int());
+    argument(int argc, char * argv[]) :
+					procs_(1), threads_(1), backend_("map"), async_(false),
+					flash_(false), usecase_(1), st_(1.), md_(0.1), dt_(0.025), cg_(1),
+                    voltages_size_(usecase_*4096/2.5*350){
+    std::cout << argc << std::endl;
+        if(argc != 0){
+            std::vector<std::string> v(argv+1, argv+argc);
+            argument_helper(v,"-b",backend(),to_string());
+            argument_helper(v,"-st",st(),to_double());
+            argument_helper(v,"-md",md(),to_double());
+            argument_helper(v,"-dt",dt(),to_double());
+            argument_helper(v,"-cg",cg(),to_int());
+            argument_helper(v,"-uc",usecase(),to_int());
+            argument_helper(v,"-a",async(),to_true());
+            argument_helper(v,"-f",flash(),to_true());
+        }
     }
-
-//		} else if (param == "-a") {
-//			args.async() = true;
-//		} else if (param == "-f") {
-//			args.flash() = true;
 
     struct to_string{
         std::string operator()(std::string const& s){
@@ -64,14 +67,20 @@ public:
         }
     };
 
+    struct to_true{
+        double operator()(std::string const& s){
+            return true;
+        }
+    };
+
     template<class F, class BinaryOperation>
-    void argument_helper(std::vector<std::string> const& v, std::string const& s, F function, BinaryOperation op){
+    void argument_helper(std::vector<std::string> const& v, std::string const& s, F& function, BinaryOperation op){
         std::vector<std::string>::const_iterator it;
         it = find(v.begin(), v.end(), s);
         if (it != v.end())
             function = op(*(it+1));
         else
-            assert(false);
+           	std::cout << mapp::mpi_filter_master() << "Ignoring invalid parameter: \n ";
     }
 
     inline int voltage_size() const{
@@ -161,39 +170,28 @@ public:
     inline int &cg() {
         return cg_;
     }
+
+   void print(std::ostream& out) const{
+       out << " voltages_size_: " << voltage_size() << " \n"
+           << " procs: " << procs() << " \n"
+           << " threads_: " << threads() << " \n"
+           << " backend_: " << backend() << " \n"
+           << " flash_: " << flash() << " \n"
+           << " usecase_: " << usecase() << " \n"
+           << " st_: " << st() << " \n"
+           << " md_: " << md() << " \n"
+           << " dt_: " << dt() << " \n"
+           << " cg_: " << cg() << " \n";
+   }
     
 };
 
 
-    
-//    void parse_arguments(int argc, char * argv[], argvs & args){
-//    std::vector<std::string> param(argv+1, argv+argc);
-//
-//
-//    std::vector<std::string>::iterator it = find (param.begin(), param.end(), "-b");
-//    if (it != param.end())
-//        args.backend() = *(it+1);
-//        
-//    
-//    std::cout << "Element found in myvector: " << *it << '\n';
-//
-//
-//
-//
-//
-//	for (int i = 1; i < argc; i++) {
-//		std::string param(argv[i]);
-//
-//		if (param == "-b") {
-//			args.backend() = std::string(argv[i + 1]);
-//			i++;
-//		} else if (param == "-a") {
-//			args.async() = true;
-//		} else if (param == "-f") {
-//			args.flash() = true;
-//
-//
-//    }
+std::ostream &operator<<(std::ostream &out, argument  const&  a){
+     a.print(out);
+     return out;
+}
+
 
 
 #endif /* argument_h */

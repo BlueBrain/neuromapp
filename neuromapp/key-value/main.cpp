@@ -140,11 +140,10 @@ void keyvalue_content(po::variables_map const& vm){
 
     std::stringstream command;
 
-    command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np << " /Users/ewart/Documents/miniapps/bx/neuromapp/key-value/Debug/MPI_Exec_kv -b " << backend
+    command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np << " /Users/Tim/Documents/miniapps/b/neuromapp/key-value/MPI_Exec_kv -b " << backend
     		<< " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
     		<< " -md " << md << " -dt " << dt << " -cg " << cg;
-    char** tata;
-    toto(0,tata);
+
 
     //command << "srun -n 4 neuromapp/key-value/mpiexec";
 
@@ -154,7 +153,7 @@ void keyvalue_content(po::variables_map const& vm){
 
 	std::cout << "Running command " << command.str() << std::endl;
 
-	//system(command.str().c_str());
+	system(command.str().c_str());
 
 }
 
