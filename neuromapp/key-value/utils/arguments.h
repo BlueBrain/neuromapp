@@ -35,7 +35,6 @@ public:
 					procs_(1), threads_(1), backend_("map"), async_(false),
 					flash_(false), usecase_(1), st_(1.), md_(0.1), dt_(0.025), cg_(1),
                     voltages_size_(usecase_*4096/2.5*350){
-    std::cout << argc << std::endl;
         if(argc != 0){
             std::vector<std::string> v(argv+1, argv+argc);
             argument_helper(v,"-b",backend(),to_string());
@@ -131,59 +130,58 @@ public:
         return voltages_size_;
     }
 
-    inline int &procs()  {
+    inline int &procs(){
         return procs_;
     }
 
-    inline int &threads()  {
+    inline int &threads(){
         return threads_;
     }
 
-    inline std::string &backend()  {
+    inline std::string &backend(){
         return backend_;
     }
 
-    inline bool &async()  {
+    inline bool &async(){
         return async_;
     }
 
-    inline bool &flash()  {
+    inline bool &flash(){
         return flash_;
     }
 
-    inline int &usecase() {
+    inline int &usecase(){
         return usecase_;
     }
 
-    inline float &st() {
+    inline float &st(){
         return st_;
     }
 
-    inline float &md() {
+    inline float &md(){
         return md_;
     }
 
-    inline float &dt() {
+    inline float &dt(){
         return dt_;
     }
 
-    inline int &cg() {
+    inline int &cg(){
         return cg_;
     }
 
-   void print(std::ostream& out) const{
-       out << " voltages_size_: " << voltage_size() << " \n"
-           << " procs: " << procs() << " \n"
-           << " threads_: " << threads() << " \n"
-           << " backend_: " << backend() << " \n"
-           << " flash_: " << flash() << " \n"
-           << " usecase_: " << usecase() << " \n"
-           << " st_: " << st() << " \n"
-           << " md_: " << md() << " \n"
-           << " dt_: " << dt() << " \n"
-           << " cg_: " << cg() << " \n";
-   }
-    
+    void print(std::ostream& out) const{
+        out << " voltages_size_: " << voltage_size() << " \n"
+            << " procs: " << procs() << " \n"
+            << " threads_: " << threads() << " \n"
+            << " backend_: " << backend() << " \n"
+            << " flash_: " << flash() << " \n"
+            << " usecase_: " << usecase() << " \n"
+            << " st_: " << st() << " \n"
+            << " md_: " << md() << " \n"
+            << " dt_: " << dt() << " \n"
+            << " cg_: " << cg() << " \n";
+    }
 };
 
 
