@@ -65,6 +65,8 @@ typedef struct NrnThread {
     int end;
     /** Total number of compartment with padding*/
     int end_pad;
+    /** time */
+    double _t;
     /** step time */
     double dt;
     /** Total non-mechanism data allocated in one (contiguous) region */

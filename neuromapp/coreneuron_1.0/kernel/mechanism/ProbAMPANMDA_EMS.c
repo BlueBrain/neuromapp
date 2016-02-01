@@ -24,6 +24,7 @@
  * \brief Implementation of the ProbAMPANMDA_EMS kernels
  */
 
+#include <stdlib.h>
 #include <math.h>
 
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
@@ -140,4 +141,58 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
        _vec_rhs[_nd_idx] -= _vec_shadow_rhs[_iml];
        _vec_d[_nd_idx] += _vec_shadow_d[_iml];
    }
+}
+
+double rand_mock_generator()
+{
+    double res;
+    do{
+        long int randu = rand();
+        double* prand = (double*)(&randu);
+        res = fabs(*prand);
+    }while(res == NAN || res == INFINITY);
+    return res;
+}
+
+void mech_net_receive(NrnThread *_nt, Mechanism *_ml)
+{
+   int _iml;
+   int _cntml = _ml->nodecount;
+   double* _p = _ml->data;
+   double _args[5] = {0.21996815502643585, 0., 0., 0., 0.};
+   _tsav = t;
+   double _lresult ;
+   _args[1] = _args[0] ;
+   _args[2] = _args[0] * NMDA_ratio ;
+   if ( Fac > 0.0 ) {
+     u = u * exp ( - ( t - tsyn_fac ) / Fac ) ;
+     }
+   else {
+     u = Use ;
+     }
+   if ( Fac > 0.0 ) {
+     u = u + Use * ( 1.0 - u ) ;
+     }
+   tsyn_fac = t ;
+   if ( Rstate  == 0.0 ) {
+     _args[3] = exp ( - ( t - _args[4] ) / Dep ) ;
+     _lresult = rand_mock_generator();
+     if ( _lresult > _args[3] ) {
+       Rstate = 1.0 ;
+       }
+     else {
+       _args[4] = t ;
+       }
+     }
+   if ( Rstate  == 1.0 ) {
+     _lresult = rand_mock_generator();
+     if ( _lresult < u ) {
+       _args[4] = t ;
+       Rstate = 0.0 ;
+       A_AMPA = A_AMPA + _args[1] * factor_AMPA ;
+       B_AMPA = B_AMPA + _args[1] * factor_AMPA ;
+       A_NMDA = A_NMDA + _args[2] * factor_NMDA ;
+       B_NMDA = B_NMDA + _args[2] * factor_NMDA ;
+       }
+     }
 }
