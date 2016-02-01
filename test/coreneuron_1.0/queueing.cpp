@@ -34,13 +34,13 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include "queueing/queueing.h"
-#include "queueing/pool.h"
-#include "queueing/thread.h"
+#include "coreneuron_1.0/queueing/queueing.h"
+#include "coreneuron_1.0/queueing/pool.h"
+#include "coreneuron_1.0/queueing/thread.h"
 #include "utils/error.h"
 #include "utils/storage/neuromapp_data.h"
-#include "test/coreneuron_1.0/helper.h"
-#include "test/queueing/test_header.hpp"
+#include "coreneuron_1.0/common/data/helper.h"
+#include "test/coreneuron_1.0/test_header.hpp"
 
 namespace bfs = ::boost::filesystem;
 

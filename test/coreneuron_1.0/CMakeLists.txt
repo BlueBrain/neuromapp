@@ -1,15 +1,14 @@
-#generate the file for the in put, create in the build directory
-configure_file("${PROJECT_SOURCE_DIR}/test/coreneuron_1.0/path.h.in"
-               "${PROJECT_BINARY_DIR}/test/coreneuron_1.0/path.h")
+install (FILES test_header.hpp DESTINATION include)
 
 #list of tests
-set(tests kernel solver cstep)
+set(tests kernel solver cstep queueing)
 
 #loop over tests for creation
 foreach(i ${tests})
-    add_executable(${i}test ${i}.cpp helper.cpp)
+    add_executable(${i}test ${i}.cpp)
     target_link_libraries(${i}test coreneuron10_common
                                    coreneuron10_cstep
+								   coreneuron10_queueing
                                    coreneuron10_kernel
                                    coreneuron10_solver
                                    storage ${Boost_LIBRARIES})

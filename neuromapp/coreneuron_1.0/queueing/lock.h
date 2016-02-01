@@ -1,5 +1,5 @@
 /*
- * Neuromapp - queue.cpp, Copyright (c), 2015,
+ * Neuromapp - lock.h, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,31 +19,56 @@
  */
 
 /**
- * @file neuromapp/queueing/queue.cpp
- * \brief Contains Queue and Event class implementation
+ * @file neuromapp/coreneuron_1.0/queueing/lock.h
+ * \brief Contains OMPLock and DummyLock class declaration.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <utility>
+#ifndef MAPP_LOCK_H_
+#define MAPP_LOCK_H_
 
-#include "queueing/queue.h"
+#ifdef _OPENMP
+#include <omp.h>
 
 namespace queueing {
 
-void queue::insert(double tt, double d) {
-    pq_que.push(event(d,tt));
-}
+class OMPLock{
+private:
+	omp_lock_t mut_;
 
-bool queue::atomic_dq(double tt, event& q) {
-    if(!pq_que.empty() && pq_que.top().t_ <= tt) {
-        q = pq_que.top();
-        pq_que.pop();
-		return true;
-	}
-    return false;
-}
+public:
+	/** \fn OMPLock()
+	    \brief inits mut_
+	 */
+	OMPLock(){omp_init_lock(&mut_);}
+
+	/** \fn ~OMPLock()
+	    \brief destroys mut_
+	 */
+	~OMPLock(){omp_destroy_lock(&mut_);}
+
+	/** \fn acquire()
+	    \brief sets mut_
+	 */
+	inline void acquire(){omp_set_lock(&mut_);}
+
+	/** \fn release()
+	    \brief unsets mut_
+	 */
+	inline void release(){omp_unset_lock(&mut_);}
+};
 
 }
+#endif
+
+namespace queueing {
+
+class DummyLock{
+public:
+	DummyLock(){}
+	~DummyLock(){}
+	void acquire(){}
+	void release(){}
+};
+
+}
+#endif

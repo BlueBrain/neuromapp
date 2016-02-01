@@ -1,8 +1,17 @@
+include_directories(${PROJECT_BINARY_DIR})
+include_directories(${PROJECT_SOURCE_DIR})
+
+#generate the file for the in put, create in the build directory
+configure_file("${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/path.h.in"
+               "${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/common/data/path.h")
+
+
 add_library (coreneuron10_common
             common/memory/nrnthread.c
             common/memory/memory.c
             common/util/nrnthread_handler.c
-            common/util/timer.c)
+            common/util/timer.c
+			common/data/helper.cpp)
 
 
 add_library (coreneuron10_kernel
@@ -22,7 +31,27 @@ add_library (coreneuron10_cstep
              cstep/helper.c
              cstep/main.c)
 
+add_library (coreneuron10_queueing
+		     queueing/queue.cpp
+		     queueing/main.cpp)
+
 target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common)
 
-install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep coreneuron10_common DESTINATION lib)
-install (FILES kernel/kernel.h solver/solver.h cstep/cstep.h DESTINATION include)
+
+target_link_libraries(coreneuron10_queueing storage coreneuron10_cstep coreneuron10_solver)
+
+install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep
+				 coreneuron10_common coreneuron10_queueing DESTINATION lib)
+install (FILES  kernel/mechanism/mechanism.h
+				kernel/kernel.h
+				solver/solver.h
+				cstep/cstep.h
+				queueing/queue.h
+				queueing/pool.h
+				queueing/queueing.h
+				queueing/spinlock_apple.h
+				queueing/spinlock_queue.h
+				queueing/thread.h
+				path.h
+				helper.h
+				DESTINATION include)

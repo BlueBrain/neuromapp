@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/queue.h
+ * @file neuromapp/coreneuron_1.0/queueing/queue.h
  * \brief Contains Queue and Event class declaration
  */
 

@@ -29,6 +29,10 @@
 
 #include "coreneuron_1.0/common/memory/nrnthread.h"
 
+#ifdef __cplusplus
+     extern "C" {
+#endif
+
 /** \fn mech_state_NaTs2_t(NrnThread *nt, Mechanism *ml)
     \brief state kernel for the NaTs2_t channel mechanism
     \param nt data structure
@@ -70,5 +74,9 @@ void mech_state_ProbAMPANMDA_EMS(NrnThread *nt, Mechanism *ml);
     \param ml the looking mechanism
  */
 void mech_current_ProbAMPANMDA_EMS(NrnThread *nt, Mechanism *ml);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif
