@@ -26,18 +26,18 @@
 #ifndef MAPP_SPINLOCK_APPLE_
 #define MAPP_SPINLOCK_APPLE_
 
+#include <errno.h>
 #include <libkern/OSAtomic.h>
 
 namespace queueing {
 
-typedef int pthread_spinlock_t;
+typedef OSSpinLock pthread_spinlock_t;
 
 /** \fn pthread_spin_init(pthread_spinlock_t *lock, int pshared)
- wrapper for pthread_spin_init, mark the ASM
+ wrapper for pthread_spin_init
  */
 static inline int pthread_spin_init(pthread_spinlock_t *lock, int pshared) {
-    __asm__ __volatile__ ("" ::: "memory");
-    *lock = 0;
+    OSSpinLockUnlock(lock);
     return 0;
 }
 
@@ -51,22 +51,27 @@ static inline int pthread_spin_destroy(pthread_spinlock_t *lock) {
 /** \fn pthread_spin_lock(pthread_spinlock_t *lock)
 calling the MAC specific function
  */
-inline void pthread_spin_lock(pthread_spinlock_t *lock) {
-    return OSSpinLockLock(lock);
+static inline int pthread_spin_lock(pthread_spinlock_t *lock) {
+    OSSpinLockLock(lock);
+    return 0;
 }
 
 /** \fn pthread_spin_trylock(pthread_spinlock_t *lock)
  calling the MAC specific function
  */
-inline bool pthread_spin_trylock(pthread_spinlock_t *lock) {
-    return OSSpinLockTry(lock);
+static inline int pthread_spin_trylock(pthread_spinlock_t *lock) {
+    if (OSSpinLockTry(lock)) {
+        return 0;
+    }
+    return EBUSY;
 }
 
 /** \fn pthread_spin_unlock(pthread_spinlock_t *lock)
  calling the MAC specific function
  */
-inline void pthread_spin_unlock(pthread_spinlock_t *lock) {
-    return OSSpinLockUnlock(lock);
+static inline int pthread_spin_unlock(pthread_spinlock_t *lock) {
+    OSSpinLockUnlock(lock);
+    return 0;
 }
 
 }
