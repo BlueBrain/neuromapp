@@ -140,7 +140,8 @@ void keyvalue_content(po::variables_map const& vm){
 
     std::stringstream command;
 
-    command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np << " /Users/Tim/Documents/miniapps/b/neuromapp/key-value/MPI_Exec_kv -b " << backend
+    command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np
+            << " /Users/ewart/Documents/miniapps/b/neuromapp/key-value/MPI_Exec_kv  -b " << backend
     		<< " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
     		<< " -md " << md << " -dt " << dt << " -cg " << cg;
 

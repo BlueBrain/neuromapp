@@ -22,6 +22,8 @@
 #include "key-value/mpikey-value.h"
 #include "key-value/utils/tools.h"
 #include "key-value/utils/arguments.h"
+#include "key-value/utils/statistics.h"
+
 
 template<class M>
 class benchmark{
@@ -65,7 +67,7 @@ private:
 };
 
 template<class M>
-void run_loop(benchmark<M> const& b){
+statistic run_loop(benchmark<M> const& b){
     // extract the group of memory
     keyvalue::group<M> const& g = b.get_group();
     argument const& a = b.get_args();
@@ -103,43 +105,8 @@ void run_loop(benchmark<M> const& b){
         }
     }
     
-    statistic(b,vtime);
+    return statistic(a,vtime);
 }
-
-    struct inverse{
-        void operator()(double& a) {
-            a = 1/a;
-        };
-    };
-
-    template<class M>
-    void statistic(benchmark<M> const& b, std::vector<double>& vtime){
-        // extract the arguements
-        argument const& a = b.get_args();
-
-        int reqs = a.cg();
-        int bytes = a.voltage_size() * sizeof(double);
-    
-        std::vector<double>::iterator it = vtime.begin();
-
-        std::cout << "  Master only, else change the mask \n";
-    
-        while(it != vtime.end()){
-            std::cout << "  Time: " << *it << "[s]" << std::endl
-                      << "  I/O: "  << reqs/(*it) << " IOPS" << std::endl
-                      << "  BW: "   << bytes/((*it)*1024.*1024.) << " MB/s" << std::endl;
-        ++it;
-        }
-
-        double g_iops = 0, g_mbw = 0;
-        std::for_each(vtime.begin(), vtime.end(),inverse());
-        g_iops = g_mbw = keyvalue::utils::accumulate(vtime.begin(), vtime.end(), 0.); // MPI is inside
-        g_iops *= reqs;
-        g_mbw *= bytes/(1024.*1024.);
-
-        std::cout << " g_iops " << g_iops << " IOPS \n "
-                  << " g_mbw "  << g_mbw << " MB/s \n " ;
-    }
 
 
 #endif /* benchmark_h */

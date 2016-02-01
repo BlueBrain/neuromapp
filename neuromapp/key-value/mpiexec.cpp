@@ -5,19 +5,27 @@
 
 #include "key-value/utils/tools.h"
 #include "key-value/benchmark.h"
+#include "key-value/utils/statistics.h"
 
 
-typedef keyvalue::meta meta_type;
 
 int main(int argc, char* argv[]) {
 
+
     // build argument from the command line
     argument a(argc, argv);
-    std::cout << a << std::endl;
-    // build the bench infunction of the arguement
-    benchmark<meta_type> b(a);
-    //bench
-    run_loop(b);
-    
+    // build the bench infunction of the argument
+    if(a.backend() == "map"){
+        typedef keyvalue::meta meta_type;
+        benchmark<meta_type> b(a);
+        //bench
+        statistic s = run_loop(b);
+        //compute statistics
+        s.process();
+        //print the results
+        std::cout << s << std::endl;
+    }
+
+
 	return 0;
 }
