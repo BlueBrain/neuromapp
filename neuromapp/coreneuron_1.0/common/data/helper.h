@@ -19,14 +19,17 @@
  */
 
 /**
- * @file neuromapp/test/coreneuron_1.0/helper.h
+ * @file neuromapp/coreneuron_1.0/common/data/helper.h
  *  Helper for starting all the miniapp
  */
+
+#ifndef MAPP_HELPER_H_
+#define MAPP_HELPER_H_
 
 #include <string.h>
 
 #include "utils/argv_data.h"
-#include "test/coreneuron_1.0/path.h" // this file is generated automatically
+#include "neuromapp/coreneuron_1.0/common/data/path.h" // this file is generated automatically
 
 namespace mapp{
     /** helper for the path of the input data */
@@ -54,3 +57,5 @@ namespace mapp{
     /** helper to compare to debug solution */
     void helper_check(std::string const& name, std::string const& mechanism, std::string const& path);
 }
+
+#endif

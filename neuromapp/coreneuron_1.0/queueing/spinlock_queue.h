@@ -19,14 +19,14 @@
  */
 
 /**
- * @file neuromapp/queueing/spinlock_queue.h
+ * @file neuromapp/coreneuron_1.0/queueing/spinlock_queue.h
  * \brief Implementation of the queu without mutex
  */
 
 #include <pthread.h>
 
 #ifdef __APPLE__
-#include "queueing/spinlock_apple.h"
+#include "coreneuron_1.0/queueing/spinlock_apple.h"
 #endif
 
 #ifndef MAPP_SPINLOCK_QUEUE_

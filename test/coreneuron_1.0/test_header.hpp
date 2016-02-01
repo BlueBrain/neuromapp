@@ -22,7 +22,7 @@
 #define MAPP_TEST_HEADER_HPP
 
 #include <boost/mpl/list.hpp>
-#include "queueing/thread.h"
+#include "coreneuron_1.0/queueing/thread.h"
 
 template<queueing::implementation I>
 struct data{
