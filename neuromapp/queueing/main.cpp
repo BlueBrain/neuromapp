@@ -63,7 +63,8 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
      "the percentage of inter-thread events out of total events")
     ("spike-enabled","determines whether or not to include spike events")
     ("verbose","provides additional outputs during execution")
-    ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector");
+    ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector")
+    ("with-algebra","simulation performs linear algebra calculations");
     //future options : fraction of interthread events
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -115,15 +116,15 @@ void run_sim(Pool<I> &pl, po::variables_map const&vm){
     \param vm encapsulate the command line and all needed informations
  */
 void queueing_miniapp(po::variables_map const& vm){
-	bool spike = vm.count("spike-enabled");
-
 	bool verbose = vm.count("verbose");
+	bool spike = vm.count("spike-enabled");
+	bool algebra = vm.count("with-algebra");
 
     if(vm.count("spinlock")){
-   		Pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike);
+   		Pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
 		run_sim(pl,vm);
     } else {
-   		Pool<mutex> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike);
+   		Pool<mutex> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
 		run_sim(pl,vm);
     }
 }
