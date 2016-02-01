@@ -35,8 +35,8 @@
 #include "coreneuron_1.0/solver/solver.h" // signature kernel application
 #include "coreneuron_1.0/solver/hines.h" // to call the solver library's API directly
 
-#include "test/coreneuron_1.0/path.h" // this file is generated automatically
-#include "test/coreneuron_1.0/helper.h" // common functionalities
+#include "neuromapp/coreneuron_1.0/common/data/path.h" // this file is generated automatically
+#include "coreneuron_1.0/common/data/helper.h" // common functionalities
 #include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;

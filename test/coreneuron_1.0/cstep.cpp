@@ -39,8 +39,8 @@ extern "C" {
 }
 
 #include "coreneuron_1.0/cstep/cstep.h" // signature kernel application
-#include "test/coreneuron_1.0/path.h" // this file is generated automatically
-#include "test/coreneuron_1.0/helper.h" // common functionalities
+#include "neuromapp/coreneuron_1.0/common/data/path.h" // this file is generated automatically
+#include "coreneuron_1.0/common/data/helper.h" // common functionalities
 #include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;
