@@ -1,7 +1,7 @@
 /*
- * Neuromapp - miniapp.h, Copyright (c), 2015,
- * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Neuromapp - hello.h, Copyright (c), 2015,
+ * Kai Langen - Swiss Federal Institute of technology in Lausanne,
+ * kai.langen@epfl.ch,
  * All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
@@ -19,19 +19,19 @@
  */
 
 /**
- * @file neuromapp/app/miniapp.h
- * \brief all include
+ * @file neuromapp/spike/spike.h
+ * Spike Exchange Miniapp
  */
 
-#ifndef MAPP_APP_
-#define MAPP_APP_
+#ifndef MAPP_SPIKE_EXECUTE_
+#define MAPP_SPIKE_EXECUTE_
 
-#include "hello/hello.h"
-#include "queueing/queueing.h"
-#include "spike/spike.h"
-#include "coreneuron_1.0/kernel/kernel.h"
-#include "coreneuron_1.0/solver/solver.h"
-#include "coreneuron_1.0/cstep/cstep.h"
-#include "key-value/key-value.h"
+/** \fn spike_execute(int argc, char *const argv[])
+    \brief Spike Exchange Miniapp
+    \param argc number of argument from the command line
+    \param argv the command line from the driver or external call
+    \return error message from mapp::mapp_error
+ */
+int spike_execute(int argc, char* const argv[]);
 
 #endif
