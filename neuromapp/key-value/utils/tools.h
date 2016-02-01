@@ -34,6 +34,7 @@
 namespace keyvalue {
     namespace utils{
 
+    /** brief this singleton to wrap the mpi infos call once and destroy one using a reference */
     class master_mpi{
     private:
         master_mpi(){
@@ -68,7 +69,8 @@ namespace keyvalue {
         int s;
         int r;
     };
-    /** singleton call once at the beginning and destroy at the end */
+
+    /** singleton call once at the beginning and destroy at the end automatic nothing to do */
     static master_mpi const& master = master_mpi::getInstance(); 
 
     /** \fun accumulate(InputIt first, InputIt last, T init) 
