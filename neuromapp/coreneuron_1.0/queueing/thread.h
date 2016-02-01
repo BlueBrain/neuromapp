@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/thread.h
+ * @file neuromapp/coreneuron_1.0/queueing/thread.h
  * \brief Contains NrnThreadData class declaration.
  */
 
@@ -39,10 +39,10 @@
 #include "coreneuron_1.0/solver/hines.h"
 #include "utils/storage/storage.h"
 
-#include "queueing/queue.h"
-#include "queueing/spinlock_queue.h"
-#include "queueing/lock.h"
-#include "queueing/path.h.in"
+#include "coreneuron_1.0/queueing/queue.h"
+#include "coreneuron_1.0/queueing/spinlock_queue.h"
+#include "coreneuron_1.0/queueing/lock.h"
+#include "coreneuron_1.0/common/data/helper.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -92,11 +92,12 @@ public:
 	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {
 		input_parameters p;
 		char name[] = "coreneuron_1.0_cstep_data";
-		std::string data = mapp::helper_build_path::test_data_path() + "bench.101392/bench.101392";
+		std::string data = mapp::data_test();
 		p.name = name;
 
 		std::vector<char> chardata(data.begin(), data.end());
 		chardata.push_back('\0');
+		std::cout<<data<<std::endl;
 		p.d = &chardata[0];
     	nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
 		if(nt_ == NULL){

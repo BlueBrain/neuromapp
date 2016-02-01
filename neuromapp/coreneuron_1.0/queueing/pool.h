@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/pool.h
+ * @file neuromapp/coreneuron_1.0/queueing/pool.h
  * \brief Contains Pool class declaration.
  */
 
@@ -32,7 +32,7 @@
 #include <ctime>
 #include <numeric>
 
-#include "queueing/thread.h"
+#include "coreneuron_1.0/queueing/thread.h"
 #include "utils/storage/neuromapp_data.h"
 
 #ifdef _OPENMP

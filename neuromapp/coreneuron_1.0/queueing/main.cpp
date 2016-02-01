@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/main.cpp
+ * @file neuromapp/coreneuron_1.0/queueing/main.cpp
  * \brief Handles queueing for inter-thread event exchange
  */
 
@@ -32,9 +32,9 @@
 #include <omp.h>
 #endif
 
-#include "queueing/pool.h"
-#include "queueing/thread.h"
-#include "queueing/queueing.h"
+#include "coreneuron_1.0/queueing/pool.h"
+#include "coreneuron_1.0/queueing/thread.h"
+#include "coreneuron_1.0/queueing/queueing.h"
 #include "utils/error.h"
 
 /** namespace alias for boost::program_options **/

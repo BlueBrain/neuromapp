@@ -1,5 +1,5 @@
 /*
- * Neuromapp - queueing.h, Copyright (c), 2015,
+ * Neuromapp - queue.cpp, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,18 +19,31 @@
  */
 
 /**
- * @file neuromapp/queueing/queueing.h
- * \brief Declaration for the queuing_execute function from main.cpp
+ * @file neuromapp/coreneuron_1.0/queueing/queue.cpp
+ * \brief Contains Queue and Event class implementation
  */
 
-#ifndef MAPP_QUEUEING_EXECUTE_
-#define MAPP_QUEUEING_EXECUTE_
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <utility>
 
-/** \fn queuing_execute(int argc, char *const argv[])
-    \param argc number of argument from the command line
-    \param argv the command line from the driver or external call
-    \return error message from mapp::mapp_error
- */
-int queueing_execute(int argc, char* const argv[]);
+#include "coreneuron_1.0/queueing/queue.h"
 
-#endif
+namespace queueing {
+
+void queue::insert(double tt, double d) {
+    pq_que.push(event(d,tt));
+}
+
+bool queue::atomic_dq(double tt, event& q) {
+    if(!pq_que.empty() && pq_que.top().t_ <= tt) {
+        q = pq_que.top();
+        pq_que.pop();
+		return true;
+	}
+    return false;
+}
+
+}
