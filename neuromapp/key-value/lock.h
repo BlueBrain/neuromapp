@@ -6,7 +6,9 @@
 #ifndef LOCK_H_
 #define LOCK_H_
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 
 class MyLock {
@@ -29,6 +31,7 @@ public:
 
 
 
+#ifdef _OPENMP
 class MyOMPLock : public MyLock {
 private:
 	omp_lock_t	_lock;
@@ -38,6 +41,7 @@ public:
 	inline void lock() { omp_set_lock(&_lock); }
 	inline void unlock() { omp_unset_lock(&_lock); }
 };
+#endif
 
 
 

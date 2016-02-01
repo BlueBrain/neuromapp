@@ -28,6 +28,11 @@
 #define kviface_h
 
 #include <string>
+#include <utility>
+
+#include "key-value/meta.h"
+//template<int h = none> // skv or none
+//struct
 
 class KeyValueIface {
 
@@ -35,20 +40,13 @@ public:
 	KeyValueIface (int mpiRank = 0, bool threadSafe = false, std::string pdsName = "") {}
 	virtual ~KeyValueIface() {}
 
-	//virtual void insert(bool async, char * key, char * value, void * handle = NULL) {}
-
-	//template<typename KT, typename VT>
 	virtual void insert (const int * key, unsigned int keySize, const double * value, unsigned int valueSize, void * handle = NULL, bool async = false) = 0;
 
 	virtual int retrieve (const int * key, unsigned int keySize, double * value, unsigned int valueSize, void * handle = NULL, bool async = false) = 0;
 
 	virtual void remove (const int * key, unsigned int keySize, void * handle = NULL, bool async = false) = 0;
 
-	//template<typename KT>
-	//void remove(bool async, const KT * key, unsigned int keySize, void * handle = NULL) {}
-
 	virtual void wait (void * handle) {}
-
 };
 
 #endif /* kviface_h */

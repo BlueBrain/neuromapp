@@ -252,9 +252,7 @@ int KeyValueSkv::retrieve(const int * key, unsigned int keySize, double * value,
 			std::cout
 			<< "[" << _rank << "] Async key-value retrieve FAILED: "
 			<< " status: " << skv_status_to_string( status )
-			<< std::endl;
-		}
-
+			<< std::endl;skv_client_cmd_ext_hdl_t
 	} else {
 		//std::cout << "[" << _rank << "] Retrieve():: key: " << key << std::endl;
 

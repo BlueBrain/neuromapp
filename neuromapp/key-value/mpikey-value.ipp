@@ -1,10 +1,13 @@
 #include <iostream>
 #include <cstdlib>
-
-#include <unistd.h>
-
 #include <mpi.h>
+
+#include <boost/random/uniform_real_distribution.hpp>
+#include <boost/random/mersenne_twister.hpp>
+
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include "key-value/mpikey-value.h"
 #include "key-value/map/map_store.h"
@@ -13,67 +16,74 @@
 #include "key-value/skv/skv_store.h"
 #endif
 
-template<int h>
-void KeyValueBench<h>::parseArgs(int argc, char * argv[], KeyValueArgs & args)
+#include "neuromapp/utils/mpi/print.h"
+
+template<keyvalue::selector h>
+void KeyValueBench<h>::parseArgs(int argc, char * argv[], argvs & args)
 {
+
+
+
 	for (int i = 1; i < argc; i++) {
 		std::string param(argv[i]);
 
 		if (param == "-b") {
-			args.backend_ = std::string(argv[i + 1]);
+			args.backend() = std::string(argv[i + 1]);
 			i++;
 		} else if (param == "-a") {
-			args.async_ = true;
+			args.async() = true;
 		} else if (param == "-f") {
-			args.flash_ = true;
+			args.flash() = true;
 		} else if (param == "-uc") {
-			args.usecase_ = std::atoi(argv[i + 1]);
+			args.usecase() = std::atoi(argv[i + 1]);
 			i++;
 		} else if (param == "-st") {
-			args.st_ = std::atof(argv[i + 1]);
+			args.st() = std::atof(argv[i + 1]);
 			i++;
 		} else if (param == "-md") {
-			args.md_ = std::atof(argv[i + 1]);
+			args.md() = std::atof(argv[i + 1]);
 			i++;
 		} else if (param == "-dt") {
-			args.dt_ = std::atof(argv[i + 1]);
+			args.dt() = std::atof(argv[i + 1]);
 			i++;
 		} else if (param == "-cg") {
-			args.cg_ = std::atoi(argv[i + 1]);
+			args.cg() = std::atoi(argv[i + 1]);
 			i++;
 		} else {
-			std::cout << "Ignoring invalid parameter: " << argv[i] << std::endl;
+			std::cout << mapp::mpi_filter_master() << "Ignoring invalid parameter: " << argv[i] << std::endl;
 		}
 	}
 
 
-#pragma omp parallel
+     #pragma omp parallel
 	{
+        #ifdef _OPENMP
 		num_threads_ = omp_get_num_threads();
-	}
+        #endif
+        num_threads_ = 1;
 
-	if (rank_ == 0) {
-		std::cout << "Using the following configuration:" << std::endl
-				<< "    " << "Key-Value backend: " << args.backend_ << std::endl
-				<< "    " << (args.async_ ? "Asynchronous" : "Synchronous") << " SKV API" << std::endl
-				<< "    " << "Using " << (args.flash_ ? "flash memory" : "disk") << " as storage" << std::endl
-				<< "    " << "Use case #" << args.usecase_ << " (" << args.usecase_ * 25 << "% of DRAM)" << std::endl
-				<< "    " << "Simulation time: " << args.st_ << " ms" << std::endl
-				<< "    " << "Min delay: " << args.md_ << " ms" << std::endl
-				<< "    " << "Delta time: " << args.dt_ << " ms" << std::endl
-				<< "    " << args.cg_ << (args.cg_ == 1 ? " cell group" : " cell groups") << " per process" << std::endl
-				<< "    " << num_procs_ << (num_procs_ == 1 ? " MPI process" : " MPI processes") << std::endl
-				<< "    " << num_threads_ << (num_threads_ == 1 ? " OpenMP thread" : " OpenMP threads") << std::endl
+    }
+
+    std::cout << mapp::mpi_filter_master() << "Using the following configuration:" << std::endl
+				<< "    " << "Key-Value backend: " << args.backend() << std::endl
+				<< "    " << (args.async() ? "Asynchronous" : "Synchronous") << " SKV API" << std::endl
+				<< "    " << "Using " << (args.flash() ? "flash memory" : "disk") << " as storage" << std::endl
+				<< "    " << "Use case #" << args.usecase() << " (" << args.usecase() * 25 << "% of DRAM)" << std::endl
+				<< "    " << "Simulation time: " << args.st() << " ms" << std::endl
+				<< "    " << "Min delay: " << args.md() << " ms" << std::endl
+				<< "    " << "Delta time: " << args.dt() << " ms" << std::endl
+				<< "    " << args.cg() << (args.cg() == 1 ? " cell group" : " cell groups") << " per process" << std::endl
+				<< "    " << args.procs() << (args.procs() == 1 ? " MPI process" : " MPI processes") << std::endl
+				<< "    " << args.threads() << (args.threads() == 1 ? " OpenMP thread" : " OpenMP threads") << std::endl
 				<< std::endl;
-	}
 }
 
 
-template<int h>
-void KeyValueBench<h>::init(KeyValueArgs & args) {
+template<keyvalue::selector h>
+void KeyValueBench<h>::init(argvs & args) {
 
-
-	if (args.backend_ == "skv") {
+     //Should create an object of type keyvalue_handle<...>, ... = skv, map, ldb
+	if (args.backend() == "skv") {
 #ifdef SKV_STORE
 		kv_store_ = new KeyValueSkv(rank_, /* thread-safe? */ (num_threads_ > 1), "IOmapp");
 #else
@@ -81,10 +91,10 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 		exit(1);
 #endif
 
-	} else if (args.backend_ == "map") {
+	} else if (args.backend() == "map") {
 		kv_store_ = new KeyValueMap(rank_, /* thread-safe? */ (num_threads_ > 1), "IOmapp");
 
-	} else if (args.backend_ == "ldb") {
+	} else if (args.backend() == "ldb") {
 #ifdef SKV_LDB
 		if (flash) {
 			kv_store_ = new SKVLDB(rank_, /* thread-safe? */ (num_threads_ > 1), "/scratch/jplanas/kv/ldb/IOmapp");
@@ -97,33 +107,33 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 #endif
 
 	} else {
-		std::cout << "Error: backend " << args.backend_ << " not supported." << std::endl;
+		std::cout << "Error: backend " << args.backend() << " not supported." << std::endl;
 		exit(1);
 	}
 
-	int num_its = args.st_ / args.dt_;
+    int num_its = args.st() / args.dt();
 
-	voltages_size_ = (((args.usecase_ * 4096) / 2.5) * 350);
+    voltages_size_ = (((args.usecase() * 4096) / 2.5) * 350);
 
-	if (args.backend_ == "skv") {
-		// Reduce the size to avoid SKV hanging
-		voltages_size_ /= 1000;
-	}
+    if (args.backend() == "skv") {
+        // Reduce the size to avoid SKV hanging
+        voltages_size_ /= 1000;
+    }
 
-	voltages_.reserve(args.cg_);
-	for (unsigned int i = 0; i < voltages_.capacity(); i++) {
-		voltages_.push_back(std::vector<double>());
-	}
+    voltages_.reserve(args.cg());
+    for (unsigned int i = 0; i < voltages_.capacity(); i++) {
+        voltages_.push_back(std::vector<double>());
+    }
 
-	int cg_size = voltages_size_ / args.cg_;
-	int first_size = cg_size + (voltages_size_ % args.cg_);
+    int cg_size = voltages_size_ / args.cg();
+    int first_size = cg_size + (voltages_size_ % args.cg());
+    voltages_[0].reserve(first_size);
 
-	voltages_[0].reserve(first_size);
 
-	for (int i = 1; i < args.cg_; i++) {
-		voltages_[i].reserve(cg_size);
-	}
-
+    for (int i = 1; i < args.cg(); i++) {
+        voltages_[i].reserve(cg_size);
+    }
+    
 	float voltage = 0.1;
 	float inc_v = 1.3;
 	float max_v = 75.0;
@@ -142,12 +152,12 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 	std::cout << "Using " << voltages_size_ << " voltages, sizeof vector is "
 			<< ( voltages_size_ * sizeof(double) ) / (double) (1024 * 1024) << " MB" << std::endl;
 
-	gids_.reserve(args.cg_);
+	gids_.reserve(args.cg());
 	for (unsigned int i = 0; i < gids_.capacity(); i++) {
 		gids_.push_back(rank_ * num_procs_ + i+1);
 	}
 
-	ins_handles_.reserve(args.cg_ * num_its);
+	ins_handles_.reserve(args.cg() * num_its);
 	for (unsigned int i = 0; i < ins_handles_.capacity(); i++) {
 #ifdef SKV_STORE
 		ins_handles_.push_back(skv_client_cmd_ext_hdl_t());
@@ -156,7 +166,7 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 #endif
 	}
 
-	rem_handles_.reserve(args.cg_ * num_its);
+	rem_handles_.reserve(args.cg() * num_its);
 	for (unsigned int i = 0; i < rem_handles_.capacity(); i++) {
 #ifdef SKV_STORE
 		rem_handles_.push_back(skv_client_cmd_ext_hdl_t());
@@ -186,28 +196,28 @@ void KeyValueBench<h>::init(KeyValueArgs & args) {
 
 }
 
-template<int h>
-void KeyValueBench<h>::cleanup(KeyValueArgs & args) {
+template<keyvalue::selector h>
+void KeyValueBench<h>::cleanup(argvs & args) {
 	std::cout << "Removing inserted values" << std::endl;
 
 	//for (float st = 0; st < args.st_; st += args.md_) {
 		//for (float md = 0; md < args.md_; md += dt) {
-			for (int cg = 0; cg < args.cg_; cg++) {
+			for (int cg = 0; cg < args.cg(); cg++) {
 				kv_store_->retrieve(&gids_[cg], sizeof(int), &voltages_[cg][0], voltages_[cg].size() * sizeof(double));
 			}
 		//}
 	//}
 
-	for (float st = 0; st < args.st_; st += args.md_) {
-		for (float md = 0; md < args.md_; md += args.dt_) {
+	for (float st = 0; st < args.st(); st += args.md()) {
+		for (float md = 0; md < args.md(); md += args.dt()) {
 
-			int handle_idx = ( ((st/args.md_) * (args.md_/args.dt_)) + (md/args.dt_) ) * args.cg_;
+			int handle_idx = ( ((st/args.md()) * (args.md()/args.dt())) + (md/args.dt()) ) * args.cg();
 
-			for (int cg = 0; cg < args.cg_; cg++) {
-				kv_store_->remove(&gids_[cg], sizeof(int), &rem_handles_[handle_idx + cg], args.async_);
+			for (int cg = 0; cg < args.cg(); cg++) {
+				kv_store_->remove(&gids_[cg], sizeof(int), &rem_handles_[handle_idx + cg], args.async());
 			}
 
-			for (int cg = 0; args.async_ && cg < args.cg_; cg++) {
+			for (int cg = 0; args.async() && cg < args.cg(); cg++) {
 				kv_store_->wait(&rem_handles_[handle_idx + cg]);
 			}
 
@@ -221,15 +231,10 @@ void KeyValueBench<h>::cleanup(KeyValueArgs & args) {
 //	delete skv_;
 }
 
-
-
-
-template<int h>
-void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
+template<keyvalue::selector h>
+void KeyValueBench<h>::run(argvs & args, stats &stats) {
 
 	init(args);
-
-	int comp_time_us = 100 * args.usecase_ * 1000;
 
 #if _OPENMP < 201307
 	run_loop(args, stats);
@@ -239,23 +244,19 @@ void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 
 	cleanup(args);
 
-	stats.rank_iops_ = stats.rank_iops_ / args.dt_;
-	stats.rank_mbw_ = stats.rank_mbw_ / args.dt_;
+	stats.rank_iops() = stats.rank_iops() / args.dt();
+	stats.rank_mbw() = stats.rank_mbw() / args.dt();
 
-	std::cout << "[" << rank_ << "] I/O: " << stats.rank_iops_ << " IOPS; BW: " << stats.rank_mbw_ << " MB/s" << std::endl;
+	std::cout << "[" << rank_ << "] I/O: " << stats.rank_iops() << " IOPS; BW: " << stats.rank_mbw() << " MB/s" << std::endl;
 
-    MPI_Allreduce( &stats.rank_iops_, &stats.mean_iops_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
-    MPI_Allreduce( &stats.rank_mbw_, &stats.mean_mbw_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+    MPI_Allreduce( &stats.rank_iops(), &stats.mean_iops(), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+    MPI_Allreduce( &stats.rank_mbw(), &stats.mean_mbw(), 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
 
     // Unit conversion
     // IOPS --> KIOPS
-    stats.mean_iops_ = stats.mean_iops_ / 1000;
+    stats.mean_iops() = stats.mean_iops() / 1000;
     // MB/s --> GB/s
-    stats.mean_mbw_ = stats.mean_mbw_ / 1024;
-
-    // Mean values per node
-    //stats.mean_iops_ = stats.mean_iops_ / num_procs_;
-    //stats.mean_mbw_ = stats.mean_mbw_ / num_procs_;
+    stats.mean_mbw() = stats.mean_mbw() / 1024;
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -263,36 +264,35 @@ void KeyValueBench<h>::run(KeyValueArgs & args, KeyValueStats &stats) {
 }
 
 
-
-template<int h>
-void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
+template<keyvalue::selector h>
+void KeyValueBench<h>::run_loop(argvs & args, stats & stats) {
+        std::cout << " judith version " << std::endl;
 #if 1
 	// OPENMP lower than 4.0, no task deps support
 
-	int comp_time_us = 100 * args.usecase_ * 1000;
+	int comp_time_us = 100 * args.usecase() * 1000;
 
-		for (float st = 0; st < args.st_; st += args.md_) {
-			for (float md = 0; md < args.md_; md += args.dt_) {
+		for (float st = 0; st < args.st(); st += args.md()) {
+			for (float md = 0; md < args.md(); md += args.dt()) {
 
 				usleep(comp_time_us);
 
-				int reqs = args.cg_;
+				int reqs = args.cg();
 				unsigned int bytes = voltages_size_ * sizeof(double);
 
 
-				int handle_idx = ( ((st/args.md_) * (args.md_/args.dt_)) + (md/args.dt_) ) * args.cg_;
+				int handle_idx = ( ((st/args.md()) * (args.md()/args.dt())) + (md/args.dt()) ) * args.cg();
 
 				double start = MPI_Wtime();
 
 				//#pragma omp parallel for reduction (+: reqs, bytes) shared(voltages_, gids, ts, cg, ins_handles, async)
-	#pragma omp parallel for shared(voltages_, gids_, st, /*args.cg_,*/ ins_handles_, handle_idx/*, args.async_*/) //num_threads(omp_threads)
-				for (int cg = 0; cg < args.cg_; cg++) {
-
-					kv_store_->insert(&gids_[cg], sizeof(int), &voltages_[cg][0], voltages_[cg].size() * sizeof(double), &ins_handles_[handle_idx + cg], args.async_);
-
+             	#pragma omp parallel for shared(voltages_, gids_, st, /*args.cg_,*/ ins_handles_, handle_idx/*, args.async_*/) //num_threads(omp_threads)
+				for (int cg = 0; cg < args.cg(); cg++) {
+					kv_store_->insert(&gids_[cg], sizeof(int), &voltages_[cg][0], voltages_[cg].size() * sizeof(double),
+                                      &ins_handles_[handle_idx + cg], args.async());
 				}
 
-				for (int cg = 0; args.async_ && cg < args.cg_; cg++) {
+				for (int cg = 0; args.async() && cg < args.cg(); cg++) {
 					kv_store_->wait(&ins_handles_[handle_idx + cg]);
 				}
 
@@ -303,8 +303,8 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 				double mbw = (bytes / time) / (1024 * 1024); // MB/s
 
 				// Add the results for every iteration
-				stats.rank_iops_ += iops;
-				stats.rank_mbw_ += mbw;
+				stats.rank_iops() += iops;
+				stats.rank_mbw() += mbw;
 
 				double g_iops = 0, g_mbw = 0;
 
@@ -313,12 +313,11 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 
 				MPI_Barrier(MPI_COMM_WORLD);
 
-				if (rank_ == 0) {
-					std::cout << "Values inserted for sim time " << st << ", min delay " << md << ", global performance:" << std::endl
-							<< "  Time: " << time << " s. (rank 0)" << std::endl
-							<< "  I/O: " << iops << " IOPS" << std::endl
-							<< "  BW: " << mbw << " MB/s" << std::endl;
-				}
+                std::cout << "Values inserted for sim time " << st
+                          << ", min delay " << md << ", global performance:" << std::endl
+                          << "  Time: " << time << " s. (rank 0)" << std::endl
+                          << "  I/O: " << iops << " IOPS" << std::endl
+                          << "  BW: " << mbw << " MB/s" << std::endl;
 			}
 		}
 #endif
@@ -326,9 +325,11 @@ void KeyValueBench<h>::run_loop(KeyValueArgs & args, KeyValueStats & stats) {
 }
 
 
-template<int h>
-void KeyValueBench<h>::run_task(KeyValueArgs & args) {
+template<keyvalue::selector h>
+void KeyValueBench<h>::run_task(argvs & args) {
 #if 0
+    	int comp_time_us = 100 * args.usecase() * 1000;
+
 	// OPENMP 4.0 or later, support for task deps
 
 		double start, end, start_io, end_io;
@@ -494,23 +495,17 @@ void KeyValueBench<h>::run_task(KeyValueArgs & args) {
 
 		MPI_Barrier(MPI_COMM_WORLD);
 
-		if (mpi_rank == 0) {
-			//std::cout << "Values inserted for sim time " << st << ", min delay " << md << ", global performance:" << std::endl
-			std::cout << "Values inserted, global performance:" << std::endl
-					<< "MPI_Wtime resolution: " << MPI_Wtick() << std::endl
-					<< "  Theoretical computation time is: " << 0.93 * num_its * (comp_time_us) << " us." << std::endl
-					<< "  Computed sleep time is: " << sleep_time << " us." << std::endl
-					<< "  Computation time reference without I/O: " << (end - start) << " s. (rank 0)" << std::endl
-					<< "  Computation time with I/O: " << (end_io - start_io) << " s. (rank 0)" << std::endl
-					<< "  Time: " << time << " s. (rank 0)" << std::endl
-					<< "  I/O: " << iops << " IOPS" << std::endl
-					<< "  BW: " << mbw << " MB/s" << std::endl;
-		}
+        std::cout <<  mapp::mpi_filter_master()() << "Values inserted, global performance:" << std::endl
+                  << "MPI_Wtime resolution: " << MPI_Wtick() << std::endl
+                  << "  Theoretical computation time is: " << 0.93 * num_its * (comp_time_us) << " us." << std::endl
+                  << "  Computed sleep time is: " << sleep_time << " us." << std::endl
+                  << "  Computation time reference without I/O: " << (end - start) << " s. (rank 0)" << std::endl
+                  << "  Computation time with I/O: " << (end_io - start_io) << " s. (rank 0)" << std::endl
+                  << "  Time: " << time << " s. (rank 0)" << std::endl
+                  << "  I/O: " << iops << " IOPS" << std::endl
+                  << "  BW: " << mbw << " MB/s" << std::endl;
 
 #endif
 
 }
-
-
-
 

@@ -20,88 +20,209 @@
 
 /**
  * @file neuromapp/key-value/mpikey-value.h
- * contains declaration for the KeyValueBench class and its related classes KeyValueArgs and KeyValueStats
+ * contains declaration for the KeyValueBench class and its related classes argvs and stats
  */
 
-
-#include <mpi.h>
-#include <vector>
-
-#include "key-value/kv-iface.h"
 
 #ifndef mpikeyvalue_h
 #define mpikeyvalue_h
 
-class KeyValueArgs {
-	public:
-		int			procs_;
-		int			threads_;
-		std::string	backend_;
-		bool 		async_;
-		bool		flash_;
-		int			usecase_;
-		float		st_;
-		float		md_;
-		float		dt_;
-		int			cg_;
+#include <mpi.h>
+#include <vector>
+#include <numeric>
+#include <functional>
 
-		KeyValueArgs(int procs, int threads, std::string backend, bool async,
-				bool flash, int uc, float st, float md, float dt, int cg) :
+#include "key-value/kv-iface.h"
+#include "key-value/meta.h"
+#include "key-value/memory.h"
+#include "key-value/utils/tools.h"
+#include "key-value/map/map_store.h"
+
+class argvs {
+private:
+    int			procs_;
+    int			threads_;
+    std::string	backend_;
+    bool 		async_;
+    bool		flash_;
+    int			usecase_;
+    float		st_;
+    float		md_;
+    float		dt_;
+    int			cg_;
+    int         voltages_size_;
+
+public:
+    explicit argvs(int procs = 1, int threads = 1 , std::string backend = "map", bool async = false,
+                 bool flash = false, int uc = 1, float st = 1., float md = 0.1, float dt = 0.025, int cg = 1) :
 					procs_(procs), threads_(threads), backend_(backend), async_(async),
-					flash_(flash), usecase_(uc), st_(st), md_(md), dt_(dt), cg_(cg) {}
+					flash_(flash), usecase_(uc), st_(st), md_(md), dt_(dt), cg_(cg),
+                    voltages_size_(usecase_*4096/2.5*350){}
 
-		KeyValueArgs() : procs_(1), threads_(1), backend_("map"), async_(false),
-				flash_(false), usecase_(1), st_(1.0), md_(0.1), dt_(0.025), cg_(1) {}
+    inline int voltage_size() const{
+        return voltages_size_;
+    }
+    
+    inline int procs() const {
+        return procs_;
+    }
 
-		~KeyValueArgs(){}
+    inline int threads() const {
+        return threads_;
+    }
 
+    inline std::string backend() const {
+        return backend_;
+    }
+
+    inline bool async() const {
+        return async_;
+    }
+
+    inline bool flash() const {
+        return flash_;
+    }
+
+    inline int usecase() const{
+        return usecase_;
+    }
+
+    inline float st() const{
+        return st_;
+    }
+
+    inline float md() const{
+        return md_;
+    }
+
+    inline float dt() const{
+        return dt_;
+    }
+
+    inline int cg() const{
+        return cg_;
+    }
+    
+    inline int &voltage_size(){
+        return voltages_size_;
+    }
+
+    inline int &procs()  {
+        return procs_;
+    }
+
+    inline int &threads()  {
+        return threads_;
+    }
+
+    inline std::string &backend()  {
+        return backend_;
+    }
+
+    inline bool &async()  {
+        return async_;
+    }
+
+    inline bool &flash()  {
+        return flash_;
+    }
+
+    inline int &usecase() {
+        return usecase_;
+    }
+
+    inline float &st() {
+        return st_;
+    }
+
+    inline float &md() {
+        return md_;
+    }
+
+    inline float &dt() {
+        return dt_;
+    }
+
+    inline int &cg() {
+        return cg_;
+    }
 };
 
-class KeyValueStats {
+class stats {
 	public:
-		double mean_iops_;
+    stats():mean_iops_(0.), mean_mbw_(0.), rank_iops_(0.), rank_mbw_(0.){}
+
+    inline double& mean_iops(){
+        return mean_iops_;
+    }
+
+    inline double const& mean_iops() const{
+        return mean_iops_;
+    }
+
+    inline double& mean_mbw(){
+        return mean_mbw_;
+    }
+
+    inline double const& mean_mbw() const{
+        return mean_mbw_;
+    }
+
+    inline double& rank_iops(){
+        return rank_iops_;
+    }
+
+    inline double const& rank_iops() const{
+        return rank_iops_;
+    }
+
+    inline double& rank_mbw(){
+        return rank_mbw_;
+    }
+
+    inline double const& rank_mbw() const{
+        return rank_mbw_;
+    }
+
+    private:
+        double mean_iops_;
 		double mean_mbw_;
 		double rank_iops_;
 		double rank_mbw_;
-
-		KeyValueStats() : mean_iops_(0), mean_mbw_(0), rank_iops_(0), rank_mbw_(0) {}
-		~KeyValueStats() {}
 };
 
-enum handle {
-	none = 0,
-	skv
-};
-
-template<int h>
+template<keyvalue::selector h>
 struct trait_handle;
 
 template<>
-struct trait_handle<none>{
+struct trait_handle<keyvalue::selector::map>{
 		typedef void* value_type;
 };
 
 template<>
-struct trait_handle<skv>{
+struct trait_handle<keyvalue::selector::skv>{
 #ifdef SKV_IBM
 		typedef skv_client_cmd_ext_hdl_t value_type;
 #endif
 };
 
-template<int h = none>
+template<keyvalue::selector h = keyvalue::map>
 class KeyValueBench {
 private:
 
+    // should be outside MPI later
 	int rank_;
 	int num_procs_;
 	int num_threads_;
 
+    // delete in the nex version
 	KeyValueIface * kv_store_;
-	int voltages_size_;
-	std::vector< std::vector<double> > voltages_;
 
-	std::vector<int> gids_;
+	std::vector<std::vector<double> > voltages_;
+    std::vector<int > gids_ ;
+    int voltages_size_;
 
+    //the data
 	std::vector<typename trait_handle<h>::value_type > ins_handles_;
 	std::vector<typename trait_handle<h>::value_type> rem_handles_;
 
@@ -111,43 +232,45 @@ public:
 	    \param rank the rank of this processes
 	    \param size the number of MPI processes
 	 */
-	explicit KeyValueBench(int rank = 0, int size = 1) : rank_(rank), num_procs_ (size), num_threads_(1),
-			kv_store_(NULL), voltages_size_(0) {}
+	explicit KeyValueBench(int rank = 0, int size = 1) : rank_(rank), num_procs_ (size), num_threads_(1),kv_store_(NULL){
+            rank_ = keyvalue::utils::master.rank();
+            num_procs_ = keyvalue::utils::master.size();
+    }
 
 	/** \fn getNumThreads()
 	    \brief return the number of OpenMP threads
 	 */
 	inline int getNumThreads() { return num_threads_; }
 
-	/** \fn parseArgs(int argc, char* argv[], KeyValueArgs &args)
+	/** \fn parseArgs(int argc, char* argv[], argvs &args)
 	    \brief parse user arguments and set simulation parameters
 	 */
-	inline void parseArgs(int argc, char* argv[], KeyValueArgs &args);
+	inline void parseArgs(int argc, char* argv[], argvs &args);
 
-	/** \fn init(KeyValueArgs &args)
+	/** \fn init(argvs &args)
 	    \brief initialize the data structures needed for the simulation
 	 */
-	inline void init(KeyValueArgs &args);
+	inline void init(argvs &args);
 
-	/** \fn cleanup(KeyValueArgs &args)
+	/** \fn cleanup(argvs &args)
 	    \brief clean up the data structures created for the simulation
 	 */
-	inline void cleanup(KeyValueArgs &args);
+	inline void cleanup(argvs &args);
 
-	/** \fn run(KeyValueArgs &args, KeyValueStats &stats)
+	/** \fn run(argvs &args, stats &stats)
 	    \brief run the I/O simulation, calls init and cleanup as well
 	 */
-	inline void run(KeyValueArgs &args, KeyValueStats &stats);
+	inline void run(argvs &args, stats &stats);
 
-	/** \fn run_loop(KeyValueArgs &args)
+	/** \fn run_loop(argvs &args)
 	    \brief run the I/O simulation as a single, large OpenMP loop
 	 */
-	inline void run_loop(KeyValueArgs &args, KeyValueStats &stats);
+	inline void run_loop(argvs &args, stats &stats);
 
-	/** \fn run_task(KeyValueArgs &args)
+	/** \fn run_task(argvs &args)
 	    \brief run the I/O simulation as OpenMP tasks and dependencies
 	 */
-	inline void run_task(KeyValueArgs &args);
+	inline void run_task(argvs &args);
 };
 
 #include "key-value/mpikey-value.ipp"
