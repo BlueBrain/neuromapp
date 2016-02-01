@@ -42,6 +42,7 @@
 #include "queueing/queue.h"
 #include "queueing/spinlock_queue.h"
 #include "queueing/lock.h"
+#include "queueing/path.h.in"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -91,12 +92,17 @@ public:
 	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {
 		input_parameters p;
 		char name[] = "coreneuron_1.0_cstep_data";
-		char data[] ="./test/bench.101392/bench.101392";
+		std::string data = mapp::helper_build_path::test_data_path() + "bench.101392/bench.101392";
 		p.name = name;
-		p.d = data;
+
+		std::vector<char> chardata(data.begin(), data.end());
+		chardata.push_back('\0');
+		p.d = &chardata[0];
     	nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
 		if(nt_ == NULL){
+			std::cout<<"Error: Unable to open data file"<<std::endl;
 			storage_clear(p.name);
+			exit(EXIT_FAILURE);
 		}
 	}
 
