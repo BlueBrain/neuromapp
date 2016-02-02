@@ -269,13 +269,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(thread_enqueue, T, full_test_types){
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(thread_deliver, T, full_test_types){
-	queueing::NrnThreadData<IMPL> nt;
-	nt.selfSend(0.0,4.0);
-	nt.interThreadSend(0.0,1.0);
-	nt.interThreadSend(0.0,2.0);
-	nt.interThreadSend(0.0,3.0);
-	nt.selfSend(0.0,5.0);
-	nt.enqueueMyEvents();
+    queueing::NrnThreadData<IMPL> nt;
+    nt.selfSend(0.0,4.0);
+    nt.interThreadSend(0.0,1.0);
+    nt.interThreadSend(0.0,2.0);
+    nt.interThreadSend(0.0,3.0);
+    nt.selfSend(0.0,5.0);
+    nt.enqueueMyEvents();
 	nt.selfSend(0.0,6.0);
     BOOST_CHECK(nt.PQSize() == 6);
 
@@ -285,14 +285,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(thread_deliver, T, full_test_types){
     BOOST_CHECK(nt.PQSize() == 5);
 
 	//deliver the next 2
-	while(nt.deliver(0,3));
+	while(nt.deliver(0,3))
+;
     BOOST_CHECK(nt.delivered_ == 3);
     BOOST_CHECK(nt.PQSize() == 3);
 	std::cout<<"Delivered "<<nt.delivered_<<std::endl;
 	std::cout<<"PQSize "<<nt.PQSize()<<std::endl;
 
 	//deliver the remaining
-	while(nt.deliver(0,6));
+	while(nt.deliver(0,6))
+;
     BOOST_CHECK(nt.delivered_ == 6);
     BOOST_CHECK(nt.PQSize() == 0);
 }

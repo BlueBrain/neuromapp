@@ -97,9 +97,8 @@ public:
 
 		std::vector<char> chardata(data.begin(), data.end());
 		chardata.push_back('\0');
-		std::cout<<data<<std::endl;
 		p.d = &chardata[0];
-    	nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
+                nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
 		if(nt_ == NULL){
 			std::cout<<"Error: Unable to open data file"<<std::endl;
 			storage_clear(p.name);
