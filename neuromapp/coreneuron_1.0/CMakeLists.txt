@@ -46,12 +46,11 @@ install (FILES  kernel/mechanism/mechanism.h
 				kernel/kernel.h
 				solver/solver.h
 				cstep/cstep.h
+				common/data/helper.h
 				queueing/queue.h
 				queueing/pool.h
 				queueing/queueing.h
 				queueing/spinlock_apple.h
 				queueing/spinlock_queue.h
 				queueing/thread.h
-				path.h
-				helper.h
 				DESTINATION include)
