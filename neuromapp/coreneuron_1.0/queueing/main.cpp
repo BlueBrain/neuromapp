@@ -100,9 +100,10 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
 template<implementation I>
 void run_sim(Pool<I> &pl, po::variables_map const&vm){
     struct timeval start, end;
+	pl.generateAllEvents(vm["simtime"].as<int>());
     gettimeofday(&start, NULL);
     for(int j = 0; j < vm["simtime"].as<int>(); ++j){
-        pl.timeStep(vm["simtime"].as<int>());
+        pl.timeStep();
 		pl.handleSpike(vm["simtime"].as<int>());
     }
 	pl.accumulate_stats();
