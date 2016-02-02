@@ -31,7 +31,7 @@
 
 #include "coreneuron_1.0/common/util/nrnthread_handler.h"
 
-#include "coreneuron_1.0/common/data/path.h.in" // this file is generated automatically
+#include "neuromapp/coreneuron_1.0/common/data/path.h" // this file is generated automatically
 #include "coreneuron_1.0/common/data/helper.h" // common functionalities
 
 #include "utils/error.h"
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(storage_test){
 
     double ra = s.get<double>("double");
     int rb = s.get<int>("int");
-    
+
     BOOST_CHECK(ra==a);
     BOOST_CHECK(rb==b);
 
