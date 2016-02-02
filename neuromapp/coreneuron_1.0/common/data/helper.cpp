@@ -61,9 +61,9 @@ namespace mapp{
 
         std::string data = mapp::data_ref() + "rhs_d_"+mechanism;
 
-//        std::ofstream outfile(data);
-//        for(int i=0; i < size;++i)
-//            outfile << " "  << d[i] << " " <<  rhs[i] << "\n";
+//      std::ofstream outfile(data.c_str());
+//      for(int i=0; i < size;++i)
+//          outfile << " "  << d[i] << " " <<  rhs[i] << "\n";
 
         std::ifstream infile(data.c_str(),std::ifstream::in);
 

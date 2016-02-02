@@ -151,7 +151,6 @@ public:
                     // Use imitation of the point_receive of CoreNeron.
                     // Varies per a specific simulation case.
                     // Uses reduced version of net_receive of ProbAMPANMDA mechanism.
-                    //usleep(10);
                     mech_net_receive(nt_,&(nt_->ml[18]));
                     return true;
 		}

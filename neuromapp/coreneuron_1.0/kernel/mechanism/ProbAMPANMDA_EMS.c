@@ -149,7 +149,6 @@ void mech_net_receive(NrnThread *_nt, Mechanism *_ml)
    int _cntml = _ml->nodecount;
    double* _p = _ml->data;
    double _args[5] = {0.21996815502643585, 0., 0., 0., 0.};
-   _tsav = t;
    double _lresult ;
    _args[1] = _args[0] ;
    _args[2] = _args[0] * NMDA_ratio ;
