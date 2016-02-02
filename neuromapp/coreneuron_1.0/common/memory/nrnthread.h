@@ -68,7 +68,7 @@ typedef struct NrnThread {
     /** time */
     double _t;
     /** step time */
-    double dt;
+    double _dt;
     /** Total non-mechanism data allocated in one (contiguous) region */
     double *_data;
     /** Righ hand side of the sparse matrix, alias in _data */

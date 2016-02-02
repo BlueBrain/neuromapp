@@ -26,7 +26,7 @@
  */
 #include <string.h>
 #include "app/driver.h"
-#include "test/coreneuron_1.0/helper.h"
+#include "coreneuron_1.0/common/data/helper.h"
 
 namespace mapp{
 

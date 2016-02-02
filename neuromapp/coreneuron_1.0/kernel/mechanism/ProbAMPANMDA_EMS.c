@@ -143,17 +143,6 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
    }
 }
 
-double rand_mock_generator()
-{
-    double res;
-    do{
-        long int randu = rand();
-        double* prand = (double*)(&randu);
-        res = fabs(*prand);
-    }while(res == NAN || res == INFINITY);
-    return res;
-}
-
 void mech_net_receive(NrnThread *_nt, Mechanism *_ml)
 {
    int _iml;
@@ -176,7 +165,7 @@ void mech_net_receive(NrnThread *_nt, Mechanism *_ml)
    tsyn_fac = t ;
    if ( Rstate  == 0.0 ) {
      _args[3] = exp ( - ( t - _args[4] ) / Dep ) ;
-     _lresult = rand_mock_generator();
+     _lresult = 1.0 - (1.0 / (1.0 + _args[3]));
      if ( _lresult > _args[3] ) {
        Rstate = 1.0 ;
        }
@@ -185,7 +174,7 @@ void mech_net_receive(NrnThread *_nt, Mechanism *_ml)
        }
      }
    if ( Rstate  == 1.0 ) {
-     _lresult = rand_mock_generator();
+     _lresult = 1.0 - (1.0 / (1.0 + u));
      if ( _lresult < u ) {
        _args[4] = t ;
        Rstate = 0.0 ;

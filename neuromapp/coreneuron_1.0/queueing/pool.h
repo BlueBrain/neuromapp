@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/pool.h
+ * @file neuromapp/coreneuron_1.0/queueing/pool.h
  * \brief Contains Pool class declaration.
  */
 
@@ -32,7 +32,7 @@
 #include <ctime>
 #include <numeric>
 
-#include "queueing/thread.h"
+#include "coreneuron_1.0/queueing/thread.h"
 #include "utils/storage/neuromapp_data.h"
 
 #ifdef _OPENMP
@@ -52,6 +52,7 @@ class Pool {
 private:
 	int time_;
 	bool v_;
+	bool perform_algebra_;
 	int percent_ITE_;
 	int events_per_step_;
 	int all_spiked_;
@@ -61,20 +62,20 @@ private:
 	boost::array<NrnThreadData<I>,64> threadDatas;
 
 public:
-	/** \fn Pool(bool verbose, int eventsPer, int percent_ITE_, bool isSpike)
+	/** \fn Pool(bool verbose, int eventsPer, int percent_ITE_, bool isSpike, bool algebra)
 	    \brief initializes a Pool with a threadDatas array
 	    \param verbose verbose mode: 1 = on, 0 = off
 	    \param events_per_step_ number of events per time step
 	    \param percent_ITE_ is the percentage of inter-thread events
 	    \param isSpike determines whether or not there are spike events
-	    \param isSpike determines whether to use spinlock implementation instead of mutex
+	    \param algebra determines whether to perform linear algebra calculations
 	 */
-	explicit Pool(bool verbose=false, int eventsPer=0, int pITE=0, bool isSpike=0):
-			v_(verbose), events_per_step_(eventsPer), percent_ITE_(pITE),
-			all_spiked_(0), time_(0){
-		percent_spike_ = isSpike ? 3:0;
-		std::cout<<"isSpike = "<<isSpike<<std::endl;
-   		srand(time(NULL));
+	explicit Pool(bool verbose=false, int eventsPer=0, int pITE=0, bool isSpike=0, bool algebra=0):
+	v_(verbose), events_per_step_(eventsPer), percent_ITE_(pITE),
+	perform_algebra_(algebra), all_spiked_(0), time_(0){
+				percent_spike_ = isSpike ? 3:0;
+				std::cout<<"isSpike = "<<isSpike<<std::endl;
+   				srand(time(NULL));
 	}
 
 	/** \fn accumulate_stats()
@@ -119,9 +120,16 @@ public:
 	    #pragma omp parallel for schedule(static,1)
 	    for(int i=0; i < size; ++i){
 			generateEvents(totalTime,i);
-			threadDatas[i].enqueueMyEvents();
+
 			//Have threads enqueue their interThreadEvents
-			while(threadDatas[i].deliver(i, time_)); // deliver
+			threadDatas[i].enqueueMyEvents();
+
+			if(perform_algebra_)
+				threadDatas[i].l_algebra(totalTime);
+
+                        /// Deliver events
+			while(threadDatas[i].deliver(i, time_));
+
 	    }
 	    time_++;
 	}

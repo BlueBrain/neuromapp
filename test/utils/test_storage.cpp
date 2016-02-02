@@ -31,8 +31,8 @@
 
 #include "coreneuron_1.0/common/util/nrnthread_handler.h"
 
-#include "test/coreneuron_1.0/path.h" // this file is generated automatically
-#include "test/coreneuron_1.0/helper.h" // common functionalities
+#include "coreneuron_1.0/common/data/path.h.in" // this file is generated automatically
+#include "coreneuron_1.0/common/data/helper.h" // common functionalities
 
 #include "utils/error.h"
 #include "utils/storage/storage.h"

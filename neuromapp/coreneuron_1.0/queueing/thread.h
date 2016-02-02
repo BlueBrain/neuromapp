@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/thread.h
+ * @file neuromapp/coreneuron_1.0/queueing/thread.h
  * \brief Contains NrnThreadData class declaration.
  */
 
@@ -32,9 +32,17 @@
 #include <cassert>
 #include <unistd.h>
 
-#include "queueing/queue.h"
-#include "queueing/spinlock_queue.h"
-#include "queueing/lock.h"
+#include "coreneuron_1.0/kernel/mechanism/mechanism.h"
+#include "coreneuron_1.0/kernel/helper.h"
+#include "coreneuron_1.0/common/memory/nrnthread.h"
+#include "coreneuron_1.0/common/util/nrnthread_handler.h"
+#include "coreneuron_1.0/solver/hines.h"
+#include "utils/storage/storage.h"
+
+#include "coreneuron_1.0/queueing/queue.h"
+#include "coreneuron_1.0/queueing/spinlock_queue.h"
+#include "coreneuron_1.0/queueing/lock.h"
+#include "coreneuron_1.0/common/data/helper.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -69,6 +77,7 @@ template<implementation I>
 class NrnThreadData{
 private:
 	queue qe_;
+	NrnThread* nt_;
 	InterThread<I> inter_thread_events_;
 public:
 	int ite_received_;
@@ -80,7 +89,23 @@ public:
 	    \param i provides the thread id for this NrnThreadData
 	    \param verbose verbose mode: 1 = ON, 0 = OFF
 	 */
-	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {}
+	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {
+		input_parameters p;
+		char name[] = "coreneuron_1.0_cstep_data";
+		std::string data = mapp::data_test();
+		p.name = name;
+
+		std::vector<char> chardata(data.begin(), data.end());
+		chardata.push_back('\0');
+		std::cout<<data<<std::endl;
+		p.d = &chardata[0];
+    	nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
+		if(nt_ == NULL){
+			std::cout<<"Error: Unable to open data file"<<std::endl;
+			storage_clear(p.name);
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	/** \fn void selfSend(double d, double tt)
 	 *  \brief send an item directly to my priority queue
@@ -90,6 +115,26 @@ public:
 	void selfSend(double d, double tt){
 		enqueued_++;
 		qe_.insert(tt, d);
+	}
+
+	/** \fn void l_algebra()
+	 *  \brief performs the mechanism calculations/updates for linear algebra
+	 */
+	void l_algebra(int time){
+                nt_->_t = static_cast<double>(time);
+
+   		//Update the current
+   		mech_current_NaTs2_t(nt_,&(nt_->ml[17]));
+   		mech_current_Ih(nt_,&(nt_->ml[10]));
+   		mech_current_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
+
+ 		//Call solver
+                nrn_solve_minimal(nt_);
+
+                //Update the states
+                mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
+                mech_state_Ih(nt_,&(nt_->ml[10]));
+                mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
 	}
 
 	/** \fn bool deliver(int id, int til)
@@ -102,13 +147,14 @@ public:
 		event q;
 		if(qe_.atomic_dq(til,q)){
 		    delivered_++;
-			assert((int)q.data_ == id);
+                    assert((int)q.data_ == id);
 
-			// Use imitation of the point_receive calculation time (ms).
-			// Varies per a specific simulation case.
-			//usleep(10);
-
-			return true;
+                    // Use imitation of the point_receive of CoreNeron.
+                    // Varies per a specific simulation case.
+                    // Uses reduced version of net_receive of ProbAMPANMDA mechanism.
+                    //usleep(10);
+                    mech_net_receive(nt_,&(nt_->ml[18]));
+                    return true;
 		}
 		return false;
 	}

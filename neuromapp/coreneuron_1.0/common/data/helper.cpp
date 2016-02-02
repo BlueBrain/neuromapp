@@ -29,7 +29,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 
-#include "test/coreneuron_1.0/helper.h"
+#include "coreneuron_1.0/common/data/helper.h"
 
 extern "C" {
 #include "utils/storage/storage.h"
