@@ -126,7 +126,7 @@ public:
 			threadDatas[i].enqueueMyEvents();
 
 			if(perform_algebra_)
-				threadDatas[i].l_algebra(totalTime);
+				threadDatas[i].l_algebra(time_);
 
                         /// Deliver events
 			while(threadDatas[i].deliver(i, time_));

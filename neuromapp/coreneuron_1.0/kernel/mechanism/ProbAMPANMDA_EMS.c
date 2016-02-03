@@ -145,7 +145,7 @@ void mech_current_ProbAMPANMDA_EMS(NrnThread *_nt, Mechanism *_ml)
 
 void mech_net_receive(NrnThread *_nt, Mechanism *_ml)
 {
-   int _iml;
+   int _iml = 0;
    int _cntml = _ml->nodecount;
    double* _p = _ml->data;
    double _args[5] = {0.21996815502643585, 0., 0., 0., 0.};
