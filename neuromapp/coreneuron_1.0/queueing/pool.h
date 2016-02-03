@@ -56,10 +56,11 @@ private:
 	int percent_ITE_;
 	int events_per_step_;
 	int all_spiked_;
+	const static int cell_groups_ = 64;
 	const static int min_delay_ = 5;
 	int percent_spike_;
 
-	boost::array<NrnThreadData<I>,64> threadDatas;
+	boost::array<NrnThreadData<I>,cell_groups_> threadDatas;
 
 public:
 	/** \fn Pool(bool verbose, int eventsPer, int percent_ITE_, bool isSpike, bool algebra)
@@ -115,17 +116,17 @@ public:
 	    \brief master function to call generate, enqueue, and deliver
 	    \param totalTime tells the provides the total simulation time
 	 */
-	void timeStep(int totalTime){
+	void timeStep(){
 	    int size = threadDatas.size();
 	    #pragma omp parallel for schedule(static,1)
 	    for(int i=0; i < size; ++i){
-			generateEvents(totalTime,i);
+			sendEvents(i);
 
 			//Have threads enqueue their interThreadEvents
 			threadDatas[i].enqueueMyEvents();
 
 			if(perform_algebra_)
-				threadDatas[i].l_algebra(totalTime);
+				threadDatas[i].l_algebra(time_);
 
                         /// Deliver events
 			while(threadDatas[i].deliver(i, time_));
@@ -134,35 +135,55 @@ public:
 	    time_++;
 	}
 
-	/** \fn void generateEvents(int totalTime, int myID)
-	    \brief creates events which are sent to random destination threads
-	    \param totalTime tells the provides the total simulation time
-	    \param i the thread index
+	/** \fn void generateEvents(int totalTime)
+	    \brief creates all events for each thread that will be sent and received during the simulation lifetime.
+		these are stored in the vector generated_events[]
+	    \param totalTime provides the total simulation time
+		\postcond all events for the simulation are generated
 	 */
-	void generateEvents(int totalTime, int myID){
-	    //events can be generated with time range: (current time) to (current time + 10%)
-	    int diff(1);
-	    if(totalTime > 10)
-	        diff = rand() % (totalTime/10);
-	    /// Simulated target of a NetCon and the event time
-	    double tt = double();
-	    double data = double();
-	    int dst_nt = myID;
-	    for(int j=0; j < events_per_step_; ++j){
-			//set time_ to be some time in the future t + diff
-			tt = static_cast<double>(time_ + diff);
-			if(percent_ITE_ > 0)
-			    dst_nt = chooseDst(myID);
-			else
-			    dst_nt = myID;
+	void generateAllEvents(int totalTime){
+		for(int i = 0; i < cell_groups_; ++i){
+			for(int j = 0; j < totalTime; ++j){
+	    		/// Simulated target of a NetCon and the event time
+				double tt = double();
+				double data = double();
+				int dst_nt = i;
+				for(int k = 0; k < events_per_step_; ++k){
+					//events can be generated with time range: (current time) to (current time + 10%)
+					int diff = 1;
+					if(totalTime > 10)
+	    			    diff = rand() % (totalTime/10);
 
-			data = static_cast<double>(dst_nt);
+					//set time_ to be some time in the future t + diff
+					tt = static_cast<double>(j + diff);
+					if(percent_ITE_ > 0)
+					    dst_nt = chooseDst(i);
+					else
+			    		dst_nt = i;
 
-			if (dst_nt == myID)
-			    threadDatas[dst_nt].selfSend(data, tt);
+					data = static_cast<double>(dst_nt);
+					threadDatas[i].push_generated_event(data, tt);
+				}
+	    	}
+		}
+	}
+
+	/** \fn sendEvents(int myID)
+	 *  \brief sends event to it's destination
+	 *  \param myID the thread index
+	 *  \precond generateAllEvents has been called
+	 *  \postcond threadDatas[myID].generated_events size -= 1
+	 */
+	void sendEvents(int myID){
+		for(int i = 0; i < events_per_step_; ++i){
+			event e = threadDatas[myID].pop_generated_event();
+			int dst_nt = static_cast<int>(e.data_);
+			//if destination id is my own, self event
+			if(dst_nt == myID)
+				threadDatas[dst_nt].selfSend(e.data_, e.t_);
 			else
-			    threadDatas[dst_nt].interThreadSend(data, tt + min_delay_);
-	    }
+				threadDatas[dst_nt].interThreadSend(e.data_, (e.t_ + min_delay_));
+		}
 	}
 
 	/** \fn void handleSpike(int totalTime)
@@ -196,9 +217,10 @@ public:
 	 */
 	int chooseDst(int myID){
 	    int dst = myID;
-	    if ((rand() % 100) < percent_ITE_) //if destination is another thread
-		while(dst == myID)
-		    dst = rand() % threadDatas.size();
+	    if ((rand() % 100) < percent_ITE_){ //if destination is another thread
+			while(dst == myID)
+		    	dst = rand() % threadDatas.size();
+		}
 
 	    return dst;
 	}
