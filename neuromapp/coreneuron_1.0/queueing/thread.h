@@ -79,6 +79,7 @@ private:
 	queue qe_;
 	NrnThread* nt_;
 	InterThread<I> inter_thread_events_;
+	std::vector<event> generated_events_;
 public:
 	int ite_received_;
 	int enqueued_;
@@ -166,6 +167,17 @@ public:
 	 *  \return the size of qe_
 	 */
 	size_t PQSize(){return qe_.size();}
+
+    void push_generated_event(double d, double tt){
+		event e(d, tt, true);
+		generated_events_.push_back(e);
+	}
+
+    event pop_generated_event(){
+		event e = generated_events_.back();
+		generated_events_.pop_back();
+		return e;
+	}
 
 	/** \fn void interThreadSend(double d, double tt)
 	    \brief sends an Event to the destination thread's array

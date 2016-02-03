@@ -5,9 +5,10 @@ Description of the simulation:
 	priority queue to sort events based on time and an inter_thread_events_ queue
 	to pass events between threads. The algorithm can be explained in 4 steps:
 
-	1. Generate Events: Each thread generates a specified number of "event" items.
-	Depending on the event's destination, these are either stored in the
-	local priority queue, or sent to another thread's inter_thread_events_ queue.
+	1. Send Events: Each thread takes from a list of generated events (which is
+	filled at the start of the simulation). Depending on the event's destination,
+	these are either stored in the local priority queue, or sent to another
+	thread's inter_thread_events_ queue.
 
 	2. Each thread enqueues all event from it's inter_thread_events_ queue into
 	it's priority queue.
