@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(storage_test){
 
     double ra = s.get<double>("double");
     int rb = s.get<int>("int");
-    
+
     BOOST_CHECK(ra==a);
     BOOST_CHECK(rb==b);
 

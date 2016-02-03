@@ -79,7 +79,7 @@ int nrnthread_copy(const NrnThread *p, NrnThread *nt){
     long int offset;
     int ne;
 
-    nt->dt = p->dt;
+    nt->_dt = p->_dt;
     nt->_ndata = p->_ndata;
 
     nt->_data = memcpy_align(p->_data, 64, sizeof(double) * nt->_ndata);
@@ -193,7 +193,7 @@ int nrnthread_read(FILE *hFile, NrnThread *nt) {
     if (!hFile)
         return MAPP_BAD_DATA; // the input does not exists stop;
 
-    nt->dt = 0.025;
+    nt->_dt = 0.025;
 
     fscanf(hFile, "%d\n", &nt->_ndata);
     nt->_data =  (double*)ecalloc_align(nt->_ndata, NRN_SOA_BYTE_ALIGN, sizeof(double));

@@ -99,7 +99,7 @@ public:
 		std::vector<char> chardata(data.begin(), data.end());
 		chardata.push_back('\0');
 		p.d = &chardata[0];
-    	nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
+                nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
 		if(nt_ == NULL){
 			std::cout<<"Error: Unable to open data file"<<std::endl;
 			storage_clear(p.name);
@@ -120,19 +120,21 @@ public:
 	/** \fn void l_algebra()
 	 *  \brief performs the mechanism calculations/updates for linear algebra
 	 */
-	void l_algebra(){
+	void l_algebra(int time){
+                nt_->_t = static_cast<double>(time);
+
    		//Update the current
    		mech_current_NaTs2_t(nt_,&(nt_->ml[17]));
    		mech_current_Ih(nt_,&(nt_->ml[10]));
    		mech_current_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
 
  		//Call solver
-   		nrn_solve_minimal(nt_);
+                nrn_solve_minimal(nt_);
 
-    	//Update the states
-    	mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
-    	mech_state_Ih(nt_,&(nt_->ml[10]));
-   		mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
+                //Update the states
+                mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
+                mech_state_Ih(nt_,&(nt_->ml[10]));
+                mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
 	}
 
 	/** \fn bool deliver(int id, int til)
@@ -145,12 +147,13 @@ public:
 		event q;
 		if(qe_.atomic_dq(til,q)){
 		    delivered_++;
-			assert((int)q.data_ == id);
+                    assert((int)q.data_ == id);
 
-			// Use imitation of the point_receive calculation time (ms).
-			// Varies per a specific simulation case.
-			//usleep(10);
-			return true;
+                    // Use imitation of the point_receive of CoreNeron.
+                    // Varies per a specific simulation case.
+                    // Uses reduced version of net_receive of ProbAMPANMDA mechanism.
+                    mech_net_receive(nt_,&(nt_->ml[18]));
+                    return true;
 		}
 		return false;
 	}
