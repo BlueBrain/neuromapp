@@ -134,23 +134,24 @@ public:
 	}
 
 	/** \fn void generateEvents(int totalTime)
-	    \brief creates events which are sent to random destination threads
+	    \brief creates all events for each thread that will be sent and received during the simulation lifetime.
+		these are stored in the vector generated_events[]
 	    \param totalTime provides the total simulation time
 		\postcond all events for the simulation are generated
 	 */
 	void generateAllEvents(int totalTime){
 		for(int i = 0; i < cell_groups_; ++i){
 			for(int j = 0; j < totalTime; ++j){
-				//events can be generated with time range: (current time) to (current time + 10%)
-				int diff = 1;
-				if(totalTime > 10)
-	    		    diff = rand() % (totalTime/10);
-
 	    		/// Simulated target of a NetCon and the event time
 				double tt = double();
 				double data = double();
 				int dst_nt = i;
 				for(int k = 0; k < events_per_step_; ++k){
+					//events can be generated with time range: (current time) to (current time + 10%)
+					int diff = 1;
+					if(totalTime > 10)
+	    			    diff = rand() % (totalTime/10);
+
 					//set time_ to be some time in the future t + diff
 					tt = static_cast<double>(j + diff);
 					if(percent_ITE_ > 0)
