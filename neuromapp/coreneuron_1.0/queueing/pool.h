@@ -70,9 +70,9 @@ public:
 	    \param isSpike determines whether or not there are spike events
 	    \param algebra determines whether to perform linear algebra calculations
 	 */
-	explicit Pool(bool verbose=false, int eventsPer=0, int pITE=0, bool isSpike=0, bool algebra=0):
-	v_(verbose), events_per_step_(eventsPer), percent_ITE_(pITE),
-	perform_algebra_(algebra), all_spiked_(0), time_(0){
+	explicit Pool(bool verbose=false, int eventsPer=0, int pITE=0,
+    bool isSpike=false, bool algebra=false): v_(verbose), percent_ITE_(pITE),
+	events_per_step_(eventsPer),perform_algebra_(algebra), all_spiked_(0), time_(0){
 				percent_spike_ = isSpike ? 3:0;
 				std::cout<<"isSpike = "<<isSpike<<std::endl;
    				srand(time(NULL));
