@@ -31,7 +31,6 @@ add_executable(MPI_Exec_kv mpiexec.cpp)
 # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
 target_link_libraries (MPI_Exec_kv map_store ${MPI_LIBRARIES}) 
 
->>>>>>> first version it works
 
 if(IS_DIRECTORY ${SKV_PATH})
   include_directories(${SKV_PATH}/include)

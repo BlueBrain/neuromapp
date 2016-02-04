@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
-
 #include <mpi.h>
 
 #include <boost/random/uniform_real_distribution.hpp>
