@@ -21,7 +21,7 @@
 #include "key-value/meta.h"
 #include "key-value/mpikey-value.h"
 #include "key-value/utils/tools.h"
-#include "key-value/utils/arguments.h"
+#include "key-value/utils/argument.h"
 #include "key-value/utils/statistics.h"
 
 
@@ -33,8 +33,8 @@ public:
         \brief compute the total number of compartment (2.5 = 2.5 MB per neuron, 350 compartiment per neuron)
         4096 MB, 25% of the memory of a compute node of the BG/Q
      */
-    benchmark(argument const& args = argument()):a(args){
-        s = args.voltage_size();
+    benchmark(keyvalue::argument const& args = keyvalue::argument()):a(args){
+        s = args.voltages_size();
         int cg_size = s / args.cg();
         int first_size = cg_size + (s % args.cg());
 
@@ -46,14 +46,14 @@ public:
     }
     
     /** \fun get_group() const
-        \brief get the groupe i.e. the memory */
+        \brief get the group i.e. the memory */
     keyvalue::group<meta_type> const& get_group() const{
         return g;
     }
     
     /** \fun get_args() const
         \brief return the argument */
-    argument const & get_args() const {
+    keyvalue::argument const & get_args() const {
         return a;
     }
     
@@ -61,7 +61,7 @@ private:
     /** memory for the bench */
     keyvalue::group<meta_type> g;
     /** reference on the arguments structure */
-    argument const & a;
+    keyvalue::argument const & a;
     /** correspond to the total number of compartement */
     std::size_t s;
 };
@@ -70,7 +70,7 @@ template<class M>
 statistic run_loop(benchmark<M> const& b){
     // extract the group of memory
     keyvalue::group<M> const& g = b.get_group();
-    argument const& a = b.get_args();
+    keyvalue::argument const& a = b.get_args();
     
     // build the needed function in function of the backend
     KeyValueMap_meta kvmap;

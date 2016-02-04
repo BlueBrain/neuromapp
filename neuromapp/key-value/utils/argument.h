@@ -1,14 +1,42 @@
-//
-//  argument.h
-//  neuromapp
-//
-//  Created by Tim Ewart on 30/01/2016.
-//
-//
+/*
+ * Neuromapp - arguments.h, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * Judit Planas - Swiss Federal Institute of technology in Lausanne,
+ * judit.planas@epfl.ch,
+ * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 
-#ifndef argument_h
-#define argument_h
+/**
+ * @file neuromapp/key-value/utils/arguments.h
+ * \brief basic shell for arguments
+ */
 
+#ifndef MAPP_ARGUEMENTS_H
+#define MAPP_ARGUEMENTS_H
+
+#include <string>
+#include <vector>
+#include <cstdlib>
+#include <algorithm>
+#include <iostream>
+
+#include "utils/mpi/print.h"
+
+namespace keyvalue {
 
 class argument {
 private:
@@ -28,10 +56,9 @@ public:
     /** \fn argument(int argc = 0 , char * argv[] = NULL)
         \brief parse the command from argv and argv, the functor indicate the return type, I could
             write template and trait class, to do */
-        explicit argument(int argc = 0 , char * argv[] = NULL) :
+        explicit argument(int argc = 0 , char * const argv[] = NULL) :
 					procs_(1), threads_(1), backend_("map"), async_(false),
-					flash_(false), usecase_(1), st_(1.), md_(0.1), dt_(0.025), cg_(1),
-                    voltages_size_(usecase_*4096/2.5*350){
+					flash_(false), usecase_(1), st_(1.), md_(0.1), dt_(0.025), cg_(1){
         if(argc != 0){
             std::vector<std::string> v(argv+1, argv+argc);
             argument_helper(v,"-b",backend(),to_string());
@@ -43,6 +70,8 @@ public:
             argument_helper(v,"-a",async(),to_true());
             argument_helper(v,"-f",flash(),to_true());
         }
+
+        voltages_size_ = usecase_*4096/2.5*350;
     }
 
     struct to_string{
@@ -75,7 +104,7 @@ public:
 
     struct to_true{
         /** \fn operator()
-         \brief functor that transform the return true if the looking arguement is in the sstd::vector
+         \brief functor that transform the return true if the looking argument is in the std::vector
          */
         double operator()(std::string const& s){
             return true;
@@ -99,7 +128,7 @@ public:
     /**
      \brief return the volate size, read only
     */
-    inline int voltage_size() const{
+    inline int voltages_size() const{
         return voltages_size_;
     }
 
@@ -176,7 +205,7 @@ public:
     /**
      \brief return the volage size, write only
      */
-    inline int &voltage_size(){
+    inline int &voltages_size(){
         return voltages_size_;
     }
 
@@ -252,7 +281,7 @@ public:
 
     /** \brief the print function, I do not like friend function */
     void print(std::ostream& out) const{
-        out << " voltages_size_: " << voltage_size() << " \n"
+        out << " voltages_size_: " << voltages_size() << " \n"
             << " procs: " << procs() << " \n"
             << " threads_: " << threads() << " \n"
             << " backend_: " << backend() << " \n"
@@ -272,6 +301,6 @@ std::ostream &operator<<(std::ostream &out, argument  const&  a){
      return out;
 }
 
-
+} //end namespace
 
 #endif /* argument_h */
