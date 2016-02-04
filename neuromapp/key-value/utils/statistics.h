@@ -11,7 +11,7 @@
 
 class statistic{
     public:
-        explicit statistic(argument const& arg = argument(),
+        explicit statistic(keyvalue::argument const& arg = keyvalue::argument(),
                            std::vector<double> vtime = std::vector<double>()):a(arg),v(vtime),g_mbw(0.),g_iops(0.){
         }
 
@@ -20,7 +20,7 @@ class statistic{
             std::for_each(v.begin(), v.end(),std::bind1st(std::divides<double>(),1.)); // v[i] -> 1/v[i], for fun
             accumulate_reciprocal = keyvalue::utils::accumulate(v.begin(), v.end(), 0.); // MPI is inside
             g_iops = accumulate_reciprocal*a.cg();
-            g_mbw = accumulate_reciprocal*a.voltage_size() * sizeof(double)/(1024.*1024.);
+            g_mbw = accumulate_reciprocal*a.voltages_size() * sizeof(double)/(1024.*1024.);
         }
 
         void print(std::ostream& os) const{
@@ -30,14 +30,14 @@ class statistic{
             while(it != v.end()){
                 std::cout << "  Time: " << *it << "[s] \n"
                 << "  I/O: "  << a.cg()/(*it) << " IOPS \n"
-                << "  BW: "   << a.voltage_size()* sizeof(double)/((*it)*1024.*1024.) << " MB/s \n";
+                << "  BW: "   << a.voltages_size()* sizeof(double)/((*it)*1024.*1024.) << " MB/s \n";
                 ++it;
             }
 
             os << " g_iops " << g_iops << " [IOPS], " << " g_mbw "  << g_mbw << " [MB/s] \n";
         }
 private:
-    argument const & a;
+    keyvalue::argument const & a;
     std::vector<double > v;
     double g_mbw, g_iops;
 };

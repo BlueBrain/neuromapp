@@ -193,7 +193,7 @@ class stats {
 
 template<keyvalue::selector h>
 struct trait_handle;
-
+/*
 template<>
 struct trait_handle<keyvalue::selector::map>{
 		typedef void* value_type;
@@ -205,7 +205,7 @@ struct trait_handle<keyvalue::selector::skv>{
 		typedef skv_client_cmd_ext_hdl_t value_type;
 #endif
 };
-
+*/
 template<keyvalue::selector h = keyvalue::map>
 class KeyValueBench {
 private:

@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 
 
     // build argument from the command line
-    argument a(argc, argv);
+	keyvalue::argument a(argc, argv);
     // build the bench infunction of the argument
     if(a.backend() == "map"){
         typedef keyvalue::meta meta_type;
