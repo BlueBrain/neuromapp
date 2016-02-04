@@ -55,13 +55,14 @@ public:
 
     size_t size(){return size_;}
 
-    void push(const T &data){
+    void push(const T &data, int &counter){
         node* n = new node;
         n->data = data;
         pthread_spin_lock(&lock_);
         n->next = head_;
         head_ = n;
 		++size_;
+		++counter;
         pthread_spin_unlock(&lock_);
     }
 
