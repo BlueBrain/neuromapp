@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/queueing/lock.h
- * \brief Contains OMPLock and DummyLock class declaration.
+ * \brief Contains omp_lock and dummy_lock class declaration.
  */
 
 #ifndef MAPP_LOCK_H_
@@ -31,20 +31,20 @@
 
 namespace queueing {
 
-class OMPLock{
+class omp_lock{
 private:
 	omp_lock_t mut_;
 
 public:
-	/** \fn OMPLock()
+	/** \fn omp_lock()
 	    \brief inits mut_
 	 */
-	OMPLock(){omp_init_lock(&mut_);}
+	omp_lock(){omp_init_lock(&mut_);}
 
-	/** \fn ~OMPLock()
+	/** \fn ~omp_lock()
 	    \brief destroys mut_
 	 */
-	~OMPLock(){omp_destroy_lock(&mut_);}
+	~omp_lock(){omp_destroy_lock(&mut_);}
 
 	/** \fn acquire()
 	    \brief sets mut_
@@ -62,10 +62,8 @@ public:
 
 namespace queueing {
 
-class DummyLock{
+class dummy_lock{
 public:
-	DummyLock(){}
-	~DummyLock(){}
 	void acquire(){}
 	void release(){}
 };

@@ -47,7 +47,7 @@ namespace bfs = ::boost::filesystem;
 //UNIT TESTS
 
 /*
- * Unit test for Pool::chooseDst function
+ * Unit test for pool::choose_dst function
  *
  *     - Test boundary case where percent-ite = 0%, all events should be self-events
  *       (i.e. if src == 0, dst == 0)
@@ -56,137 +56,135 @@ namespace bfs = ::boost::filesystem;
  */
 BOOST_AUTO_TEST_CASE_TEMPLATE(pool_choose_dest, T, full_test_types){
 	//percent-ite = 0%
-	queueing::Pool<IMPL> pl1(false, 20, 0, false, false);
+	queueing::pool<IMPL> pl1(false, 20, 0, false, false);
 	int dst = 0;
 	for(int i = 0; i < 10; ++i){
-		dst = pl1.chooseDst(0);
+		dst = pl1.choose_dst(0);
 		BOOST_CHECK(dst == 0);
 	}
 
 	//percent-ite = 100%
-	queueing::Pool<IMPL> pl2(false, 20, 100, false, false);
+	queueing::pool<IMPL> pl2(false, 20, 100, false, false);
 	for(int i = 0; i < 10; ++i){
-		dst = pl2.chooseDst(0);
+		dst = pl2.choose_dst(0);
 		BOOST_CHECK(dst != 0);
 	}
 }
 
 /*
- * Unit test for Thread::selfSend function
+ * Unit test for nrn_thread_data::self_send function
  *
  *    - after n number of self-send events:
- *    		PQSize == n
+ *    		pq_size == n
  *          enqueued_ == n
  */
 BOOST_AUTO_TEST_CASE_TEMPLATE(thread_self_send, T, full_test_types){
-	queueing::NrnThreadData<IMPL> nt;
+	queueing::nrn_thread_data<IMPL> nt;
 	double data = 0.0;
 	double time = 0.0;
 	int n = rand() % 10;
 
 	for(int i = 0; i < n; ++i){
-		nt.selfSend(data,(time + i));
+		nt.self_send(data,(time + i));
 	}
-	BOOST_CHECK(nt.PQSize() == n);
+	BOOST_CHECK(nt.pq_size() == n);
 	BOOST_CHECK(nt.enqueued_ == n);
 }
 
 /*
- * Unit test for Thread::interThreadSend function
+ * Unit test for nrn_thread_data::inter_thread_send function
  *
- *    - after n number of interThreadSend events:
- *    		interThreadSize == n
+ *    - after n number of inter_thread_send events:
+ *    		inter_thread_size == n
  *          inter_thread_received_ == n
  */
 BOOST_AUTO_TEST_CASE_TEMPLATE(thread_inter_send, T, full_test_types){
-	queueing::NrnThreadData<IMPL> nt;
+	queueing::nrn_thread_data<IMPL> nt;
 	double data = 0.0;
 	double time = 0.0;
 	int n = rand() % 10;
 
 	for(int i = 0; i < n; ++i){
-		nt.interThreadSend(data, (time + i));
+		nt.inter_thread_send(data, (time + i));
 	}
-	BOOST_CHECK(nt.interThreadSize() == n);
+	BOOST_CHECK(nt.inter_thread_size() == n);
 	BOOST_CHECK(nt.ite_received_ == n);
 }
 
 /*
- * Unit test for Thread::enqueueEvents function
+ * Unit test for nrn_thread_data::enqueue_my_events function
  *
  *    - checks the combination of enqueue and selfsend:
- *    		n self sends increases PQSize by n
- *    		m interThreadSends followed by an enqueue increases PQSize by m
- *    - PQSize = m + n
+ *    		n self sends increases pq_size by n
+ *    		m inter_thread_sends followed by an enqueue increases pq_size by m
+ *    - pq_size = m + n
  *    - enqueued = m + n
- *    - interThread should be empty
+ *    - inter_thread_events_ should be empty
  */
 BOOST_AUTO_TEST_CASE_TEMPLATE(thread_enqueue, T, full_test_types){
-	queueing::NrnThreadData<IMPL> nt;
+	queueing::nrn_thread_data<IMPL> nt;
 	double data = 0.0;
 	double time = 0.0;
 	int m = (rand() % 10) + 1;
 	int n = (rand() % 10);
 
-	nt.selfSend(0.0,4.0);
+	nt.self_send(0.0,4.0);
 
-	//interThreadSends/enqueue
+	//inter_thread_sends/enqueue
 	for(int i = 0; i < n; ++i){
-		nt.interThreadSend(data,(time + i));
+		nt.inter_thread_send(data,(time + i));
 	}
-	nt.enqueueMyEvents();
+	nt.enqueue_my_events();
 
-	//selfSends
+	//self_sends
 	for(int i = 0; i < (m - 1); ++i){
-		nt.selfSend(data,(time + i));
+		nt.self_send(data,(time + i));
 	}
 
-	BOOST_CHECK(nt.PQSize() == (m + n));
-	BOOST_CHECK(nt.interThreadSize() == 0);
+	BOOST_CHECK(nt.pq_size() == (m + n));
+	BOOST_CHECK(nt.inter_thread_size() == 0);
 	BOOST_CHECK(nt.enqueued_ == (m + n));
 }
 
 /*
- * Unit test for Thread::deliver function
+ * Unit test for nrn_thread_data::deliver function
  *
  *     - verify that deliver function performs correctly
  *     (all events with time <= til are delivered)
  */
 BOOST_AUTO_TEST_CASE_TEMPLATE(thread_deliver, T, full_test_types){
-    queueing::NrnThreadData<IMPL> nt;
+    queueing::nrn_thread_data<IMPL> nt;
 
 	//enqueue 6 events
-    nt.selfSend(0.0,4.0);
-    nt.interThreadSend(0.0,1.0);
-    nt.interThreadSend(0.0,2.0);
-    nt.interThreadSend(0.0,3.0);
-    nt.selfSend(0.0,5.0);
-    nt.enqueueMyEvents();
-    nt.selfSend(0.0,6.0);
-    BOOST_CHECK(nt.PQSize() == 6);
+    nt.self_send(0.0,4.0);
+    nt.inter_thread_send(0.0,1.0);
+    nt.inter_thread_send(0.0,2.0);
+    nt.inter_thread_send(0.0,3.0);
+    nt.self_send(0.0,5.0);
+    nt.enqueue_my_events();
+    nt.self_send(0.0,6.0);
+    BOOST_CHECK(nt.pq_size() == 6);
 
 
 	//deliver the first item
 	int til = 6;
     nt.deliver(0,til);
     BOOST_CHECK(nt.delivered_ == 1);
-    BOOST_CHECK(nt.PQSize() == 5);
+    BOOST_CHECK(nt.pq_size() == 5);
 
 	//deliver the next 2
 	til = 3;
     while(nt.deliver(0,til))
         ;
     BOOST_CHECK(nt.delivered_ == 3);
-    BOOST_CHECK(nt.PQSize() == 3);
-    std::cout<<"Delivered "<<nt.delivered_<<std::endl;
-    std::cout<<"PQSize "<<nt.PQSize()<<std::endl;
+    BOOST_CHECK(nt.pq_size() == 3);
 
 	//deliver the remaining
 	til = 6;
     while(nt.deliver(0,til))
         ;
     BOOST_CHECK(nt.delivered_ == 6);
-    BOOST_CHECK(nt.PQSize() == 0);
+    BOOST_CHECK(nt.pq_size() == 0);
 }
 
 /**
