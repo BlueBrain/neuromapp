@@ -27,8 +27,7 @@
 #define MAPP_APP_
 
 #include "hello/hello.h"
-#include "queueing/queueing.h"
-#include "spike/spike.h"
+#include "coreneuron_1.0/queueing/queueing.h"
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/solver/solver.h"
 #include "coreneuron_1.0/cstep/cstep.h"

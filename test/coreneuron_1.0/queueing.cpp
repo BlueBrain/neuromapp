@@ -34,13 +34,13 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include "queueing/queueing.h"
-#include "queueing/pool.h"
-#include "queueing/thread.h"
+#include "coreneuron_1.0/queueing/queueing.h"
+#include "coreneuron_1.0/queueing/pool.h"
+#include "coreneuron_1.0/queueing/thread.h"
 #include "utils/error.h"
 #include "utils/storage/neuromapp_data.h"
-#include "test/coreneuron_1.0/helper.h"
-#include "test/queueing/test_header.hpp"
+#include "coreneuron_1.0/common/data/helper.h"
+#include "test/coreneuron_1.0/test_header.hpp"
 
 namespace bfs = ::boost::filesystem;
 
@@ -269,30 +269,67 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(thread_enqueue, T, full_test_types){
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(thread_deliver, T, full_test_types){
-	queueing::NrnThreadData<IMPL> nt;
-	nt.selfSend(0.0,4.0);
-	nt.interThreadSend(0.0,1.0);
-	nt.interThreadSend(0.0,2.0);
-	nt.interThreadSend(0.0,3.0);
-	nt.selfSend(0.0,5.0);
-	nt.enqueueMyEvents();
-	nt.selfSend(0.0,6.0);
+    queueing::NrnThreadData<IMPL> nt;
+    nt.selfSend(0.0,4.0);
+    nt.interThreadSend(0.0,1.0);
+    nt.interThreadSend(0.0,2.0);
+    nt.interThreadSend(0.0,3.0);
+    nt.selfSend(0.0,5.0);
+    nt.enqueueMyEvents();
+    nt.selfSend(0.0,6.0);
     BOOST_CHECK(nt.PQSize() == 6);
 
 	//deliver the first item
-	nt.deliver(0,6);
+    nt.deliver(0,6);
     BOOST_CHECK(nt.delivered_ == 1);
     BOOST_CHECK(nt.PQSize() == 5);
 
 	//deliver the next 2
-	while(nt.deliver(0,3));
+    while(nt.deliver(0,3))
+        ;
     BOOST_CHECK(nt.delivered_ == 3);
     BOOST_CHECK(nt.PQSize() == 3);
-	std::cout<<"Delivered "<<nt.delivered_<<std::endl;
-	std::cout<<"PQSize "<<nt.PQSize()<<std::endl;
+    std::cout<<"Delivered "<<nt.delivered_<<std::endl;
+    std::cout<<"PQSize "<<nt.PQSize()<<std::endl;
 
 	//deliver the remaining
-	while(nt.deliver(0,6));
+    while(nt.deliver(0,6))
+        ;
     BOOST_CHECK(nt.delivered_ == 6);
     BOOST_CHECK(nt.PQSize() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(mech_solver){
+    char arg1[]="NULL";
+    char arg2[]="--numthread=8";
+    char arg3[]="--eventsper=25";
+    char arg4[]="--simtime=100";
+    char arg5[]="--percent-ite=0";
+    char arg6[]="--with-algebra";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+    int argc = 6;
+
+    BOOST_CHECK(queueing_execute(argc,argv)==0);
+    neuromapp_data.clear("inter_received");
+    neuromapp_data.clear("enqueued");
+    neuromapp_data.clear("delivered");
+    neuromapp_data.clear("spikes");
+}
+
+BOOST_AUTO_TEST_CASE(net_receive){
+    char name[] = "coreneuron_1.0_net_receive_data";
+    std::string data = mapp::data_test();
+
+    std::vector<char> chardata(data.begin(), data.end());
+    chardata.push_back('\0');
+    NrnThread* nt_ = (NrnThread*) storage_get(name, make_nrnthread, &chardata[0], free_nrnthread);
+    if(nt_ == NULL){
+        std::cout<<"Error: Unable to open data file"<<std::endl;
+        storage_clear(name);
+	exit(EXIT_FAILURE);
+    }
+
+    mech_net_receive(nt_, &(nt_->ml[18]));
+
+    mapp::helper_check(name, "net_receive", mapp::data_test());
 }

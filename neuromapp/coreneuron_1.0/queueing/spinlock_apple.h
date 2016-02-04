@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/queueing/spinlock_apple.h
+ * @file neuromapp/coreneuron_1.0/queueing/spinlock_apple.h
  * \brief missing spinlock implementation for mac
  */
 

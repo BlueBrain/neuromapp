@@ -65,8 +65,10 @@ typedef struct NrnThread {
     int end;
     /** Total number of compartment with padding*/
     int end_pad;
+    /** time */
+    double _t;
     /** step time */
-    double dt;
+    double _dt;
     /** Total non-mechanism data allocated in one (contiguous) region */
     double *_data;
     /** Righ hand side of the sparse matrix, alias in _data */

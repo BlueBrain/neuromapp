@@ -26,7 +26,7 @@
  */
 #include <string.h>
 #include "app/driver.h"
-#include "test/coreneuron_1.0/helper.h"
+#include "coreneuron_1.0/common/data/helper.h"
 
 namespace mapp{
 
@@ -36,7 +36,6 @@ namespace mapp{
         std::cout << "   The list of the following miniapps are available: \n";
         std::cout << "       hello <arg> \n";
         std::cout << "       queueing <arg> \n";
-        std::cout << "       spike <arg> \n";
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
         std::cout << "       cstep <arg> \n";

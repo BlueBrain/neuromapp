@@ -23,7 +23,6 @@ Main app help
          The list of the following miniapps are available:
              hello <arg>
              queueing <arg>
-             spike <arg>
              cnkernel <arg>
 
 miniapp help

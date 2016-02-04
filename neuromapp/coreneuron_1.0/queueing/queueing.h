@@ -1,5 +1,5 @@
 /*
- * Neuromapp - hello.h, Copyright (c), 2015,
+ * Neuromapp - queueing.h, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,19 +19,18 @@
  */
 
 /**
- * @file neuromapp/spike/spike.h
- * Spike Exchange Miniapp
+ * @file neuromapp/coreneuron_1.0/queueing/queueing.h
+ * \brief Declaration for the queuing_execute function from main.cpp
  */
 
-#ifndef MAPP_SPIKE_EXECUTE_
-#define MAPP_SPIKE_EXECUTE_
+#ifndef MAPP_QUEUEING_EXECUTE_
+#define MAPP_QUEUEING_EXECUTE_
 
-/** \fn spike_execute(int argc, char *const argv[])
-    \brief Spike Exchange Miniapp
+/** \fn queuing_execute(int argc, char *const argv[])
     \param argc number of argument from the command line
     \param argv the command line from the driver or external call
     \return error message from mapp::mapp_error
  */
-int spike_execute(int argc, char* const argv[]);
+int queueing_execute(int argc, char* const argv[]);
 
 #endif
