@@ -36,7 +36,6 @@ namespace mapp{
         std::cout << "   The list of the following miniapps are available: \n";
         std::cout << "       hello <arg> \n";
         std::cout << "       queueing <arg> \n";
-        std::cout << "       spike <arg> \n";
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
         std::cout << "       cstep <arg> \n";
