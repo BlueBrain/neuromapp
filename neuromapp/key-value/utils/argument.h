@@ -34,8 +34,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include "utils/mpi/print.h"
-
 namespace keyvalue {
 
 class argument {
@@ -122,7 +120,7 @@ public:
         if (it != v.end())
             function = op(*(it+1));
         else
-           	std::cout << mapp::mpi_filter_master() << "Ignoring invalid parameter: \n ";
+           	std::cout << "Ignoring invalid parameter: \n ";
     }
 
     /**
@@ -296,7 +294,7 @@ public:
 
 
 /** \brief basic overload the ostream operator to print the arguement */
-std::ostream &operator<<(std::ostream &out, argument  const&  a){
+inline std::ostream &operator<<(std::ostream &out, argument  const&  a){
      a.print(out);
      return out;
 }

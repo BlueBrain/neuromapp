@@ -110,14 +110,9 @@ namespace mapp{
         return mask_stream(rank==0);
     }
 
+    // all rank normal version
     inline mask_stream mpi_filter_all() {
         return mask_stream(true);
-    }
-
-    int get_rank() {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-        return rank;
     }
 
 } // end namespace

@@ -24,9 +24,8 @@
  */
 
 #define BOOST_TEST_MODULE KeyValueTest
-#include "key-value/utils/argument.h"
 #include <boost/test/unit_test.hpp>
-
+#include "key-value/utils/argument.h"
 #include "utils/argv_data.h"
 
 BOOST_AUTO_TEST_CASE(args_constructor_default_test){

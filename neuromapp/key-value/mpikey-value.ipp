@@ -51,7 +51,7 @@ void KeyValueBench<h>::parseArgs(int argc, char * argv[], argvs & args)
 			args.cg() = std::atoi(argv[i + 1]);
 			i++;
 		} else {
-			std::cout << mapp::mpi_filter_master() << "Ignoring invalid parameter: " << argv[i] << std::endl;
+			std::cout << "Ignoring invalid parameter: " << argv[i] << std::endl;
 		}
 	}
 
@@ -65,7 +65,7 @@ void KeyValueBench<h>::parseArgs(int argc, char * argv[], argvs & args)
 
     }
 
-    std::cout << mapp::mpi_filter_master() << "Using the following configuration:" << std::endl
+    std::cout   << "Using the following configuration:" << std::endl
 				<< "    " << "Key-Value backend: " << args.backend() << std::endl
 				<< "    " << (args.async() ? "Asynchronous" : "Synchronous") << " SKV API" << std::endl
 				<< "    " << "Using " << (args.flash() ? "flash memory" : "disk") << " as storage" << std::endl
@@ -93,7 +93,7 @@ void KeyValueBench<h>::init(argvs & args) {
 #endif
 
 	} else if (args.backend() == "map") {
-		kv_store_ = new KeyValueMap(rank_, /* thread-safe? */ (num_threads_ > 1), "IOmapp");
+        kv_store_ ;// = new KeyValueMap(rank_, /* thread-safe? */ (num_threads_ > 1), "IOmapp");
 
 	} else if (args.backend() == "ldb") {
 #ifdef SKV_LDB
@@ -496,7 +496,7 @@ void KeyValueBench<h>::run_task(argvs & args) {
 
 		MPI_Barrier(MPI_COMM_WORLD);
 
-        std::cout <<  mapp::mpi_filter_master()() << "Values inserted, global performance:" << std::endl
+        std::cout << "Values inserted, global performance:" << std::endl
                   << "MPI_Wtime resolution: " << MPI_Wtick() << std::endl
                   << "  Theoretical computation time is: " << 0.93 * num_its * (comp_time_us) << " us." << std::endl
                   << "  Computed sleep time is: " << sleep_time << " us." << std::endl

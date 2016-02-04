@@ -30,6 +30,9 @@
 #include <vector>
 #include <numeric>
 #include <functional>
+#include <iostream>
+
+#include "utils/mpi/print.h"
 
 namespace keyvalue {
     namespace utils{
@@ -41,6 +44,7 @@ namespace keyvalue {
             MPI::Init();
             s = MPI::COMM_WORLD.Get_size();
             r = MPI::COMM_WORLD.Get_rank();
+            std::cout << mapp::mpi_filter_master(); // MPI print master only move to  mpi_filter_all for all
         };
 
         master_mpi(master_mpi const& copy); //not implemented

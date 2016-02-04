@@ -25,11 +25,11 @@ install (FILES map/map_store.h DESTINATION include)
 
 #SKV IBM backend
 #set(SKV_PATH "/gpfs/bbp.cscs.ch/home/jplanas/bgas/skv/cnk/" CACHE PATH "IBM SKV library root directory path")
-add_executable(MPI_Exec_kv mpiexec.cpp)
+add_executable(MPI_Exec_kv utils/statistic.cpp mpiexec.cpp )
 
 
 # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-target_link_libraries (MPI_Exec_kv map_store ${MPI_LIBRARIES}) 
+target_link_libraries (MPI_Exec_kv map_store ${MPI_LIBRARIES})
 
 
 if(IS_DIRECTORY ${SKV_PATH})

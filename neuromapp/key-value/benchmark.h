@@ -9,8 +9,6 @@
 #ifndef benchmark_h
 #define benchmark_h
 
-
-#include <mpi.h>
 #include <vector>
 #include <numeric>
 #include <functional>
@@ -22,7 +20,7 @@
 #include "key-value/mpikey-value.h"
 #include "key-value/utils/tools.h"
 #include "key-value/utils/argument.h"
-#include "key-value/utils/statistics.h"
+#include "key-value/utils/statistic.h"
 
 
 template<class M>
@@ -67,13 +65,13 @@ private:
 };
 
 template<class M>
-statistic run_loop(benchmark<M> const& b){
+keyvalue::statistic run_loop(benchmark<M> const& b){
     // extract the group of memory
     keyvalue::group<M> const& g = b.get_group();
     keyvalue::argument const& a = b.get_args();
     
     // build the needed function in function of the backend
-    KeyValueMap_meta kvmap;
+    keyvalue_map kv;
 
     // the timer
     keyvalue::utils::timer t;
@@ -93,19 +91,19 @@ statistic run_loop(benchmark<M> const& b){
 
             #pragma omp parallel for
             for (int cg = 0; cg < a.cg(); cg++)
-                kvmap.insert(g.meta_at(cg));
+                kv.insert(g.meta_at(cg));
 
 
             #pragma omp parallel for
             for (int cg = 0; cg < a.cg(); cg++)
-                kvmap.wait(g.meta_at(cg));
+                kv.wait(g.meta_at(cg));
 
             t.toc();
             vtime.push_back(t.time());
         }
     }
     
-    return statistic(a,vtime);
+    return keyvalue::statistic(a,vtime);
 }
 
 

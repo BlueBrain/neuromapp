@@ -3,11 +3,9 @@
 #include <iostream>
 #include <stdlib.h>
 
-#include "key-value/utils/tools.h"
+//#include "key-value/utils/tools.h"
 #include "key-value/benchmark.h"
-#include "key-value/utils/statistics.h"
-
-
+#include "key-value/utils/statistic.h"
 
 int main(int argc, char* argv[]) {
 
@@ -19,7 +17,7 @@ int main(int argc, char* argv[]) {
         typedef keyvalue::meta meta_type;
         benchmark<meta_type> b(a);
         //bench
-        statistic s = run_loop(b);
+        keyvalue::statistic s = run_loop(b);
         //compute statistics
         s.process();
         //print the results
