@@ -92,7 +92,7 @@ public:
 	 */
 	NrnThreadData(): ite_received_(0), enqueued_(0), delivered_(0) {
 		input_parameters p;
-		char name[] = "coreneuron_1.0_cstep_data";
+		char name[] = "coreneuron_1.0_queueing_data";
 		std::string data = mapp::data_test();
 		p.name = name;
 
@@ -217,8 +217,7 @@ inline void NrnThreadData<mutex>::enqueueMyEvents(){
 template<>
 inline void NrnThreadData<spinlock>::interThreadSend(double d, double tt){
 	event ite(d,tt,true);
-	ite_received_++;
-	inter_thread_events_.q_.push(ite);
+	inter_thread_events_.q_.push(ite, ite_received_);
 }
 
 template<>
