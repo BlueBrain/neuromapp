@@ -52,20 +52,22 @@ namespace queueing {
 int qhelp(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
-    ("help", "produce help message")
-    ("numthread", po::value<int>()->default_value(1),
+    ("help,h", "produce help message")
+    ("nthreads,n", po::value<int>()->default_value(1),
      "number of OMP thread")
-    ("eventsper", po::value<int>()->default_value(50),
+    ("cell-groups,c", po::value<int>()->default_value(64),
+	 "number of cell groups in the simulation")
+    ("events-per,e", po::value<int>()->default_value(50),
      "number of events created per time step")
-    ("simtime", po::value<int>()->default_value(5000),
+    ("time,t", po::value<int>()->default_value(5000),
      "number of time steps in the simulation")
-    ("percent-ite", po::value<int>()->default_value(90),
+    ("percent-ite,i", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
-    ("percent-spike",po::value<int>()->default_value(0),
+    ("percent-spike,s",po::value<int>()->default_value(0),
      "the percentage of spike events out of total events")
-    ("verbose","provides additional outputs during execution")
+    ("verbose,v","provides additional outputs during execution")
     ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector")
-    ("with-algebra","simulation performs linear algebra calculations");
+    ("with-algebra,a","simulation performs linear algebra calculations");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -74,16 +76,20 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         std::cout << desc;
         return mapp::MAPP_USAGE;
     }
-    if(vm["numthread"].as<int>() < 1){
+    if(vm["nthreads"].as<int>() < 1){
         std::cout<<"numthread must be non-zero"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
-    if(vm["eventsper"].as<int>() < 1){
+    if(vm["cell-groups"].as<int>() < vm["nthreads"].as<int>()){
+        std::cout<<"cell-groups should be >= numthreads"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+    if(vm["events-per"].as<int>() < 1){
         std::cout<<"eventsper must be non-zero"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
-    if(vm["simtime"].as<int>() < 1){
-        std::cout<<"simtime must be non-zero"<<std::endl;
+    if(vm["time"].as<int>() < 1){
+        std::cout<<"time must be non-zero"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
    if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-spike"].as<int>() < 0 )){
@@ -95,7 +101,7 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         return mapp::MAPP_BAD_ARG;
    }
 #ifdef _OPENMP
-    omp_set_num_threads(vm["numthread"].as<int>());
+    omp_set_num_threads(vm["nthreads"].as<int>());
 #endif
     return mapp::MAPP_OK;
 }
@@ -107,11 +113,11 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
 template<implementation I>
 void run_sim(pool<I> &pl, po::variables_map const&vm){
     struct timeval start, end;
-    pl.generate_all_events(vm["simtime"].as<int>());
+    pl.generate_all_events(vm["time"].as<int>());
     gettimeofday(&start, NULL);
-    for(int j = 0; j < vm["simtime"].as<int>(); ++j){
+    for(int j = 0; j < vm["time"].as<int>(); ++j){
         pl.time_step();
-        pl.handle_spike(vm["simtime"].as<int>());
+        pl.handle_spike(vm["time"].as<int>());
     }
     pl.accumulate_stats();
     gettimeofday(&end, NULL);
@@ -124,16 +130,18 @@ void run_sim(pool<I> &pl, po::variables_map const&vm){
  *  \param vm encapsulate the command line and all needed informations
  */
 void queueing_miniapp(po::variables_map const& vm){
-    bool verbose = vm.count("verbose");
-    bool algebra = vm.count("with-algebra");
+    int cellgroups = vm["cell-groups"].as<int>();
     int p_ite = vm["percent-ite"].as<int>();
     int p_spike = vm["percent-spike"].as<int>();
+    int eventsper = vm["events-per"].as<int>();
+    bool verbose = vm.count("verbose");
+    bool algebra = vm.count("with-algebra");
 
     if(vm.count("spinlock")){
-        pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
+        pool<spinlock> pl(cellgroups, eventsper, p_ite, p_spike, verbose, algebra);
         run_sim(pl,vm);
     } else {
-        pool<mutex> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
+        pool<mutex> pl(cellgroups, eventsper, p_ite, p_spike, verbose, algebra);
         run_sim(pl,vm);
     }
 }

@@ -63,11 +63,12 @@ private:
     int percent_spike_;
     int events_per_step_;
     int all_spiked_;
-    const static int cell_groups_ = 64;
+    int cell_groups_;
     const static int min_delay_ = 5;
 
     std::vector<nrn_thread_data<I> > thread_datas_;
-    std::vector<event> spikebuf_;
+    std::vector<event> spike_in_;
+    std::vector<event> spike_out_;
 
 public:
     /** \fn pool(bool verbose, int eventsPer, int pITE, bool isSpike, bool algebra)
@@ -78,9 +79,12 @@ public:
      *  \param isSpike determines whether or not there are spike events
      *  \param algebra determines whether to perform linear algebra calculations
      */
-    explicit pool(bool verbose=false, int eventsPer=0, int pITE=0, int pSpike=0,
-    bool algebra=false): v_(verbose), percent_ite_(pITE), percent_spike_(pSpike),
-    events_per_step_(eventsPer),perform_algebra_(algebra), all_spiked_(0), time_(0)
+    explicit pool(int numCells=0, int eventsPer=0, int pITE=0, int pSpike=0,
+    bool verbose=false, bool algebra=false):
+    cell_groups_(numCells), events_per_step_(eventsPer),
+    percent_ite_(pITE), percent_spike_(pSpike),
+    v_(verbose), perform_algebra_(algebra),
+    all_spiked_(0), time_(0)
     {
         srand(time(NULL));
         thread_datas_.resize(cell_groups_);
@@ -142,7 +146,8 @@ public:
     }
 
     /** \fn void generate_all_events(int totalTime)
-     *  \brief creates all events for each thread that will be sent and received during the simulation lifetime.
+     *  \brief creates all events for each thread that will be sent
+     *   and received during the simulation lifetime.
      *  these are stored in the vector generated_events[] for each thread
      *  \param totalTime provides the total simulation time
      *  \postcond all events for the simulation are generated
@@ -159,6 +164,20 @@ public:
                 }
             }
         }
+
+        //generate the spike_in_ events_
+        int dst = 0;
+        int num_spikes = totalTime*cell_groups_*events_per_step_*percent_spike_/100;
+        for(int i = 0; i < num_spikes; ++i){
+            int diff = 1;
+            if(totalTime > 10)
+                diff = rand() % (totalTime/10);
+
+            ev.t_ = static_cast<double>(time_ + diff + min_delay_);
+            dst = rand() % thread_datas_.size();
+            ev.data_ = static_cast<double>(dst);
+			spike_in_.push_back(ev);
+        }
     }
 
     /** \fn send_events(int myID)
@@ -171,10 +190,10 @@ public:
         for(int i = 0; i < events_per_step_; ++i){
             event e = thread_datas_[myID].pop_generated_event();
             int dst_nt = static_cast<int>(e.data_);
-            //if spike event send to spikebuf
+            //if spike event send to spike_out
             if(e.is_spike_){
                 spike_lock_.acquire();
-                spikebuf_.push_back(e);
+                spike_out_.push_back(e);
                 spike_lock_.release();
             }
             //if destination id is my own, self event, else ite
@@ -191,28 +210,20 @@ public:
      */
     void handle_spike(int totalTime){
         if( (time_ % min_delay_) == 0){
-            int num_spikes = min_delay_*thread_datas_.size()*events_per_step_*percent_spike_/100;
-
             //"Send" spikes
             spike_lock_.acquire();
-            std::cout<<"Sending: "<<spikebuf_.size()<<" spikes"<<std::endl;
-            spikebuf_.clear();
+            spike_out_.clear();
             spike_lock_.release();
 
             //"Receive" spikes
-               int diff = 1;
-               if(totalTime > 10)
-                diff = rand() % (totalTime/10);
-
-            //serial distribution of spike events to inter-thread events
-            int dst = 0;
-            double data, tt;
+            event ev;
+            int num_spikes = min_delay_*cell_groups_*events_per_step_*percent_spike_/100;
             for(int i = 0; i < num_spikes; ++i){
-               tt = (double)(time_ + diff + min_delay_);
-               dst = rand() % thread_datas_.size();
-               data = (double)dst;
-               thread_datas_[dst].self_send(data, tt);
-               all_spiked_++;
+                ev = spike_in_.back();
+                spike_in_.pop_back();
+                int dst = static_cast<int>(ev.data_);
+                thread_datas_[dst].self_send(ev.data_, ev.t_);
+                all_spiked_++;
             }
         }
     }
