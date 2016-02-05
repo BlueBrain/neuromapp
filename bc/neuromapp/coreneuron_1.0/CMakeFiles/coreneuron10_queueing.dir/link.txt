@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar cq libcoreneuron10_queueing.a  CMakeFiles/coreneuron10_queueing.dir/queueing/queue.cpp.o CMakeFiles/coreneuron10_queueing.dir/queueing/main.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libcoreneuron10_queueing.a
