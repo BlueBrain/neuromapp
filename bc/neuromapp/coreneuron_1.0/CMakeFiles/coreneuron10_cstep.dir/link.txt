@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar cq libcoreneuron10_cstep.a  CMakeFiles/coreneuron10_cstep.dir/cstep/helper.c.o CMakeFiles/coreneuron10_cstep.dir/cstep/main.c.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libcoreneuron10_cstep.a
