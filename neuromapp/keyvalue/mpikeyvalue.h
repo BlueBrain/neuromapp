@@ -234,8 +234,8 @@ public:
 	    \param size the number of MPI processes
 	 */
 	explicit KeyValueBench(int rank = 0, int size = 1) : rank_(rank), num_procs_ (size), num_threads_(1),kv_store_(NULL){
-            rank_ = keyvalue::utils::master.rank();
-            num_procs_ = keyvalue::utils::master.size();
+            rank_ = mapp::master.rank();
+            num_procs_ = mapp::master.size();
     }
 
 	/** \fn getNumThreads()

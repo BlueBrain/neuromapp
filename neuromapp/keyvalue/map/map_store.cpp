@@ -12,11 +12,12 @@
 
 #include "keyvalue/map/map_store.h"
 #include "keyvalue/utils/tools.h"
+#include "utils/mpi/controler.h"
 
 
 keyvalue_map::keyvalue_map(bool threadSafe, std::string pdsName):
                                     _numReaders(0), _numWriters(0){
-                                   _rank = keyvalue::utils::master.rank();
+                                   _rank = mapp::master.rank();
     if (threadSafe) {
         //		_nRdLock = new MyOMPLock();
         //		_nWtLock = new MyOMPLock();

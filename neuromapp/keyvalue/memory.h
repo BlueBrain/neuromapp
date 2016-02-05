@@ -37,6 +37,7 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <boost/lexical_cast.hpp>
 
+#include "utils/mpi/controler.h"
 #include "keyvalue/utils/tools.h"
 
 #include <utility>
@@ -101,7 +102,7 @@ public:
         of the uuid and the meta data */
     void push_back(nrnthread const& v){
         std::string uuid = boost::uuids::to_string(generator())
-                            + boost::lexical_cast<std::string>(keyvalue::utils::master.rank());
+                            + boost::lexical_cast<std::string>(mapp::master.rank());
         data.push_back(v);
         gid.push_back(uuid);
         m.push_back(meta_type(uuid,data.back().front_pointer(),v.size()));

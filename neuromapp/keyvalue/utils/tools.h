@@ -32,53 +32,11 @@
 #include <functional>
 #include <iostream>
 
-#include "utils/mpi/print.h"
+#include "utils/mpi/controler.h"
 
 namespace keyvalue {
-    namespace utils{
-
-    /** brief this singleton to wrap the mpi infos call once and destroy one using a reference */
-    class master_mpi{
-    private:
-        master_mpi(){
-            MPI::Init();
-            s = MPI::COMM_WORLD.Get_size();
-            r = MPI::COMM_WORLD.Get_rank();
-            std::cout << mapp::mpi_filter_master(); // MPI print master only move to  mpi_filter_all for all
-        };
-
-        master_mpi(master_mpi const& copy); //not implemented
-        master_mpi& operator=(master_mpi const& copy); //not implemented
-
-    public:
-
-        ~master_mpi(){
-            MPI::Finalize();
-        }
-
-        static master_mpi& getInstance(){
-            static master_mpi instance;
-            return instance;
-        }
-
-        int size() const {
-            return s;
-        }
-
-        int rank() const {
-            return r;
-        }
-
-    private:
-        int s;
-        int r;
-    };
-
-    /** singleton call once at the beginning and destroy at the end automatic nothing to do */
-    static master_mpi const& master = master_mpi::getInstance(); 
 
     /** \fun accumulate(InputIt first, InputIt last, T init) 
-    
     a kind of MPI accumulate
       it should be generic blabla, not type safe only work with DOUBLE */
     template<class InputIt, class T>
@@ -89,28 +47,6 @@ namespace keyvalue {
         return rec_mpi;
     }
     
-    /** a tiny timer only MPI now */
-    class timer{
-        public:
-        explicit timer(double t0 = 0.):t(t0){}
-        
-        inline void tic(){
-            t = MPI_Wtime();
-        }
-        
-        inline void toc(){
-            t = MPI_Wtime() - t;
-        }
-
-        inline double time() {
-            return t;
-        }
-    
-        private:
-        double t;
-    };
-    
-    } //end namespave utils
 } //end namespace keyvalue
 
 #endif

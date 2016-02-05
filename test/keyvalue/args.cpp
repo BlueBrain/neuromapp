@@ -1,5 +1,5 @@
 /*
- * Neuromapp - test-args.cpp, Copyright (c), 2015,
+ * Neuromapp - args.cpp, Copyright (c), 2015,
  * Judit Planas - Swiss Federal Institute of technology in Lausanne,
  * judit.planas@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/test/keyvalue/test.cpp
+ * @file neuromapp/test/keyvalue/args.cpp
  *  Test on the key/value store miniapp arguments
  */
 

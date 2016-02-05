@@ -26,8 +26,8 @@
  */
 
 
-#ifndef MAPP_PRINT_
-#define MAPP_PRINT_
+#ifndef MAPP_PRINT_H
+#define MAPP_PRINT_H
 
 #include <iostream>
 #include <mpi.h>

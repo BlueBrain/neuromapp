@@ -1,5 +1,5 @@
 /*
- * Neuromapp - test-args.cpp, Copyright (c), 2015,
+ * Neuromapp - statistic.cpp, Copyright (c), 2015,
  * Judit Planas - Swiss Federal Institute of technology in Lausanne,
  * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
  * judit.planas@epfl.ch,
@@ -21,38 +21,33 @@
  */
 
 /**
- * @file neuromapp/test/keyvalue/test_mpi.cpp
+ * @file neuromapp/test/keyvalue/statistic.cpp
  *  Test on the key/value store miniapp arguments
  */
 
 #define BOOST_TEST_MODULE KeyValueTestMPI
 
 #include <boost/test/unit_test.hpp>
+#include <boost/algorithm/cxx11/iota.hpp> // for fun
 #include "keyvalue/utils/tools.h" // it starts the MPI, see the associated pattern
 #include "keyvalue/utils/argument.h"
+
 #include "keyvalue/utils/statistic.h"
-
-namespace utf = boost::unit_test;
-namespace tt = boost::test_tools;
-
+#include "utils/mpi/controler.h"
 
 BOOST_AUTO_TEST_CASE(statistic_constructors_test){
-    {
-        keyvalue::statistic s;
-        BOOST_CHECK_EQUAL(s.iops(), 0.);
-        BOOST_CHECK_EQUAL(s.mbw(), 0.);
-    }
-
-    {
-        keyvalue::statistic s;
-        BOOST_CHECK_EQUAL(s.iops(), 0.);
-        BOOST_CHECK_EQUAL(s.mbw(), 0.);
-    }
+    keyvalue::statistic s;
+    BOOST_CHECK_EQUAL(s.iops(), 0.);
+    BOOST_CHECK_EQUAL(s.mbw(), 0.);
 }
 
 BOOST_AUTO_TEST_CASE(accumulate_mpi_test){
-    std::vector<double> v(100,1);
-    double tmp = keyvalue::utils::accumulate(v.begin(), v.end(), 0.); // MPI is inside
-    BOOST_CHECK_EQUAL(tmp, 100 );
+    int numprocs = mapp::master.size();
+    int size(100);
+    std::vector<double> v(size+1,0.);
+    boost::algorithm::iota(v.begin(),v.end(),0); //0,1,2 ...
+    double tmp = keyvalue::accumulate(v.begin(), v.end(), 0.); // MPI is inside, reduction on 0, only
+    if(mapp::master.rank() == 0)
+        BOOST_CHECK_EQUAL(tmp, size*(size+1)/2*numprocs);
 }
 

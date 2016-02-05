@@ -35,6 +35,7 @@
 #include "keyvalue/utils/argument.h"
 #include "keyvalue/utils/statistic.h"
 
+#include "utils/mpi/timer.h"
 
 template<class M>
 class benchmark{
@@ -87,7 +88,7 @@ keyvalue::statistic run_loop(benchmark<M> const& b){
     keyvalue_map kv;
 
     // the timer
-    keyvalue::utils::timer t;
+    mapp::timer t;
     // go to dodo
     int comp_time_us = 100 * a.usecase() * 1000;
     

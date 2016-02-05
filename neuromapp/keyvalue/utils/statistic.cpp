@@ -37,7 +37,7 @@ namespace keyvalue {
 void statistic::process(){
     value_type accumulate_reciprocal(0.);
     std::for_each(v.begin(), v.end(),std::bind1st(std::divides<value_type>(),1.)); // v[i] -> 1/v[i], for fun
-    accumulate_reciprocal = keyvalue::utils::accumulate(v.begin(), v.end(), 0.); // MPI is inside
+    accumulate_reciprocal = keyvalue::accumulate(v.begin(), v.end(), 0.); // MPI is inside
     g_iops = accumulate_reciprocal*a.cg();
     g_mbw = accumulate_reciprocal*a.voltages_size() * sizeof(value_type)/(1024.*1024.);
 }
