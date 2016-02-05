@@ -41,8 +41,8 @@ bool queue::atomic_dq(double tt, event& q) {
     if(!pq_que.empty() && pq_que.top().t_ <= tt) {
         q = pq_que.top();
         pq_que.pop();
-		return true;
-	}
+        return true;
+    }
     return false;
 }
 
