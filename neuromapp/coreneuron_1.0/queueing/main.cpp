@@ -98,13 +98,13 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
  * \brief the actual queueing simulation
  */
 template<implementation I>
-void run_sim(Pool<I> &pl, po::variables_map const&vm){
+void run_sim(pool<I> &pl, po::variables_map const&vm){
     struct timeval start, end;
-	pl.generateAllEvents(vm["simtime"].as<int>());
+	pl.generate_all_events(vm["simtime"].as<int>());
     gettimeofday(&start, NULL);
     for(int j = 0; j < vm["simtime"].as<int>(); ++j){
-        pl.timeStep();
-		pl.handleSpike(vm["simtime"].as<int>());
+        pl.time_step();
+		pl.handle_spike(vm["simtime"].as<int>());
     }
 	pl.accumulate_stats();
     gettimeofday(&end, NULL);
@@ -122,10 +122,10 @@ void queueing_miniapp(po::variables_map const& vm){
 	bool algebra = vm.count("with-algebra");
 
     if(vm.count("spinlock")){
-   		Pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
+		pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
 		run_sim(pl,vm);
     } else {
-   		Pool<mutex> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
+		pool<mutex> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
 		run_sim(pl,vm);
     }
 }

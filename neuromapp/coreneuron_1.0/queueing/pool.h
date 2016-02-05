@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/queueing/pool.h
- * \brief Contains Pool class declaration.
+ * \brief Contains pool class declaration.
  */
 
 #include <boost/array.hpp>
@@ -45,10 +45,10 @@
 namespace queueing {
 
 template<implementation I>
-class NrnThreadData;
+class nrn_thread_data;
 
 template<implementation I>
-class Pool {
+class pool {
 private:
 	int time_;
 	bool v_;
@@ -60,18 +60,18 @@ private:
 	const static int min_delay_ = 5;
 	int percent_spike_;
 
-	boost::array<NrnThreadData<I>,cell_groups_> threadDatas;
+	boost::array<nrn_thread_data<I>,cell_groups_> threadDatas;
 
 public:
-	/** \fn Pool(bool verbose, int eventsPer, int percent_ITE_, bool isSpike, bool algebra)
-	    \brief initializes a Pool with a threadDatas array
+	/** \fn pool(bool verbose, int eventsPer, int percent_ITE_, bool isSpike, bool algebra)
+	    \brief initializes a pool with a threadDatas array
 	    \param verbose verbose mode: 1 = on, 0 = off
 	    \param events_per_step_ number of events per time step
 	    \param percent_ITE_ is the percentage of inter-thread events
 	    \param isSpike determines whether or not there are spike events
 	    \param algebra determines whether to perform linear algebra calculations
 	 */
-	explicit Pool(bool verbose=false, int eventsPer=0, int pITE=0,
+	explicit pool(bool verbose=false, int eventsPer=0, int pITE=0,
     bool isSpike=false, bool algebra=false): v_(verbose), percent_ITE_(pITE),
 	events_per_step_(eventsPer),perform_algebra_(algebra), all_spiked_(0), time_(0){
 				percent_spike_ = isSpike ? 3:0;
@@ -116,14 +116,14 @@ public:
 	    \brief master function to call generate, enqueue, and deliver
 	    \param totalTime tells the provides the total simulation time
 	 */
-	void timeStep(){
+	void time_step(){
 	    int size = threadDatas.size();
 	    #pragma omp parallel for schedule(static,1)
 	    for(int i=0; i < size; ++i){
-			sendEvents(i);
+			send_events(i);
 
 			//Have threads enqueue their interThreadEvents
-			threadDatas[i].enqueueMyEvents();
+			threadDatas[i].enqueue_my_events();
 
 			if(perform_algebra_)
 				threadDatas[i].l_algebra(time_);
@@ -141,7 +141,7 @@ public:
 	    \param totalTime provides the total simulation time
 		\postcond all events for the simulation are generated
 	 */
-	void generateAllEvents(int totalTime){
+	void generate_all_events(int totalTime){
 		for(int i = 0; i < cell_groups_; ++i){
 			for(int j = 0; j < totalTime; ++j){
 	    		/// Simulated target of a NetCon and the event time
@@ -157,7 +157,7 @@ public:
 					//set time_ to be some time in the future t + diff
 					tt = static_cast<double>(j + diff);
 					if(percent_ITE_ > 0)
-					    dst_nt = chooseDst(i);
+					    dst_nt = choose_dst(i);
 					else
 			    		dst_nt = i;
 
@@ -168,21 +168,21 @@ public:
 		}
 	}
 
-	/** \fn sendEvents(int myID)
+	/** \fn send_events(int myID)
 	 *  \brief sends event to it's destination
 	 *  \param myID the thread index
 	 *  \precond generateAllEvents has been called
 	 *  \postcond threadDatas[myID].generated_events size -= 1
 	 */
-	void sendEvents(int myID){
+	void send_events(int myID){
 		for(int i = 0; i < events_per_step_; ++i){
 			event e = threadDatas[myID].pop_generated_event();
 			int dst_nt = static_cast<int>(e.data_);
 			//if destination id is my own, self event
 			if(dst_nt == myID)
-				threadDatas[dst_nt].selfSend(e.data_, e.t_);
+				threadDatas[dst_nt].self_send(e.data_, e.t_);
 			else
-				threadDatas[dst_nt].interThreadSend(e.data_, (e.t_ + min_delay_));
+				threadDatas[dst_nt].inter_thread_send(e.data_, (e.t_ + min_delay_));
 		}
 	}
 
@@ -190,7 +190,7 @@ public:
 	    \brief compensates for the spike exchange by adding events every 5 timesteps
 	    \param totalTime tells the provides the total simulation time
 	 */
-	void handleSpike(int totalTime){
+	void handle_spike(int totalTime){
    	    int diff(1);
    	    if(totalTime > 10)
 			diff = rand() % (totalTime/10);
@@ -204,18 +204,18 @@ public:
 			   tt = (double)(time_ + diff + min_delay_);
 			   dst = rand() % threadDatas.size();
 			   data = (double)dst;
-			   threadDatas[dst].selfSend(data, tt);
+			   threadDatas[dst].self_send(data, tt);
 			   all_spiked_++;
 			}
 	    }
 	}
 
-	/** \fn int chooseDst(int myID)
+	/** \fn int choose_dst(int myID)
 	    \brief Generates a random destination according to the variable percent_ITE_
 	    \param myID the thread index
 	    \return destination
 	 */
-	int chooseDst(int myID){
+	int choose_dst(int myID){
 	    int dst = myID;
 	    if ((rand() % 100) < percent_ITE_){ //if destination is another thread
 			while(dst == myID)
