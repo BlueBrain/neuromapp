@@ -61,7 +61,8 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
      "number of time steps in the simulation")
     ("percent-ite", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
-    ("spike-enabled","determines whether or not to include spike events")
+    ("percent-spike",po::value<int>()->default_value(0),
+	 "the percentage of spike events out of total events")
     ("verbose","provides additional outputs during execution")
     ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector")
     ("with-algebra","simulation performs linear algebra calculations");
@@ -84,7 +85,10 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     if(vm["simtime"].as<int>() < 1)
 		return mapp::MAPP_BAD_ARG;
 
-   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-ite"].as<int>() > 100) )
+   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-spike"].as<int>() < 0 ))
+		return mapp::MAPP_BAD_ARG;
+
+   if( (vm["percent-ite"].as<int>() + vm["percent-spike"].as<int>() ) > 100 )
 		return mapp::MAPP_BAD_ARG;
 
 #ifdef _OPENMP
@@ -118,14 +122,15 @@ void run_sim(pool<I> &pl, po::variables_map const&vm){
  */
 void queueing_miniapp(po::variables_map const& vm){
 	bool verbose = vm.count("verbose");
-	bool spike = vm.count("spike-enabled");
 	bool algebra = vm.count("with-algebra");
+	int p_ite = vm["percent-ite"].as<int>();
+	int p_spike = vm["percent-spike"].as<int>();
 
     if(vm.count("spinlock")){
-		pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
+		pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
 		run_sim(pl,vm);
     } else {
-		pool<mutex> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
+		pool<mutex> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
 		run_sim(pl,vm);
     }
 }

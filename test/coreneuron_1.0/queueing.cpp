@@ -416,18 +416,18 @@ BOOST_AUTO_TEST_CASE(no_ite_spinlock){
 }
 
 /**
- * Verifies that the expected results occur when spike_enabled:
+ * Verifies that the expected results occur when percent_spike == 100:
  *
  * 	  - spike events should equal the total number of events * percentspike
  * 	  	(simtime * cellgroups * eventsper * percentspike / 100)
  */
-BOOST_AUTO_TEST_CASE(spike_enabled){
+BOOST_AUTO_TEST_CASE(full_spike){
     char arg1[]="NULL";
     char arg2[]="--numthread=8";
     char arg3[]="--eventsper=25";
     char arg4[]="--simtime=25";
     char arg5[]="--percent-ite=0";
-    char arg6[]="--spike-enabled";
+    char arg6[]="--percent-spike=100";
     char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
     int argc = 6;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
@@ -438,13 +438,32 @@ BOOST_AUTO_TEST_CASE(spike_enabled){
     const int simtime = 25;
     const int cellgroups = 64;
     const int eventsper = 25;
-    const int percentspike = 3;
     //verify that the correct number of spikes were sent
-    BOOST_CHECK(neuromapp_data.get<int>(key1) ==
-		    (simtime * cellgroups * eventsper * percentspike / 100));
+    BOOST_CHECK(neuromapp_data.get<int>(key1) == (simtime * cellgroups * eventsper));
     neuromapp_data.clear("inter_received");
     neuromapp_data.clear("enqueued");
     neuromapp_data.clear("delivered");
     neuromapp_data.clear("spikes");
+}
+
+/**
+ * Verifies that the test returns MAPP_BAD_ARG when percentages > 100%:
+ */
+BOOST_AUTO_TEST_CASE(invalid_percentages){
+    char arg1[]="NULL";
+    char arg2[]="--numthread=8";
+    char arg3[]="--eventsper=25";
+    char arg4[]="--simtime=25";
+    char arg5[]="--percent-ite=50";
+    char arg6[]="--percent-spike=60";
+    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
+	int argc = 6;
+
+	neuromapp_data.clear("inter_received");
+    neuromapp_data.clear("enqueued");
+    neuromapp_data.clear("delivered");
+    neuromapp_data.clear("spikes");
+
+    BOOST_CHECK(queueing_execute(argc,argv)==mapp::MAPP_BAD_ARG);
 }
 

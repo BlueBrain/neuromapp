@@ -53,31 +53,28 @@ private:
 	int time_;
 	bool v_;
 	bool perform_algebra_;
-	int percent_ITE_;
+	int percent_ite_;
+	int percent_spike_;
 	int events_per_step_;
 	int all_spiked_;
 	const static int cell_groups_ = 64;
 	const static int min_delay_ = 5;
-	int percent_spike_;
 
 	boost::array<nrn_thread_data<I>,cell_groups_> threadDatas;
 
 public:
-	/** \fn pool(bool verbose, int eventsPer, int percent_ITE_, bool isSpike, bool algebra)
+	/** \fn pool(bool verbose, int eventsPer, int pITE, bool isSpike, bool algebra)
 	    \brief initializes a pool with a threadDatas array
 	    \param verbose verbose mode: 1 = on, 0 = off
 	    \param events_per_step_ number of events per time step
-	    \param percent_ITE_ is the percentage of inter-thread events
+	    \param percent_ite_ is the percentage of inter-thread events
 	    \param isSpike determines whether or not there are spike events
 	    \param algebra determines whether to perform linear algebra calculations
 	 */
-	explicit pool(bool verbose=false, int eventsPer=0, int pITE=0,
-    bool isSpike=false, bool algebra=false): v_(verbose), percent_ITE_(pITE),
-	events_per_step_(eventsPer),perform_algebra_(algebra), all_spiked_(0), time_(0){
-				percent_spike_ = isSpike ? 3:0;
-				std::cout<<"isSpike = "<<isSpike<<std::endl;
-   				srand(time(NULL));
-	}
+	explicit pool(bool verbose=false, int eventsPer=0, int pITE=0, int pSpike=0,
+	bool algebra=false): v_(verbose), percent_ite_(pITE), percent_spike_(pSpike),
+	events_per_step_(eventsPer),perform_algebra_(algebra), all_spiked_(0), time_(0)
+		{srand(time(NULL));}
 
 	/** \fn accumulate_stats()
 	    \brief accumulates statistics from the threadData array and stores them using impl::storage
@@ -156,7 +153,7 @@ public:
 
 					//set time_ to be some time in the future t + diff
 					tt = static_cast<double>(j + diff);
-					if(percent_ITE_ > 0)
+					if((percent_ite_ > 0) || percent_spike_ > 0)
 					    dst_nt = choose_dst(i);
 					else
 			    		dst_nt = i;
@@ -178,8 +175,12 @@ public:
 		for(int i = 0; i < events_per_step_; ++i){
 			event e = threadDatas[myID].pop_generated_event();
 			int dst_nt = static_cast<int>(e.data_);
+			//if dst == spike event
+			if(dst_nt == -1){
+				//send to spikebuf
+			}
 			//if destination id is my own, self event
-			if(dst_nt == myID)
+			else if(dst_nt == myID)
 				threadDatas[dst_nt].self_send(e.data_, e.t_);
 			else
 				threadDatas[dst_nt].inter_thread_send(e.data_, (e.t_ + min_delay_));
@@ -216,12 +217,26 @@ public:
 	    \return destination
 	 */
 	int choose_dst(int myID){
+		/**
+		 * 0 <= percent < percent_spike_
+		 * 		send spike
+		 *
+		 * percent_spike_ <= percent < percent_ite_
+		 * 		send ite
+		 *
+		 * else self send
+		 */
 	    int dst = myID;
-	    if ((rand() % 100) < percent_ITE_){ //if destination is another thread
+		int percent = rand() % 100;
+	    if (percent < percent_spike_){
+			//send as spike
+			dst = -1;
+		}
+		else if(percent < (percent_spike_ + percent_ite_)){
+			//send as inter_thread_event_
 			while(dst == myID)
 		    	dst = rand() % threadDatas.size();
 		}
-
 	    return dst;
 	}
 };
