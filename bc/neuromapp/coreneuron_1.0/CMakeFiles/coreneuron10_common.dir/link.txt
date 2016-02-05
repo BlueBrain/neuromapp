@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar cq libcoreneuron10_common.a  CMakeFiles/coreneuron10_common.dir/common/memory/nrnthread.c.o CMakeFiles/coreneuron10_common.dir/common/memory/memory.c.o CMakeFiles/coreneuron10_common.dir/common/util/nrnthread_handler.c.o CMakeFiles/coreneuron10_common.dir/common/util/timer.c.o CMakeFiles/coreneuron10_common.dir/common/data/helper.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libcoreneuron10_common.a
