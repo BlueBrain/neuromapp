@@ -21,16 +21,16 @@
  */
 
 /**
- * @file neuromapp/test/key-value/test_mpi.cpp
+ * @file neuromapp/test/keyvalue/test_mpi.cpp
  *  Test on the key/value store miniapp arguments
  */
 
 #define BOOST_TEST_MODULE KeyValueTestMPI
 
 #include <boost/test/unit_test.hpp>
-#include "key-value/utils/tools.h" // it starts the MPI, see the associated pattern
-#include "key-value/utils/argument.h"
-#include "key-value/utils/statistic.h"
+#include "keyvalue/utils/tools.h" // it starts the MPI, see the associated pattern
+#include "keyvalue/utils/argument.h"
+#include "keyvalue/utils/statistic.h"
 
 namespace utf = boost::unit_test;
 namespace tt = boost::test_tools;

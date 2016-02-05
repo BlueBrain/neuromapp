@@ -19,13 +19,13 @@
  */
 
 /**
- * @file neuromapp/test/key-value/test.cpp
+ * @file neuromapp/test/keyvalue/test.cpp
  *  Test on the key/value store miniapp arguments
  */
 
 #define BOOST_TEST_MODULE KeyValueTest
 #include <boost/test/unit_test.hpp>
-#include "key-value/utils/argument.h"
+#include "keyvalue/utils/argument.h"
 #include "utils/argv_data.h"
 
 BOOST_AUTO_TEST_CASE(args_constructor_default_test){

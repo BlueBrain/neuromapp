@@ -1,6 +1,6 @@
 include_directories(${MPI_CXX_INCLUDE_PATH})
 add_executable(arg_test test.cpp)
-add_executable(statistic_test test_mpi.cpp ${PROJECT_SOURCE_DIR}/neuromapp/key-value/utils/statistic.cpp)
+add_executable(statistic_test test_mpi.cpp ${PROJECT_SOURCE_DIR}/neuromapp/keyvalue/utils/statistic.cpp)
 target_link_libraries(arg_test  ${Boost_LIBRARIES})
 target_link_libraries(statistic_test  ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES})
 
