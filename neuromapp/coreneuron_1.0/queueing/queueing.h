@@ -27,9 +27,9 @@
 #define MAPP_QUEUEING_EXECUTE_
 
 /** \fn queuing_execute(int argc, char *const argv[])
-    \param argc number of argument from the command line
-    \param argv the command line from the driver or external call
-    \return error message from mapp::mapp_error
+ *  \param argc number of argument from the command line
+ *  \param argv the command line from the driver or external call
+ *  \return error message from mapp::mapp_error
  */
 int queueing_execute(int argc, char* const argv[]);
 

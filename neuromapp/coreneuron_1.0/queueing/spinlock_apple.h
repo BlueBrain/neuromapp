@@ -34,7 +34,7 @@ namespace queueing {
 typedef OSSpinLock pthread_spinlock_t;
 
 /** \fn pthread_spin_init(pthread_spinlock_t *lock, int pshared)
- wrapper for pthread_spin_init
+ *  \brief wrapper for pthread_spin_init
  */
 static inline int pthread_spin_init(pthread_spinlock_t *lock, int pshared) {
     OSSpinLockUnlock(lock);
@@ -42,14 +42,14 @@ static inline int pthread_spin_init(pthread_spinlock_t *lock, int pshared) {
 }
 
 /** \fn pthread_spin_destroy(pthread_spinlock_t *lock)
-Destroy the spinlock nothing special
+ *  \brief Destroy the spinlock nothing special
  */
 static inline int pthread_spin_destroy(pthread_spinlock_t *lock) {
     return 0;
 }
 
 /** \fn pthread_spin_lock(pthread_spinlock_t *lock)
-calling the MAC specific function
+ *  \brief calling the MAC specific function
  */
 static inline int pthread_spin_lock(pthread_spinlock_t *lock) {
     OSSpinLockLock(lock);
@@ -57,7 +57,7 @@ static inline int pthread_spin_lock(pthread_spinlock_t *lock) {
 }
 
 /** \fn pthread_spin_trylock(pthread_spinlock_t *lock)
- calling the MAC specific function
+ *  \brief calling the MAC specific function
  */
 static inline int pthread_spin_trylock(pthread_spinlock_t *lock) {
     if (OSSpinLockTry(lock)) {
@@ -67,7 +67,7 @@ static inline int pthread_spin_trylock(pthread_spinlock_t *lock) {
 }
 
 /** \fn pthread_spin_unlock(pthread_spinlock_t *lock)
- calling the MAC specific function
+ *  \brief  calling the MAC specific function
  */
 static inline int pthread_spin_unlock(pthread_spinlock_t *lock) {
     OSSpinLockUnlock(lock);

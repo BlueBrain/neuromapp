@@ -36,47 +36,48 @@
 namespace queueing {
 
 struct event {
-	/** \fn Event(double,double)
-	    \brief Initializes an event with data d and time t
-	    \param d event data
-	    \param t event time
-	 */
-	explicit event(double d=double(), double t=double(), bool s=false):data_(d),t_(t),set_(s){};
-	double data_;
-	double t_;
-    bool set_;
+    /** \fn Event(double,double)
+     *  \brief Initializes an event with data d and time t
+     *  \param d event data
+     *  \param t event time
+     */
+    explicit event(double d=double(), double t=double(), bool s=false):
+            data_(d), t_(t), is_spike_(s){};
+    double data_;
+    double t_;
+    bool is_spike_;
 };
 
 class queue {
 public:
-	struct is_more{
-	    bool operator() (const event &x, const event &y) const {
-				return x.t_ > y.t_;
-		}
-	};
+    struct is_more{
+        bool operator() (const event &x, const event &y) const {
+                return x.t_ > y.t_;
+        }
+    };
 
-	/** \fn size()
-	 *  \return the size of pq_que
-	 */
-	size_t size(){return pq_que.size();}
+    /** \fn size()
+     *  \return the size of pq_que
+     */
+    size_t size(){return pq_que.size();}
 
-	/** \fn Event* atomic_dq(double til, event q)
-	    \brief pops a single event off of the queue with time < til
-	    \param til a double value compared against top time.
-	    \param q is assigned to the popped event.
-		\return true if popped, else false
-	 */
-	bool atomic_dq(double til, event& q);
+    /** \fn Event* atomic_dq(double til, event q)
+     *  \brief pops a single event off of the queue with time < til
+     *  \param til a double value compared against top time.
+     *  \param q is assigned to the popped event.
+     *  \return true if popped, else false
+     */
+    bool atomic_dq(double til, event& q);
 
-	/** \fn void insert(double t, double data)
-	    \brief inserts an event with time t and data value
-	    \param t the event time.
-	    \param data the event data.
-	 */
-	void insert(double t, double data);
+    /** \fn void insert(double t, double data)
+     *  \brief inserts an event with time t and data value
+     *  \param t the event time.
+     *  \param data the event data.
+     */
+    void insert(double t, double data);
 
 private:
-	std::priority_queue<event, std::vector<event>, is_more> pq_que;
+    std::priority_queue<event, std::vector<event>, is_more> pq_que;
 };
 
 }

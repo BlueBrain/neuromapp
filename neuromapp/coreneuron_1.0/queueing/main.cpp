@@ -43,11 +43,11 @@ namespace po = boost::program_options;
 namespace queueing {
 
 /** \fn qhelp(int argc, char *const argv[], po::variables_map& vm)
-    \brief Helper using boost program option to facilitate the command line manipulation
-    \param argc number of argument from the command line
-    \param argv the command line from the driver or external call
-    \param vm encapsulate the command line
-    \return error message from mapp::mapp_error
+ *  \brief Helper using boost program option to facilitate the command line manipulation
+ *  \param argc number of argument from the command line
+ *  \param argv the command line from the driver or external call
+ *  \param vm encapsulate the command line
+ *  \return error message from mapp::mapp_error
  */
 int qhelp(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
@@ -62,11 +62,10 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     ("percent-ite", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
     ("percent-spike",po::value<int>()->default_value(0),
-	 "the percentage of spike events out of total events")
+     "the percentage of spike events out of total events")
     ("verbose","provides additional outputs during execution")
     ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector")
     ("with-algebra","simulation performs linear algebra calculations");
-    //future options : fraction of interthread events
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -75,22 +74,26 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         std::cout << desc;
         return mapp::MAPP_USAGE;
     }
-
-    if(vm["numthread"].as<int>() < 1)
-		return mapp::MAPP_BAD_ARG;
-
-    if(vm["eventsper"].as<int>() < 1)
-		return mapp::MAPP_BAD_ARG;
-
-    if(vm["simtime"].as<int>() < 1)
-		return mapp::MAPP_BAD_ARG;
-
-   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-spike"].as<int>() < 0 ))
-		return mapp::MAPP_BAD_ARG;
-
-   if( (vm["percent-ite"].as<int>() + vm["percent-spike"].as<int>() ) > 100 )
-		return mapp::MAPP_BAD_ARG;
-
+    if(vm["numthread"].as<int>() < 1){
+        std::cout<<"numthread must be non-zero"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+    if(vm["eventsper"].as<int>() < 1){
+        std::cout<<"eventsper must be non-zero"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+    if(vm["simtime"].as<int>() < 1){
+        std::cout<<"simtime must be non-zero"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-spike"].as<int>() < 0 )){
+        std::cout<<"percentages cannot be negative"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+   }
+   if( (vm["percent-ite"].as<int>() + vm["percent-spike"].as<int>() ) > 100 ){
+        std::cout<<"percent-ite + percent-spike can not exceed 100%"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+   }
 #ifdef _OPENMP
     omp_set_num_threads(vm["numthread"].as<int>());
 #endif
@@ -104,34 +107,34 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
 template<implementation I>
 void run_sim(pool<I> &pl, po::variables_map const&vm){
     struct timeval start, end;
-	pl.generate_all_events(vm["simtime"].as<int>());
+    pl.generate_all_events(vm["simtime"].as<int>());
     gettimeofday(&start, NULL);
     for(int j = 0; j < vm["simtime"].as<int>(); ++j){
         pl.time_step();
-		pl.handle_spike(vm["simtime"].as<int>());
+        pl.handle_spike(vm["simtime"].as<int>());
     }
-	pl.accumulate_stats();
+    pl.accumulate_stats();
     gettimeofday(&end, NULL);
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
-	std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+    std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
 }
 
 /** \fn queueing_miniapp(po::variables_map const& vm)
-    \brief Execute the queing miniapp
-    \param vm encapsulate the command line and all needed informations
+ *  \brief Execute the queing miniapp
+ *  \param vm encapsulate the command line and all needed informations
  */
 void queueing_miniapp(po::variables_map const& vm){
-	bool verbose = vm.count("verbose");
-	bool algebra = vm.count("with-algebra");
-	int p_ite = vm["percent-ite"].as<int>();
-	int p_spike = vm["percent-spike"].as<int>();
+    bool verbose = vm.count("verbose");
+    bool algebra = vm.count("with-algebra");
+    int p_ite = vm["percent-ite"].as<int>();
+    int p_spike = vm["percent-spike"].as<int>();
 
     if(vm.count("spinlock")){
-		pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
-		run_sim(pl,vm);
+        pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
+        run_sim(pl,vm);
     } else {
-		pool<mutex> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
-		run_sim(pl,vm);
+        pool<mutex> pl(verbose, vm["eventsper"].as<int>(), p_ite, p_spike, algebra);
+        run_sim(pl,vm);
     }
 }
 

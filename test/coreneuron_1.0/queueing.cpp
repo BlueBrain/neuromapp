@@ -35,6 +35,7 @@
 #include <iostream>
 #include <fstream>
 #include "coreneuron_1.0/queueing/queueing.h"
+#include "coreneuron_1.0/queueing/queue.h"
 #include "coreneuron_1.0/queueing/pool.h"
 #include "coreneuron_1.0/queueing/thread.h"
 #include "utils/error.h"
@@ -47,27 +48,29 @@ namespace bfs = ::boost::filesystem;
 //UNIT TESTS
 
 /*
- * Unit test for pool::choose_dst function
+ * Unit test for pool::create_event function
  *
  *     - Test boundary case where percent-ite = 0%, all events should be self-events
  *       (i.e. if src == 0, dst == 0)
  *     - Test boundary where percent-ite = 100%, no events should be self-events
  *       (i.e. if src == 0, dst != 0)
  */
-BOOST_AUTO_TEST_CASE_TEMPLATE(pool_choose_dest, T, full_test_types){
+BOOST_AUTO_TEST_CASE_TEMPLATE(pool_create_event, T, full_test_types){
 	//percent-ite = 0%
 	queueing::pool<IMPL> pl1(false, 20, 0, false, false);
-	int dst = 0;
+	queueing::event e;
+	int totalTime = 1000;
+	int curTime = 0;
 	for(int i = 0; i < 10; ++i){
-		dst = pl1.choose_dst(0);
-		BOOST_CHECK(dst == 0);
+		e = pl1.create_event(0,curTime,totalTime);
+		BOOST_CHECK(e.data_ == 0);
 	}
 
 	//percent-ite = 100%
 	queueing::pool<IMPL> pl2(false, 20, 100, false, false);
 	for(int i = 0; i < 10; ++i){
-		dst = pl2.choose_dst(0);
-		BOOST_CHECK(dst != 0);
+		e = pl2.create_event(0,curTime,totalTime);
+		BOOST_CHECK(e.data_ != 0);
 	}
 }
 
