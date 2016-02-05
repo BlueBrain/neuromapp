@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar cq libstorage.a  CMakeFiles/storage.dir/storage/neuromapp_data.cpp.o CMakeFiles/storage.dir/storage/storage.cpp.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libstorage.a
