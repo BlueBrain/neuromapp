@@ -37,22 +37,22 @@ private:
 
 public:
 	/** \fn omp_lock()
-	    \brief inits mut_
+	 *  \brief inits mut_
 	 */
 	omp_lock(){omp_init_lock(&mut_);}
 
 	/** \fn ~omp_lock()
-	    \brief destroys mut_
+	 *  \brief destroys mut_
 	 */
 	~omp_lock(){omp_destroy_lock(&mut_);}
 
 	/** \fn acquire()
-	    \brief sets mut_
+	 *  \brief sets mut_
 	 */
 	inline void acquire(){omp_set_lock(&mut_);}
 
 	/** \fn release()
-	    \brief unsets mut_
+	 *  \brief unsets mut_
 	 */
 	inline void release(){omp_unset_lock(&mut_);}
 };

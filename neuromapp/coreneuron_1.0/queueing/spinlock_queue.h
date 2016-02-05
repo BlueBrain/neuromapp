@@ -61,8 +61,8 @@ public:
         pthread_spin_lock(&lock_);
         n->next = head_;
         head_ = n;
-		++size_;
-		++counter;
+        ++size_;
+        ++counter;
         pthread_spin_unlock(&lock_);
     }
 
@@ -70,7 +70,7 @@ public:
         pthread_spin_lock(&lock_);
         node* original_head = head_;
         head_ = NULL;
-		size_ = 0;
+        size_ = 0;
         pthread_spin_unlock(&lock_);
         return original_head;
     }
