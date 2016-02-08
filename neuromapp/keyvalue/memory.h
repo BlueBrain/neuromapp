@@ -119,7 +119,7 @@ public:
     typename std::vector<meta_type>::reference meta_at(std::size_t i) {
         return m.at(i);
     }
-    
+
 private:
     /** the group of cell */
     std::vector<nrnthread> data;
