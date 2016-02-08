@@ -8,25 +8,8 @@
 #include "utils/storage/neuromapp_data.h"
 #include "spike/algos.hpp"
 
-int main(int argc, char* argv[]) {
-    assert(argc == 5);
-    MPI::Init(argc, argv);
-	MPI_Datatype mpi_spikeItem = createMpiItemType(mpi_spikeItem);
-
-    int size = MPI::COMM_WORLD.Get_size();
-    int rank = MPI::COMM_WORLD.Get_rank();
-    int eventsPer = atoi(argv[1]);
-    int numOut= atoi(argv[2]);
-    int simTime = atoi(argv[3]);
-    int numIn = atoi(argv[4]);
-
-    assert(numIn <= (numOut * (size - 1)));
-
-    MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-
-//	if(isDistrubuted)
-//    	sg = DistributedSpikeGraph(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-
+template<class T>
+void run_sim(T& sg){
     sg.setup();
 
 	//generate messages (or not) every time step.
@@ -40,6 +23,31 @@ int main(int argc, char* argv[]) {
     }
 
 	sg.reduce_stats();
+}
+
+int main(int argc, char* argv[]) {
+    assert(argc == 6);
+    MPI::Init(argc, argv);
+	MPI_Datatype mpi_spikeItem = createMpiItemType(mpi_spikeItem);
+
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+    int eventsPer = atoi(argv[1]);
+    int numOut= atoi(argv[2]);
+    int simTime = atoi(argv[3]);
+    int numIn = atoi(argv[4]);
+    int isDistributed = atoi(argv[5]);
+
+    assert(numIn <= (numOut * (size - 1)));
+
+	if(isDistributed){
+    	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+		run_sim(dsg);
+	}
+	else {
+    	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+		run_sim(sg);
+	}
 
     MPI_Type_free(&mpi_spikeItem);
     MPI::Finalize();

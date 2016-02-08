@@ -50,7 +50,8 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     ("eventsper", po::value<size_t>()->default_value(3), "average number of events generated per dt")
     ("numOut", po::value<size_t>()->default_value(3), "number of output presyns (gids) per process")
     ("simtime", po::value<size_t>()->default_value(10), "The number of timesteps in the simulation")
-    ("numIn", po::value<size_t>()->default_value(3), "the number of input presyns per process");
+    ("numIn", po::value<size_t>()->default_value(3), "the number of input presyns per process")
+    ("distributed", "If set, use distributed algorithm else use default (global collective)");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -82,9 +83,9 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
 void spike_content(po::variables_map const& vm){
         std::cout << "Run MPI Hello World:" <<std::endl;
 	char command[50];
-	snprintf(command, 100, "mpirun -n %lu neuromapp/spike/MPI_Exec %lu %lu %lu %lu",
+	snprintf(command, 100, "mpirun -n %lu neuromapp/spike/MPI_Exec %lu %lu %lu %lu %lu",
 		vm["numproc"].as<size_t>(), vm["eventsper"].as<size_t>(), vm["numOut"].as<size_t>(),
-		vm["simtime"].as<size_t>(), vm["numIn"].as<size_t>());
+		vm["simtime"].as<size_t>(), vm["numIn"].as<size_t>(), vm.count("distributed"));
 	system(command);
 }
 
