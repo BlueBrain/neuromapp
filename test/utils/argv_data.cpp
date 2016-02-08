@@ -1,5 +1,5 @@
 /*
- * Neuromapp - solver.cpp, Copyright (c), 2015,
+ * Neuromapp - arg_data.cpp, Copyright (c), 2015,
  * Sam Yates - Swiss Federal Institute of technology in Lausanne,
  * Sam.Yatest@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/test/utils/test_argv_data.cpp
+ * @file neuromapp/test/utils/arg_data.cpp
  *  Test the command line helper
  */
 
