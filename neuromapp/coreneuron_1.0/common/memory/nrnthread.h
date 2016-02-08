@@ -1,22 +1,22 @@
 /*
-* Neuromapp - nrn_thread.h, Copyright (c), 2015,
-* Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
-* timothee.ewart@epfl.ch,
-* All rights reserved.
-*
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation; either
-* version 3.0 of the License, or (at your option) any later version.
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library.
-*/
+ * Neuromapp - nrn_thread.h, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 
 /**
  * @file neuromapp/coreneuron_1.0/common/memory/nrnthread.h
@@ -65,8 +65,10 @@ typedef struct NrnThread {
     int end;
     /** Total number of compartment with padding*/
     int end_pad;
+    /** time */
+    double _t;
     /** step time */
-    double dt;
+    double _dt;
     /** Total non-mechanism data allocated in one (contiguous) region */
     double *_data;
     /** Righ hand side of the sparse matrix, alias in _data */

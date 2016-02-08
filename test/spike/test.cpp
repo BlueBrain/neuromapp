@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <numeric>
 
-#include "test/coreneuron_1.0/helper.h"
+#include "coreneuron_1.0/common/data/helper.h"
 #include "spike/algos.hpp"
 #include "spike/spike.h"
 #include "spike/mpispikegraph.h"

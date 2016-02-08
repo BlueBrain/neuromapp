@@ -1,9 +1,7 @@
 /*
- * Neuromapp - error.h, Copyright (c), 2015,
- * timothee ewart - Swiss Federal Institute of technology in Lausanne,
- * Sam Yates - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch
- * sam.yates@epfl.ch
+ * Neuromapp - queueing.h, Copyright (c), 2015,
+ * Kai Langen - Swiss Federal Institute of technology in Lausanne,
+ * kai.langen@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -21,29 +19,18 @@
  */
 
 /**
- * @file neuromapp/utils/error.h
- * \brief devine the error for C/C++ interface
+ * @file neuromapp/coreneuron_1.0/queueing/queueing.h
+ * \brief Declaration for the queuing_execute function from main.cpp
  */
 
+#ifndef MAPP_QUEUEING_EXECUTE_
+#define MAPP_QUEUEING_EXECUTE_
 
-#ifndef MAPP_ERROR_
-#define MAPP_ERROR_
+/** \fn queuing_execute(int argc, char *const argv[])
+ *  \param argc number of argument from the command line
+ *  \param argv the command line from the driver or external call
+ *  \return error message from mapp::mapp_error
+ */
+int queueing_execute(int argc, char* const argv[]);
 
-#ifdef __cplusplus
-namespace mapp{
 #endif
-
-enum mapp_error {
-    MAPP_OK =0,
-    MAPP_BAD_ARG,
-    MAPP_USAGE,
-    MAPP_BAD_DATA,
-    MAPP_BAD_THREAD,
-    MAPP_UNKNOWN_ERROR
-};
-
-#ifdef __cplusplus
-} // end namespace
-#endif
-
-#endif // ndef MAPP_ERROR_

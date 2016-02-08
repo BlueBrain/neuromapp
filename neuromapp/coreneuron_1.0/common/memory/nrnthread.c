@@ -1,26 +1,26 @@
 /*
-* Neuromapp - nrnthread_handler.c, Copyright (c), 2015,
-* Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
-* Pramod Kumbhar - Swiss Federal Institute of technology in Lausanne,
-* Sam Yates - Swiss Federal Institute of technology in Lausanne,
-* timothee.ewart@epfl.ch,
-* paramod.kumbhar@epfl.ch
-* sam.yates@epfl.ch
-* All rights reserved.
-*
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation; either
-* version 3.0 of the License, or (at your option) any later version.
-*
-* This library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library.
-*/
+ * Neuromapp - nrnthread_handler.c, Copyright (c), 2015,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * Pramod Kumbhar - Swiss Federal Institute of technology in Lausanne,
+ * Sam Yates - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * paramod.kumbhar@epfl.ch
+ * sam.yates@epfl.ch
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 
 /**
  * @file neuromapp/coreneuron_1.0/common/memory/nrnthread.c
@@ -79,7 +79,7 @@ int nrnthread_copy(const NrnThread *p, NrnThread *nt){
     long int offset;
     int ne;
 
-    nt->dt = p->dt;
+    nt->_dt = p->_dt;
     nt->_ndata = p->_ndata;
 
     nt->_data = memcpy_align(p->_data, 64, sizeof(double) * nt->_ndata);
@@ -193,7 +193,7 @@ int nrnthread_read(FILE *hFile, NrnThread *nt) {
     if (!hFile)
         return MAPP_BAD_DATA; // the input does not exists stop;
 
-    nt->dt = 0.025;
+    nt->_dt = 0.025;
 
     fscanf(hFile, "%d\n", &nt->_ndata);
     nt->_data =  (double*)ecalloc_align(nt->_ndata, NRN_SOA_BYTE_ALIGN, sizeof(double));
