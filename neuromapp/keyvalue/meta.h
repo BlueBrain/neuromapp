@@ -33,8 +33,6 @@
 
 namespace keyvalue{
 
-enum selector { map = 0, skv, lldb };
-
 class meta{
 public:
     typedef double value_type;

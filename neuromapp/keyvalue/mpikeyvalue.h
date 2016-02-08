@@ -38,6 +38,7 @@
 #include "keyvalue/memory.h"
 #include "keyvalue/utils/tools.h"
 #include "keyvalue/map/map_store.h"
+#include "keyvalue/utils/trait.h"
 
 class argvs {
 private:

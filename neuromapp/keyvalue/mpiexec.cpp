@@ -24,9 +24,10 @@
 #include <iostream>
 #include <stdlib.h>
 
-//#include "keyvalue/utils/tools.h"
+#include "keyvalue/utils/trait.h"
 #include "keyvalue/benchmark.h"
 #include "keyvalue/utils/statistic.h"
+#include "keyvalue/utils/trait.h"
 
 int main(int argc, char* argv[]) {
 
@@ -35,8 +36,7 @@ int main(int argc, char* argv[]) {
 	keyvalue::argument a(argc, argv);
     // build the bench infunction of the argument
     if(a.backend() == "map"){
-        typedef keyvalue::meta meta_type;
-        benchmark<meta_type> b(a);
+        benchmark<keyvalue::map> b(a);
         //bench
         keyvalue::statistic s = run_loop(b);
         //compute statistics

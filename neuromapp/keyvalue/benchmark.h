@@ -34,13 +34,14 @@
 #include "keyvalue/utils/tools.h"
 #include "keyvalue/utils/argument.h"
 #include "keyvalue/utils/statistic.h"
+#include "keyvalue/utils/trait.h"
 
 #include "utils/mpi/timer.h"
 
-template<class M>
+template<keyvalue::selector S>
 class benchmark{
 public:
-    typedef M meta_type;
+    typedef typename keyvalue::trait_meta<S>::meta_type meta_type;
     /** \fun benchmark(std::size_t choice, std::size_t qmb = 4096)
         \brief compute the total number of compartment (2.5 = 2.5 MB per neuron, 350 compartiment per neuron)
         4096 MB, 25% of the memory of a compute node of the BG/Q
@@ -78,14 +79,15 @@ private:
     std::size_t s;
 };
 
-template<class M>
-keyvalue::statistic run_loop(benchmark<M> const& b){
+template<keyvalue::selector S>
+keyvalue::statistic run_loop(benchmark<S> const& b){
+    typedef typename keyvalue::trait_meta<S>::meta_type meta_type;
     // extract the group of memory
-    keyvalue::group<M> const& g = b.get_group();
+    keyvalue::group<meta_type> const& g = b.get_group();
     keyvalue::argument const& a = b.get_args();
     
     // build the needed function in function of the backend
-    keyvalue_map kv;
+    typename keyvalue::trait_meta<S>::keyvalue_type kv;
 
     // the timer
     mapp::timer t;
