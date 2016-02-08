@@ -29,7 +29,8 @@ namespace patch
 
 
 
-KeyValueSkv::KeyValueSkv(int mpiRank, bool threadSafe, std::string pdsName) : KeyValueIface(), _rank(mpiRank), _skvState(SKV_NONE)
+KeyValueSkv::KeyValueSkv(int mpiRank, bool threadSafe, std::string pdsName) :_rank = mapp::master.rank(),
+                                                                             _skvState(SKV_NONE)
 {
 	if (threadSafe) {
 		_lock = new MyOMPLock();
@@ -162,8 +163,7 @@ KeyValueSkv::~KeyValueSkv()
 
 
 
-void KeyValueSkv::insert(const int * key, unsigned int keySize, const double * value, unsigned int valueSize, void * handle, bool async)
-{
+void KeyValueSkv::insert(const keyvalue::meta& m){
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
 	if (async) {
