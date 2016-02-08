@@ -12,23 +12,21 @@ template<class T>
 void run_sim(T& sg){
     sg.setup();
 
-	//generate messages (or not) every time step.
-    allgather(sg);
-    allgatherv(sg);
+    //generate messages (or not) every time step.
+    spike_exchange(sg);
 
+    /*
     size_t result = 0;
-    for(size_t i = 0; i < sg.recvBuf.size(); ++i){
-		if(sg.matches(sg.recvBuf[i]))
-		    ++result;
+    for(size_t i = 0; i < sg.recv_buf_.size(); ++i){
+        if(sg.matches(sg.recv_buf_[i]))
+            ++result;
     }
-
-	sg.reduce_stats();
+    reduce_stats();
+    */
 }
 
 int main(int argc, char* argv[]) {
     assert(argc == 6);
-    MPI::Init(argc, argv);
-	MPI_Datatype mpi_spikeItem = createMpiItemType(mpi_spikeItem);
 
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -40,16 +38,14 @@ int main(int argc, char* argv[]) {
 
     assert(numIn <= (numOut * (size - 1)));
 
-	if(isDistributed){
-    	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-		run_sim(dsg);
-	}
-	else {
-    	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-		run_sim(sg);
-	}
+    if(isDistributed){
+    DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer);
+        run_sim(dsg);
+    }
+    else {
+    MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer);
+        run_sim(sg);
+    }
 
-    MPI_Type_free(&mpi_spikeItem);
-    MPI::Finalize();
     return 0;
 }

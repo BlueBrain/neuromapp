@@ -40,21 +40,17 @@
 
 namespace bfs = ::boost::filesystem;
 
-static MPI_Datatype mpi_spikeItem;
-
 struct MPIInitializer {
 	MPIInitializer(){
 		MPI::Init();
-		mpi_spikeItem = createMpiItemType(mpi_spikeItem);
 	}
 	~MPIInitializer(){
-	    MPI_Type_free(&(mpi_spikeItem));
 		MPI::Finalize();
 	}
 };
 
 BOOST_GLOBAL_FIXTURE(MPIInitializer);
-
+/*
 BOOST_AUTO_TEST_CASE(graph_setup_test){
     int size = MPI::COMM_WORLD.Get_size();
 	int rank = MPI::COMM_WORLD.Get_rank();
@@ -65,7 +61,7 @@ BOOST_AUTO_TEST_CASE(graph_setup_test){
 	int numOut = 2;
 	int numIn = rand()%(size*numOut);
 
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer);
 	sg.setup();
 	BOOST_CHECK(sg.inputPresyns_.size() == numIn);
 	BOOST_CHECK(sg.outputPresyns_.size() == numOut);
@@ -81,7 +77,7 @@ BOOST_AUTO_TEST_CASE(distributed_setup_test){
 	int numOut = 2;
 	int numIn = rand()%(size*numOut);
 
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer);
 	dsg.setup();
 	BOOST_CHECK(dsg.inNeighbors_.size() <= numIn);
 	BOOST_CHECK(dsg.outNeighbors_.size() <= size);
@@ -97,7 +93,7 @@ BOOST_AUTO_TEST_CASE(distributed_one_inpresyn){
 	int numOut = 2;
 	int numIn = 1;
 
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer);
 	dsg.setup();
 	//with one input presyn per node, inNeighbors.size() == inputPresyns.size()
 	BOOST_CHECK(dsg.inNeighbors_.size() == numIn);
@@ -113,7 +109,7 @@ BOOST_AUTO_TEST_CASE(graph_create_spike){
 	int numOut = 2;
 	int numIn = rand()%(size*numOut);
 
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer);
 	sg.setup();
 
 	SpikeItem spike = sg.create_spike();
@@ -140,7 +136,7 @@ BOOST_AUTO_TEST_CASE(graph_matches_test){
 	//numIn is some value in the range [1, total number of output Presyns]
 	int numIn = (rand()%(size*numOut-1)) + 1;
 
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer);
 	sg.setup();
 
 	//A spike I create should not match one of my input presyns
@@ -154,7 +150,7 @@ BOOST_AUTO_TEST_CASE(graph_matches_test){
 	BOOST_CHECK(sg.matches(spike2));
 }
 
-BOOST_AUTO_TEST_CASE(algos_allgather){
+BOOST_AUTO_TEST_CASE(algos_spike_exchange){
     int size = MPI::COMM_WORLD.Get_size();
 	int rank = MPI::COMM_WORLD.Get_rank();
 
@@ -163,53 +159,18 @@ BOOST_AUTO_TEST_CASE(algos_allgather){
 	int eventsPer = 10;
 	int numOut = 2;
 	int numIn = rand()%(size*numOut);
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer);
 	sg.setup();
 
-	allgather(sg);
+	spike_exchange(sg);
 
-	int sum = std::accumulate(sg.sizeBuf.begin(), sg.sizeBuf.end(), 0);
-
-	BOOST_CHECK(sum == (size * eventsPer));
-	BOOST_CHECK(sg.sizeBuf.size() == size);
-	BOOST_CHECK(sg.sendBuf.size() == eventsPer);
+	BOOST_CHECK(sg.recv_buf_.size() == (eventsPer * size));
 
 
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
+	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer);
 	dsg.setup();
 
-	allgather(dsg);
+	spike_exchange(dsg);
 
-	sum = std::accumulate(dsg.sizeBuf.begin(), dsg.sizeBuf.end(), 0);
-
-	BOOST_CHECK(sum == (dsg.inNeighbors_.size() * eventsPer));
-	BOOST_CHECK(dsg.sizeBuf.size() == dsg.inNeighbors_.size());
-	BOOST_CHECK(dsg.sendBuf.size() == eventsPer);
-}
-
-BOOST_AUTO_TEST_CASE(algos_allgatherv){
-    int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
-
-	srand(time(NULL) + rank);
-
-	int eventsPer = 10;
-	int numOut = 2;
-	int numIn = rand()%(size*numOut);
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	sg.setup();
-
-	allgather(sg);
-	allgatherv(sg);
-
-	BOOST_CHECK(sg.recvBuf.size() == (eventsPer * size));
-
-
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	dsg.setup();
-
-	allgather(dsg);
-	allgatherv(dsg);
-
-	BOOST_CHECK(dsg.recvBuf.size() == (eventsPer * dsg.inNeighbors_.size()));
-}
+	BOOST_CHECK(dsg.recv_buf_.size() == (eventsPer * dsg.inNeighbors_.size()));
+}*/

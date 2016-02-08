@@ -33,26 +33,22 @@
 #ifndef algos_h
 #define algos_h
 
-/** \fn allgather(g)
-    \brief performs a generic allgather on the data provided
-    \param g the graph the operation is performed on
-    \postcond g.sizeBuf is filled with sizes
-  */
-template<typename graph>
-void allgather(graph &g){
+void spike_exchange(MpiSpikeGraph &g){
+    //gather how many events each neighbor is sending
     g.allgather();
-}
-
-/** \fn allgatherv(g)
-    \brief performs a generic allgatherv on the data provided
-    \param g the graph the operation is performed on
-    \precond g.sendBuf and g.sizeBuf are not empty
-    \postcond g.recvBuf is filled with elements
-  */
-template<typename graph>
-void allgatherv(graph &g){
+    //get the displacements
+    g.set_displ();
+    //next distribute items to every other process using allgatherv
     g.allgatherv();
 }
-
-
+/*
+bool MpiSpikeGraph::matches(const spike_item &sitem){
+    for(int i = 0; i < input_presyns_.size(); ++i){
+        if(sitem.dst_ == input_presyns_[i]){
+            ++total_relevent_;
+            return true;
+        }
+    }
+    return false;
+}*/
 #endif
