@@ -92,13 +92,13 @@ namespace mapp{
             static int xindex=std::ios_base::xalloc();
             return xindex;
         }
-        
+
         template <typename charT,typename traitsT>
         static std::basic_streambuf<charT,traitsT> *get_null_streambuf() {
             static basic_null_streambuf<charT,traitsT> the_null_streambuf;
             return &the_null_streambuf;
         }
-        
+
         // true => do not filter
         bool mask;
     };

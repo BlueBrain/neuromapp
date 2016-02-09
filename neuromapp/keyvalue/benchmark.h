@@ -57,19 +57,19 @@ public:
         for (int i = 1; i < args.cg(); i++)
             g.push_back(keyvalue::nrnthread(cg_size));
     }
-    
+
     /** \fun get_group() const
         \brief get the group i.e. the memory */
     keyvalue::group<meta_type> const& get_group() const{
         return g;
     }
-    
+
     /** \fun get_args() const
         \brief return the argument */
     keyvalue::argument const & get_args() const {
         return a;
     }
-    
+
 private:
     /** memory for the bench */
     keyvalue::group<meta_type> g;
@@ -85,9 +85,10 @@ keyvalue::statistic run_loop(benchmark<S> const& b){
     // extract the group of memory
     keyvalue::group<meta_type> const& g = b.get_group(); //git it to the group
     keyvalue::argument const& a = b.get_args();
-    
+
     // build the needed function in function of the backend
     typename keyvalue::trait_meta<S>::keyvalue_type kv;
+    kv.async() = a.async();
 
     // the timer
     mapp::timer t;
@@ -97,7 +98,7 @@ keyvalue::statistic run_loop(benchmark<S> const& b){
     // keep time trace
     std::vector<double> vtime;
     vtime.reserve(1024);
-    
+
     // these two loops should be merge
     for (float st = 0; st < a.st(); st += a.md()) {
         for (float md = 0; md < a.md(); md += a.dt()) {
@@ -118,7 +119,7 @@ keyvalue::statistic run_loop(benchmark<S> const& b){
             vtime.push_back(t.time());
         }
     }
-    
+
     return keyvalue::statistic(a,vtime);
 }
 
@@ -181,17 +182,17 @@ std::pair<keyvalue::statistic,keyvalue::statistic> run_task(benchmark<S> const& 
                                 usleep((int) ((0.38 * comp_time_us) / a.threads()) + adjust);
                             }
                         }
-                        
+
                     } // omp single
                 } // omp parallel
-                
+
             }
             #pragma omp barrier
-            
+
             sleep_time += (int) ((0.05 * comp_time_us)) + adjust;
             usleep((int) (0.05 * comp_time_us) + adjust);
         }
-        
+
         t1.toc();
 
         t2.tic();
@@ -215,12 +216,6 @@ std::pair<keyvalue::statistic,keyvalue::statistic> run_task(benchmark<S> const& 
 
                                 #pragma omp task depend(inout:dep1, dep2)
                                 {
-                                    // Wait for I/O from previous iteration
-                                    // FIXME: This should be implemented in a cleaner way...
-                                    if (a.async()) {
-                                        kv.wait(g.meta_at(cg));
-                                    }
-
                                     // Linear algebra - 5%
                                     usleep((int) ((0.05 * comp_time_us) / a.threads()) + adjust);
                                 }
@@ -230,27 +225,19 @@ std::pair<keyvalue::statistic,keyvalue::statistic> run_task(benchmark<S> const& 
                                     // I/O
                                     kv.insert(g.meta_at(cg));
                                 }
-                                
+
                                 #pragma omp task depend(inout:dep1)
                                 {
                                     // Second computation - 38%
                                     usleep((int) ((0.38 * comp_time_us) / a.threads()) + adjust);
                                 }
-                                
-                                // Not optimal doing it here, as we could still run the first computation task from next iteration before this
-                                if (a.async()) {
-                                    #pragma omp task depend(inout:dep2)
-                                    {
-                                        kv.wait(g.meta_at(cg));
-                                    }
-                                }
                             } // end loop cg
                         } // omp single
                     } // omp parallel
                 } // for loop dt
-                
+
                 #pragma omp barrier
-                
+
                 // Spike exchange - 5%
                 usleep((int) (0.05 * comp_time_us) + adjust);
             } // for loop st

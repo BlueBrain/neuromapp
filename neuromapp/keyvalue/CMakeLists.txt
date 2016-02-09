@@ -1,5 +1,5 @@
 set(MPI_STATIC ON)
-find_package(MPI REQUIRED)
+find_package(MPI REQUIRED )
 
 include_directories(${MPI_INCLUDE_PATH})
 
@@ -8,7 +8,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 #Add keyvalue to the mini-app library
 add_library (keyvalue main.cpp)
-target_link_libraries (keyvalue  ${MPI_LIBRARIES})
+#target_link_libraries (keyvalue  ${MPI_LIBRARIES})
 
 install (TARGETS keyvalue DESTINATION lib)
 install (FILES keyvalue.h DESTINATION include)
@@ -29,7 +29,8 @@ add_executable(MPI_Exec_kv utils/statistic.cpp mpiexec.cpp )
 
 
 # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-target_link_libraries (MPI_Exec_kv map_store ${MPI_LIBRARIES})
+target_link_libraries (MPI_Exec_kv map_store)
+#target_link_libraries (MPI_Exec_kv map_store ${MPI_LIBRARIES})
 
 
 if(IS_DIRECTORY ${SKV_PATH})

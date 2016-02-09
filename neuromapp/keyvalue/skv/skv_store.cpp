@@ -5,7 +5,7 @@
 
 //#ifdef SKV_STORE
 
-#include "skv_store.h"
+#include "keyvalue/skv/skv_store.h"
 
 #include <iostream>
 #include <sstream>
@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <string>
+
+#include "utils/mpi/controler.h"
 
 namespace patch
 {
@@ -25,13 +28,11 @@ namespace patch
     }
 }
 
-#include <string>
 
 
 
-KeyValueSkv::KeyValueSkv(int mpiRank, bool threadSafe, std::string pdsName) :_rank = mapp::master.rank(),
-                                                                             _skvState(SKV_NONE)
-{
+keyvalue_skv::keyvalue_skv(bool threadSafe, std::string pdsName):_skvState(SKV_NONE),_async(false){
+        _rank = mapp::master.rank();
 	if (threadSafe) {
 		_lock = new MyOMPLock();
 	} else {
@@ -127,7 +128,7 @@ KeyValueSkv::KeyValueSkv(int mpiRank, bool threadSafe, std::string pdsName) :_ra
 }
 
 
-KeyValueSkv::~KeyValueSkv()
+keyvalue_skv::~keyvalue_skv()
 {
 
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
@@ -163,20 +164,20 @@ KeyValueSkv::~KeyValueSkv()
 
 
 
-void KeyValueSkv::insert(const keyvalue::meta& m){
+void keyvalue_skv::insert(const keyvalue::meta_skv& m){
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
-	if (async) {
+	if (async()) {
 
-		if (handle == NULL) {
+		if (m.handle() == NULL) {
 			std::cout << "Error: async operations need a non-NULL handle" << std::endl;
 		}
 
 		//std::cout << "[" << _rank << "] async Insert():: < " << *key << ", " << *value << " >" << std::endl;
 
 		_lock->lock();
-		status = _skvClient.iInsert(&_pdsId, m.key().c_str(), m.key().key_size(), m.value(), m.value_size(), 0,
-				SKV_COMMAND_RIU_APPEND, (skv_client_cmd_ext_hdl_t *) m.ins_handles());
+		status = _skvClient.iInsert(&_pdsId, (char*)m.key().c_str(), m.key_size(), (char*)m.value(), m.value_size(), 0,
+				SKV_COMMAND_RIU_APPEND, (skv_client_cmd_ext_hdl_t *) m.handle());
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
@@ -195,7 +196,7 @@ void KeyValueSkv::insert(const keyvalue::meta& m){
 		//std::cout << "[" << _rank << "] Insert():: < " << *key << ", " << *value << " >" << std::endl;
 
 		_lock->lock();
-		status = _skvClient.Insert(&_pdsId, m.key().c_str(), m.key().key_size(), m.value(), m.value_size(),
+		status = _skvClient.Insert(&_pdsId, (char*)m.key().c_str(), m.key_size(), (char*)m.value(), m.value_size(),
                                    0, SKV_COMMAND_RIU_APPEND );
 		_lock->unlock();
 
@@ -215,14 +216,14 @@ void KeyValueSkv::insert(const keyvalue::meta& m){
 
 
 
-int KeyValueSkv::retrieve(keyvalue::meta& m)
+int keyvalue_skv::retrieve(keyvalue::meta_skv& m)
 {
 	int size = 0;
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
-	if (async) {
+	if (async()) {
 
-		if (handle == NULL) {
+		if (m.handle() == NULL) {
 			std::cout << "Error: async operations need a non-NULL handle" << std::endl;
 		}
 
@@ -235,8 +236,8 @@ int KeyValueSkv::retrieve(keyvalue::meta& m)
 //		std::memcpy(v, value, valueSize);
 
 		_lock->lock();
-		status = _skvClient.iRetrieve(&_pdsId,m.key().c_str(), m.key().key_size(), m.value(), n.value_size(), sizeof(double), &size, 0,
-				SKV_COMMAND_RIU_FLAGS_NONE, (skv_client_cmd_ext_hdl_t *) m.rem_handles());
+		status = _skvClient.iRetrieve(&_pdsId,(char*)m.key().c_str(), m.key_size(),(char*)m.value(), m.value_size(), &size, 0,
+				SKV_COMMAND_RIU_FLAGS_NONE, (skv_client_cmd_ext_hdl_t *) m.handle());
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
@@ -247,12 +248,13 @@ int KeyValueSkv::retrieve(keyvalue::meta& m)
 			std::cout
 			<< "[" << _rank << "] Async keyvalue retrieve FAILED: "
 			<< " status: " << skv_status_to_string( status )
-			<< std::endl;skv_client_cmd_ext_hdl_t
+			<< std::endl;
+                }
 	} else {
 		//std::cout << "[" << _rank << "] Retrieve():: key: " << key << std::endl;
 
 		_lock->lock();
-		status = _skvClient.Retrieve(&_pdsId, m.key().c_str(),  m.key().key_size(), m.value(), n.value_size(),
+		status = _skvClient.Retrieve(&_pdsId,(char*) m.key().c_str(),  m.key_size(),(char*) m.value(), m.value_size(),
                                      &size, 0, SKV_COMMAND_RIU_FLAGS_NONE );
 		_lock->unlock();
 
@@ -273,13 +275,13 @@ int KeyValueSkv::retrieve(keyvalue::meta& m)
 
 
 
-void KeyValueSkv::remove(const keyvalue::meta& m)
+void keyvalue_skv::remove(const keyvalue::meta_skv& m)
 {
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
-	if (async) {
+	if (async()) {
 
-		if (handle == NULL) {
+		if (m.handle() == NULL) {
 			std::cout << "Error: async operations need a non-NULL handle" << std::endl;
 		}
 
@@ -289,8 +291,8 @@ void KeyValueSkv::remove(const keyvalue::meta& m)
 //		std::memcpy(k, key, keySize);
 
 		_lock->lock();
-		status = _skvClient.iRemove(&_pdsId, m.key().c_str(),  m.key().key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE,
-                                    (skv_client_cmd_ext_hdl_t *) m.rem_handles());
+		status = _skvClient.iRemove(&_pdsId, (char*)m.key().c_str(),  m.key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE,
+                                    (skv_client_cmd_ext_hdl_t *) m.handle());
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
@@ -305,10 +307,10 @@ void KeyValueSkv::remove(const keyvalue::meta& m)
 		}
 
 	} else {
-		std::cout << "[" << _rank << "] Remove():: key: " << key << std::endl;
+		std::cout << "[" << _rank << "] Remove():: key: " << m.key() << std::endl;
 
 		_lock->lock();
-		status = _skvClient.Remove(&_pdsId,  m.key().c_str(),  m.key().key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE);
+		status = _skvClient.Remove(&_pdsId, (char*)m.key().c_str(),  m.key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE);
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
@@ -326,12 +328,12 @@ void KeyValueSkv::remove(const keyvalue::meta& m)
 
 
 
-void KeyValueSkv::wait(keyvalue::meta& m)
+void keyvalue_skv::wait(const keyvalue::meta_skv& m)
 {
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
 	_lock->lock();
-	status = _skvClient.Wait( *((skv_client_cmd_ext_hdl_t *) m.rem_handles()));
+	status = _skvClient.Wait( *((skv_client_cmd_ext_hdl_t *) m.handle()));
 	_lock->unlock();
 
 	if (status == SKV_SUCCESS) {
@@ -346,7 +348,7 @@ void KeyValueSkv::wait(keyvalue::meta& m)
 	}
 
 
-    
+
 }
 
 //#endif /* SKV_STORE */

@@ -16,7 +16,7 @@
 
 
 keyvalue_map::keyvalue_map(bool threadSafe, std::string pdsName):
-                                    _numReaders(0), _numWriters(0){
+                                    _numReaders(0), _numWriters(0), _async(false){
                                    _rank = mapp::master.rank();
     if (threadSafe) {
         //		_nRdLock = new MyOMPLock();
