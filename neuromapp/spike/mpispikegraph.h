@@ -35,17 +35,19 @@ class MpiSpikeGraph {
 protected:
     int num_procs_;
     int rank_;
-    int total_received_;
-    int total_relevent_;
     size_t events_per_;
     size_t num_out_;
     size_t num_in_;
+    size_t sim_time_;
+    static const size_t min_delay_ = 5;
     MPI_Datatype mpi_spike_item_;
 
 public:
     //used in setup
     std::vector<int> input_presyns_;
     std::vector<int> output_presyns_;
+    int total_received_;
+    int total_relevent_;
 
     //used during collective functions
     std::vector<spike_item> generated_spikes_;
@@ -61,9 +63,10 @@ public:
         \param numOut the number of output_presyns per process
         \param numIn the maximum number of Input_presyns per node
      */
-MpiSpikeGraph(int n, int rank, size_t numOut, size_t numIn, size_t eventsPer) :
-	num_procs_(n), rank_(rank), total_received_(0), total_relevent_(0), num_out_(numOut),
-	num_in_(numIn), events_per_(eventsPer)
+MpiSpikeGraph(int n, int rank, size_t numOut, size_t numIn,
+        size_t eventsPer, size_t simTime) : num_procs_(n),
+        rank_(rank), total_received_(0), total_relevent_(0), num_out_(numOut),
+	num_in_(numIn), events_per_(eventsPer), sim_time_(simTime)
         {
             mpi_spike_item_ = create_mpi_spike_type(mpi_spike_item_);
             srand(time(NULL)+rank_);
@@ -78,7 +81,7 @@ MpiSpikeGraph(int n, int rank, size_t numOut, size_t numIn, size_t eventsPer) :
      */
     void setup();
 
-    /** \fn create_spike()
+    /** \fn generate_spikes()
      *  \brief generates all the spike_items to be used in the simulation
      */
     void generate_spikes();
@@ -89,6 +92,8 @@ MpiSpikeGraph(int n, int rank, size_t numOut, size_t numIn, size_t eventsPer) :
     void allgather();
 
     void set_displ();
+
+    void load_send_buf();
 
     /** \fn allgatherv()
         \brief performs an allgatherv operation of spike_items
@@ -101,7 +106,7 @@ MpiSpikeGraph(int n, int rank, size_t numOut, size_t numIn, size_t eventsPer) :
      */
     bool matches(const spike_item &sitem);
 
-    void reduce_stats(int received, int relevent);
+    void reduce_stats();
 };
 
 class DistributedSpikeGraph : public MpiSpikeGraph {
@@ -109,16 +114,16 @@ private:
     MPI_Comm neighborhood_;
 
 public:
-    std::vector<int> inNeighbors_;
-    std::vector<int> outNeighbors_;
+    std::vector<int> in_neighbors_;
+    std::vector<int> out_neighbors_;
 
     /** \fn DistributedSpikeGraph(int n, int rank, size_t numOut, size_t numIn)
         \brief type of MpiSpikeGraph where each node is connected to a subset of the
         entire graph (a neighborhood)
      */
     DistributedSpikeGraph(int n, int rank, size_t numOut,
-    size_t numIn, size_t eventsPer) :
-            MpiSpikeGraph(n, rank, numOut, numIn, eventsPer) {}
+    size_t numIn, size_t eventsPer, size_t simTime):
+            MpiSpikeGraph(n, rank, numOut, numIn, eventsPer, simTime) {}
 
     /** \fn setup()
         \brief creates the local neighborhood for this process, to set up a distributed

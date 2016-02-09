@@ -34,6 +34,7 @@
 #define algos_h
 
 void spike_exchange(MpiSpikeGraph &g){
+    g.load_send_buf();
     //gather how many events each neighbor is sending
     g.allgather();
     //get the displacements
@@ -41,14 +42,4 @@ void spike_exchange(MpiSpikeGraph &g){
     //next distribute items to every other process using allgatherv
     g.allgatherv();
 }
-/*
-bool MpiSpikeGraph::matches(const spike_item &sitem){
-    for(int i = 0; i < input_presyns_.size(); ++i){
-        if(sitem.dst_ == input_presyns_[i]){
-            ++total_relevent_;
-            return true;
-        }
-    }
-    return false;
-}*/
 #endif

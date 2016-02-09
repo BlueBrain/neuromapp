@@ -15,14 +15,12 @@ void run_sim(T& sg){
     //generate messages (or not) every time step.
     spike_exchange(sg);
 
-    /*
     size_t result = 0;
     for(size_t i = 0; i < sg.recv_buf_.size(); ++i){
         if(sg.matches(sg.recv_buf_[i]))
             ++result;
     }
-    reduce_stats();
-    */
+    sg.reduce_stats();
 }
 
 int main(int argc, char* argv[]) {
@@ -39,11 +37,13 @@ int main(int argc, char* argv[]) {
     assert(numIn <= (numOut * (size - 1)));
 
     if(isDistributed){
-    DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer);
+        DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, simTime);
+        dsg.generate_spikes();
         run_sim(dsg);
     }
     else {
-    MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer);
+        MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, simTime);
+        sg.generate_spikes();
         run_sim(sg);
     }
 
