@@ -61,6 +61,7 @@ enable_testing()
 include_directories(neuromapp)
 add_subdirectory (neuromapp)
 #test
+include(Testing)
 add_subdirectory (test)
 
 #prepare the input

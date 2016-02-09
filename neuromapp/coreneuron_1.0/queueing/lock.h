@@ -4,15 +4,15 @@
  * kai.langen@epfl.ch,
  * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/coreneuron_1.0/queueing/lock.h
- * \brief Contains OMPLock and DummyLock class declaration.
+ * \brief Contains omp_lock and dummy_lock class declaration.
  */
 
 #ifndef MAPP_LOCK_H_
@@ -31,28 +31,28 @@
 
 namespace queueing {
 
-class OMPLock{
+class omp_lock{
 private:
 	omp_lock_t mut_;
 
 public:
-	/** \fn OMPLock()
-	    \brief inits mut_
+	/** \fn omp_lock()
+	 *  \brief inits mut_
 	 */
-	OMPLock(){omp_init_lock(&mut_);}
+	omp_lock(){omp_init_lock(&mut_);}
 
-	/** \fn ~OMPLock()
-	    \brief destroys mut_
+	/** \fn ~omp_lock()
+	 *  \brief destroys mut_
 	 */
-	~OMPLock(){omp_destroy_lock(&mut_);}
+	~omp_lock(){omp_destroy_lock(&mut_);}
 
 	/** \fn acquire()
-	    \brief sets mut_
+	 *  \brief sets mut_
 	 */
 	inline void acquire(){omp_set_lock(&mut_);}
 
 	/** \fn release()
-	    \brief unsets mut_
+	 *  \brief unsets mut_
 	 */
 	inline void release(){omp_unset_lock(&mut_);}
 };
@@ -62,10 +62,8 @@ public:
 
 namespace queueing {
 
-class DummyLock{
+class dummy_lock{
 public:
-	DummyLock(){}
-	~DummyLock(){}
 	void acquire(){}
 	void release(){}
 };

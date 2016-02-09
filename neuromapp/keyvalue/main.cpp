@@ -4,23 +4,21 @@
  * judit.planas@epfl.ch,
  * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details..  See the GNU
  * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library.
  */
 
 /**
- * @file neuromapp/key-value/main.cpp
- * Key-value Miniapp
+ * @file neuromapp/keyvalue/main.cpp
+ * keyvalue Miniapp
  */
 
 #include <iostream>
@@ -28,7 +26,7 @@
 
 #include <boost/program_options.hpp>
 #include <stdlib.h>
-#include "key-value/key-value.h"
+#include "keyvalue/keyvalue.h"
 #include "utils/error.h"
 
 /** namespace alias for boost::program_options **/
@@ -52,9 +50,9 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
     ("numproc,p", po::value<int>()->default_value(1), "[int]    Number of MPI processes")
     ("numthread,t", po::value<int>()->default_value(1), "[int]    Number of OpenMP threads")
 
-    ("backend,b", po::value<std::string>()->default_value("map"), "[string] Key-value store backend to use. \
+    ("backend,b", po::value<std::string>()->default_value("map"), "[string] keyvalue store backend to use. \
                   Supported backends: map (STL map), skv (IBM SKV), ldb (LevelDB)")
-    ("async,a", "If available, use the asynchronous API of the key-value backend")
+    ("async,a", "If available, use the asynchronous API of the keyvalue backend")
     ("flash,f", "If available, use flash memory as storage")
     ("usecase,u", po::value<int>()->default_value(1), "[int] Use case to simulate. Creates a data set size of: \
                   1 (25% BG/Q node DRAM, 4 GB), 2 (50% DRAM, 8 GB), 3 (75% DRAM, 12 GB)")
@@ -117,7 +115,7 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
 }
 
 /** \fn keyvalue_content(po::variables_map const& vm)
-    \brief Execute the Key-value benchmark
+    \brief Execute the keyvalue benchmark
     \param vm encapsulate the command line and all needed informations
  */
 void keyvalue_content(po::variables_map const& vm){
@@ -141,15 +139,15 @@ void keyvalue_content(po::variables_map const& vm){
     std::stringstream command;
 
     command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np
-            << " /Users/ewart/Documents/miniapps/b/neuromapp/key-value/MPI_Exec_kv  -b " << backend
+            << " /Users/ewart/Documents/neuromapp/b/neuromapp/keyvalue/MPI_Exec_kv  -b " << backend
     		<< " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
     		<< " -md " << md << " -dt " << dt << " -cg " << cg;
 
 
-    //command << "srun -n 4 neuromapp/key-value/mpiexec";
+    //command << "srun -n 4 neuromapp/keyvalue/mpiexec";
 
 	//char command[130];
-	//snprintf(command, 130, "OMP_NUM_THREADS=%d srun -n %d neuromapp/key-value/MPI_Exec_kv -b %s %s %s -uc %d -st %f -md %f -dt %f -cg %d",
+	//snprintf(command, 130, "OMP_NUM_THREADS=%d srun -n %d neuromapp/keyvalue/MPI_Exec_kv -b %s %s %s -uc %d -st %f -md %f -dt %f -cg %d",
 	//	nt, np, backend.c_str(), (async ? "-a" : ""), (flash ? "-f" : ""), uc, st, md, dt, cg);
 
 	std::cout << "Running command " << command.str() << std::endl;

@@ -4,15 +4,15 @@
  * kai.langen@epfl.ch,
  * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
@@ -55,13 +55,14 @@ public:
 
     size_t size(){return size_;}
 
-    void push(const T &data){
+    void push(const T &data, int &counter){
         node* n = new node;
         n->data = data;
         pthread_spin_lock(&lock_);
         n->next = head_;
         head_ = n;
-		++size_;
+        ++size_;
+        ++counter;
         pthread_spin_unlock(&lock_);
     }
 
@@ -69,7 +70,7 @@ public:
         pthread_spin_lock(&lock_);
         node* original_head = head_;
         head_ = NULL;
-		size_ = 0;
+        size_ = 0;
         pthread_spin_unlock(&lock_);
         return original_head;
     }

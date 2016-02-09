@@ -6,14 +6,15 @@
  * judit.planas@epfl.ch,
  * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details. See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
@@ -21,7 +22,7 @@
  */
 
 /**
- * @file neuromapp/key-value/utils/arguments.h
+ * @file neuromapp/keyvalue/utils/arguments.h
  * \brief basic shell for arguments
  */
 
@@ -33,8 +34,6 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
-
-#include "utils/mpi/print.h"
 
 namespace keyvalue {
 
@@ -101,7 +100,6 @@ public:
         }
     };
 
-
     struct to_true{
         /** \fn operator()
          \brief functor that transform the return true if the looking argument is in the std::vector
@@ -122,7 +120,7 @@ public:
         if (it != v.end())
             function = op(*(it+1));
         else
-           	std::cout << mapp::mpi_filter_master() << "Ignoring invalid parameter: \n ";
+           	std::cout << "Ignoring invalid parameter: \n ";
     }
 
     /**
@@ -296,7 +294,7 @@ public:
 
 
 /** \brief basic overload the ostream operator to print the arguement */
-std::ostream &operator<<(std::ostream &out, argument  const&  a){
+inline std::ostream &operator<<(std::ostream &out, argument  const&  a){
      a.print(out);
      return out;
 }

@@ -1,19 +1,19 @@
 set(MPI_STATIC ON)
-find_package(MPI REQUIRED)
+find_package(MPI REQUIRED )
 
 include_directories(${MPI_INCLUDE_PATH})
 
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 
-#Add key-value to the mini-app library
-add_library (key-value main.cpp)
-target_link_libraries (key-value  ${MPI_LIBRARIES})
+#Add keyvalue to the mini-app library
+add_library (keyvalue main.cpp)
+#target_link_libraries (keyvalue  ${MPI_LIBRARIES})
 
-install (TARGETS key-value DESTINATION lib)
-install (FILES key-value.h DESTINATION include)
+install (TARGETS keyvalue DESTINATION lib)
+install (FILES keyvalue.h DESTINATION include)
 
-#Key-value interface header file
+#keyvalue interface header file
 install (FILES kv-iface.h DESTINATION include)
 
 
@@ -25,11 +25,11 @@ install (FILES map/map_store.h DESTINATION include)
 
 #SKV IBM backend
 #set(SKV_PATH "/gpfs/bbp.cscs.ch/home/jplanas/bgas/skv/cnk/" CACHE PATH "IBM SKV library root directory path")
-add_executable(MPI_Exec_kv mpiexec.cpp)
+add_executable(MPI_Exec_kv utils/statistic.cpp mpiexec.cpp )
 
 
 # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-target_link_libraries (MPI_Exec_kv map_store ${MPI_LIBRARIES}) 
+target_link_libraries (MPI_Exec_kv map_store ${MPI_CXX_LIBRARIES})
 
 
 if(IS_DIRECTORY ${SKV_PATH})

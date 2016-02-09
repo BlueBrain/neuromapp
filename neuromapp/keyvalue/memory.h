@@ -4,14 +4,15 @@
  * timothee.ewart@epfl.ch,
  * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details..  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
@@ -19,7 +20,7 @@
  */
 
 /**
- * @file neuromapp/key-value/memory.h
+ * @file neuromapp/keyvalue/memory.h
  * \brief Implements the memory for the benchmark neuron like
  */
 
@@ -36,7 +37,8 @@
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <boost/lexical_cast.hpp>
 
-#include "key-value/utils/tools.h"
+#include "utils/mpi/controler.h"
+#include "keyvalue/utils/tools.h"
 
 #include <utility>
 
@@ -100,7 +102,7 @@ public:
         of the uuid and the meta data */
     void push_back(nrnthread const& v){
         std::string uuid = boost::uuids::to_string(generator())
-                            + boost::lexical_cast<std::string>(keyvalue::utils::master.rank());
+                            + boost::lexical_cast<std::string>(mapp::master.rank());
         data.push_back(v);
         gid.push_back(uuid);
         m.push_back(meta_type(uuid,data.back().front_pointer(),v.size()));
@@ -117,7 +119,7 @@ public:
     typename std::vector<meta_type>::reference meta_at(std::size_t i) {
         return m.at(i);
     }
-    
+
 private:
     /** the group of cell */
     std::vector<nrnthread> data;

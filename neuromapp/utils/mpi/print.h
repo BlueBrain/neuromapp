@@ -26,8 +26,8 @@
  */
 
 
-#ifndef MAPP_PRINT_
-#define MAPP_PRINT_
+#ifndef MAPP_PRINT_H
+#define MAPP_PRINT_H
 
 #include <iostream>
 #include <mpi.h>
@@ -92,13 +92,13 @@ namespace mapp{
             static int xindex=std::ios_base::xalloc();
             return xindex;
         }
-        
+
         template <typename charT,typename traitsT>
         static std::basic_streambuf<charT,traitsT> *get_null_streambuf() {
             static basic_null_streambuf<charT,traitsT> the_null_streambuf;
             return &the_null_streambuf;
         }
-        
+
         // true => do not filter
         bool mask;
     };
@@ -110,14 +110,9 @@ namespace mapp{
         return mask_stream(rank==0);
     }
 
+    // all rank normal version
     inline mask_stream mpi_filter_all() {
         return mask_stream(true);
-    }
-
-    int get_rank() {
-        int rank;
-        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-        return rank;
     }
 
 } // end namespace

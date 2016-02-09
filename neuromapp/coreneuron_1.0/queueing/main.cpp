@@ -4,15 +4,15 @@
  * kai.langen@epfl.ch,
  * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
@@ -43,29 +43,31 @@ namespace po = boost::program_options;
 namespace queueing {
 
 /** \fn qhelp(int argc, char *const argv[], po::variables_map& vm)
-    \brief Helper using boost program option to facilitate the command line manipulation
-    \param argc number of argument from the command line
-    \param argv the command line from the driver or external call
-    \param vm encapsulate the command line
-    \return error message from mapp::mapp_error
+ *  \brief Helper using boost program option to facilitate the command line manipulation
+ *  \param argc number of argument from the command line
+ *  \param argv the command line from the driver or external call
+ *  \param vm encapsulate the command line
+ *  \return error message from mapp::mapp_error
  */
 int qhelp(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
-    ("help", "produce help message")
-    ("numthread", po::value<int>()->default_value(1),
+    ("help,h", "produce help message")
+    ("nthreads,n", po::value<int>()->default_value(1),
      "number of OMP thread")
-    ("eventsper", po::value<int>()->default_value(50),
+    ("cell-groups,c", po::value<int>()->default_value(64),
+	 "number of cell groups in the simulation")
+    ("events-per,e", po::value<int>()->default_value(50),
      "number of events created per time step")
-    ("simtime", po::value<int>()->default_value(5000),
+    ("time,t", po::value<int>()->default_value(5000),
      "number of time steps in the simulation")
-    ("percent-ite", po::value<int>()->default_value(90),
+    ("percent-ite,i", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
-    ("spike-enabled","determines whether or not to include spike events")
-    ("verbose","provides additional outputs during execution")
+    ("percent-spike,s",po::value<int>()->default_value(0),
+     "the percentage of spike events out of total events")
+    ("verbose,v","provides additional outputs during execution")
     ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector")
-    ("with-algebra","simulation performs linear algebra calculations");
-    //future options : fraction of interthread events
+    ("with-algebra,a","simulation performs linear algebra calculations");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -74,21 +76,32 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         std::cout << desc;
         return mapp::MAPP_USAGE;
     }
-
-    if(vm["numthread"].as<int>() < 1)
-		return mapp::MAPP_BAD_ARG;
-
-    if(vm["eventsper"].as<int>() < 1)
-		return mapp::MAPP_BAD_ARG;
-
-    if(vm["simtime"].as<int>() < 1)
-		return mapp::MAPP_BAD_ARG;
-
-   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-ite"].as<int>() > 100) )
-		return mapp::MAPP_BAD_ARG;
-
+    if(vm["nthreads"].as<int>() < 1){
+        std::cout<<"numthread must be non-zero"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+    if(vm["cell-groups"].as<int>() < vm["nthreads"].as<int>()){
+        std::cout<<"cell-groups should be >= numthreads"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+    if(vm["events-per"].as<int>() < 1){
+        std::cout<<"eventsper must be non-zero"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+    if(vm["time"].as<int>() < 1){
+        std::cout<<"time must be non-zero"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-spike"].as<int>() < 0 )){
+        std::cout<<"percentages cannot be negative"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+   }
+   if( (vm["percent-ite"].as<int>() + vm["percent-spike"].as<int>() ) > 100 ){
+        std::cout<<"percent-ite + percent-spike can not exceed 100%"<<std::endl;
+        return mapp::MAPP_BAD_ARG;
+   }
 #ifdef _OPENMP
-    omp_set_num_threads(vm["numthread"].as<int>());
+    omp_set_num_threads(vm["nthreads"].as<int>());
 #endif
     return mapp::MAPP_OK;
 }
@@ -98,35 +111,38 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
  * \brief the actual queueing simulation
  */
 template<implementation I>
-void run_sim(Pool<I> &pl, po::variables_map const&vm){
+void run_sim(pool<I> &pl, po::variables_map const&vm){
     struct timeval start, end;
-	pl.generateAllEvents(vm["simtime"].as<int>());
+    pl.generate_all_events(vm["time"].as<int>());
     gettimeofday(&start, NULL);
-    for(int j = 0; j < vm["simtime"].as<int>(); ++j){
-        pl.timeStep();
-		pl.handleSpike(vm["simtime"].as<int>());
+    for(int j = 0; j < vm["time"].as<int>(); ++j){
+        pl.time_step();
+        pl.handle_spike(vm["time"].as<int>());
     }
-	pl.accumulate_stats();
+    pl.accumulate_stats();
     gettimeofday(&end, NULL);
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
-	std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+    std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
 }
 
 /** \fn queueing_miniapp(po::variables_map const& vm)
-    \brief Execute the queing miniapp
-    \param vm encapsulate the command line and all needed informations
+ *  \brief Execute the queing miniapp
+ *  \param vm encapsulate the command line and all needed informations
  */
 void queueing_miniapp(po::variables_map const& vm){
-	bool verbose = vm.count("verbose");
-	bool spike = vm.count("spike-enabled");
-	bool algebra = vm.count("with-algebra");
+    int cellgroups = vm["cell-groups"].as<int>();
+    int p_ite = vm["percent-ite"].as<int>();
+    int p_spike = vm["percent-spike"].as<int>();
+    int eventsper = vm["events-per"].as<int>();
+    bool verbose = vm.count("verbose");
+    bool algebra = vm.count("with-algebra");
 
     if(vm.count("spinlock")){
-   		Pool<spinlock> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
-		run_sim(pl,vm);
+        pool<spinlock> pl(cellgroups, eventsper, p_ite, p_spike, verbose, algebra);
+        run_sim(pl,vm);
     } else {
-   		Pool<mutex> pl(verbose, vm["eventsper"].as<int>(), vm["percent-ite"].as<int>(), spike, algebra);
-		run_sim(pl,vm);
+        pool<mutex> pl(cellgroups, eventsper, p_ite, p_spike, verbose, algebra);
+        run_sim(pl,vm);
     }
 }
 

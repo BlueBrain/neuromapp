@@ -19,8 +19,6 @@ public:
 	virtual void unlock() = 0;
 };
 
-
-
 class MyDummyLock : public MyLock {
 public:
 	MyDummyLock() {}
@@ -28,8 +26,6 @@ public:
 	inline void lock() {}
 	inline void unlock() {}
 };
-
-
 
 #ifdef _OPENMP
 class MyOMPLock : public MyLock {
@@ -42,8 +38,6 @@ public:
 	inline void unlock() { omp_unset_lock(&_lock); }
 };
 #endif
-
-
 
 #if 0
 #include <mutex>

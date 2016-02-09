@@ -5,7 +5,7 @@
 
 //#ifdef SKV_STORE
 
-#include "skv_store.h"
+#include "keyvalue/skv/skv_store.h"
 
 #include <iostream>
 #include <sstream>
@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <string>
+
+#include "utils/mpi/controler.h"
 
 namespace patch
 {
@@ -25,12 +28,8 @@ namespace patch
     }
 }
 
-#include <string>
-
-
-
-KeyValueSkv::KeyValueSkv(int mpiRank, bool threadSafe, std::string pdsName) : KeyValueIface(), _rank(mpiRank), _skvState(SKV_NONE)
-{
+keyvalue_skv::keyvalue_skv(bool threadSafe, std::string pdsName):_skvState(SKV_NONE),_async(false){
+        _rank = mapp::master.rank();
 	if (threadSafe) {
 		_lock = new MyOMPLock();
 	} else {
@@ -126,7 +125,7 @@ KeyValueSkv::KeyValueSkv(int mpiRank, bool threadSafe, std::string pdsName) : Ke
 }
 
 
-KeyValueSkv::~KeyValueSkv()
+keyvalue_skv::~keyvalue_skv()
 {
 
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
@@ -162,36 +161,29 @@ KeyValueSkv::~KeyValueSkv()
 
 
 
-void KeyValueSkv::insert(const int * key, unsigned int keySize, const double * value, unsigned int valueSize, void * handle, bool async)
-{
+void keyvalue_skv::insert(const keyvalue::meta_skv& m){
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
-	if (async) {
+	if (async()) {
 
-		if (handle == NULL) {
+		if (m.handle() == NULL) {
 			std::cout << "Error: async operations need a non-NULL handle" << std::endl;
 		}
 
 		//std::cout << "[" << _rank << "] async Insert():: < " << *key << ", " << *value << " >" << std::endl;
 
-		char * k = new char[keySize];
-		std::memcpy(k, key, keySize);
-
-		char * v = new char[valueSize];
-		std::memcpy(v, value, valueSize);
-
 		_lock->lock();
-		status = _skvClient.iInsert(&_pdsId, k, sizeof(k), v, sizeof(v), 0,
-				SKV_COMMAND_RIU_APPEND, (skv_client_cmd_ext_hdl_t *) handle);
+		status = _skvClient.iInsert(&_pdsId, (char*)m.key().c_str(), m.key_size(), (char*)m.value(), m.value_size(), 0,
+				SKV_COMMAND_RIU_APPEND, (skv_client_cmd_ext_hdl_t *) m.handle());
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
-			//<< "[" << _rank << "] Async key-value pair insertion successful!"
+			//<< "[" << _rank << "] Async keyvalue pair insertion successful!"
 			//<< std::endl;
 		} else {
 			std::cout
-			<< "[" << _rank << "] Async key-value insertion FAILED: "
+			<< "[" << _rank << "] Async keyvalue insertion FAILED: "
 			<< " status: " << skv_status_to_string( status )
 			<< std::endl;
 		}
@@ -201,16 +193,17 @@ void KeyValueSkv::insert(const int * key, unsigned int keySize, const double * v
 		//std::cout << "[" << _rank << "] Insert():: < " << *key << ", " << *value << " >" << std::endl;
 
 		_lock->lock();
-		status = _skvClient.Insert(&_pdsId, (char *) key, keySize, (char *) value, valueSize, 0, SKV_COMMAND_RIU_APPEND );
+		status = _skvClient.Insert(&_pdsId, (char*)m.key().c_str(), m.key_size(), (char*)m.value(), m.value_size(),
+                                   0, SKV_COMMAND_RIU_APPEND );
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
-			//<< "[" << _rank << "] Key-value pair successfully inserted!"
+			//<< "[" << _rank << "] keyvalue pair successfully inserted!"
 			//<< std::endl;
 		} else {
 			std::cout
-			<< "[" << _rank << "] Key-value insertion FAILED: "
+			<< "[" << _rank << "] keyvalue insertion FAILED: "
 			<< " status: " << skv_status_to_string( status )
 			<< std::endl;
 		}
@@ -220,53 +213,55 @@ void KeyValueSkv::insert(const int * key, unsigned int keySize, const double * v
 
 
 
-int KeyValueSkv::retrieve(const int * key, unsigned int keySize, double * value, unsigned int valueSize, void * handle, bool async)
+int keyvalue_skv::retrieve(keyvalue::meta_skv& m)
 {
 	int size = 0;
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
-	if (async) {
+	if (async()) {
 
-		if (handle == NULL) {
+		if (m.handle() == NULL) {
 			std::cout << "Error: async operations need a non-NULL handle" << std::endl;
 		}
 
 		//std::cout << "[" << _rank << "] async Retrieve():: key: " << key << std::endl;
 
-		char * k = new char[keySize];
-		std::memcpy(k, key, keySize);
-
-		char * v = new char[valueSize];
-		std::memcpy(v, value, valueSize);
+//		char * k = new char[keySize];
+//		std::memcpy(k, key, keySize);
+//
+//		char * v = new char[valueSize];
+//		std::memcpy(v, value, valueSize);
 
 		_lock->lock();
-		status = _skvClient.iRetrieve(&_pdsId, k, sizeof(k), v, sizeof(v), &size, 0,
-				SKV_COMMAND_RIU_FLAGS_NONE, (skv_client_cmd_ext_hdl_t *) handle);
+		status = _skvClient.iRetrieve(&_pdsId,(char*)m.key().c_str(), m.key_size(),(char*)m.value(), m.value_size(), &size, 0,
+				SKV_COMMAND_RIU_FLAGS_NONE, (skv_client_cmd_ext_hdl_t *) m.handle());
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
-			//<< "[" << _rank << "] Async key-value pair successfully retrieved!"
+			//<< "[" << _rank << "] Async keyvalue pair successfully retrieved!"
 			//<< std::endl;
 		} else {
 			std::cout
-			<< "[" << _rank << "] Async key-value retrieve FAILED: "
+			<< "[" << _rank << "] Async keyvalue retrieve FAILED: "
 			<< " status: " << skv_status_to_string( status )
-			<< std::endl;skv_client_cmd_ext_hdl_t
+			<< std::endl;
+                }
 	} else {
 		//std::cout << "[" << _rank << "] Retrieve():: key: " << key << std::endl;
 
 		_lock->lock();
-		status = _skvClient.Retrieve(&_pdsId, (char *) key, keySize, (char *) value, valueSize, &size, 0, SKV_COMMAND_RIU_FLAGS_NONE );
+		status = _skvClient.Retrieve(&_pdsId,(char*) m.key().c_str(),  m.key_size(),(char*) m.value(), m.value_size(),
+                                     &size, 0, SKV_COMMAND_RIU_FLAGS_NONE );
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
-			//<< "[" << _rank << "] Key-value pair successfully retrieved!"
+			//<< "[" << _rank << "] keyvalue pair successfully retrieved!"
 			//<< std::endl;
 		} else {
 			std::cout
-			<< "[" << _rank << "] Key-value retrieve FAILED: "
+			<< "[" << _rank << "] keyvalue retrieve FAILED: "
 			<< " status: " << skv_status_to_string( status )
 			<< std::endl;
 		}
@@ -277,50 +272,51 @@ int KeyValueSkv::retrieve(const int * key, unsigned int keySize, double * value,
 
 
 
-void KeyValueSkv::remove(const int * key, unsigned int keySize, void * handle, bool async)
+void keyvalue_skv::remove(const keyvalue::meta_skv& m)
 {
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
-	if (async) {
+	if (async()) {
 
-		if (handle == NULL) {
+		if (m.handle() == NULL) {
 			std::cout << "Error: async operations need a non-NULL handle" << std::endl;
 		}
 
 		//std::cout << "[" << _rank << "] Async Remove():: key: " << *key << std::endl;
 
-		char * k = new char[keySize];
-		std::memcpy(k, key, keySize);
+//		char * k = new char[keySize];
+//		std::memcpy(k, key, keySize);
 
 		_lock->lock();
-		status = _skvClient.iRemove(&_pdsId, k, sizeof(k), SKV_COMMAND_REMOVE_FLAGS_NONE, (skv_client_cmd_ext_hdl_t *) handle);
+		status = _skvClient.iRemove(&_pdsId, (char*)m.key().c_str(),  m.key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE,
+                                    (skv_client_cmd_ext_hdl_t *) m.handle());
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
-			//<< "[" << _rank << "] Async key-value pair successfully removed!"
+			//<< "[" << _rank << "] Async keyvalue pair successfully removed!"
 			//<< std::endl;
 		} else {
 			std::cout
-			<< "[" << _rank << "] Async key-value removal FAILED: "
+			<< "[" << _rank << "] Async keyvalue removal FAILED: "
 			<< " status: " << skv_status_to_string( status )
 			<< std::endl;
 		}
 
 	} else {
-		std::cout << "[" << _rank << "] Remove():: key: " << key << std::endl;
+		std::cout << "[" << _rank << "] Remove():: key: " << m.key() << std::endl;
 
 		_lock->lock();
-		status = _skvClient.Remove(&_pdsId, (char *) key, keySize, SKV_COMMAND_REMOVE_FLAGS_NONE);
+		status = _skvClient.Remove(&_pdsId, (char*)m.key().c_str(),  m.key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE);
 		_lock->unlock();
 
 		if (status == SKV_SUCCESS) {
 			std::cout
-			<< "[" << _rank << "] Key-value pair successfully removed!"
+			<< "[" << _rank << "] keyvalue pair successfully removed!"
 			<< std::endl;
 		} else {
 			std::cout
-			<< "[" << _rank << "] Key-value removal FAILED: "
+			<< "[" << _rank << "] keyvalue removal FAILED: "
 			<< " status: " << skv_status_to_string( status )
 			<< std::endl;
 		}
@@ -329,12 +325,12 @@ void KeyValueSkv::remove(const int * key, unsigned int keySize, void * handle, b
 
 
 
-void KeyValueSkv::wait(void * handle)
+void keyvalue_skv::wait(const keyvalue::meta_skv& m)
 {
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
 	_lock->lock();
-	status = _skvClient.Wait( *((skv_client_cmd_ext_hdl_t *) handle));
+	status = _skvClient.Wait( *((skv_client_cmd_ext_hdl_t *) m.handle()));
 	_lock->unlock();
 
 	if (status == SKV_SUCCESS) {
@@ -347,6 +343,8 @@ void KeyValueSkv::wait(void * handle)
 		<< " status: " << skv_status_to_string( status )
 		<< std::endl;
 	}
+
+
 
 }
 
