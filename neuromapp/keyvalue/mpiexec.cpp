@@ -44,7 +44,6 @@ int main(int argc, char* argv[]) {
         //print the results
         std::cout << s << std::endl;
 
-
         std::pair<keyvalue::statistic,keyvalue::statistic> p = run_task(b);
         // compute the statistic
         p.first.process();
@@ -53,8 +52,9 @@ int main(int argc, char* argv[]) {
         std::cout << p.first << std::endl;
         std::cout << p.second << std::endl;
     }
-
-     if(a.backend() == "skv"){
+    
+#ifdef SKV_STORE
+    if(a.backend() == "skv"){
         benchmark<keyvalue::skv> b(a);
         //bench
         keyvalue::statistic s = run_loop(b);
@@ -62,7 +62,8 @@ int main(int argc, char* argv[]) {
         s.process();
         //print the results
         std::cout << s << std::endl;
-     }
+    }
+#endif
 
      return 0;
 }

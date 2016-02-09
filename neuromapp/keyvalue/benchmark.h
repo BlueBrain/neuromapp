@@ -30,7 +30,6 @@
 #include "keyvalue/memory.h"
 #include "keyvalue/memory.h"
 #include "keyvalue/meta.h"
-#include "keyvalue/mpikeyvalue.h"
 #include "keyvalue/utils/tools.h"
 #include "keyvalue/utils/argument.h"
 #include "keyvalue/utils/statistic.h"

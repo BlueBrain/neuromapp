@@ -100,7 +100,6 @@ public:
         }
     };
 
-
     struct to_true{
         /** \fn operator()
          \brief functor that transform the return true if the looking argument is in the std::vector

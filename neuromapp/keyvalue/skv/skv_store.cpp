@@ -28,9 +28,6 @@ namespace patch
     }
 }
 
-
-
-
 keyvalue_skv::keyvalue_skv(bool threadSafe, std::string pdsName):_skvState(SKV_NONE),_async(false){
         _rank = mapp::master.rank();
 	if (threadSafe) {
