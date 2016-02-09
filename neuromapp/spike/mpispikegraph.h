@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/spike/mpispikegraph.h
- * contains declaration for the MpiSpikeGraph class
+ * contains declaration for the mpi_spike_graph class
  */
 
 
@@ -31,115 +31,47 @@
 
 #ifndef mpispikegraph_h
 #define mpispikegraph_h
-class MpiSpikeGraph {
+namespace spike{
+
+typedef std::vector<int> int_vec;
+typedef std::vector<spike_item> spike_vec;
+
+class mpi_spike_graph {
 protected:
-    int num_procs_;
-    int rank_;
-    size_t events_per_;
-    size_t num_out_;
-    size_t num_in_;
-    size_t sim_time_;
-    static const size_t min_delay_ = 5;
-    MPI_Datatype mpi_spike_item_;
+    virtual void allgather(int size, int_vec nin)=0;
 
-public:
-    //used in setup
-    std::vector<int> input_presyns_;
-    std::vector<int> output_presyns_;
-    int total_received_;
-    int total_relevent_;
+    virtual void allgatherv(spike_vec& spikeout, spike_vec& spikein, int_vec& nin, int_vec& displ)=0;
+};
 
-    //used during collective functions
-    std::vector<spike_item> generated_spikes_;
-    std::vector<spike_item> send_buf_;
-    std::vector<spike_item> recv_buf_;
-    std::vector<int> size_buf_;
-    std::vector<int> displ_;
-
-    /** \fn MpiSpikeGraph(int n, int rank, size_t numOut, size_t numIn)
-        \brief initializes an MpiSpikeGraph with input params
-        \param n the number of MPI processes
-        \param rank the rank of this processes
-        \param numOut the number of output_presyns per process
-        \param numIn the maximum number of Input_presyns per node
-     */
-MpiSpikeGraph(int n, int rank, size_t numOut, size_t numIn,
-        size_t eventsPer, size_t simTime) : num_procs_(n),
-        rank_(rank), total_received_(0), total_relevent_(0), num_out_(numOut),
-	num_in_(numIn), events_per_(eventsPer), sim_time_(simTime)
-        {
-            mpi_spike_item_ = create_mpi_spike_type(mpi_spike_item_);
-            srand(time(NULL)+rank_);
-        }
-
-
-    ~MpiSpikeGraph(){MPI_Type_free(&mpi_spike_item_);}
-
-    /** \fn setup()
-        \brief sets up the environment to prepare for spike exchange.
-        \postcond each process fills in their input_presyns_ and output_presyns_ vectors
-     */
-    void setup();
-
-    /** \fn generate_spikes()
-     *  \brief generates all the spike_items to be used in the simulation
-     */
-    void generate_spikes();
-
+class blocking_global_graph : mpi_spike_graph {
     /** \fn allgather()
         \brief performs an allgather operation for send_buf_ sizes
      */
-    void allgather();
-
-    void set_displ();
-
-    void load_send_buf();
+    void allgather(int size, int_vec nin);
 
     /** \fn allgatherv()
-        \brief performs an allgatherv operation of spike_items
+        \brief performs and allgatherv operation of spike_items
      */
-    void allgatherv();
-
-    /** \fn matches(sitem)
-        \brief checks to see if an input spike_item was sent to one of my input presyns
-         and if so, delivers the spike to that input presyn
-     */
-    bool matches(const spike_item &sitem);
-
-    void reduce_stats();
+    void allgatherv(spike_vec& spikeout, int_vec& nin, int_vec& displ, spike_vec& spikein);
 };
 
-class DistributedSpikeGraph : public MpiSpikeGraph {
+class distributed_graph : mpi_spike_graph {
 private:
     MPI_Comm neighborhood_;
+    int size_;
+    int rank_;
 
 public:
     std::vector<int> in_neighbors_;
     std::vector<int> out_neighbors_;
 
-    /** \fn DistributedSpikeGraph(int n, int rank, size_t numOut, size_t numIn)
-        \brief type of MpiSpikeGraph where each node is connected to a subset of the
-        entire graph (a neighborhood)
-     */
-    DistributedSpikeGraph(int n, int rank, size_t numOut,
-    size_t numIn, size_t eventsPer, size_t simTime):
-            MpiSpikeGraph(n, rank, numOut, numIn, eventsPer, simTime) {}
+    distributed_graph(int size, int rank);
 
-    /** \fn setup()
-        \brief creates the local neighborhood for this process, to set up a distributed
-        graph topology.
-     */
-    void setup();
+    void allgather(int size, int_vec& nin);
 
-    /** \fn allgather()
-        \brief performs an allgather operation for send_buf_ sizes
-     */
-    void allgather();
+    void allgatherv(spike_vec& spikeout, spike_vec& spikein, int_vec& nin, int_vec& displ);
 
-    /** \fn allgatherv()
-        \brief performs and allgatherv operation of spike_items
-     */
-    void allgatherv();
+    void allgatherv(int_vec& intout, int_vec& intin, int_vec& nin, int_vec& displ);
 };
 
 #endif

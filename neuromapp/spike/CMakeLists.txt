@@ -11,7 +11,7 @@ install (TARGETS spike DESTINATION lib)
 install (FILES spike.h DESTINATION include)
 
 #Add mpispike to the mini-app library
-add_library (distributedgraph distributedgraph.cpp mpispikegraph.cpp utils/spike_item.cpp)
+add_library (distributedgraph distributedgraph.cpp blockinggraph.cpp utils/spike_item.cpp)
 
 install (TARGETS distributedgraph DESTINATION lib)
 install (FILES mpispikegraph.h algos.hpp utils/spike_item.h DESTINATION include)

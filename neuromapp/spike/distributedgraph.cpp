@@ -5,7 +5,43 @@
 #include <cassert>
 #include "spike/mpispikegraph.h"
 
-void DistributedSpikeGraph::setup(){
+namespace spike{
+
+distributed_graph::distributed_graph(int size, int rank){
+    size_ = size;
+    rank_ = rank;
+    if(rank_ != 0){
+        in_neighbors_.push_back(rank_ - 1);
+    }
+    if(rank_ != size_){
+        out_neighbors_.push_back(rank_ + 1);
+    }
+
+    MPI_Dist_graph_create_adjacent(MPI_COMM_WORLD, in_neighbors_.size(),
+    &in_neighbors_[0], MPI_UNWEIGHTED, out_neighbors_.size(), &out_neighbors_[0],
+    MPI_UNWEIGHTED, MPI_INFO_NULL, false, &neighborhood_);
+}
+
+void distributed_graph::allgather(){
+    int size = send_buf_.size();
+    MPI_Neighbor_allgather(&size, 1, MPI_INT, &size_buf_[0], 1,
+    MPI_INT, neighborhood_);
+}
+
+void distributed_graph::allgatherv(spike_vec){
+//next distribute items to every other process using allgatherv
+    MPI_Neighbor_allgatherv(&send_buf_[0], send_buf_.size(), mpi_spike_item_,
+    &recv_buf_[0], &size_buf_[0], &displ_[0], mpi_spike_item_, neighborhood_);
+}
+
+void distributed_graph::allgatherv(int_vec){
+//next distribute items to every other process using allgatherv
+    MPI_Neighbor_allgatherv(&send_buf_[0], send_buf_.size(), MPI_INT,
+    &recv_buf_[0], &size_buf_[0], &displ_[0], MPI_INT, neighborhood_);
+}
+
+/*
+void distributed_graph::setup(){
     MpiSpikeGraph::setup();
     //fill isInputNeighbor using inputPresyn info
     std::vector<int> isInputNeighbor(num_procs_, 0);
@@ -63,15 +99,5 @@ void DistributedSpikeGraph::setup(){
     &in_neighbors_[0],MPI_UNWEIGHTED, out_neighbors_.size(), &out_neighbors_[0],
     MPI_UNWEIGHTED, MPI_INFO_NULL, false, &neighborhood_);
 }
-
-void DistributedSpikeGraph::allgather(){
-    int size = send_buf_.size();
-    MPI_Neighbor_allgather(&size, 1, MPI_INT, &size_buf_[0], 1,
-    MPI_INT, neighborhood_);
-}
-
-void DistributedSpikeGraph::allgatherv(){
-//next distribute items to every other process using allgatherv
-    MPI_Neighbor_allgatherv(&send_buf_[0], send_buf_.size(), mpi_spike_item_,
-    &recv_buf_[0], &size_buf_[0], &displ_[0], mpi_spike_item_, neighborhood_);
+*/
 }

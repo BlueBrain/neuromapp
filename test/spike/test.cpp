@@ -37,7 +37,7 @@
 #include "spike/spike.h"
 #include "spike/mpispikegraph.h"
 #include "utils/error.h"
-
+/*
 namespace bfs = ::boost::filesystem;
 
 struct MPIInitializer {
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(graph_matches_test){
     spike2.dst_ = sg.input_presyns_[index];
     BOOST_CHECK(sg.matches(spike2));
 }
-/*
+
 BOOST_AUTO_TEST_CASE(algos_spike_exchange){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();

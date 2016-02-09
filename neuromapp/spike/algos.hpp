@@ -33,7 +33,10 @@
 #ifndef algos_h
 #define algos_h
 
-void spike_exchange(MpiSpikeGraph &g){
+namespace spike {
+
+/*
+void spike_exchange(mpi_spike_graph &g){
     g.load_send_buf();
     //gather how many events each neighbor is sending
     g.allgather();
@@ -42,4 +45,23 @@ void spike_exchange(MpiSpikeGraph &g){
     //next distribute items to every other process using allgatherv
     g.allgatherv();
 }
+*/
+void allgather_int(mpi_spike_graph &g, int size, int_vec nin){
+    g.allgather(size, nin);
+}
+
+void allgatherv_spike(mpi_spike_graph &g,
+spike_vec spikeout, int_vec nin, int_vec displ, spike_vec spikein){
+    g.allgatherv(spikeout, nin, displ, spikein);
+}
+
+void set_displ(int num_procs, const int_vec& nin, int_vec& displ){
+    displ[0] = 0;
+    int total = nin[0];
+    for(int i=1; i < num_procs; ++i){
+        displ[i] = total;
+        total += nin[i];
+    }
+}
+
 #endif

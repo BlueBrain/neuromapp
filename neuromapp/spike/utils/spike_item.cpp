@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <cstddef>
 
+namespace spike{
+
 MPI_Datatype create_mpi_spike_type(MPI_Datatype spike_item_dt){
     const int nblocks = 2;
     int blocklengths[2] = {1,1};
@@ -14,4 +16,6 @@ MPI_Datatype create_mpi_spike_type(MPI_Datatype spike_item_dt){
     MPI_Type_create_struct(nblocks, blocklengths, offsets, types, &spike_item_dt);
     MPI_Type_commit(&spike_item_dt);
     return spike_item_dt;
+}
+
 }

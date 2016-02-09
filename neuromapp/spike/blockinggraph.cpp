@@ -10,7 +10,21 @@
 
 #include "spike/mpispikegraph.h"
 
-void MpiSpikeGraph::setup(){
+namespace spike{
+
+void blocking_global_graph::allgather(int size, int_vec nin){
+    MPI_Allgather(&size, 1, MPI_INT, &nin[0], 1, MPI_INT, MPI_COMM_WORLD);
+}
+
+void blocking_global_graph::allgatherv(spike_vec spikeout, spike_vec spikein,
+int_vec nin, int_vec displ){
+    MPI_Allgatherv(&spikeout[0], spikeout.size(), mpi_spike_item_,
+    &spikein[0], &nin[0], &displ[0], mpi_spike_item_, MPI_COMM_WORLD);
+}
+
+}
+/*
+void blocking_global_graph::setup(){
     assert(num_procs_ > 1);
     //my inputPresyn's are chosen random with the following conditions:
     //a new inputPresyn cannot be the same as my output_presyns or an inputPresyn I've already chosen
@@ -36,7 +50,7 @@ void MpiSpikeGraph::setup(){
     generate_spikes();
 }
 
-void MpiSpikeGraph::generate_spikes(){
+void blocking_global_graph::generate_spikes(){
     //Select a random number of items to generate
     spike_item sitem;
     int index;
@@ -50,7 +64,7 @@ void MpiSpikeGraph::generate_spikes(){
     }
 }
 
-void MpiSpikeGraph::load_send_buf(){
+void blocking_global_graph::load_send_buf(){
     send_buf_.clear();
     for(int i = 0; i < (events_per_ * min_delay_); ++i){
         send_buf_.push_back(generated_spikes_.back());
@@ -58,27 +72,7 @@ void MpiSpikeGraph::load_send_buf(){
     }
 }
 
-void MpiSpikeGraph::allgather(){
-    int size = send_buf_.size();
-    MPI_Allgather(&size, 1, MPI_INT, &size_buf_[0], 1, MPI_INT, MPI_COMM_WORLD);
-}
-
-void MpiSpikeGraph::set_displ(){
-    displ_[0] = 0;
-    int total = size_buf_[0];
-    for(int i=1; i < num_procs_; ++i){
-        displ_[i] = total;
-        total += size_buf_[i];
-    }
-    total_received_ += total;
-}
-
-void MpiSpikeGraph::allgatherv(){
-    MPI_Allgatherv(&(send_buf_[0]), send_buf_.size(), mpi_spike_item_,
-    &recv_buf_[0], &(size_buf_[0]), &displ_[0], mpi_spike_item_, MPI_COMM_WORLD);
-}
-
-void MpiSpikeGraph::reduce_stats(){
+void blocking_global_graph::reduce_stats(){
     //exchange total_received_
     if(rank_ == 0)
         MPI_Reduce(MPI_IN_PLACE, &total_received_, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -97,7 +91,7 @@ void MpiSpikeGraph::reduce_stats(){
     }
 }
 
-bool MpiSpikeGraph::matches(const spike_item &sitem){
+bool blocking_global_graph::matches(const spike_item &sitem){
     for(int i = 0; i < input_presyns_.size(); ++i){
         if(sitem.dst_ == input_presyns_[i]){
             ++total_relevent_;
@@ -106,3 +100,4 @@ bool MpiSpikeGraph::matches(const spike_item &sitem){
     }
     return false;
 }
+*/
