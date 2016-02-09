@@ -4,15 +4,15 @@
  * timothee.ewart@epfl.ch,
  * All rights reserved.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
@@ -32,8 +32,8 @@
 #include <boost/filesystem.hpp>
 
 #include "coreneuron_1.0/kernel/kernel.h" // signature kernel application
-#include "test/coreneuron_1.0/path.h" // this file is generated automatically
-#include "test/coreneuron_1.0/helper.h" // common functionalities
+#include "neuromapp/coreneuron_1.0/common/data/path.h" // this file is generated automatically
+#include "coreneuron_1.0/common/data/helper.h" // common functionalities
 #include "utils/error.h"
 
 namespace bfs = ::boost::filesystem;

@@ -5,15 +5,15 @@
  * timothee.ewart@epfl.ch,
  * paramod.kumbhar@epfl.ch
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3.0 of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
@@ -28,6 +28,10 @@
 #define MAPP_KERNEL_MECHANISM_
 
 #include "coreneuron_1.0/common/memory/nrnthread.h"
+
+#ifdef __cplusplus
+     extern "C" {
+#endif
 
 /** \fn mech_state_NaTs2_t(NrnThread *nt, Mechanism *ml)
     \brief state kernel for the NaTs2_t channel mechanism
@@ -70,5 +74,16 @@ void mech_state_ProbAMPANMDA_EMS(NrnThread *nt, Mechanism *ml);
     \param ml the looking mechanism
  */
 void mech_current_ProbAMPANMDA_EMS(NrnThread *nt, Mechanism *ml);
+
+/** \fn mech_net_receive(NrnThread *nt, Mechanism *ml)
+    \brief net receive function for the event delivery in the ProbAMPANMDA_EMS mechanism
+    \param nt data structure
+    \param ml the looking mechanism
+ */
+void mech_net_receive(NrnThread *nt, Mechanism *ml);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif
