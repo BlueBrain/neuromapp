@@ -35,25 +35,26 @@ const int_vec& nin, const int_vec& displ){
     &spikein[0], &nin[0], &displ[0], mpi_spike_item_, neighborhood_);
 }
 
-MPI_Request distributed::Iallgather(const int size, int_vec& nin, MPI_Request request){}
+MPI_Request distributed::Iallgather(const int size, int_vec& nin, MPI_Request request){
+/*    MPI_Neighbor_Iallgather(&size, 1, MPI_INT, &nin[0], 1, MPI_INT, neighborhood_, &request);
+    return request;*/
+}
 
 MPI_Request distributed::Iallgatherv(const spike_vec& spikeout, spike_vec& spikein,
-const int_vec& nin, const int_vec& displ, MPI_Request request){}
+const int_vec& nin, const int_vec& displ, MPI_Request request){
+/*    MPI_Neighbor_Iallgatherv(&spikeout[0], spikeout.size(), mpi_spike_item_,
+    &spikein[0], &nin[0], &displ[0], mpi_spike_item_, neighborhood_, &request);
+    return request;*/
+}
 
 int distributed::get_status(MPI_Request request, int flag){
     MPI_Request_get_status(request, &flag, MPI_STATUS_IGNORE);
+    return flag;
 }
 
 void distributed::wait(MPI_Request request){
     MPI_Wait(&request, MPI_STATUS_IGNORE);
 }
-/*
-void distributed::allgatherv(const int_vec& intout, int_vec& intin,
-const int_vec& nin, const int_vec& displ){
-//next distribute items to every other process using allgatherv
-    MPI_Neighbor_allgatherv(&intout[0], intout.size(), MPI_INT,
-    &intin[0], &nin[0], &displ[0], MPI_INT, neighborhood_);
-}*/
 
 /*
 void distributed::setup(){

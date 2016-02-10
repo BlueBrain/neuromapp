@@ -59,8 +59,8 @@ BOOST_AUTO_TEST_CASE(constructor_create_type){
     size_t numIn = 2;
     size_t simtime = 10;
 
-    spike::global_collective b;
-    MPI_Type_free(&b.mpi_spike_item_);
+    spike::global_collective g;
+    MPI_Type_free(&g.mpi_spike_item_);
 }
 
 BOOST_AUTO_TEST_CASE(env_setup_test){
@@ -183,32 +183,41 @@ BOOST_AUTO_TEST_CASE(env_matches_test){
     BOOST_CHECK(env.matches(spike2));
 }
 
-/*
-BOOST_AUTO_TEST_CASE(algos_spike_exchange){
+BOOST_AUTO_TEST_CASE(blocking_spike_exchange){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
 
     srand(time(NULL) + rank);
 
     int eventsPer = 10;
+    int min_delay = 5;
     int numOut = 2;
-    int numIn = rand()%(size*numOut);
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
     size_t simtime = 10;
-    MpiSpikeGraph env(size, rank, numOut, numIn, eventsPer, simtime);
-    env.setup();
-    env.generate_spikes();
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    spike::global_collective g;
 
-    spike_exchange(env);
+    blocking(g, env);
 
-    BOOST_CHECK(env.total_received_ == (eventsPer * size));
+    BOOST_CHECK(env.received() == (eventsPer * size * min_delay));
+}
 
-    DistributedSpikeGraph denv(size, rank, numOut, numIn, eventsPer, simtime);
-    denv.setup();
+BOOST_AUTO_TEST_CASE(nonblocking_spike_exchange){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
 
-    spike_exchange(denv);
+    srand(time(NULL) + rank);
 
-    BOOST_CHECK(denv.recv_buf_.size() == (eventsPer * denv.in_neighbors_.size()));
-}*/
+    int eventsPer = 10;
+    int min_delay = 5;
+    int numOut = 2;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    size_t simtime = 10;
+    spike::environment env1(eventsPer, numOut, numIn, simtime, size, rank);
+    spike::global_collective g;
+    non_blocking(g, env1);
+    BOOST_CHECK(env1.received() == (eventsPer * size * min_delay));
+}
 
 /*
 BOOST_AUTO_TEST_CASE(distributed_setup_test){

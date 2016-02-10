@@ -26,13 +26,13 @@ int main(int argc, char* argv[]) {
 
     if(isDistributed){
         spike::distributed d(size, rank);
-        run_sim(d, env);
+        blocking(d, env);
         MPI_Type_free(&d.mpi_spike_item_);
     }
     else {
-        spike::global_collective b;
-        run_sim(b, env);
-        MPI_Type_free(&b.mpi_spike_item_);
+        spike::global_collective g;
+        blocking(g, env);
+        MPI_Type_free(&g.mpi_spike_item_);
     }
     MPI::Finalize();
     return 0;

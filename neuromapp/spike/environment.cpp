@@ -15,6 +15,8 @@ environment::environment(int ev, int out, int in, int st, int procs, int rank){
     num_procs_ = procs;
     rank_ = rank;
     spike_item sitem;
+    total_received_ = 0;
+    total_relevent_ = 0;
 
     //assign input and output gid's
     for(int i = 0; i < (num_procs_ * num_out_); ++i){
@@ -58,15 +60,24 @@ void environment::set_displ(){
         displ_[i] = total;
         total += nin_[i];
     }
+    total_received_ += total;
 }
 
 bool environment::matches(const spike_item &sitem){
     for(int i = 0; i < input_presyns_.size(); ++i){
         if(sitem.dst_ == input_presyns_[i]){
+            ++total_relevent_;
             return true;
         }
     }
     return false;
+}
+
+int environment::all_matching(){
+    for(int i = 0; i < spikein_.size(); ++i){
+        matches(spikein_[i]);
+    }
+    return total_relevent_;
 }
 
 }

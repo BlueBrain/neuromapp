@@ -69,14 +69,4 @@ void global_collective::reduce_stats(){
         std::cout<<"Received events: "<<total_received_<<std::endl;
     }
 }
-
-bool global_collective::matches(const spike_item &sitem){
-    for(int i = 0; i < input_presyns_.size(); ++i){
-        if(sitem.dst_ == input_presyns_[i]){
-            ++total_relevent_;
-            return true;
-        }
-    }
-    return false;
-}
 */

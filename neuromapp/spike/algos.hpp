@@ -35,7 +35,7 @@
 #ifndef algos_h
 #define algos_h
 
-void run_sim(spike::spike_exchange &se, spike::environment& env){
+void blocking(spike::spike_exchange &se, spike::environment& env){
     //load spikeout with the spikes to be sent
     env.load_spikeout();
     //gather how many spikes each process is sending
@@ -50,7 +50,7 @@ void non_blocking(spike::spike_exchange &se, spike::environment& env){
     int num_tasks = 5;
     MPI_Request request;
     MPI_Request requestv;
-    int flag;
+    int flag = 0;
     env.load_spikeout();
     //check thresh
     request = se.Iallgather(env.spikeout_.size(), env.nin_, request);
@@ -67,7 +67,7 @@ void non_blocking(spike::spike_exchange &se, spike::environment& env){
         }
     }
     if(!flag){
-        wait(request);
+        se.wait(request);
         env.set_displ();
         requestv = se.Iallgatherv(env.spikeout_, env.spikein_, env.nin_, env.displ_, requestv);
     }
