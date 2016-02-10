@@ -50,32 +50,6 @@ void global_collective::wait(MPI_Request request){
 
 }
 /*
-void global_collective::setup(){
-    assert(num_procs_ > 1);
-    //my inputPresyn's are chosen random with the following conditions:
-    //a new inputPresyn cannot be the same as my output_presyns or an inputPresyn I've already chosen
-    for(int i = 0; i < (num_procs_ * num_out_); ++i){
-        //if in range, make gid one of my output_presyns
-        if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
-	    output_presyns_.push_back(i);
-	}
-	//otherwise gid is available as an input
-	else{
-	    input_presyns_.push_back(i);
-	}
-    }
-    assert(input_presyns_.size() == ((num_procs_ * num_out_) - num_out_));
-
-    //randomly shuffle input presyns and keep the first num_in_ elements
-    boost::random_shuffle(input_presyns_);
-    input_presyns_.resize(num_in_);
-    size_buf_.resize(num_procs_);
-    displ_.resize(num_procs_);
-    recv_buf_.resize(events_per_ * num_procs_ * min_delay_);
-
-    generate_spikes();
-}
-
 
 void global_collective::reduce_stats(){
     //exchange total_received_

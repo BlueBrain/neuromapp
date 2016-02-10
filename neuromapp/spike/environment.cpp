@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdlib.h>
 #include <stddef.h>
 #include <boost/range/algorithm/random_shuffle.hpp>
@@ -24,6 +25,7 @@ environment::environment(int ev, int out, int in, int st, int procs, int rank){
 	    input_presyns_.push_back(i);
 	}
     }
+    assert(input_presyns_.size() >= num_in_);
     boost::random_shuffle(input_presyns_);
     input_presyns_.resize(num_in_);
 
@@ -58,4 +60,15 @@ void environment::set_displ(){
     }
 }
 
+bool environment::matches(const spike_item &sitem){
+    for(int i = 0; i < input_presyns_.size(); ++i){
+        if(sitem.dst_ == input_presyns_[i]){
+            return true;
+        }
+    }
+    return false;
 }
+
+}
+
+
