@@ -3,45 +3,60 @@
 #include <cstddef>
 #include <mpi.h>
 #include <cassert>
-#include "spike/mpispikegraph.h"
+
+#include "spike/spike_exchange.h"
 
 namespace spike{
 
-distributed_graph::distributed_graph(int size, int rank){
+distributed::distributed(int size, int rank){
     size_ = size;
     rank_ = rank;
-    if(rank_ != 0){
-        in_neighbors_.push_back(rank_ - 1);
-    }
-    if(rank_ != size_){
-        out_neighbors_.push_back(rank_ + 1);
-    }
+    mpi_spike_item_ = create_mpi_spike_type(mpi_spike_item_);
+    out_neighbors_.push_back((rank_ + 1)%size);
+    if(rank == 0)
+        in_neighbors_.push_back(size - 1);
+    else
+        in_neighbors_.push_back(rank - 1);
 
     MPI_Dist_graph_create_adjacent(MPI_COMM_WORLD, in_neighbors_.size(),
     &in_neighbors_[0], MPI_UNWEIGHTED, out_neighbors_.size(), &out_neighbors_[0],
     MPI_UNWEIGHTED, MPI_INFO_NULL, false, &neighborhood_);
+
 }
 
-void distributed_graph::allgather(){
-    int size = send_buf_.size();
-    MPI_Neighbor_allgather(&size, 1, MPI_INT, &size_buf_[0], 1,
-    MPI_INT, neighborhood_);
+void distributed::allgather(const int size, int_vec& nin){
+    MPI_Neighbor_allgather(&size, 1, MPI_INT, &nin[0], 1, MPI_INT, neighborhood_);
 }
 
-void distributed_graph::allgatherv(spike_vec){
+void distributed::allgatherv(const spike_vec& spikeout, spike_vec& spikein,
+const int_vec& nin, const int_vec& displ){
 //next distribute items to every other process using allgatherv
-    MPI_Neighbor_allgatherv(&send_buf_[0], send_buf_.size(), mpi_spike_item_,
-    &recv_buf_[0], &size_buf_[0], &displ_[0], mpi_spike_item_, neighborhood_);
+    MPI_Neighbor_allgatherv(&spikeout[0], spikeout.size(), mpi_spike_item_,
+    &spikein[0], &nin[0], &displ[0], mpi_spike_item_, neighborhood_);
 }
 
-void distributed_graph::allgatherv(int_vec){
-//next distribute items to every other process using allgatherv
-    MPI_Neighbor_allgatherv(&send_buf_[0], send_buf_.size(), MPI_INT,
-    &recv_buf_[0], &size_buf_[0], &displ_[0], MPI_INT, neighborhood_);
+MPI_Request distributed::Iallgather(const int size, int_vec& nin, MPI_Request request){}
+
+MPI_Request distributed::Iallgatherv(const spike_vec& spikeout, spike_vec& spikein,
+const int_vec& nin, const int_vec& displ, MPI_Request request){}
+
+int distributed::get_status(MPI_Request request, int flag){
+    MPI_Request_get_status(request, &flag, MPI_STATUS_IGNORE);
 }
+
+void distributed::wait(MPI_Request request){
+    MPI_Wait(&request, MPI_STATUS_IGNORE);
+}
+/*
+void distributed::allgatherv(const int_vec& intout, int_vec& intin,
+const int_vec& nin, const int_vec& displ){
+//next distribute items to every other process using allgatherv
+    MPI_Neighbor_allgatherv(&intout[0], intout.size(), MPI_INT,
+    &intin[0], &nin[0], &displ[0], MPI_INT, neighborhood_);
+}*/
 
 /*
-void distributed_graph::setup(){
+void distributed::setup(){
     MpiSpikeGraph::setup();
     //fill isInputNeighbor using inputPresyn info
     std::vector<int> isInputNeighbor(num_procs_, 0);

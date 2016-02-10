@@ -8,23 +8,49 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 
-#include "spike/mpispikegraph.h"
+#include "spike/spike_exchange.h"
 
 namespace spike{
 
-void blocking_global_graph::allgather(int size, int_vec nin){
+global_collective::global_collective(){
+    mpi_spike_item_ = create_mpi_spike_type(mpi_spike_item_);
+}
+
+void global_collective::allgather(const int size, int_vec& nin){
     MPI_Allgather(&size, 1, MPI_INT, &nin[0], 1, MPI_INT, MPI_COMM_WORLD);
 }
 
-void blocking_global_graph::allgatherv(spike_vec spikeout, spike_vec spikein,
-int_vec nin, int_vec displ){
+void global_collective::allgatherv(const spike_vec& spikeout,
+spike_vec& spikein, const int_vec& nin, const int_vec& displ){
     MPI_Allgatherv(&spikeout[0], spikeout.size(), mpi_spike_item_,
     &spikein[0], &nin[0], &displ[0], mpi_spike_item_, MPI_COMM_WORLD);
 }
 
+MPI_Request global_collective::Iallgather(const int size, int_vec& nin, MPI_Request request){
+    MPI_Iallgather(&size, 1, MPI_INT, &nin[0], 1, MPI_INT, MPI_COMM_WORLD, &request);
+    return request;
+}
+
+MPI_Request global_collective::Iallgatherv(const spike_vec& spikeout,
+spike_vec& spikein, const int_vec& nin, const int_vec& displ, MPI_Request request){
+    MPI_Iallgatherv(&spikeout[0], spikeout.size(), mpi_spike_item_,
+    &spikein[0], &nin[0], &displ[0], mpi_spike_item_, MPI_COMM_WORLD, &request);
+    return request;
+}
+
+int global_collective::get_status(MPI_Request request, int flag){
+    MPI_Request_get_status(request, &flag, MPI_STATUS_IGNORE);
+    return flag;
+}
+
+
+void global_collective::wait(MPI_Request request){
+    MPI_Wait(&request, MPI_STATUS_IGNORE);
+}
+
 }
 /*
-void blocking_global_graph::setup(){
+void global_collective::setup(){
     assert(num_procs_ > 1);
     //my inputPresyn's are chosen random with the following conditions:
     //a new inputPresyn cannot be the same as my output_presyns or an inputPresyn I've already chosen
@@ -50,29 +76,8 @@ void blocking_global_graph::setup(){
     generate_spikes();
 }
 
-void blocking_global_graph::generate_spikes(){
-    //Select a random number of items to generate
-    spike_item sitem;
-    int index;
-    for(int i = 0; i < (events_per_ * sim_time_); ++i){
-        //select the dstProcess
-        index = rand() % output_presyns_.size();
-        std::cout<<"process "<<rank_<<" generating spike for presyn: "<<output_presyns_[index]<<std::endl;
-        sitem.dst_ = output_presyns_[index];
-        sitem.t_ = (rand() / (double)RAND_MAX);
-        generated_spikes_.push_back(sitem);
-    }
-}
 
-void blocking_global_graph::load_send_buf(){
-    send_buf_.clear();
-    for(int i = 0; i < (events_per_ * min_delay_); ++i){
-        send_buf_.push_back(generated_spikes_.back());
-        generated_spikes_.pop_back();
-    }
-}
-
-void blocking_global_graph::reduce_stats(){
+void global_collective::reduce_stats(){
     //exchange total_received_
     if(rank_ == 0)
         MPI_Reduce(MPI_IN_PLACE, &total_received_, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -91,7 +96,7 @@ void blocking_global_graph::reduce_stats(){
     }
 }
 
-bool blocking_global_graph::matches(const spike_item &sitem){
+bool global_collective::matches(const spike_item &sitem){
     for(int i = 0; i < input_presyns_.size(); ++i){
         if(sitem.dst_ == input_presyns_[i]){
             ++total_relevent_;

@@ -35,7 +35,7 @@
 #include "coreneuron_1.0/common/data/helper.h"
 #include "spike/algos.hpp"
 #include "spike/spike.h"
-#include "spike/mpispikegraph.h"
+#include "spike/spike_exchange.h"
 #include "utils/error.h"
 /*
 namespace bfs = ::boost::filesystem;

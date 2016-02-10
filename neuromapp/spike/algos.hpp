@@ -27,41 +27,51 @@
 #include <cstddef>
 #include <stdlib.h>
 #include <stddef.h>
+#include <unistd.h>
 
-#include "spike/mpispikegraph.h"
+#include "spike/spike_exchange.h"
+#include "spike/environment.h"
 
 #ifndef algos_h
 #define algos_h
 
-namespace spike {
-
-/*
-void spike_exchange(mpi_spike_graph &g){
-    g.load_send_buf();
-    //gather how many events each neighbor is sending
-    g.allgather();
+void run_sim(spike::spike_exchange &se, spike::environment& env){
+    //load spikeout with the spikes to be sent
+    env.load_spikeout();
+    //gather how many spikes each process is sending
+    se.allgather(env.spikeout_.size(), env.nin_);
     //get the displacements
-    g.set_displ();
+    env.set_displ();
     //next distribute items to every other process using allgatherv
-    g.allgatherv();
-}
-*/
-void allgather_int(mpi_spike_graph &g, int size, int_vec nin){
-    g.allgather(size, nin);
+    se.allgatherv(env.spikeout_, env.spikein_, env.nin_, env.displ_);
 }
 
-void allgatherv_spike(mpi_spike_graph &g,
-spike_vec spikeout, int_vec nin, int_vec displ, spike_vec spikein){
-    g.allgatherv(spikeout, nin, displ, spikein);
-}
-
-void set_displ(int num_procs, const int_vec& nin, int_vec& displ){
-    displ[0] = 0;
-    int total = nin[0];
-    for(int i=1; i < num_procs; ++i){
-        displ[i] = total;
-        total += nin[i];
+void non_blocking(spike::spike_exchange &se, spike::environment& env){
+    int num_tasks = 5;
+    MPI_Request request;
+    MPI_Request requestv;
+    int flag;
+    env.load_spikeout();
+    //check thresh
+    request = se.Iallgather(env.spikeout_.size(), env.nin_, request);
+    for(int i = 0; i < num_tasks; ++i){
+        //run task;
+        usleep(10);
+        //do allgatherv only the first time flag is set
+        if(!flag){
+            flag = se.get_status(request, flag);
+            if(flag){
+                env.set_displ();
+                requestv = se.Iallgatherv(env.spikeout_, env.spikein_, env.nin_, env.displ_, requestv);
+            }
+        }
     }
+    if(!flag){
+        wait(request);
+        env.set_displ();
+        requestv = se.Iallgatherv(env.spikeout_, env.spikein_, env.nin_, env.displ_, requestv);
+    }
+    se.wait(requestv);
 }
 
 #endif
