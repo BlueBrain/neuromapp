@@ -11,10 +11,10 @@ install (TARGETS spike DESTINATION lib)
 install (FILES spike.h DESTINATION include)
 
 #Add mpispike to the mini-app library
-add_library (spike_exchange distributed.cpp global_collective.cpp environment.cpp utils/spike_item.cpp)
+add_library (spike_exchange environment.cpp)
 
 install (TARGETS spike_exchange DESTINATION lib)
-install (FILES utils/spike_item.h spike_exchange.h environment.h algos.hpp DESTINATION include)
+install (FILES environment.h algos.hpp DESTINATION include)
 target_link_libraries (spike_exchange)
 
 #Add an MPI executable

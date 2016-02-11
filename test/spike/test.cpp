@@ -35,7 +35,6 @@
 #include "coreneuron_1.0/common/data/helper.h"
 #include "spike/algos.hpp"
 #include "spike/spike.h"
-#include "spike/spike_exchange.h"
 #include "spike/environment.h"
 #include "utils/error.h"
 namespace bfs = ::boost::filesystem;
@@ -51,16 +50,9 @@ struct MPIInitializer {
 
 BOOST_GLOBAL_FIXTURE(MPIInitializer);
 
-BOOST_AUTO_TEST_CASE(constructor_create_type){
-    int size = MPI::COMM_WORLD.Get_size();
-    int rank = MPI::COMM_WORLD.Get_rank();
-    size_t eventsPer = 10;
-    size_t numOut = 2;
-    size_t numIn = 2;
-    size_t simtime = 10;
-
-    spike::global_collective g;
-    MPI_Type_free(&g.mpi_spike_item_);
+BOOST_AUTO_TEST_CASE(create_spike_type_test){
+    MPI_Datatype spike = create_spike_type();
+    MPI_Type_free(&spike);
 }
 
 BOOST_AUTO_TEST_CASE(env_setup_test){
@@ -98,7 +90,7 @@ BOOST_AUTO_TEST_CASE(env_generate_spikes){
     BOOST_CHECK(env.spikeout_.size() == (simtime *mindelay));
     //check that the new spike's dest field is set to one of env's output_presyns
     bool isValid = false;
-    spike::spike_item sitem;
+    spike_item sitem;
 
     //check that each new spike matches one of env's output presyns
     for(int i = 0; i < mindelay; ++i){
@@ -168,7 +160,7 @@ BOOST_AUTO_TEST_CASE(env_matches_test){
     //A spike I create should not have one of my presyns
     env.load_spikeout();
 
-    spike::spike_item spike1;
+    spike_item spike1;
     while(!env.spikeout_.empty()){
         spike1 = env.spikeout_.back();
         env.spikeout_.pop_back();
@@ -177,7 +169,7 @@ BOOST_AUTO_TEST_CASE(env_matches_test){
 
     //Should match with a spike containing one of my input presyns
     int index = rand()%(env.input_presyns_.size());
-    spike::spike_item spike2;
+    spike_item spike2;
     spike2.t_ = 0.0;
     spike2.dst_ = env.input_presyns_[index];
     BOOST_CHECK(env.matches(spike2));
@@ -195,9 +187,8 @@ BOOST_AUTO_TEST_CASE(blocking_spike_exchange){
     size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
     size_t simtime = 10;
     spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
-    spike::global_collective g;
 
-    blocking(g, env);
+    blocking(env);
 
     BOOST_CHECK(env.received() == (eventsPer * size * min_delay));
 }
@@ -213,12 +204,10 @@ BOOST_AUTO_TEST_CASE(nonblocking_spike_exchange){
     int numOut = 2;
     size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
     size_t simtime = 10;
-    spike::environment env1(eventsPer, numOut, numIn, simtime, size, rank);
-    spike::global_collective g;
-    non_blocking(g, env1);
-    BOOST_CHECK(env1.received() == (eventsPer * size * min_delay));
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    non_blocking(env);
+    BOOST_CHECK(env.received() == (eventsPer * size * min_delay));
 }
-
 /*
 BOOST_AUTO_TEST_CASE(distributed_setup_test){
     int size = MPI::COMM_WORLD.Get_size();

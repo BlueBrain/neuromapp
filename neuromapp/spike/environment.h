@@ -1,10 +1,15 @@
-
-#include "spike/spike_exchange.h"
-
 #ifndef enviro_h
 #define enviro_h
+#include <stdlib.h>
+#include <stddef.h>
+#include <vector>
+
+#include "spike/algos.hpp"
 
 namespace spike {
+
+typedef std::vector<int> int_vec;
+typedef std::vector<spike_item> spike_vec;
 
 struct environment {
 private:
