@@ -188,9 +188,9 @@ BOOST_AUTO_TEST_CASE(blocking_spike_exchange){
     size_t simtime = 10;
     spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
 
-    blocking(env);
+    run_sim(env,simtime,false);
 
-    BOOST_CHECK(env.received() == (eventsPer * size * min_delay));
+    BOOST_CHECK(env.received() == (eventsPer * size * simtime));
 }
 
 BOOST_AUTO_TEST_CASE(nonblocking_spike_exchange){
@@ -205,9 +205,47 @@ BOOST_AUTO_TEST_CASE(nonblocking_spike_exchange){
     size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
     size_t simtime = 10;
     spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
-    non_blocking(env);
-    BOOST_CHECK(env.received() == (eventsPer * size * min_delay));
+    run_sim(env,simtime,true);
+    BOOST_CHECK(env.received() == (eventsPer * size * simtime));
 }
+
+BOOST_AUTO_TEST_CASE(blocking_max_input_presyns){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    int eventsPer = 10;
+    int numOut = 4;
+    size_t numIn = numOut*(size - 1);
+    //simtime must be a multiple of min_delay (5) for this to pass
+    size_t simtime = 10;
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    run_sim(env,simtime,false);
+    //if there is an input presyn corresponding to every output presyn,
+    //the number of relevent spikes should be the same as received - sent (eventsPer*mindelay)
+    BOOST_CHECK((env.received() - (eventsPer*simtime)) == env.relevent() );
+
+}
+
+BOOST_AUTO_TEST_CASE(nonblocking_max_input_presyns){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    int eventsPer = 10;
+    int numOut = 4;
+    size_t numIn = numOut*(size - 1);
+    //simtime must be a multiple of min_delay (5) for this to pass
+    size_t simtime = 10;
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    run_sim(env,simtime,true);
+    //if there is an input presyn corresponding to every output presyn,
+    //the number of relevent spikes should be the same as received - sent (eventsPer*mindelay)
+    BOOST_CHECK((env.received() - (eventsPer*simtime)) == env.relevent() );
+}
+
 /*
 BOOST_AUTO_TEST_CASE(distributed_setup_test){
     int size = MPI::COMM_WORLD.Get_size();

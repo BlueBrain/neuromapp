@@ -124,27 +124,21 @@ void neighbor_allgatherv(data& d, MPI_Datatype spike, MPI_Comm neighborhood){
 }
 */
 
-
 //SIMULATIONS
 template<typename data>
-void blocking(data& d){
-    MPI_Datatype spike = create_spike_type();
-
+void blocking_spike(data& d, MPI_Datatype spike){
     //load spikeout with the spikes to be sent
     d.load_spikeout();
-    //gather how many spikes each process is sending
+    u//gather how many spikes each process is sending
     allgather(d);
     //set the displacements
     d.set_displ();
     //next distribute items to every other process using allgatherv
     allgatherv(d, spike);
-
-    MPI_Type_free(&spike);
 }
 
 template<typename data>
-void non_blocking(data& d){
-    MPI_Datatype spike = create_spike_type();
+void non_blocking_spike(data& d, MPI_Datatype spike){
     int num_tasks = 5;
     MPI_Request request;
     MPI_Request requestv;
@@ -155,21 +149,39 @@ void non_blocking(data& d){
     for(int i = 0; i < num_tasks; ++i){
         //run task;
         usleep(10);
-        //do allgatherv only the first time flag is set
+        //do iallgatherv only the first time flag is set
         if(!flag){
             flag = get_status(request);
+            //if flag, prep then perform iallgatherv
             if(flag){
                 d.set_displ();
                 requestv = Iallgatherv(d, spike);
             }
         }
     }
+    //if flag was not set during loop, wait for iallgather
+    //request to finish, then perform iallgatherv
     if(!flag){
         wait(request);
         d.set_displ();
         requestv = Iallgatherv(d, spike);
     }
     wait(requestv);
+}
+
+template<typename data>
+void run_sim(data& d, int simtime, bool non_blocking){
+    MPI_Datatype spike = create_spike_type();
+    for(int i = 0; i < simtime; ++i){
+        if((i % 5) == 0){
+            if(non_blocking)
+                non_blocking_spike(d, spike);
+            else
+                blocking_spike(d, spike);
+
+            d.all_matching();
+        }
+    }
     MPI_Type_free(&spike);
 }
 

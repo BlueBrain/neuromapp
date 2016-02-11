@@ -24,8 +24,10 @@ int main(int argc, char* argv[]) {
 
     spike::environment env(eventsPer, numOut, numIn, simTime, size, rank);
 
-    blocking(env);
-    //MPI_Type_free(&d.mpi_spike_item_);
+    run_sim(env, simTime, true);
+
+//    std::cout<<env.received()<<std::endl;
+  //  std::cout<<env.all_matching()<<std::endl;
 
     MPI::Finalize();
     return 0;

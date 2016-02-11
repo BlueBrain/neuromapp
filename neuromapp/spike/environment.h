@@ -43,6 +43,7 @@ public:
     int all_matching();
 
     int received(){return total_received_;}
+    int relevent(){return total_relevent_;}
 };
 
 }

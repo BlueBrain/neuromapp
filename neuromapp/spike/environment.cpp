@@ -17,6 +17,7 @@ environment::environment(int ev, int out, int in, int st, int procs, int rank){
     spike_item sitem;
     total_received_ = 0;
     total_relevent_ = 0;
+    srand(time(NULL)+rank);
 
     //assign input and output gid's
     for(int i = 0; i < (num_procs_ * num_out_); ++i){
