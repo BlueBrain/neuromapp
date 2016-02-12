@@ -107,12 +107,12 @@ public:
         }
     }
 
-    /** \fn void self_send(double d, double tt)
+    /** \fn void self_send(int d, double tt)
      *  \brief send an item directly to my priority queue
      *  \param d the Event's data value
      *  \param tt the Event's time value
      **/
-    void self_send(double d, double tt){
+    void self_send(int d, double tt){
         enqueued_++;
         qe_.insert(tt, d);
     }
@@ -147,7 +147,7 @@ public:
         event q;
         if(qe_.atomic_dq(til,q)){
             delivered_++;
-            assert((int)q.data_ == id);
+            assert(q.data_ == id);
 
             // Use imitation of the point_receive of CoreNeron.
             // Varies per a specific simulation case.

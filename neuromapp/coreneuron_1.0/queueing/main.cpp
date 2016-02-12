@@ -117,7 +117,7 @@ void run_sim(pool<I> &pl, po::variables_map const&vm){
     gettimeofday(&start, NULL);
     for(int j = 0; j < vm["time"].as<int>(); ++j){
         pl.time_step();
-        pl.handle_spike(vm["time"].as<int>());
+        pl.handle_spike();
     }
     pl.accumulate_stats();
     gettimeofday(&end, NULL);

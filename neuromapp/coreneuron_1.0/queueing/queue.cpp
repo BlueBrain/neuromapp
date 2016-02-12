@@ -33,7 +33,7 @@
 
 namespace queueing {
 
-void queue::insert(double tt, double d) {
+void queue::insert(double tt, int d) {
     pq_que.push(event(d,tt));
 }
 
