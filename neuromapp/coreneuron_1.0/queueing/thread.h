@@ -31,6 +31,7 @@
 #include <iostream>
 #include <cassert>
 #include <unistd.h>
+#include <utility>
 
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
 #include "coreneuron_1.0/kernel/helper.h"
@@ -49,6 +50,7 @@
 #endif
 
 namespace queueing {
+typedef std::pair<event,bool> gen_event;
 
 enum implementation {mutex, spinlock};
 
@@ -79,7 +81,7 @@ private:
     queue qe_;
     NrnThread* nt_;
     inter_thread<I> inter_thread_events_;
-    std::vector<event> generated_events_;
+    std::vector<gen_event> generated_events_;
 public:
     int ite_received_;
     int enqueued_;
@@ -101,7 +103,7 @@ public:
         p.d = &chardata[0];
         nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
         if(nt_ == NULL){
-            std::cout<<"Error: Unable to open data file"<<std::endl;
+            std::cerr<<"Error: Unable to open data file"<<std::endl;
             storage_clear(p.name);
             exit(EXIT_FAILURE);
         }
@@ -172,16 +174,17 @@ public:
      *  \brief pushes an event into generated event vector
      */
     void push_generated_event(double d, double tt, bool s){
-        event e(d, tt, s);
-        generated_events_.push_back(e);
+        gen_event g(event(d,tt), s);
+        generated_events_.push_back(g);
     }
 
     /** \fn pop_generated_event()
      *  \brief pops a generated event
      *  \returns the next event in generated event vector
      */
-    event pop_generated_event(){
-        event e = generated_events_.back();
+    gen_event pop_generated_event(){
+        assert(generated_events_.size() > 0);
+        gen_event e = generated_events_.back();
         generated_events_.pop_back();
         return e;
     }
@@ -223,7 +226,7 @@ inline void nrn_thread_data<mutex>::enqueue_my_events(){
 
 template<>
 inline void nrn_thread_data<spinlock>::inter_thread_send(double d, double tt){
-    event ite(d,tt,true);
+    event ite(d,tt);
     inter_thread_events_.q_.push(ite, ite_received_);
 }
 

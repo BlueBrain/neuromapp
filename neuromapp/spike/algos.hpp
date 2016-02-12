@@ -33,12 +33,9 @@
 #include <unistd.h>
 #include <mpi.h>
 
-//#include "spike/spike_item.h"
-//SPIKE TYPE
-struct spike_item{
-	int dst_;
-	double t_;
-};
+#include "coreneuron_1.0/queueing/queue.h"
+
+typedef queueing::event spike_item;
 
 inline MPI_Datatype create_spike_type(){
     MPI_Datatype spike;
@@ -47,7 +44,7 @@ inline MPI_Datatype create_spike_type(){
     MPI_Datatype types[2] = {MPI_INT, MPI_DOUBLE};
     MPI_Aint offsets[2];
 
-    offsets[0] = offsetof(spike_item, dst_);
+    offsets[0] = offsetof(spike_item, data_);
     offsets[1] = offsetof(spike_item, t_);
 
     MPI_Type_create_struct(nblocks, blocklengths, offsets, types, &spike);
@@ -127,9 +124,7 @@ void neighbor_allgatherv(data& d, MPI_Datatype spike, MPI_Comm neighborhood){
 //SIMULATIONS
 template<typename data>
 void blocking_spike(data& d, MPI_Datatype spike){
-    //load spikeout with the spikes to be sent
-    d.load_spikeout();
-    u//gather how many spikes each process is sending
+    //gather how many spikes each process is sending
     allgather(d);
     //set the displacements
     d.set_displ();
@@ -143,7 +138,6 @@ void non_blocking_spike(data& d, MPI_Datatype spike){
     MPI_Request request;
     MPI_Request requestv;
     int flag = 0;
-    d.load_spikeout();
     //check thresh
     request = Iallgather(d);
     for(int i = 0; i < num_tasks; ++i){
@@ -172,15 +166,20 @@ void non_blocking_spike(data& d, MPI_Datatype spike){
 template<typename data>
 void run_sim(data& d, int simtime, bool non_blocking){
     MPI_Datatype spike = create_spike_type();
-    for(int i = 0; i < simtime; ++i){
+    d.generate_all_events(simtime);
+    for(int i = 1; i <= simtime; ++i){
+        d.time_step();
         if((i % 5) == 0){
+            //load spikeout with the spikes to be sent
             if(non_blocking)
                 non_blocking_spike(d, spike);
             else
                 blocking_spike(d, spike);
 
-            d.all_matching();
+            d.filter();
+            d.spikeout_.clear();
         }
+        d.increment_time();
     }
     MPI_Type_free(&spike);
 }

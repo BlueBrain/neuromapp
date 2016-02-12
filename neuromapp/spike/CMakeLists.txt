@@ -15,7 +15,7 @@ add_library (spike_exchange environment.cpp)
 
 install (TARGETS spike_exchange DESTINATION lib)
 install (FILES environment.h algos.hpp DESTINATION include)
-target_link_libraries (spike_exchange)
+target_link_libraries (spike_exchange coreneuron10_queueing)
 
 #Add an MPI executable
 add_executable(MPI_Exec mpiexec.cpp)

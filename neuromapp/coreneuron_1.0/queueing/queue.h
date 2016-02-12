@@ -41,11 +41,10 @@ struct event {
      *  \param d event data
      *  \param t event time
      */
-    explicit event(int d=int(), double t=double(), bool s=false):
-            data_(d), t_(t), is_spike_(s){};
+    explicit event(int d=int(), double t=double()):
+            data_(d), t_(t){};
     int data_;
     double t_;
-    bool is_spike_;
 };
 
 class queue {

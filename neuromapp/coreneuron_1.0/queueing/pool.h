@@ -93,16 +93,22 @@ public:
      *  \param isSpike determines whether or not there are spike events
      *  \param algebra determines whether to perform linear algebra calculations
      */
-    explicit pool(int numCells=1, int eventsPer=1, int pITE=0, int pSpike=0,
-    bool verbose=false, bool algebra=false, int out=1, int in=1, int procs=1, int rank=0):
+    explicit pool(int numCells=1, int eventsPer=1, int pITE=0,
+    bool verbose=false, bool algebra=false, int pSpike=0,
+    int out=1, int in=1, int procs=1, int rank=0):
     cell_groups_(numCells), events_per_step_(eventsPer),
-    percent_ite_(pITE), percent_spike_(pSpike), v_(verbose),
-    perform_algebra_(algebra), num_out_(out), num_in_(in),
+    percent_ite_(pITE), v_(verbose), perform_algebra_(algebra),
+    percent_spike_(pSpike), num_out_(out), num_in_(in),
     num_procs_(procs), rank_(rank), all_spiked_(0), time_(0)
     {
         srand(time(NULL));
-        thread_datas_.resize(cell_groups_);
 
+        if((procs <= 1) && pSpike > 0){
+            std::cerr<<"Error: unable to simulate spike exchange with only one process"<<std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        thread_datas_.resize(cell_groups_);
 
         //taken from environment.cpp
         total_received_ = 0;
@@ -134,15 +140,12 @@ public:
             displ_[i] = total;
             total += nin_[i];
         }
-        total_received_ += total;
         spikein_.resize(total);
     }
 
     bool matches(const event& item){
-        int d = static_cast<int>(item.data_);
         for(int i = 0; i < input_presyns_.size(); ++i){
-            if(d == input_presyns_[i]){
-                ++total_relevent_;
+            if(item.data_ == input_presyns_[i]){
                 return true;
             }
         }
@@ -199,9 +202,7 @@ public:
 
                         /// Deliver events
             while(thread_datas_[i].deliver(i, time_));
-
         }
-        time_++;
     }
 
     /** \fn void generate_all_events(int totalTime)
@@ -218,24 +219,11 @@ public:
                 /// Simulated target of a NetCon and the event time
                 for(int k = 0; k < events_per_step_; ++k){
                     //events can be generated with time range: (current time) to (current time + 10%)
-                    ev = create_event(i,j,totalTime);
-                    thread_datas_[i].push_generated_event(ev.data_, ev.t_, ev.is_spike_);
+                    gen_event g = create_event(i,j,totalTime);
+                    thread_datas_[i].push_generated_event(
+                        g.first.data_, g.first.t_, g.second);
                 }
             }
-        }
-
-        //generate the spikein_ events_
-        int dst = 0;
-        int num_spikes = totalTime*cell_groups_*events_per_step_*percent_spike_/100;
-        for(int i = 0; i < num_spikes; ++i){
-            int diff = 1;
-            if(totalTime > 10)
-                diff = rand() % (totalTime/10);
-
-            ev.t_ = static_cast<double>(time_ + diff + min_delay_);
-            dst = rand() % thread_datas_.size();
-            ev.data_ = dst;
-            spikein_.push_back(ev);
         }
     }
 
@@ -247,45 +235,45 @@ public:
      */
     void send_events(int myID){
         for(int i = 0; i < events_per_step_; ++i){
-            event e = thread_datas_[myID].pop_generated_event();
-            int dst_nt = e.data_;
+            gen_event g = thread_datas_[myID].pop_generated_event();
+            event e = g.first;
+            bool is_spike_ = g.second;
             //if spike event send to spike_out
-            if(e.is_spike_){
+            if(is_spike_){
                 spike_lock_.acquire();
+                e.t_ += min_delay_;
                 spikeout_.push_back(e);
                 spike_lock_.release();
             }
             //if destination id is my own, self event, else ite
-            else if(dst_nt == myID)
-                thread_datas_[dst_nt].self_send(e.data_, e.t_);
+            else if(e.data_ == myID)
+                thread_datas_[e.data_].self_send(e.data_, e.t_);
             else
-                thread_datas_[dst_nt].inter_thread_send(e.data_, (e.t_ + min_delay_));
+                thread_datas_[e.data_].inter_thread_send(e.data_, (e.t_ + min_delay_));
         }
     }
 
-    /** \fn void handleSpike()
+    /** \fn void filter()
      *  \brief compensates for the spike exchange by adding events every 5 timesteps
      */
-    void handle_spike(){
-        if( (time_ % min_delay_) == 0){
-            //"Send" spikes
-            spike_lock_.acquire();
-            spikeout_.clear();
-            spike_lock_.release();
+    void filter(){
+        total_received_ += spikein_.size();
 
-            //"Receive" spikes
-            event ev;
-            for(int i = 0; i < spikein_.size(); ++i){
-                ev = spikein_[i];
-                if(matches(ev)){
-                    spikein_.pop_back();
-                    int dst = ev.data_;
-                    //add non-mutex inter-thread send here
-                    thread_datas_[dst].self_send(ev.data_, ev.t_);
-                    all_spiked_++;
-                }
+        //"Receive" spikes
+        event ev;
+        for(int i = 0; i < spikein_.size(); ++i){
+            ev = spikein_[i];
+            if(matches(ev)){
+                ++total_relevent_;
+                //spikein_[i];
+                int dst = ev.data_;
+                //add non-mutex inter-thread send here
+             //   thread_datas_[dst].self_send(ev.data_, ev.t_);
             }
         }
+        //"Send" spikes
+        spikeout_.clear();
+        spikein_.clear();
     }
 
     /** \fn int create_event(int myID, int curTime, int totalTime)
@@ -296,7 +284,7 @@ public:
      *  \param totalTime the total simulation time
      *  \return new_event
      */
-    event create_event(int myID, int curTime, int totalTime){
+    gen_event create_event(int myID, int curTime, int totalTime){
         event new_event;
         int diff = 1;
         if(totalTime > 10)
@@ -306,11 +294,15 @@ public:
         new_event.t_ = static_cast<double>(curTime + diff);
 
         int dst = myID;
+        bool is_spike = false;
         int percent = rand() % 100;
         if (percent < percent_spike_){
             //send as spike
-            //dst = ???;        //should we have a list of output presyn gids?
-            new_event.is_spike_ = true;
+            assert(output_presyns_.size() > 0);
+            int index = rand() % output_presyns_.size();
+            dst = output_presyns_[index];
+            is_spike = true;
+            all_spiked_++;
         }
         else if(percent < (percent_spike_ + percent_ite_)){
             //send as inter_thread_event_
@@ -319,8 +311,15 @@ public:
         }
         //else self send
         new_event.data_ = dst;
-        return new_event;
+        return gen_event(new_event,is_spike);
     }
+
+    int mindelay(){return min_delay_;}
+    int cells(){return cell_groups_;}
+    int received(){return total_received_;}
+    int relevent(){return total_relevent_;}
+    void increment_time(){++time_;}
+
 };
 
 }

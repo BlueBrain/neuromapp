@@ -1,5 +1,5 @@
 /*
- * Miniapp - test_header.hpp, Copyright (c), 2016,
+ * Miniapp - queueing_test_header.hpp, Copyright (c), 2016,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -18,8 +18,8 @@
  *  License along with this library.
  */
 
-#ifndef MAPP_TEST_HEADER_HPP
-#define MAPP_TEST_HEADER_HPP
+#ifndef MAPP_QUEUEING_TEST_HEADER_HPP
+#define MAPP_QUEUEING_TEST_HEADER_HPP
 
 #include <boost/mpl/list.hpp>
 #include "coreneuron_1.0/queueing/thread.h"
