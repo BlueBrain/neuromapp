@@ -11,15 +11,15 @@ install (TARGETS spike DESTINATION lib)
 install (FILES spike.h DESTINATION include)
 
 #Add mpispike to the mini-app library
-add_library (distributedgraph distributedgraph.cpp mpispikegraph.cpp)
+add_library (spike_exchange environment.cpp)
 
-install (TARGETS distributedgraph DESTINATION lib)
-install (FILES mpispikegraph.h algos.hpp DESTINATION include)
-target_link_libraries (distributedgraph storage)
+install (TARGETS spike_exchange DESTINATION lib)
+install (FILES environment.h algos.hpp DESTINATION include)
+target_link_libraries (spike_exchange)
 
 #Add an MPI executable
 add_executable(MPI_Exec mpiexec.cpp)
-target_link_libraries (MPI_Exec distributedgraph ${MPI_LIBRARIES})
+target_link_libraries (MPI_Exec spike_exchange ${MPI_LIBRARIES})
 
 if (MPI_COMPILE_FLAGS)
 	set_target_properties(MPI_Exec PROPERTIES

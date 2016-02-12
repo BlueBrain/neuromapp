@@ -35,181 +35,249 @@
 #include "coreneuron_1.0/common/data/helper.h"
 #include "spike/algos.hpp"
 #include "spike/spike.h"
-#include "spike/mpispikegraph.h"
+#include "spike/environment.h"
 #include "utils/error.h"
-
 namespace bfs = ::boost::filesystem;
-
-static MPI_Datatype mpi_spikeItem;
 
 struct MPIInitializer {
 	MPIInitializer(){
 		MPI::Init();
-		mpi_spikeItem = createMpiItemType(mpi_spikeItem);
 	}
 	~MPIInitializer(){
-	    MPI_Type_free(&(mpi_spikeItem));
 		MPI::Finalize();
 	}
 };
 
 BOOST_GLOBAL_FIXTURE(MPIInitializer);
 
-BOOST_AUTO_TEST_CASE(graph_setup_test){
-    int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
-
-	srand(time(NULL) + rank);
-
-	int eventsPer = 10;
-	int numOut = 2;
-	int numIn = rand()%(size*numOut);
-
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	sg.setup();
-	BOOST_CHECK(sg.inputPresyns_.size() == numIn);
-	BOOST_CHECK(sg.outputPresyns_.size() == numOut);
+BOOST_AUTO_TEST_CASE(create_spike_type_test){
+    MPI_Datatype spike = create_spike_type();
+    MPI_Type_free(&spike);
 }
 
+BOOST_AUTO_TEST_CASE(env_setup_test){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    size_t eventsPer = 10;
+    size_t numOut = 2;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    size_t simtime = 10;
+
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    BOOST_CHECK(env.input_presyns_.size() == numIn);
+    BOOST_CHECK(env.output_presyns_.size() == numOut);
+}
+
+BOOST_AUTO_TEST_CASE(env_generate_spikes){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    size_t eventsPer = 10;
+    size_t numOut = 2;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    size_t simtime = 10;
+    size_t mindelay = 5;
+
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+
+    env.load_spikeout();
+
+    BOOST_CHECK(env.spikeout_.size() == (simtime *mindelay));
+    //check that the new spike's dest field is set to one of env's output_presyns
+    bool isValid = false;
+    spike_item sitem;
+
+    //check that each new spike matches one of env's output presyns
+    for(int i = 0; i < mindelay; ++i){
+        sitem = env.spikeout_.back();
+        env.spikeout_.pop_back();
+        for(int i = 0; i < env.output_presyns_.size(); ++i){
+            if(sitem.dst_ == env.output_presyns_[i]){
+                isValid = true;
+                break;
+            }
+        }
+        BOOST_CHECK(isValid);
+        isValid = false;
+    }
+
+}
+
+BOOST_AUTO_TEST_CASE(env_displ_test){
+    //test that the set displ function works
+    //set_displ iterates over the nin vector and outputs it's displacements into the displ vector
+    //
+    // displ is the sum of nin (up to but not including current index)
+    // for nin{1, 2, 3, 4} -> displ{0, 1, 3, 5}
+    // for nin{6, 2, 5, 1} -> displ{0, 6, 8, 13}
+    // etc.
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    size_t eventsPer = 10;
+    size_t numOut = 2;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    size_t simtime = 10;
+    size_t mindelay = 5;
+
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+
+    int num = rand()%5;
+    for(int i = 0; i < size; ++i){
+        env.nin_[i] = (i*num);
+    }
+
+    env.set_displ();
+    int sum = 0;
+    for(int i = 0; i < size; ++i){
+        BOOST_CHECK(env.displ_[i] == sum);
+        sum += env.nin_[i];
+    }
+}
+
+BOOST_AUTO_TEST_CASE(env_matches_test){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    size_t eventsPer = 10;
+    size_t numOut = 2;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    //numIn is some value in the range [1, total number of output _presyns]
+    size_t simtime = 10;
+    size_t mindelay = 5;
+
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+
+    //A spike I create should not have one of my presyns
+    env.load_spikeout();
+
+    spike_item spike1;
+    while(!env.spikeout_.empty()){
+        spike1 = env.spikeout_.back();
+        env.spikeout_.pop_back();
+        BOOST_CHECK(!env.matches(spike1));
+    }
+
+    //Should match with a spike containing one of my input presyns
+    int index = rand()%(env.input_presyns_.size());
+    spike_item spike2;
+    spike2.t_ = 0.0;
+    spike2.dst_ = env.input_presyns_[index];
+    BOOST_CHECK(env.matches(spike2));
+}
+
+BOOST_AUTO_TEST_CASE(blocking_spike_exchange){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    int eventsPer = 10;
+    int min_delay = 5;
+    int numOut = 2;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    size_t simtime = 10;
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+
+    run_sim(env,simtime,false);
+
+    BOOST_CHECK(env.received() == (eventsPer * size * simtime));
+}
+
+BOOST_AUTO_TEST_CASE(nonblocking_spike_exchange){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    int eventsPer = 10;
+    int min_delay = 5;
+    int numOut = 2;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    size_t simtime = 10;
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    run_sim(env,simtime,true);
+    BOOST_CHECK(env.received() == (eventsPer * size * simtime));
+}
+
+BOOST_AUTO_TEST_CASE(blocking_max_input_presyns){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    int eventsPer = 10;
+    int numOut = 4;
+    size_t numIn = numOut*(size - 1);
+    //simtime must be a multiple of min_delay (5) for this to pass
+    size_t simtime = 10;
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    run_sim(env,simtime,false);
+    //if there is an input presyn corresponding to every output presyn,
+    //the number of relevent spikes should be the same as received - sent (eventsPer*mindelay)
+    BOOST_CHECK((env.received() - (eventsPer*simtime)) == env.relevent() );
+
+}
+
+BOOST_AUTO_TEST_CASE(nonblocking_max_input_presyns){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    int eventsPer = 10;
+    int numOut = 4;
+    size_t numIn = numOut*(size - 1);
+    //simtime must be a multiple of min_delay (5) for this to pass
+    size_t simtime = 10;
+    spike::environment env(eventsPer, numOut, numIn, simtime, size, rank);
+    run_sim(env,simtime,true);
+    //if there is an input presyn corresponding to every output presyn,
+    //the number of relevent spikes should be the same as received - sent (eventsPer*mindelay)
+    BOOST_CHECK((env.received() - (eventsPer*simtime)) == env.relevent() );
+}
+
+/*
 BOOST_AUTO_TEST_CASE(distributed_setup_test){
     int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
+    int rank = MPI::COMM_WORLD.Get_rank();
 
-	srand(time(NULL) + rank);
+    srand(time(NULL) + rank);
 
-	int eventsPer = 10;
-	int numOut = 2;
-	int numIn = rand()%(size*numOut);
+    size_t eventsPer = 10;
+    size_t numOut = 2;
+    size_t numIn = rand()%(size*numOut);
+    size_t simtime = 10;
 
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	dsg.setup();
-	BOOST_CHECK(dsg.inNeighbors_.size() <= numIn);
-	BOOST_CHECK(dsg.outNeighbors_.size() <= size);
-	BOOST_CHECK(dsg.inputPresyns_.size() == numIn);
-	BOOST_CHECK(dsg.outputPresyns_.size() == numOut);
+    DistributedSpikeGraph denv(size,rank,numOut,numIn,eventsPer,simtime);
+    denv.setup();
+    BOOST_CHECK(denv.in_neighbors_.size() <= numIn);
+    BOOST_CHECK(denv.out_neighbors_.size() <= size);
+    BOOST_CHECK(denv.input_presyns_.size() == numIn);
+    BOOST_CHECK(denv.output_presyns_.size() == numOut);
 }
 
 BOOST_AUTO_TEST_CASE(distributed_one_inpresyn){
     int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
+    int rank = MPI::COMM_WORLD.Get_rank();
 
-	int eventsPer = 10;
-	int numOut = 2;
-	int numIn = 1;
+    size_t eventsPer = 10;
+    size_t numOut = 2;
+    size_t numIn = 1;
+    size_t simtime = 10;
 
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	dsg.setup();
-	//with one input presyn per node, inNeighbors.size() == inputPresyns.size()
-	BOOST_CHECK(dsg.inNeighbors_.size() == numIn);
+    DistributedSpikeGraph denv(size, rank, numOut, numIn, eventsPer, simtime);
+    denv.setup();
+    //with one input presyn per node, in_neighbors.size() == input_presyns.size()
+    BOOST_CHECK(denv.in_neighbors_.size() == numIn);
 }
-
-BOOST_AUTO_TEST_CASE(graph_create_spike){
-    int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
-
-	srand(time(NULL) + rank);
-
-	int eventsPer = 10;
-	int numOut = 2;
-	int numIn = rand()%(size*numOut);
-
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	sg.setup();
-
-	SpikeItem spike = sg.create_spike();
-	//check that the new spike's dest field is set to one of sg's outputPresyns
-	bool isValid = false;
-	for(int i = 0; i < sg.outputPresyns_.size(); ++i){
-		if(spike.dst_ == sg.outputPresyns_[i]){
-			isValid = true;
-			break;
-		}
-	}
-	BOOST_CHECK(isValid);
-
-}
-
-BOOST_AUTO_TEST_CASE(graph_matches_test){
-    int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
-
-	srand(time(NULL) + rank);
-
-	int eventsPer = 10;
-	int numOut = 2;
-	//numIn is some value in the range [1, total number of output Presyns]
-	int numIn = (rand()%(size*numOut-1)) + 1;
-
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	sg.setup();
-
-	//A spike I create should not match one of my input presyns
-	SpikeItem spike = sg.create_spike();
-	BOOST_CHECK(!sg.matches(spike));
-
-	int index = rand()%(sg.inputPresyns_.size());
-	SpikeItem spike2;
-	spike2.t_ = 0.0;
-	spike2.dst_ = sg.inputPresyns_[index];
-	BOOST_CHECK(sg.matches(spike2));
-}
-
-BOOST_AUTO_TEST_CASE(algos_allgather){
-    int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
-
-	srand(time(NULL) + rank);
-
-	int eventsPer = 10;
-	int numOut = 2;
-	int numIn = rand()%(size*numOut);
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	sg.setup();
-
-	allgather(sg);
-
-	int sum = std::accumulate(sg.sizeBuf.begin(), sg.sizeBuf.end(), 0);
-
-	BOOST_CHECK(sum == (size * eventsPer));
-	BOOST_CHECK(sg.sizeBuf.size() == size);
-	BOOST_CHECK(sg.sendBuf.size() == eventsPer);
-
-
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	dsg.setup();
-
-	allgather(dsg);
-
-	sum = std::accumulate(dsg.sizeBuf.begin(), dsg.sizeBuf.end(), 0);
-
-	BOOST_CHECK(sum == (dsg.inNeighbors_.size() * eventsPer));
-	BOOST_CHECK(dsg.sizeBuf.size() == dsg.inNeighbors_.size());
-	BOOST_CHECK(dsg.sendBuf.size() == eventsPer);
-}
-
-BOOST_AUTO_TEST_CASE(algos_allgatherv){
-    int size = MPI::COMM_WORLD.Get_size();
-	int rank = MPI::COMM_WORLD.Get_rank();
-
-	srand(time(NULL) + rank);
-
-	int eventsPer = 10;
-	int numOut = 2;
-	int numIn = rand()%(size*numOut);
-	MpiSpikeGraph sg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	sg.setup();
-
-	allgather(sg);
-	allgatherv(sg);
-
-	BOOST_CHECK(sg.recvBuf.size() == (eventsPer * size));
-
-
-	DistributedSpikeGraph dsg(size, rank, numOut, numIn, eventsPer, mpi_spikeItem);
-	dsg.setup();
-
-	allgather(dsg);
-	allgatherv(dsg);
-
-	BOOST_CHECK(dsg.recvBuf.size() == (eventsPer * dsg.inNeighbors_.size()));
-}
+*/
