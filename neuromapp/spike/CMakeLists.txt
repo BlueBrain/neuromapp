@@ -1,3 +1,4 @@
+#set(MPI_STATIC ON)
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
@@ -19,7 +20,7 @@ target_link_libraries (spike_exchange coreneuron10_queueing)
 
 #Add an MPI executable
 add_executable(MPI_Exec mpiexec.cpp)
-target_link_libraries (MPI_Exec spike_exchange ${MPI_LIBRARIES})
+target_link_libraries (MPI_Exec spike_exchange ${MPI_CXX_LIBRARIES})
 
 if (MPI_COMPILE_FLAGS)
 	set_target_properties(MPI_Exec PROPERTIES

@@ -14,7 +14,7 @@ public:
      * with-algebra = true
      */
     pool_adapter(int eventsPer, int numOut, int numIn, int size, int rank):
-        pool(64, eventsPer, 0, false, false, 100, numOut, numIn, size, rank){};
+        pool<mutex>(64, eventsPer, 0, false, false, 100, numOut, numIn, size, rank){};
 };
 
 }
