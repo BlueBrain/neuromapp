@@ -11,7 +11,7 @@ public:
      * mutex
      * 64 cell groups
      * verbose = false
-     * with-algebra = true
+     * with-algebra = false
      */
     pool_adapter(int eventsPer, int numOut, int numIn, int size, int rank):
         pool<mutex>(64, eventsPer, 0, false, false, 100, numOut, numIn, size, rank){};
