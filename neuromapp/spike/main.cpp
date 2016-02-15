@@ -50,10 +50,10 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     ("numprocs", po::value<size_t>()->default_value(4), "the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8), "the number of OMP threads")
     ("run", po::value<std::string>()->default_value("mpirun"), "the command to run parallel jobs")
-    ("eventsper", po::value<size_t>()->default_value(3), "average number of events generated per dt")
-    ("numOut", po::value<size_t>()->default_value(3), "number of output presyns (gids) per process")
-    ("simtime", po::value<size_t>()->default_value(10), "The number of timesteps in the simulation")
-    ("numIn", po::value<size_t>()->default_value(3), "the number of input presyns per process")
+    ("eventsper", po::value<size_t>()->default_value(10), "average number of events generated per dt")
+    ("numOut", po::value<size_t>()->default_value(4), "number of output presyns (gids) per process")
+    ("simtime", po::value<size_t>()->default_value(100), "The number of timesteps in the simulation")
+    ("numIn", po::value<size_t>()->default_value(12), "the number of input presyns per process")
     ("distributed", "If set, use distributed algorithm else use default (global collective)");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -70,7 +70,7 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     }
 
     if(vm["numthreads"].as<size_t>() < 1){
-	std::cout<<"must execute on at least 1 process"<<std::endl;
+	std::cout<<"must execute on at least 1 thread"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
 
@@ -79,8 +79,8 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
 	return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["numIn"].as<size_t>() > (vm["numOut"].as<size_t>() * (vm["numprocs"].as<size_t>() - 1))){
-	std::cout<<"numIn must be less than the total number of gids (numproc * numOut)"<<std::endl;
+    if(vm["numIn"].as<size_t>() > ((vm["numprocs"].as<size_t>() - 1) * vm["numOut"].as<size_t>())){
+	std::cout<<"numIn must be less than or equal to the number of available gids ((numprocs -1) * numOut)"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
     return mapp::MAPP_OK;
