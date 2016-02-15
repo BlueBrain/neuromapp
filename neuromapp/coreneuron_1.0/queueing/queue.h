@@ -41,8 +41,6 @@ struct event {
      *  \param d event data
      *  \param t event time
      */
-    explicit event(int d=int(), double t=double()):
-            data_(d), t_(t){};
     int data_;
     double t_;
 };
