@@ -29,10 +29,6 @@ int main(int argc, char* argv[]) {
     int numIn = atoi(argv[4]);
     int isDistributed = atoi(argv[5]);
 
-#ifdef _OPENMP
-    omp_set_num_threads(8);
-#endif
-
     struct timeval start, end;
     assert(numIn <= (numOut * (size - 1)));
 

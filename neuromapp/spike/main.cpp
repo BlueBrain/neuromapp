@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include <boost/program_options.hpp>
 #include <stdlib.h>
@@ -46,7 +47,9 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     desc.add_options()
     ("help", "produce this help message")
     //("distributed", "determines whether to use the original implementation or a distributed graph")
-    ("numproc", po::value<size_t>()->default_value(7), "the number of MPI processes")
+    ("numprocs", po::value<size_t>()->default_value(4), "the number of MPI processes")
+    ("numthreads", po::value<size_t>()->default_value(8), "the number of OMP threads")
+    ("run", po::value<std::string>()->default_value("mpirun"), "the command to run parallel jobs")
     ("eventsper", po::value<size_t>()->default_value(3), "average number of events generated per dt")
     ("numOut", po::value<size_t>()->default_value(3), "number of output presyns (gids) per process")
     ("simtime", po::value<size_t>()->default_value(10), "The number of timesteps in the simulation")
@@ -56,22 +59,29 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-    if(vm["numproc"].as<size_t>() < 1)
+    if (vm.count("help")){
+        std::cout << desc;
+        return mapp::MAPP_USAGE;
+    }
+
+    if(vm["numprocs"].as<size_t>() < 1){
+	std::cout<<"must execute on at least 1 process"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
+    }
+
+    if(vm["numthreads"].as<size_t>() < 1){
+	std::cout<<"must execute on at least 1 process"<<std::endl;
+	return mapp::MAPP_BAD_ARG;
+    }
 
     if(vm["numOut"].as<size_t>() < 1){
 	std::cout<<"must have at least 1 gid per process"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["numIn"].as<size_t>() > (vm["numOut"].as<size_t>() * (vm["numproc"].as<size_t>() - 1))){
+    if(vm["numIn"].as<size_t>() > (vm["numOut"].as<size_t>() * (vm["numprocs"].as<size_t>() - 1))){
 	std::cout<<"numIn must be less than the total number of gids (numproc * numOut)"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
-    }
-
-    if (vm.count("help")){
-        std::cout << desc;
-        return mapp::MAPP_USAGE;
     }
     return mapp::MAPP_OK;
 }
@@ -81,12 +91,15 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     \param vm encapsulate the command line and all needed informations
  */
 void spike_content(po::variables_map const& vm){
-        std::cout << "Run MPI Hello World:" <<std::endl;
-	char command[50];
-	snprintf(command, 100, "mpirun -n %lu neuromapp/spike/MPI_Exec %lu %lu %lu %lu %lu",
-		vm["numproc"].as<size_t>(), vm["eventsper"].as<size_t>(), vm["numOut"].as<size_t>(),
-		vm["simtime"].as<size_t>(), vm["numIn"].as<size_t>(), vm.count("distributed"));
-	system(command);
+	std::stringstream command;
+
+        command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
+            vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
+            " neuromapp/spike/MPI_Exec " << vm["eventsper"].as<size_t>() <<" "<<
+            vm["numOut"].as<size_t>() <<" "<< vm["simtime"].as<size_t>() <<" "<<
+            vm["numIn"].as<size_t>() <<" "<< vm.count("distributed");
+        std::cout<< "Running command " << command.str() <<std::endl;
+	system(command.str().c_str());
 }
 
 int spike_execute(int argc, char* const argv[]){
