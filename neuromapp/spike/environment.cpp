@@ -37,7 +37,6 @@ environment::environment(int ev, int out, int in, int procs, int rank){
         }
         assert(input_presyns_.empty());
     }
-
     spikein_.resize(num_procs_ * events_per_ * min_delay_);
     nin_.resize(num_procs_);
     displ_.resize(num_procs_);
