@@ -192,21 +192,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_spike_exchange, T, full_test_types){
     BOOST_CHECK(env.received() == (eventsPer * size * simtime *env.cells()));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_spike_exchange, T, full_test_types){
-    int size = MPI::COMM_WORLD.Get_size();
-    int rank = MPI::COMM_WORLD.Get_rank();
-
-    srand(time(NULL) + rank);
-
-    int eventsPer = 1;
-    int numOut = 4;
-    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
-    size_t simtime = 10;
-    T env(eventsPer, numOut, numIn, size, rank);
-    run_sim(env,simtime,true);
-    BOOST_CHECK(env.received() == (eventsPer * size * simtime * env.cells()));
-}
-
 BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_max_input_presyns, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -225,6 +210,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_max_input_presyns, T, full_test_types){
 
 }
 
+#ifndef _ARCH_QP
+BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_spike_exchange, T, full_test_types){
+    int size = MPI::COMM_WORLD.Get_size();
+    int rank = MPI::COMM_WORLD.Get_rank();
+
+    srand(time(NULL) + rank);
+
+    int eventsPer = 1;
+    int numOut = 4;
+    size_t numIn = rand()%(numOut * (size - 1) - 1) + 1;
+    size_t simtime = 10;
+    T env(eventsPer, numOut, numIn, size, rank);
+    run_sim(env,simtime,true);
+    BOOST_CHECK(env.received() == (eventsPer * size * simtime * env.cells()));
+}
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_max_input_presyns, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -240,6 +241,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_max_input_presyns, T, full_test_types)
     run_sim(env,simtime,true);
     BOOST_CHECK((env.received() - (eventsPer*simtime*env.cells())) == env.relevent() );
 }
+#endif
 
 /*
 BOOST_AUTO_TEST_CASE(distributed_setup_test){

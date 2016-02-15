@@ -65,7 +65,22 @@ void allgatherv(data& d, MPI_Datatype spike){
         &(d.spikein_[0]), &(d.nin_[0]), &(d.displ_[0]), spike, MPI_COMM_WORLD);
 }
 
+#ifdef _ARCH_QP
+template<typename data>
+MPI_Request Iallgather(data& d){
+	std::cerr<<"Error: Non-blocking allgather not supported on BGQ"<<std::endl;
+	exit(EXIT_FAILURE);
+	return -1;
+}
 
+
+template<typename data>
+MPI_Request Iallgatherv(data& d, MPI_Datatype spike){
+	std::cerr<<"Error: Non-blocking allgatherv not supported on BGQ"<<std::endl;
+	exit(EXIT_FAILURE);
+	return -1;
+}
+#else
 //NON-BLOCKING
 template<typename data>
 MPI_Request Iallgather(data& d){
@@ -84,6 +99,7 @@ MPI_Request Iallgatherv(data& d, MPI_Datatype spike){
         MPI_COMM_WORLD, &request);
     return request;
 }
+#endif
 
 inline int get_status(MPI_Request request){
     int flag;
