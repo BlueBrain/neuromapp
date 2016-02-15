@@ -103,11 +103,6 @@ public:
     {
         srand(time(NULL));
 
-        if((procs <= 1) && pSpike > 0){
-            std::cerr<<"Error: unable to simulate spike exchange with only one process"<<std::endl;
-            exit(EXIT_FAILURE);
-        }
-
         thread_datas_.resize(cell_groups_);
 
         //taken from environment.cpp
@@ -115,18 +110,17 @@ public:
         total_relevent_ = 0;
 
         //assign input and output gid's
-        if(num_procs_ > 1){
-            for(int i = 0; i < (num_procs_ * num_out_); ++i){
-                if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
-                    output_presyns_.push_back(i);
-                }
-                else{
-                    input_presyns_.push_back(i);
-                }
+        for(int i = 0; i < (num_procs_ * num_out_); ++i){
+            if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
+                output_presyns_.push_back(i);
             }
-            assert(input_presyns_.size() >= num_in_);
-            boost::random_shuffle(input_presyns_);
-            input_presyns_.resize(num_in_);
+            else{
+                input_presyns_.push_back(i);
+            }
+        }
+        assert(input_presyns_.size() >= num_in_);
+        boost::random_shuffle(input_presyns_);
+        input_presyns_.resize(num_in_);
         }
         spikein_.reserve(num_procs_ * events_per_step_ * min_delay_);
         nin_.resize(num_procs_);

@@ -46,7 +46,6 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce this help message")
-    //("distributed", "determines whether to use the original implementation or a distributed graph")
     ("numprocs", po::value<size_t>()->default_value(4), "the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8), "the number of OMP threads")
     ("run", po::value<std::string>()->default_value("mpirun"), "the command to run parallel jobs")
