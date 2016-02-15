@@ -18,17 +18,26 @@ environment::environment(int ev, int out, int in, int procs, int rank){
     srand(time(NULL)+rank);
 
     //assign input and output gid's
-    for(int i = 0; i < (num_procs_ * num_out_); ++i){
-        if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
-	    output_presyns_.push_back(i);
-	}
-	else{
-	    input_presyns_.push_back(i);
-	}
+    if(num_procs_ > 1){
+        for(int i = 0; i < (num_procs_ * num_out_); ++i){
+            if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
+	        output_presyns_.push_back(i);
+            }
+            else{
+                input_presyns_.push_back(i);
+            }
+        }
+        assert(input_presyns_.size() >= num_in_);
+        boost::random_shuffle(input_presyns_);
+        input_presyns_.resize(num_in_);
     }
-    assert(input_presyns_.size() >= num_in_);
-    boost::random_shuffle(input_presyns_);
-    input_presyns_.resize(num_in_);
+    else{
+        for(int i = 0; i < num_out_; ++i){
+	    output_presyns_.push_back(i);
+        }
+        assert(input_presyns_.empty());
+    }
+
     spikein_.resize(num_procs_ * events_per_ * min_delay_);
     nin_.resize(num_procs_);
     displ_.resize(num_procs_);
