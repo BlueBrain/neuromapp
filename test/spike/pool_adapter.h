@@ -5,14 +5,25 @@
 
 namespace queueing{
 
+/** creates an adapter for the queueing::pool<mutex> class
+ * who's constructor matches that of spike::environment
+ * (int eventsPer, int numOut, int numIn, int size, int rank)
+ *
+ * This allows easy templatized testing of functions
+ * relating to spike exchange.
+ *
+ * Other parameters are set to default values:
+ * cell groups = 64
+ * percent ite = 0
+ * percent spike = 100
+ * verbose = false
+ * with-algebra = false
+ *
+ * These arguments were chosen for fast testing,
+ * and test cases with deterministic results
+ */
 class pool_adapter : public pool<mutex> {
 public:
-    /* create a default pool environment that uses:
-     * mutex
-     * 64 cell groups
-     * verbose = false
-     * with-algebra = false
-     */
     pool_adapter(int eventsPer, int numOut, int numIn, int size, int rank):
         pool<mutex>(64, eventsPer, 0, false, false, 100, numOut, numIn, size, rank){};
 };

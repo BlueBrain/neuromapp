@@ -20,7 +20,7 @@
 
 /**
  * @file neuromapp/spike/algos.hpp
- * contains algorithm definitions for SpikeExchangeGraph
+ * contains algorithm definitions for spike exchange
  */
 
 #ifndef algos_h

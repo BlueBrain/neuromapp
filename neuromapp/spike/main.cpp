@@ -87,7 +87,7 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
 }
 
 /** \fn spike_content(po::variables_map const& vm)
-    \brief Execute the Spike Exchange
+    \brief Execute the Spike Exchange by calling mpirun/srun on MPI_Exec binary file
     \param vm encapsulate the command line and all needed informations
  */
 void spike_content(po::variables_map const& vm){

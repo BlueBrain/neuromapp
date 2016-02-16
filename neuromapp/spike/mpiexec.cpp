@@ -1,4 +1,27 @@
-// Include the MPI version 2 C++ bindings:
+/*
+ * Neuromapp - mpiexec.cpp, Copyright (c), 2015,
+ * Kai Langen - Swiss Federal Institute of technology in Lausanne,
+ * kai.langen@epfl.ch,
+ * All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
+
+/**
+ * @file neuromapp/spike/mpiexec.cpp
+ * runs the spike exchange simulation
+ */
 #include <mpi.h>
 #include <iostream>
 #include <ctime>
@@ -17,6 +40,10 @@
 #endif
 
 
+/**
+ * \brief instantiate an environment variable(either spike::environment or queueing::pool)
+ * and performs run_simulation() function on it.
+ */
 int main(int argc, char* argv[]) {
     assert(argc == 6);
     int size = mapp::master.size();
@@ -39,6 +66,7 @@ int main(int argc, char* argv[]) {
     gettimeofday(&start, NULL);
     run_sim(env, simTime, false);
     gettimeofday(&end, NULL);
+    env.accumulate_stats();
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
         std::cout<<"Process zero received: "<<env.received()<<" spikes"<<std::endl;

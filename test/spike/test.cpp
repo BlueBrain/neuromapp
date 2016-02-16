@@ -50,13 +50,23 @@ struct MPIInitializer {
 	}
 };
 
+//performs mpi initialization/finalize
 BOOST_GLOBAL_FIXTURE(MPIInitializer);
 
+/**
+ * tests the create_spike_type() function.
+ * checks that this data type can be freed using
+ * MPI_Type_free
+ */
 BOOST_AUTO_TEST_CASE(create_spike_type_test){
     MPI_Datatype spike = create_spike_type();
     MPI_Type_free(&spike);
 }
 
+/**
+ * tests that the pool and environment class constructors
+ * correctly initialize input/output presyns containers.
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(setup_test, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -77,6 +87,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(setup_test, T, full_test_types){
     BOOST_CHECK(env.output_presyns_.size() == numOut);
 }
 
+/**
+ * for queueing::pool and spike::environment
+ * test that generate_all_events() function
+ * correctly initialize input/output presyns containers.
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(generate_spikes, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -113,14 +128,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(generate_spikes, T, full_test_types){
 
 }
 
+/**
+ * test that the set displ function works
+ * set_displ iterates over the nin vector and outputs
+ * it's displacements into the displ vector
+ *
+ * displ is the sum of nin (up to but not including current index)
+ * for nin{1, 2, 3, 4} -> displ{0, 1, 3, 5}
+ * for nin{6, 2, 5, 1} -> displ{0, 6, 8, 13}
+ * etc.
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(displ_test, T, full_test_types){
-    //test that the set displ function works
-    //set_displ iterates over the nin vector and outputs it's displacements into the displ vector
-    //
-    // displ is the sum of nin (up to but not including current index)
-    // for nin{1, 2, 3, 4} -> displ{0, 1, 3, 5}
-    // for nin{6, 2, 5, 1} -> displ{0, 6, 8, 13}
-    // etc.
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
 
@@ -145,6 +163,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(displ_test, T, full_test_types){
     }
 }
 
+/**
+ * for queueing::pool and spike::environment
+ * test that matches() function returns false when spike destination
+ * doesn not match any input_presyn (for example when it matches an output
+ * presyn instead). Also tests that matchse returns true when spike
+ * destination does match.
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(env_matches_test, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -179,6 +204,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(env_matches_test, T, full_test_types){
     }
 }
 
+/**
+ * for queueing::pool and spike::environment
+ * test that run sim function results in the expected end state
+ * for the case of blocking spike exchange (random # of input_presyns)
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_spike_exchange, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -194,6 +224,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_spike_exchange, T, full_test_types){
     BOOST_CHECK(env.received() == (eventsPer * size * simtime *env.cells()));
 }
 
+/**
+ * for queueing::pool and spike::environment
+ * test that run sim function results in the expected end state
+ * for the case of blocking spike exchange (max # of input_presyns)
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_max_input_presyns, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -211,7 +246,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_max_input_presyns, T, full_test_types){
 
 }
 
+//non-blocking is not supported on BGQ
 #ifndef _ARCH_QP
+/**
+ * for queueing::pool and spike::environment
+ * test that run sim function results in the expected end state
+ * for the case of nonblocking spike exchange (random # of input_presyns)
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_spike_exchange, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -227,6 +268,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_spike_exchange, T, full_test_types){
     BOOST_CHECK(env.received() == (eventsPer * size * simtime * env.cells()));
 }
 
+/**
+ * for queueing::pool and spike::environment
+ * test that run sim function results in the expected end state
+ * for the case of nonblocking spike exchange (max # of input_presyns)
+ */
 BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_max_input_presyns, T, full_test_types){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();
@@ -244,7 +290,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_max_input_presyns, T, full_test_types)
 }
 #endif
 
+
 /*
+//TODO: implement distributed graph spike_exchange
 BOOST_AUTO_TEST_CASE(distributed_setup_test){
     int size = MPI::COMM_WORLD.Get_size();
     int rank = MPI::COMM_WORLD.Get_rank();

@@ -64,7 +64,7 @@ private:
     bool v_;
     bool perform_algebra_;
     int time_;
-    int all_spiked_;
+    int spike_out_;
     const static int min_delay_ = 5;
 
     //needed for spike interface
@@ -86,7 +86,8 @@ public:
     std::vector<int> nin_;
     std::vector<int> displ_;
 
-    /** \fn pool(bool verbose, int eventsPer, int pITE, bool isSpike, bool algebra)
+    /** \fn pool(int numCells, int eventsPer, int pITE, bool verbose, bool algebra
+     * int pSpike, int out, int in, int procs, int rank)
      *  \brief initializes a pool with a thread_datas_ array
      *  \param verbose verbose mode: 1 = on, 0 = off
      *  \param events_per_step_ number of events per time step
@@ -100,7 +101,7 @@ public:
     cell_groups_(numCells), events_per_step_(eventsPer),
     percent_ite_(pITE), v_(verbose), perform_algebra_(algebra),
     percent_spike_(pSpike), num_out_(out), num_in_(in),
-    num_procs_(procs), rank_(rank), all_spiked_(0), time_(0)
+    num_procs_(procs), rank_(rank), spike_out_(0), time_(0)
     {
         srand(time(NULL));
 
@@ -136,6 +137,12 @@ public:
         displ_.resize(num_procs_);
     }
 
+    /**
+     * \fn void set_displ()
+     * \brief fills the displacement container based on the sizes
+     *  in nin that were received from allgather.
+     *  displ will be used by the allgatherv function.
+     */
     void set_displ(){
         displ_[0] = 0;
         int total = nin_[0];
@@ -146,6 +153,11 @@ public:
         spikein_.resize(total);
     }
 
+    /**
+     * \fn bool matches(const spike_item& sitem)
+     * \brief compares the destination of sitem to this pool's input_presyns
+     * \returns true on a positive match, else false
+     */
     bool matches(const event& item){
         for(int i = 0; i < input_presyns_.size(); ++i){
             if(item.data_ == input_presyns_[i]){
@@ -179,12 +191,12 @@ public:
         if(v_){
             std::cout<<"Total inter-thread received: "<<all_ite_received<<std::endl;
             std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
-            std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
+            std::cout<<"Spikes sent: "<<spike_out_<<std::endl;
             std::cout<<"Total delivered: "<<all_delivered<<std::endl;
         }
         neuromapp_data.put_copy("inter_received", all_ite_received);
         neuromapp_data.put_copy("enqueued", all_enqueued);
-        neuromapp_data.put_copy("spikes", all_spiked_);
+        neuromapp_data.put_copy("spikes", spike_out_);
         neuromapp_data.put_copy("delivered", all_delivered);
     }
 
@@ -266,7 +278,9 @@ public:
     }
 
     /** \fn void filter()
-     *  \brief compensates for the spike exchange by adding events every 5 timesteps
+     *  \brief filters out relevent events(using the function matches()),
+     *  and randomly selects a destination cellgroup, and delivers them
+     *  using a no-lock inter_thread_send
      */
     void filter(){
         total_received_ += spikein_.size();
@@ -320,7 +334,7 @@ public:
             int index = rand() % output_presyns_.size();
             dst = output_presyns_[index];
             is_spike = true;
-            all_spiked_++;
+            spike_out_++;
         }
         else if(percent < (percent_spike_ + percent_ite_)){
             //send as inter_thread_event_
@@ -332,11 +346,16 @@ public:
         return gen_event(new_event,is_spike);
     }
 
+    /**
+     * \fn increment_time()
+     * \brief increments the time_ counter
+     */
+    void increment_time(){++time_;}
+
     int mindelay(){return min_delay_;}
     int cells(){return cell_groups_;}
     int received(){return total_received_;}
     int relevent(){return total_relevent_;}
-    void increment_time(){++time_;}
 
 };
 
