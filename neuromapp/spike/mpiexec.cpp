@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     int numOut= atoi(argv[2]);
     int simTime = atoi(argv[3]);
     int numIn = atoi(argv[4]);
-    int isDistributed = atoi(argv[5]);
+    int isNonBlocking = atoi(argv[5]);
 
     struct timeval start, end;
     assert(numIn <= (numOut * (size - 1)));
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     queueing::pool<queueing::mutex> env(64, eventsPer, 90, false, true, 4, numOut, numIn, size, rank);
 
     gettimeofday(&start, NULL);
-    run_sim(env, simTime, false);
+    run_sim(env, simTime, true);
     gettimeofday(&end, NULL);
     env.accumulate_stats();
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);

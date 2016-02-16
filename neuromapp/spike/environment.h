@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <vector>
+#include <unistd.h>
 
 #include "spike/algos.hpp"
 
@@ -111,10 +112,18 @@ public:
      * \brief empty function that mirrors pool::increment_time()
      */
     void increment_time(){}
+
+//GETTERS
     int mindelay(){return min_delay_;}
     int cells(){return cell_groups_;}
     int received(){return total_received_;}
     int relevent(){return total_relevent_;}
+
+//TASKS
+    void parallel_send(){usleep(10);}
+    void parallel_enqueue(){usleep(10);}
+    void parallel_algebra(){usleep(10);}
+    void parallel_deliver(){usleep(10);}
 };
 
 }

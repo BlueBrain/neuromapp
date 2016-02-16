@@ -200,26 +200,6 @@ public:
         neuromapp_data.put_copy("delivered", all_delivered);
     }
 
-    /** \fn void time_step()
-     *  \brief master function to call generate, enqueue, and deliver
-     */
-    void time_step(){
-        int size = thread_datas_.size();
-        #pragma omp parallel for schedule(static,1)
-        for(int i = 0; i < size; ++i){
-            send_events(i);
-
-            //Have threads enqueue their interThreadEvents
-            thread_datas_[i].enqueue_my_events();
-
-            if(perform_algebra_)
-                thread_datas_[i].l_algebra(time_);
-
-                        /// Deliver events
-            while(thread_datas_[i].deliver(i, time_));
-        }
-    }
-
     /** \fn void generate_all_events(int totalTime)
      *  \brief creates all events for each thread that will be sent
      *   and received during the simulation lifetime.
@@ -292,11 +272,6 @@ public:
             if(matches(ev)){
                 ++total_relevent_;
                 //pop a new random destination
-                if(spike_destinations_.empty()){
-                    std::cerr<<"time: "<<time_<<std::endl;
-                    std::cerr<<"total received: "<<total_received_<<std::endl;
-                    std::cerr<<"total relevent: "<<total_relevent_<<std::endl;
-                }
                 assert(!spike_destinations_.empty());
                 int dest = spike_destinations_.back();
                 spike_destinations_.pop_back();
@@ -357,6 +332,74 @@ public:
     int received(){return total_received_;}
     int relevent(){return total_relevent_;}
 
+
+
+//PARALLEL FUNCTIONS
+    /** \fn void time_step()
+     *  \brief master function to call parallel
+     *   send, enqueue, algebra, and deliver
+     */
+    void time_step(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            send_events(i);
+
+            //Have threads enqueue their interThreadEvents
+            thread_datas_[i].enqueue_my_events();
+
+            if(perform_algebra_)
+                thread_datas_[i].l_algebra(time_);
+
+            /// Deliver events
+            while(thread_datas_[i].deliver(i, time_));
+        }
+    }
+
+    /** \fn void parallel_send()
+     *  \brief calls parallel send for every cellgroup
+     */
+    void parallel_send(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            send_events(i);
+        }
+    }
+
+    /** \fn void parallel_enqueue()
+     *  \brief calls parallel enqueue for every cellgroup
+     */
+    void parallel_enqueue(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            thread_datas_[i].enqueue_my_events();
+        }
+    }
+
+    /** \fn void parallel_algebra()
+     *  \brief calls parallel algebra for every cellgroup
+     */
+    void parallel_algebra(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            if(perform_algebra_)
+                thread_datas_[i].l_algebra(time_);
+        }
+    }
+
+    /** \fn void parallel_deliver()
+     *  \brief calls parallel deliver for every cellgroup
+     */
+    void parallel_deliver(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            while(thread_datas_[i].deliver(i, time_));
+        }
+    }
 };
 
 }

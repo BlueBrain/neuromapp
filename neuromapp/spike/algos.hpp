@@ -32,6 +32,9 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <mpi.h>
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
+#include <boost/array.hpp>
 
 #include "coreneuron_1.0/queueing/queue.h"
 
@@ -111,6 +114,82 @@ inline void wait(MPI_Request request){
     MPI_Wait(&request, MPI_STATUS_IGNORE);
 }
 
+//SIMULATIONS
+template<typename data>
+void blocking_spike(data& d, MPI_Datatype spike){
+    d.time_step();
+    //gather how many spikes each process is sending
+    allgather(d);
+    //set the displacements
+    d.set_displ();
+    //next distribute items to every other process using allgatherv
+    allgatherv(d, spike);
+}
+
+template<typename data>
+void non_blocking_spike(data& d, MPI_Datatype spike){
+    //a vector of function pointers for the parallel tasks
+    boost::array<boost::function<void(data*)>, 4> parallel_tasks;
+    parallel_tasks[0] = &data::parallel_send;
+    parallel_tasks[1] = &data::parallel_enqueue;
+    parallel_tasks[2] = &data::parallel_algebra;
+    parallel_tasks[3] = &data::parallel_deliver;
+    MPI_Request request;
+    MPI_Request requestv;
+    int flag = 0;
+
+    //check thresh
+    request = Iallgather(d);
+    typename boost::array<boost::function<void(data*)>, 4>
+        ::iterator it = parallel_tasks.begin();
+    while(it != parallel_tasks.end()){
+        //run all parallel tasks and check
+        //the status of iallgather after each
+        (*it)(&d);
+        if(!flag){
+            flag = get_status(request);
+            //if flag, prepare then perform iallgatherv
+            if(flag){
+                d.set_displ();
+                requestv = Iallgatherv(d, spike);
+            }
+        }
+        ++it;
+    }
+    //if flag was not set during loop, wait for iallgather
+    //request to finish, then perform iallgatherv
+    if(!flag){
+        wait(request);
+        d.set_displ();
+        requestv = Iallgatherv(d, spike);
+    }
+    wait(requestv);
+}
+
+template<typename data>
+void run_sim(data& d, int simtime, bool non_blocking){
+    MPI_Datatype spike = create_spike_type();
+    d.generate_all_events(simtime);
+    for(int i = 1; i <= simtime; ++i){
+        if((i % 5) == 0){
+            //load spikeout with the spikes to be sent
+            if(non_blocking)
+                non_blocking_spike(d, spike);
+            else
+                blocking_spike(d, spike);
+
+            d.filter();
+            d.spikeout_.clear();
+        }
+        else{
+            d.time_step();
+        }
+        d.increment_time();
+    }
+    MPI_Type_free(&spike);
+}
+
+#endif
 
 //DISTRIBUTED
 /*
@@ -136,68 +215,3 @@ void neighbor_allgatherv(data& d, MPI_Datatype spike, MPI_Comm neighborhood){
         &(d.spikein_[0]), &(d.nin_[0]), &(d.displ_[0]), spike, neighborhood);
 }
 */
-
-//SIMULATIONS
-template<typename data>
-void blocking_spike(data& d, MPI_Datatype spike){
-    //gather how many spikes each process is sending
-    allgather(d);
-    //set the displacements
-    d.set_displ();
-    //next distribute items to every other process using allgatherv
-    allgatherv(d, spike);
-}
-
-template<typename data>
-void non_blocking_spike(data& d, MPI_Datatype spike){
-    int num_tasks = 5;
-    MPI_Request request;
-    MPI_Request requestv;
-    int flag = 0;
-    //check thresh
-    request = Iallgather(d);
-    for(int i = 0; i < num_tasks; ++i){
-        //run task;
-        usleep(10);
-        //do iallgatherv only the first time flag is set
-        if(!flag){
-            flag = get_status(request);
-            //if flag, prep then perform iallgatherv
-            if(flag){
-                d.set_displ();
-                requestv = Iallgatherv(d, spike);
-            }
-        }
-    }
-    //if flag was not set during loop, wait for iallgather
-    //request to finish, then perform iallgatherv
-    if(!flag){
-        wait(request);
-        d.set_displ();
-        requestv = Iallgatherv(d, spike);
-    }
-    wait(requestv);
-}
-
-template<typename data>
-void run_sim(data& d, int simtime, bool non_blocking){
-    MPI_Datatype spike = create_spike_type();
-    d.generate_all_events(simtime);
-    for(int i = 1; i <= simtime; ++i){
-        d.time_step();
-        if((i % 5) == 0){
-            //load spikeout with the spikes to be sent
-            if(non_blocking)
-                non_blocking_spike(d, spike);
-            else
-                blocking_spike(d, spike);
-
-            d.filter();
-            d.spikeout_.clear();
-        }
-        d.increment_time();
-    }
-    MPI_Type_free(&spike);
-}
-
-#endif
