@@ -1,7 +1,9 @@
 /*
- * Neuromapp - miniapp.h, Copyright (c), 2015,
+ * Neuromapp - timer.cpp, Copyright (c), 2015,
+ * Sam Yates - Swiss Federal Institute of technology in Lausanne,
  * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Sam.Yatest@epfl.ch,
+ * timothee.ewart@epfl.ch
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +21,22 @@
  */
 
 /**
- * @file neuromapp/app/miniapp.h
- * \brief all include
+ * @file neuromapp/test/utils/timer.cpp
+ *  Test the storage class
  */
 
-#ifndef MAPP_APP_
-#define MAPP_APP_
+#define BOOST_TEST_MODULE TIMER_TEST
 
-#include "hello/hello.h"
-#include "spike/spike.h"
-#include "coreneuron_1.0/queueing/queueing.h"
-#include "coreneuron_1.0/kernel/kernel.h"
-#include "coreneuron_1.0/solver/solver.h"
-#include "coreneuron_1.0/cstep/cstep.h"
+#include <boost/test/unit_test.hpp>
+#include "utils/mpi/controler.h"
+#include "utils/mpi/timer.h"
 
-#endif
+#include <unistd.h>
+
+BOOST_AUTO_TEST_CASE(timer_test){
+    mapp::timer t;
+    t.tic();
+    usleep(1000000);
+    t.toc();
+    BOOST_CHECK_CLOSE(t.time(),1,1);
+}

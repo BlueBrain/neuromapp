@@ -1,5 +1,5 @@
 /*
- * Neuromapp - solver.cpp, Copyright (c), 2015,
+ * Neuromapp - storage.cpp, Copyright (c), 2015,
  * Sam Yates - Swiss Federal Institute of technology in Lausanne,
  * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
  * Sam.Yatest@epfl.ch,
@@ -21,7 +21,7 @@
  */
 
 /**
- * @file neuromapp/test/utils/test_storage.cpp
+ * @file neuromapp/test/utils/storage.cpp
  *  Test the storage class
  */
 

@@ -19,7 +19,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 
 
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
-find_package(Boost 1.44 REQUIRED program_options unit_test_framework system filesystem atomic)
+find_package(Boost 1.44 REQUIRED program_options unit_test_framework system filesystem atomic random)
 find_package(SLURM)
 # boost include
 include_directories(${Boost_INCLUDE_DIRS})
@@ -61,6 +61,7 @@ enable_testing()
 include_directories(neuromapp)
 add_subdirectory (neuromapp)
 #test
+include(Testing)
 add_subdirectory (test)
 
 #prepare the input

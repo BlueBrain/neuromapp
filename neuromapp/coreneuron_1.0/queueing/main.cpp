@@ -63,8 +63,6 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
      "number of time steps in the simulation")
     ("percent-ite,i", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
-    ("percent-spike,s",po::value<int>()->default_value(0),
-     "the percentage of spike events out of total events")
     ("verbose,v","provides additional outputs during execution")
     ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector")
     ("with-algebra,a","simulation performs linear algebra calculations");
@@ -92,12 +90,12 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         std::cout<<"time must be non-zero"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
-   if( (vm["percent-ite"].as<int>() < 0) || (vm["percent-spike"].as<int>() < 0 )){
+   if( (vm["percent-ite"].as<int>() < 0)){
         std::cout<<"percentages cannot be negative"<<std::endl;
         return mapp::MAPP_BAD_ARG;
    }
-   if( (vm["percent-ite"].as<int>() + vm["percent-spike"].as<int>() ) > 100 ){
-        std::cout<<"percent-ite + percent-spike can not exceed 100%"<<std::endl;
+   if( (vm["percent-ite"].as<int>()) > 100 ){
+        std::cout<<"percent-ite can not exceed 100%"<<std::endl;
         return mapp::MAPP_BAD_ARG;
    }
 #ifdef _OPENMP
@@ -117,7 +115,7 @@ void run_sim(pool<I> &pl, po::variables_map const&vm){
     gettimeofday(&start, NULL);
     for(int j = 0; j < vm["time"].as<int>(); ++j){
         pl.time_step();
-        pl.handle_spike(vm["time"].as<int>());
+        pl.increment_time();
     }
     pl.accumulate_stats();
     gettimeofday(&end, NULL);
@@ -132,16 +130,15 @@ void run_sim(pool<I> &pl, po::variables_map const&vm){
 void queueing_miniapp(po::variables_map const& vm){
     int cellgroups = vm["cell-groups"].as<int>();
     int p_ite = vm["percent-ite"].as<int>();
-    int p_spike = vm["percent-spike"].as<int>();
     int eventsper = vm["events-per"].as<int>();
     bool verbose = vm.count("verbose");
     bool algebra = vm.count("with-algebra");
 
     if(vm.count("spinlock")){
-        pool<spinlock> pl(cellgroups, eventsper, p_ite, p_spike, verbose, algebra);
+        pool<spinlock> pl(cellgroups, eventsper, p_ite, verbose, algebra);
         run_sim(pl,vm);
     } else {
-        pool<mutex> pl(cellgroups, eventsper, p_ite, p_spike, verbose, algebra);
+        pool<mutex> pl(cellgroups, eventsper, p_ite, verbose, algebra);
         run_sim(pl,vm);
     }
 }
