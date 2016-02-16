@@ -75,11 +75,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(setup_test, T, full_test_types){
     	BOOST_CHECK(env.input_presyns_.size() == numIn);
 
     BOOST_CHECK(env.output_presyns_.size() == numOut);
-    for(size_t i = 0; i < env.input_presyns_.size(); ++i){
-        for(size_t j = 0; j < env.output_presyns_.size(); ++j){
-            //BOOST_CHECK(env.input_presyns_[i] != env.output_presyns_[j]);
-        }
-    }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(generate_spikes, T, full_test_types){
