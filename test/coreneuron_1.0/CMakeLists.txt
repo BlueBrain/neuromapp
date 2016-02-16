@@ -1,5 +1,3 @@
-install (FILES queueing_test_header.hpp DESTINATION include)
-
 #list of tests
 set(tests kernel solver cstep queueing)
 

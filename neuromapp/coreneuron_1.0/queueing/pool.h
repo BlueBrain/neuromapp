@@ -75,6 +75,7 @@ private:
     int total_received_;
     int total_relevent_;
 
+    std::vector<int> spike_destinations_;
     std::vector<nrn_thread_data<I> > thread_datas_;
 
 public:
@@ -220,12 +221,21 @@ public:
             for(int j = 0; j < totalTime; ++j){
                 /// Simulated target of a NetCon and the event time
                 for(int k = 0; k < events_per_step_; ++k){
-                    //events can be generated with time range: (current time) to (current time + 10%)
+                    //events can be generated with time range:
+                    //(current time) to (current time + 10% of total)
                     gen_event g = create_event(i,j,totalTime);
                     thread_datas_[i].push_generated_event(
                         g.first.data_, g.first.t_, g.second);
                 }
             }
+        }
+        //generate destinations for the spike events
+        int maxSpikes = cell_groups_ * events_per_step_ * num_procs_;
+        maxSpikes = maxSpikes * totalTime * percent_spike_ /50;
+        std::cout<<maxSpikes<<" spike destinations generated"<<std::endl;
+        for(int i = 0; i < maxSpikes; ++i){
+            int spike_dest = rand()%cell_groups_;
+            spike_destinations_.push_back(spike_dest);
         }
     }
 
@@ -267,13 +277,19 @@ public:
             ev = spikein_[i];
             if(matches(ev)){
                 ++total_relevent_;
-                //spikein_[i];
-                int dst = ev.data_;
-                //add non-mutex inter-thread send here
-             //   thread_datas_[dst].self_send(ev.data_, ev.t_);
+                //pop a new random destination
+                if(spike_destinations_.empty()){
+                    std::cerr<<"time: "<<time_<<std::endl;
+                    std::cerr<<"total received: "<<total_received_<<std::endl;
+                    std::cerr<<"total relevent: "<<total_relevent_<<std::endl;
+                }
+                assert(!spike_destinations_.empty());
+                int dest = spike_destinations_.back();
+                spike_destinations_.pop_back();
+                //send using non-mutex inter-thread send here
+               thread_datas_[dest].inter_send_no_lock(dest, ev.t_);
             }
         }
-        //"Send" spikes
         spikeout_.clear();
         spikein_.clear();
     }
