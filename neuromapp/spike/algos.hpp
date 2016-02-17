@@ -38,8 +38,15 @@
 
 #include "coreneuron_1.0/queueing/queue.h"
 
+//define events as spike_item
 typedef queueing::event spike_item;
 
+/**
+ * \fn create_spike_type()
+ * \brief creates an MPI_Datatype required for MPI
+ *  communication of the spike_item struct
+ * \return the new MPI_Datatype, spike
+ */
 inline MPI_Datatype create_spike_type(){
     MPI_Datatype spike;
     const int nblocks = 2;
@@ -56,12 +63,23 @@ inline MPI_Datatype create_spike_type(){
 }
 
 //BLOCKING
+/**
+ * \fn allgather(data& d)
+ * \brief performs the blocking collective, MPI_Allgather
+ * \param d the data environment on which this algo is called
+ */
 template<typename data>
 void allgather(data& d){
     int size = d.spikeout_.size();
     MPI_Allgather(&size, 1, MPI_INT, &(d.nin_[0]), 1, MPI_INT, MPI_COMM_WORLD);
 }
 
+/**
+ * \fn allgatherv(data& d, MPI_Datatype spike)
+ * \brief performs the blocking collective, MPI_Allgatherv
+ * \param d the data environment on which this algo is called
+ * \param spike the MPI_Datatype being communicated
+ */
 template<typename data>
 void allgatherv(data& d, MPI_Datatype spike){
     MPI_Allgatherv(&(d.spikeout_[0]), d.spikeout_.size(), spike,
@@ -69,6 +87,13 @@ void allgatherv(data& d, MPI_Datatype spike){
 }
 
 #ifdef _ARCH_QP
+/**
+ * \fn Iallgather(data& d)
+ * \brief performs the nonblocking collective, MPI_Iallgather
+ * (not supported on current Blue Gene Q compiler settings)
+ * \param d the data environment on which this algo is called
+ * \return the MPI_Request for this non-blocking operation
+ */
 template<typename data>
 MPI_Request Iallgather(data& d){
 	std::cerr<<"Error: Non-blocking allgather not supported on BGQ"<<std::endl;
@@ -76,7 +101,14 @@ MPI_Request Iallgather(data& d){
 	return -1;
 }
 
-
+/**
+ * \fn Iallgatherv(data& d, MPI_Datatype spike)
+ * \brief performs the nonblocking collective, MPI_Iallgatherv
+ * (not supported on current Blue Gene Q compiler settings)
+ * \param d the data environment on which this algo is called
+ * \param spike the MPI_Datatype being communicated
+ * \return the MPI_Request for this non-blocking operation
+ */
 template<typename data>
 MPI_Request Iallgatherv(data& d, MPI_Datatype spike){
 	std::cerr<<"Error: Non-blocking allgatherv not supported on BGQ"<<std::endl;
@@ -85,6 +117,12 @@ MPI_Request Iallgatherv(data& d, MPI_Datatype spike){
 }
 #else
 //NON-BLOCKING
+/**
+ * \fn Iallgather(data& d)
+ * \brief performs the nonblocking collective, MPI_Iallgather
+ * \param d the data environment on which this algo is called
+ * \return the MPI_Request for this non-blocking operation
+ */
 template<typename data>
 MPI_Request Iallgather(data& d){
     MPI_Request request;
@@ -94,6 +132,13 @@ MPI_Request Iallgather(data& d){
     return request;
 }
 
+/**
+ * \fn Iallgatherv(data& d, MPI_Datatype spike)
+ * \brief performs the nonblocking collective, MPI_Iallgatherv
+ * \param d the data environment on which this algo is called
+ * \param spike the MPI_Datatype being communicated
+ * \return the MPI_Request for this non-blocking operation
+ */
 template<typename data>
 MPI_Request Iallgatherv(data& d, MPI_Datatype spike){
     MPI_Request request;
@@ -104,17 +149,33 @@ MPI_Request Iallgatherv(data& d, MPI_Datatype spike){
 }
 #endif
 
+/**
+ * \fn get_status(MPI_Request request)
+ * \brief non-blocking check to see if the request has completed
+ * \param request the request being checked
+ * \return the flag variable: 1 if complete, else 0
+ */
 inline int get_status(MPI_Request request){
     int flag;
     MPI_Request_get_status(request, &flag, MPI_STATUS_IGNORE);
     return flag;
 }
 
+/**
+ * \fn wait(MPI_Request request)
+ * \brief blocking wait for the request to complete
+ * \param request the request to wait for
+ */
 inline void wait(MPI_Request request){
     MPI_Wait(&request, MPI_STATUS_IGNORE);
 }
 
 //SIMULATIONS
+/**
+ * \fn blocking_spike(data& d, MPI_Datatype spike)
+ * \brief performs a blocking spike exchange
+ * \param d the data environment on which this algo is called
+ */
 template<typename data>
 void blocking_spike(data& d, MPI_Datatype spike){
     d.time_step();
@@ -126,6 +187,11 @@ void blocking_spike(data& d, MPI_Datatype spike){
     allgatherv(d, spike);
 }
 
+/**
+ * \fn non_blocking_spike(data& d, MPI_Datatype spike)
+ * \brief performs a nonblocking spike exchange
+ * \param d the data environment on which this algo is called
+ */
 template<typename data>
 void non_blocking_spike(data& d, MPI_Datatype spike){
     //a vector of function pointers for the parallel tasks
@@ -139,11 +205,15 @@ void non_blocking_spike(data& d, MPI_Datatype spike){
     int flag = 0;
 
     //check thresh
-    request = Iallgather(d);
     typename boost::array<boost::function<void(data*)>, 4>
         ::iterator it = parallel_tasks.begin();
+
+    //perform send first then allgather
+    (*it)(&d);
+    ++it;
+    request = Iallgather(d);
     while(it != parallel_tasks.end()){
-        //run all parallel tasks and check
+        //run the remaining parallel tasks and check
         //the status of iallgather after each
         (*it)(&d);
         if(!flag){
@@ -158,7 +228,7 @@ void non_blocking_spike(data& d, MPI_Datatype spike){
     }
     //if flag was not set during loop, wait for iallgather
     //request to finish, then perform iallgatherv
-    if(!flag){
+   if(!flag){
         wait(request);
         d.set_displ();
         requestv = Iallgatherv(d, spike);
@@ -166,6 +236,14 @@ void non_blocking_spike(data& d, MPI_Datatype spike){
     wait(requestv);
 }
 
+/**
+ * \fn run_sim(data& d, int simtime, bool non_blocking)
+ * \brief runs the simulation with either a blocking or non-blocking
+ *  spike exchange depending on the parameter "non_blocking"
+ * \param d the data environment on which this algo is called
+ * \param non_blocking specifies whether to use the blocking or non-blocking
+ *  implementation of spike exchange.
+ */
 template<typename data>
 void run_sim(data& d, int simtime, bool non_blocking){
     MPI_Datatype spike = create_spike_type();

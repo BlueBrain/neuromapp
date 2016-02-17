@@ -47,14 +47,14 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce this help message")
-    ("numprocs", po::value<size_t>()->default_value(4), "the number of MPI processes")
+    ("numprocs", po::value<size_t>()->default_value(8), "the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8), "the number of OMP threads")
     ("run", po::value<std::string>()->default_value("mpirun"), "the command to run parallel jobs")
     ("eventsper", po::value<size_t>()->default_value(10), "average number of events generated per dt")
     ("numOut", po::value<size_t>()->default_value(4), "number of output presyns (gids) per process")
     ("simtime", po::value<size_t>()->default_value(100), "The number of timesteps in the simulation")
     ("numIn", po::value<size_t>()->default_value(12), "the number of input presyns per process")
-    ("distributed", "If set, use distributed algorithm else use default (global collective)");
+    ("nonblocking", "If set, use non-blocking algorithm else use default (blocking collective)");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -99,7 +99,7 @@ void spike_content(po::variables_map const& vm){
             " " << path << "MPI_Exec " << vm["eventsper"].as<size_t>() << " "<<
             //" neuromapp/spike/MPI_Exec " << vm["eventsper"].as<size_t>() << " "<<
             vm["numOut"].as<size_t>() <<" "<< vm["simtime"].as<size_t>() <<" "<<
-            vm["numIn"].as<size_t>() <<" "<< vm.count("distributed");
+            vm["numIn"].as<size_t>() <<" "<< vm.count("nonblocking");
         std::cout<< "Running command " << command.str() <<std::endl;
 	system(command.str().c_str());
 }
