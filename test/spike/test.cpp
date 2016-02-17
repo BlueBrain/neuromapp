@@ -286,6 +286,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_max_input_presyns, T, full_test_types)
     size_t simtime = 10;
     T env(eventsPer, numOut, numIn, size, rank);
     run_sim(env,simtime,true);
+//    std::cout<<"RECEIVED "<<env.received()<<" EXPECTED: "<<(eventsPer * size * simtime * env.cells())<<std::endl;
     BOOST_CHECK((env.received() - (eventsPer*simtime*env.cells())) == env.relevent() );
 }
 #endif

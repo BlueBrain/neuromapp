@@ -224,7 +224,6 @@ public:
         //generate destinations for the spike events
         int maxSpikes = cell_groups_ * events_per_step_ * num_procs_;
         maxSpikes = maxSpikes * totalTime * percent_spike_ /50;
-        std::cout<<maxSpikes<<" spike destinations generated"<<std::endl;
         for(int i = 0; i < maxSpikes; ++i){
             int spike_dest = rand()%cell_groups_;
             spike_destinations_.push_back(spike_dest);

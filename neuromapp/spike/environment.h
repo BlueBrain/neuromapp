@@ -120,7 +120,7 @@ public:
     int relevent(){return total_relevent_;}
 
 //TASKS
-    void parallel_send(){usleep(10);}
+    void parallel_send();
     void parallel_enqueue(){usleep(10);}
     void parallel_algebra(){usleep(10);}
     void parallel_deliver(){usleep(10);}

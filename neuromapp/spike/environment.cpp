@@ -115,6 +115,19 @@ int environment::filter(){
     return total_relevent_;
 }
 
+
+void environment::parallel_send(){
+    //should still send out events
+    //all other tasks are calls to usleep
+    for(int i = 0; i < events_per_; ++i){
+        assert(generated_spikes_.size() > 0);
+
+        spikeout_.push_back(generated_spikes_.back());
+        generated_spikes_.pop_back();
+    }
+}
+
+
 }
 
 
