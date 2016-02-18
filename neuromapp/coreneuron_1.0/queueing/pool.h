@@ -173,18 +173,6 @@ public:
         spikein_.resize(total);
     }
 
-    /**
-     * \fn bool matches(const spike_item& sitem)
-     * \brief compares the destination of sitem to this pool's input_presyns
-     * \returns true on a positive match, else false
-     */
-/*    bool matches(const event& item){
-        if(input_presyns_.find(item.data_) != input_presyns_.end()){
-            return true;
-        }
-        return false;
-    }*/
-
     /** \fn accumulate_stats()
      *  \brief accumulates statistics from the threadData array and stores them using impl::storage
      */
@@ -338,10 +326,10 @@ public:
      */
     void increment_time(){++time_;}
 
-    int mindelay(){return min_delay_;}
-    int cells(){return num_cells_;}
-    int received(){return total_received_;}
-    int relevent(){return total_relevent_;}
+    int mindelay() const {return min_delay_;}
+    int cells() const {return num_cells_;}
+    int received() const {return total_received_;}
+    int relevent() const {return total_relevent_;}
 
 
 
@@ -393,11 +381,12 @@ public:
      *  \brief calls parallel algebra for every cellgroup
      */
     void parallel_algebra(){
-        int size = thread_datas_.size();
-        #pragma omp parallel for schedule(static,1)
-        for(int i = 0; i < size; ++i){
-            if(perform_algebra_)
+        if(perform_algebra_){
+            int size = thread_datas_.size();
+            #pragma omp parallel for schedule(static,1)
+            for(int i = 0; i < size; ++i){
                 thread_datas_[i].l_algebra(time_);
+            }
         }
     }
 

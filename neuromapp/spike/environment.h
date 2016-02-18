@@ -115,10 +115,10 @@ public:
     void increment_time(){}
 
 //GETTERS
-    int mindelay(){return min_delay_;}
-    int cells(){return num_cells_;}
-    int received(){return total_received_;}
-    int relevent(){return total_relevent_;}
+    int mindelay() const {return min_delay_;}
+    int cells() const {return num_cells_;}
+    int received() const {return total_received_;}
+    int relevent() const {return total_relevent_;}
 
 //TASKS
     void parallel_send();

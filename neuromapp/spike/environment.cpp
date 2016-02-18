@@ -118,17 +118,6 @@ void environment::set_displ(){
         total += nin_[i];
     }
 }
-/*
-bool environment::matches(const spike_item &sitem){
-    for(int i = 0; i < input_presyns_.size(); ++i){
-        if(sitem.data_ == input_presyns_[i]){
-            ++total_relevent_;
-            return true;
-        }
-    }
-    return false;
-}
-*/
 
 void environment::filter(){
     total_received_ += spikein_.size();

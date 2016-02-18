@@ -287,15 +287,4 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_max_input_presyns, T, full_test_types)
     BOOST_CHECK((env.received() - (eventsPer*simtime*env.cells())) == env.relevent() );
 }
 
-/**
- * tests the miniapp driver
- */
-BOOST_AUTO_TEST_CASE(driver_test){
-    char arg1[]="NULL";
-    char arg2[]="--run=srun";
-    char * const argv[] = {arg1, arg2};
-    int argc = 2;
-    BOOST_CHECK(spike_execute(argc,argv) == 0);
-}
-
 #endif
