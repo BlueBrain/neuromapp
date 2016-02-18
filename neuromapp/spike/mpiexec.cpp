@@ -45,27 +45,26 @@
  * and performs run_simulation() function on it.
  */
 int main(int argc, char* argv[]) {
-    assert(argc == 6);
+    assert(argc == 7);
     int size = mapp::master.size();
     int rank = mapp::master.rank();
 
-    //int numThreads = atoi(argv[1]);
     int eventsPer = atoi(argv[1]);
-    int numOut= atoi(argv[2]);
-    int simTime = atoi(argv[3]);
+    int simTime = atoi(argv[2]);
+    int numOut = atoi(argv[3]);
     int numIn = atoi(argv[4]);
-    int isNonBlocking = atoi(argv[5]);
+    int netconsPer = atoi(argv[5]);
+    int isNonBlocking = atoi(argv[6]);
 
     struct timeval start, end;
     assert(numIn <= (numOut * (size - 1)));
-
-//    spike::environment env(eventsPer, numOut, numIn, simTime, size, rank);
     //numcells, eventsper, percent ite, verbose, algebra, percent spike, numout, numin, size, rank
-    queueing::pool<queueing::mutex> env(64, eventsPer, 90, false, true, 4, numOut, numIn, size, rank);
+    queueing::pool<queueing::mutex> env(64, eventsPer, 90, false, true, 4, numOut, numIn, netconsPer, size, rank);
 
     gettimeofday(&start, NULL);
     run_sim(env, simTime, isNonBlocking);
     gettimeofday(&end, NULL);
+
     env.accumulate_stats();
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;

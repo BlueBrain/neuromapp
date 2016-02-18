@@ -24,8 +24,10 @@ namespace queueing{
  */
 class pool_adapter : public pool<mutex> {
 public:
-    pool_adapter(int eventsPer, int numOut, int numIn, int size, int rank):
-        pool<mutex>(64, eventsPer, 0, false, false, 100, numOut, numIn, size, rank){};
+    pool_adapter(int eventsPer, int numOut, int numIn,
+                 int netcons, int size, int rank):
+        pool<mutex>(64, eventsPer, 0, false, false, 100, numOut,
+                    numIn, netcons, size, rank){};
 };
 
 }

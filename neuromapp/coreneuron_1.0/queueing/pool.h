@@ -32,6 +32,7 @@
 #include <ctime>
 #include <numeric>
 #include <boost/range/algorithm/random_shuffle.hpp>
+#include <boost/range/algorithm_ext/iota.hpp>
 
 #include "coreneuron_1.0/queueing/thread.h"
 #include "utils/storage/neuromapp_data.h"
@@ -57,14 +58,15 @@ private:
     dummy_lock spike_lock_;
 #endif
 
-    int cell_groups_;
+    int num_cells_;
     int events_per_step_;
+    int netcons_per_input_;
     int percent_ite_;
     int percent_spike_;
     bool v_;
     bool perform_algebra_;
     int time_;
-    int spike_out_;
+    int spike_events_;
     const static int min_delay_ = 5;
 
     //needed for spike interface
@@ -75,13 +77,12 @@ private:
     int total_received_;
     int total_relevent_;
 
-    std::vector<int> spike_destinations_;
     std::vector<nrn_thread_data<I> > thread_datas_;
 
 public:
     std::vector<event> spikein_;
     std::vector<event> spikeout_;
-    std::vector<int> input_presyns_;
+    std::map<int, std::vector<int> > input_presyns_;
     std::vector<int> output_presyns_;
     std::vector<int> nin_;
     std::vector<int> displ_;
@@ -97,33 +98,52 @@ public:
      */
     explicit pool(int numCells=1, int eventsPer=1, int pITE=0,
     bool verbose=false, bool algebra=false, int pSpike=0,
-    int out=1, int in=1, int procs=1, int rank=0):
-    cell_groups_(numCells), events_per_step_(eventsPer),
+    int out=1, int in=1, int nc=1, int procs=1, int rank=0):
+    num_cells_(numCells), events_per_step_(eventsPer),
     percent_ite_(pITE), v_(verbose), perform_algebra_(algebra),
-    percent_spike_(pSpike), num_out_(out), num_in_(in),
-    num_procs_(procs), rank_(rank), spike_out_(0), time_(0)
+    percent_spike_(pSpike), num_out_(out), num_in_(in), netcons_per_input_(nc),
+    num_procs_(procs), rank_(rank), spike_events_(0), time_(0)
     {
         srand(time(NULL));
 
-        thread_datas_.resize(cell_groups_);
+        thread_datas_.resize(num_cells_);
 
         //taken from environment.cpp
         total_received_ = 0;
         total_relevent_ = 0;
 
         //assign input and output gid's
+        std::vector<int> available_inputs;
+        std::vector<int> cellgroups;
         if(num_procs_ > 1){
             for(int i = 0; i < (num_procs_ * num_out_); ++i){
                 if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
                     output_presyns_.push_back(i);
                 }
                 else{
-                    input_presyns_.push_back(i);
+                    available_inputs.push_back(i);
                 }
             }
-            assert(input_presyns_.size() >= num_in_);
-            boost::random_shuffle(input_presyns_);
-            input_presyns_.resize(num_in_);
+            //create a randomly ordered list of input_presyns_
+            assert(available_inputs.size() >= num_in_);
+            boost::random_shuffle(available_inputs);
+            available_inputs.resize(num_in_);
+            //create a vector of randomly ordered cellgroups
+            cellgroups.resize(num_cells_);
+            boost::iota(cellgroups, 0);
+            boost::random_shuffle(cellgroups);
+
+            //for each input presyn,
+            //select N unique netcons to cell groups
+            for(int i = 0; i < num_in_; ++i){
+                int presyn = available_inputs[i];
+                int index = rand()%(num_cells_ - netcons_per_input_);
+                for(int j = 0; j < netcons_per_input_; ++j){
+                    input_presyns_[presyn].push_back(cellgroups[index+j]);
+                    std::cout<<"PRESYN "<<presyn<<" netcon to: "<<input_presyns_[presyn].back()<<std::endl;
+                }
+            }
+
         }
         else{
             for(int i = 0; i < num_out_; ++i){
@@ -158,14 +178,12 @@ public:
      * \brief compares the destination of sitem to this pool's input_presyns
      * \returns true on a positive match, else false
      */
-    bool matches(const event& item){
-        for(int i = 0; i < input_presyns_.size(); ++i){
-            if(item.data_ == input_presyns_[i]){
-                return true;
-            }
+/*    bool matches(const event& item){
+        if(input_presyns_.find(item.data_) != input_presyns_.end()){
+            return true;
         }
         return false;
-    }
+    }*/
 
     /** \fn accumulate_stats()
      *  \brief accumulates statistics from the threadData array and stores them using impl::storage
@@ -191,12 +209,12 @@ public:
         if(v_){
             std::cout<<"Total inter-thread received: "<<all_ite_received<<std::endl;
             std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
-            std::cout<<"Spikes sent: "<<spike_out_<<std::endl;
+            std::cout<<"Spikes sent: "<<spike_events_<<std::endl;
             std::cout<<"Total delivered: "<<all_delivered<<std::endl;
         }
         neuromapp_data.put_copy("inter_received", all_ite_received);
         neuromapp_data.put_copy("enqueued", all_enqueued);
-        neuromapp_data.put_copy("spikes", spike_out_);
+        neuromapp_data.put_copy("spikes", spike_events_);
         neuromapp_data.put_copy("delivered", all_delivered);
     }
 
@@ -209,7 +227,7 @@ public:
      */
     void generate_all_events(int totalTime){
         event ev;
-        for(int i = 0; i < cell_groups_; ++i){
+        for(int i = 0; i < num_cells_; ++i){
             for(int j = 0; j < totalTime; ++j){
                 /// Simulated target of a NetCon and the event time
                 for(int k = 0; k < events_per_step_; ++k){
@@ -220,13 +238,6 @@ public:
                         g.first.data_, g.first.t_, g.second);
                 }
             }
-        }
-        //generate destinations for the spike events
-        int maxSpikes = cell_groups_ * events_per_step_ * num_procs_;
-        maxSpikes = maxSpikes * totalTime * percent_spike_ /50;
-        for(int i = 0; i < maxSpikes; ++i){
-            int spike_dest = rand()%cell_groups_;
-            spike_destinations_.push_back(spike_dest);
         }
     }
 
@@ -266,16 +277,18 @@ public:
 
         //"Receive" spikes
         event ev;
+        std::map<int, std::vector<int> >::iterator it;
         for(int i = 0; i < spikein_.size(); ++i){
             ev = spikein_[i];
-            if(matches(ev)){
+            it = input_presyns_.find(ev.data_);
+            if(it != input_presyns_.end()){
                 ++total_relevent_;
-                //pop a new random destination
-                assert(!spike_destinations_.empty());
-                int dest = spike_destinations_.back();
-                spike_destinations_.pop_back();
-                //send using non-mutex inter-thread send here
-               thread_datas_[dest].inter_send_no_lock(dest, ev.t_);
+                for(size_t j = 0; j < it->second.size(); ++j){
+                    int dest = it->second[j];
+                    //send using non-mutex inter-thread send here
+                    thread_datas_[dest].inter_send_no_lock(dest, ev.t_);
+                    ++spike_events_;
+                }
             }
         }
         spikeout_.clear();
@@ -308,7 +321,6 @@ public:
             int index = rand() % output_presyns_.size();
             dst = output_presyns_[index];
             is_spike = true;
-            spike_out_++;
         }
         else if(percent < (percent_spike_ + percent_ite_)){
             //send as inter_thread_event_
@@ -327,7 +339,7 @@ public:
     void increment_time(){++time_;}
 
     int mindelay(){return min_delay_;}
-    int cells(){return cell_groups_;}
+    int cells(){return num_cells_;}
     int received(){return total_received_;}
     int relevent(){return total_relevent_;}
 

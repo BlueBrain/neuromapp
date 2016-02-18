@@ -45,14 +45,15 @@ typedef std::vector<spike_item> spike_vec;
  */
 struct environment {
 private:
-    int events_per_;
     int num_out_;
     int num_in_;
+    int events_per_;
+    int netcons_per_input_;
     int num_procs_;
     int rank_;
     int total_received_;
     int total_relevent_;
-    static const int cell_groups_ = 1;
+    static const int num_cells_ = 1;
     static const int min_delay_ = 5;
 
 public:
@@ -64,14 +65,14 @@ public:
     spike_vec spikeout_;
     int_vec nin_;
     int_vec displ_;
-    int_vec input_presyns_;
+    std::map<int, int_vec> input_presyns_;
     int_vec output_presyns_;
 
     /**
-     * \fn environment(int e, int o, int i, int p, int r)
+     * \fn environment(int e, int o, int i, int nc, int p, int r)
      * \brief environment constructor. Initializes member variables.
      */
-    environment(int e, int o, int i, int p, int r);
+    environment(int e, int o, int i, int nc, int p, int r);
 
     /**
      * \fn void time_step()
@@ -98,24 +99,24 @@ public:
      * \brief compares the destination of sitem to the input_presyns
      * \returns true on a positive match, else false
      */
-    bool matches(const spike_item& sitem);
+//    bool matches(const spike_item& sitem);
 
     /**
-     * \fn void time_step()
+     * \fn void filter()
      * \brief iterates through spikein and calls matches() for every spike
      *  in the container.
      */
-    int filter();
+    void filter();
 
     /**
-     * \fn void time_step()
+     * \fn void intcrement_time()
      * \brief empty function that mirrors pool::increment_time()
      */
     void increment_time(){}
 
 //GETTERS
     int mindelay(){return min_delay_;}
-    int cells(){return cell_groups_;}
+    int cells(){return num_cells_;}
     int received(){return total_received_;}
     int relevent(){return total_relevent_;}
 
