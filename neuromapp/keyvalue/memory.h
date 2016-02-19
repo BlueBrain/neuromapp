@@ -59,7 +59,7 @@ public:
     typedef std::vector<value_type> container_type;
 
     /** \function nrnthread(std::size_t n = 0)
-        \brief allocate the maint container */
+        \brief allocate the main container */
     explicit nrnthread(std::size_t n = 0){
         cellgroup.resize(n);
         std::generate(cellgroup.begin(),cellgroup.end(), RandomNumber);

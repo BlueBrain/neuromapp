@@ -54,7 +54,7 @@ namespace keyvalue {
         typedef meta_skv meta_type;
         typedef keyvalue_skv keyvalue_type;
     };
-} //end namespace keyvalu
+} //end namespace keyvalue
 
 #endif
 

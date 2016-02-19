@@ -125,7 +125,7 @@ keyvalue::statistic run_loop(benchmark<S> const& b){
 template<keyvalue::selector S>
 std::pair<keyvalue::statistic,keyvalue::statistic> run_task(benchmark<S> const& b){
     typedef typename keyvalue::trait_meta<S>::meta_type meta_type; // get the good meta type
-    // extract the group of memory and the arguement
+    // extract the group of memory and the argument
     keyvalue::group<meta_type> const& g = b.get_group(); //get the group
     keyvalue::argument const& a = b.get_args(); // get the arguments
     // build the needed function in function of the backend
