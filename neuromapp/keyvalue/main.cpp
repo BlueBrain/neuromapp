@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include "keyvalue/keyvalue.h"
 #include "utils/error.h"
+#include "neuromapp/utils/mpi/mpi_path.h"
 
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
@@ -119,9 +120,11 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
     \param vm encapsulate the command line and all needed informations
  */
 void keyvalue_content(po::variables_map const& vm){
+    std::stringstream command;
+    std::string path = helper_build_path::mpi_bin_path();
 
     int np = vm["numproc"].as<int>();
-    int nt = vm["numthread"].as<int>(); // Should we check OMP_NUM_THREADS env var also? --> 'char * getenv (const char *name)'
+    int nt = vm["numthread"].as<int>();
     std::string backend(vm["backend"].as<std::string>());
     bool async = !(vm["async"].empty());
     bool flash = !(vm["flash"].empty());
@@ -136,24 +139,13 @@ void keyvalue_content(po::variables_map const& vm){
     	cg = nt;
     }
 
-    std::stringstream command;
-
     command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np
-            << " /Users/ewart/Documents/neuromapp/b/neuromapp/keyvalue/MPI_Exec_kv  -b " << backend
+            << " " << path << "MPI_Exec_kv  -b " << backend
     		<< " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
     		<< " -md " << md << " -dt " << dt << " -cg " << cg;
 
-
-    //command << "srun -n 4 neuromapp/keyvalue/mpiexec";
-
-	//char command[130];
-	//snprintf(command, 130, "OMP_NUM_THREADS=%d srun -n %d neuromapp/keyvalue/MPI_Exec_kv -b %s %s %s -uc %d -st %f -md %f -dt %f -cg %d",
-	//	nt, np, backend.c_str(), (async ? "-a" : ""), (flash ? "-f" : ""), uc, st, md, dt, cg);
-
 	std::cout << "Running command " << command.str() << std::endl;
-
 	system(command.str().c_str());
-
 }
 
 

@@ -93,16 +93,16 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
  */
 void spike_content(po::variables_map const& vm){
 	std::stringstream command;
-        std::string path = helper_build_path::mpi_bin_path();
+    std::string path = helper_build_path::mpi_bin_path();
 
-        command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
-            vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
-            " " << path << "MPI_Exec " << vm["eventsper"].as<size_t>() << " " <<
-            //" neuromapp/spike/MPI_Exec " << vm["eventsper"].as<size_t>() << " "<<
-            vm["simtime"].as<size_t>()<< " " << vm["numOut"].as<size_t>()<<" "<<
-            vm["numIn"].as<size_t>() <<" "<< vm["ncper"].as<size_t>()
-            << " " << vm.count("nonblocking");
-        std::cout<< "Running command " << command.str() <<std::endl;
+    command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
+        vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
+        " " << path << "MPI_Exec " << vm["eventsper"].as<size_t>() << " " <<
+        vm["simtime"].as<size_t>()<< " " << vm["numOut"].as<size_t>()<<" "<<
+        vm["numIn"].as<size_t>() <<" "<< vm["ncper"].as<size_t>()
+        << " " << vm.count("nonblocking");
+
+    std::cout<< "Running command " << command.str() <<std::endl;
 	system(command.str().c_str());
 }
 

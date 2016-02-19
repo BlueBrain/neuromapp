@@ -52,18 +52,6 @@ int main(int argc, char* argv[]) {
         std::cout << p.first << std::endl;
         std::cout << p.second << std::endl;
     }
-    
-#ifdef SKV_STORE
-    if(a.backend() == "skv"){
-        benchmark<keyvalue::skv> b(a);
-        //bench
-        keyvalue::statistic s = run_loop(b);
-        //compute statistics
-        s.process();
-        //print the results
-        std::cout << s << std::endl;
-    }
-#endif
 
-     return 0;
+    return 0;
 }
