@@ -33,8 +33,11 @@
 
 namespace queueing {
 
-void queue::insert(double tt, double d) {
-    pq_que.push(event(d,tt));
+void queue::insert(double tt, int d) {
+    event e;
+    e.data_ = d;
+    e.t_ = tt;
+    pq_que.push(e);
 }
 
 bool queue::atomic_dq(double tt, event& q) {

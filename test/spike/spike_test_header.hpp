@@ -1,5 +1,5 @@
 /*
- * Miniapp - test_header.hpp, Copyright (c), 2016,
+ * Miniapp - spike_test_header.hpp, Copyright (c), 2016,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -16,22 +16,17 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library.
- */
+*/
 
-#ifndef MAPP_TEST_HEADER_HPP
-#define MAPP_TEST_HEADER_HPP
+#ifndef MAPP_SPIKE_TEST_HEADER_HPP
+#define MAPP_SPIKE_TEST_HEADER_HPP
 
 #include <boost/mpl/list.hpp>
-#include "coreneuron_1.0/queueing/thread.h"
-
-template<queueing::implementation I>
-struct data{
-	static const queueing::implementation impl = I;
-};
-
+#include "test/spike/pool_adapter.h"
+#include "spike/environment.h"
 typedef boost::mpl::list<
-						data<queueing::mutex>,
-						data<queueing::spinlock>
-						> full_test_types;
+                            queueing::pool_adapter,
+                            spike::environment
+                            > full_test_types;
 
 #endif
