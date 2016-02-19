@@ -170,10 +170,10 @@ public:
      */
     size_t pq_size(){return qe_.size();}
 
-    /** \fn push_generated_event(double d, double tt, bool s)
+    /** \fn push_generated_event(int d, double tt, bool s)
      *  \brief pushes an event into generated event vector
      */
-    void push_generated_event(double d, double tt, bool s){
+    void push_generated_event(int d, double tt, bool s){
         event e;
         e.data_ = d;
         e.t_ = tt;
@@ -192,12 +192,19 @@ public:
         return e;
     }
 
-    /** \fn void inter_thread_send(double d, double tt)
+    /** \fn void inter_thread_send(int d, double tt)
      *  \brief sends an Event to the destination thread's array
      *  \param d the event's data value
      *  \param tt the event's time value
      */
-    void inter_thread_send(double d, double tt) {}
+    void inter_thread_send(int d, double tt) {}
+
+    /** \fn void inter_send_no_lock(int d, double tt)
+     *  \brief send an item to inter_thread_events_ (serially)
+     *  \param d the Event's data value
+     *  \param tt the Event's time value
+     **/
+    void inter_send_no_lock(int d, double tt){}
 
     /** \fn void enqeue_my_events()
      *  \brief (for this thread) push all the events from my
@@ -207,7 +214,7 @@ public:
 };
 
 template<>
-inline void nrn_thread_data<mutex>::inter_thread_send(double d, double tt){
+inline void nrn_thread_data<mutex>::inter_thread_send(int d, double tt){
     inter_thread_events_.lock_.acquire();
     event ite;
     ite.data_ = d;
@@ -215,6 +222,14 @@ inline void nrn_thread_data<mutex>::inter_thread_send(double d, double tt){
     ite_received_++;
     inter_thread_events_.q_.push_back(ite);
     inter_thread_events_.lock_.release();
+}
+
+template<>
+inline void nrn_thread_data<mutex>::inter_send_no_lock(int d, double tt){
+    event ite;
+    ite.data_ = d;
+    ite.t_ = tt;
+    inter_thread_events_.q_.push_back(ite);
 }
 
 template<>
@@ -230,11 +245,20 @@ inline void nrn_thread_data<mutex>::enqueue_my_events(){
 }
 
 template<>
-inline void nrn_thread_data<spinlock>::inter_thread_send(double d, double tt){
+inline void nrn_thread_data<spinlock>::inter_thread_send(int d, double tt){
     event ite;
     ite.data_ = d;
     ite.t_ = tt;
     inter_thread_events_.q_.push(ite, ite_received_);
+}
+
+template<>
+inline void nrn_thread_data<spinlock>::inter_send_no_lock(int d, double tt){
+    event ite;
+    ite.data_ = d;
+    ite.t_ = tt;
+    int dummy = 0;
+    inter_thread_events_.q_.push(ite, dummy);
 }
 
 template<>
