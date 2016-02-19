@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/queueing/lock.h
+ * @file neuromapp/utils/omp/lock.h
  * \brief Contains omp_lock and dummy_lock class declaration.
  */
 
