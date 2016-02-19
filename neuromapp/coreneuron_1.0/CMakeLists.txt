@@ -33,6 +33,8 @@ add_library (coreneuron10_cstep
 
 add_library (coreneuron10_queueing
 		     queueing/queue.cpp
+		     queueing/pool.cpp
+		     queueing/thread.cpp
 		     queueing/main.cpp)
 
 target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common)
@@ -50,7 +52,5 @@ install (FILES  kernel/mechanism/mechanism.h
 				queueing/queue.h
 				queueing/pool.h
 				queueing/queueing.h
-				queueing/spinlock_apple.h
-				queueing/spinlock_queue.h
 				queueing/thread.h
 				DESTINATION include)
