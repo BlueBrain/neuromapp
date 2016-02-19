@@ -32,6 +32,7 @@
 #include <ctime>
 #include <numeric>
 #include <boost/range/algorithm/random_shuffle.hpp>
+#include <boost/range/algorithm_ext/iota.hpp>
 
 #include "coreneuron_1.0/queueing/thread.h"
 #include "utils/storage/neuromapp_data.h"
@@ -57,14 +58,15 @@ private:
     dummy_lock spike_lock_;
 #endif
 
-    int cell_groups_;
+    int num_cells_;
     int events_per_step_;
+    int netcons_per_input_;
     int percent_ite_;
     int percent_spike_;
     bool v_;
     bool perform_algebra_;
     int time_;
-    int all_spiked_;
+    int spike_events_;
     const static int min_delay_ = 5;
 
     //needed for spike interface
@@ -80,12 +82,13 @@ private:
 public:
     std::vector<event> spikein_;
     std::vector<event> spikeout_;
-    std::vector<int> input_presyns_;
+    std::map<int, std::vector<int> > input_presyns_;
     std::vector<int> output_presyns_;
     std::vector<int> nin_;
     std::vector<int> displ_;
 
-    /** \fn pool(bool verbose, int eventsPer, int pITE, bool isSpike, bool algebra)
+    /** \fn pool(int numCells, int eventsPer, int pITE, bool verbose, bool algebra
+     * int pSpike, int out, int in, int procs, int rank)
      *  \brief initializes a pool with a thread_datas_ array
      *  \param verbose verbose mode: 1 = on, 0 = off
      *  \param events_per_step_ number of events per time step
@@ -95,33 +98,52 @@ public:
      */
     explicit pool(int numCells=1, int eventsPer=1, int pITE=0,
     bool verbose=false, bool algebra=false, int pSpike=0,
-    int out=1, int in=1, int procs=1, int rank=0):
-    cell_groups_(numCells), events_per_step_(eventsPer),
+    int out=1, int in=1, int nc=1, int procs=1, int rank=0):
+    num_cells_(numCells), events_per_step_(eventsPer),
     percent_ite_(pITE), v_(verbose), perform_algebra_(algebra),
-    percent_spike_(pSpike), num_out_(out), num_in_(in),
-    num_procs_(procs), rank_(rank), all_spiked_(0), time_(0)
+    percent_spike_(pSpike), num_out_(out), num_in_(in), netcons_per_input_(nc),
+    num_procs_(procs), rank_(rank), spike_events_(0), time_(0)
     {
         srand(time(NULL));
 
-        thread_datas_.resize(cell_groups_);
+        thread_datas_.resize(num_cells_);
 
         //taken from environment.cpp
         total_received_ = 0;
         total_relevent_ = 0;
 
         //assign input and output gid's
+        std::vector<int> available_inputs;
+        std::vector<int> cellgroups;
         if(num_procs_ > 1){
             for(int i = 0; i < (num_procs_ * num_out_); ++i){
                 if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
                     output_presyns_.push_back(i);
                 }
                 else{
-                    input_presyns_.push_back(i);
+                    available_inputs.push_back(i);
                 }
             }
-            assert(input_presyns_.size() >= num_in_);
-            boost::random_shuffle(input_presyns_);
-            input_presyns_.resize(num_in_);
+            //create a randomly ordered list of input_presyns_
+            assert(available_inputs.size() >= num_in_);
+            boost::random_shuffle(available_inputs);
+            available_inputs.resize(num_in_);
+            //create a vector of randomly ordered cellgroups
+            cellgroups.resize(num_cells_);
+            boost::iota(cellgroups, 0);
+            boost::random_shuffle(cellgroups);
+
+            //for each input presyn,
+            //select N unique netcons to cell groups
+            for(int i = 0; i < num_in_; ++i){
+                int presyn = available_inputs[i];
+                int index = rand()%(num_cells_ - netcons_per_input_);
+                for(int j = 0; j < netcons_per_input_; ++j){
+                    input_presyns_[presyn].push_back(cellgroups[index+j]);
+                    std::cout<<"PRESYN "<<presyn<<" netcon to: "<<input_presyns_[presyn].back()<<std::endl;
+                }
+            }
+
         }
         else{
             for(int i = 0; i < num_out_; ++i){
@@ -135,6 +157,12 @@ public:
         displ_.resize(num_procs_);
     }
 
+    /**
+     * \fn void set_displ()
+     * \brief fills the displacement container based on the sizes
+     *  in nin that were received from allgather.
+     *  displ will be used by the allgatherv function.
+     */
     void set_displ(){
         displ_[0] = 0;
         int total = nin_[0];
@@ -143,15 +171,6 @@ public:
             total += nin_[i];
         }
         spikein_.resize(total);
-    }
-
-    bool matches(const event& item){
-        for(int i = 0; i < input_presyns_.size(); ++i){
-            if(item.data_ == input_presyns_[i]){
-                return true;
-            }
-        }
-        return false;
     }
 
     /** \fn accumulate_stats()
@@ -178,33 +197,13 @@ public:
         if(v_){
             std::cout<<"Total inter-thread received: "<<all_ite_received<<std::endl;
             std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
-            std::cout<<"Total spiked: "<<all_spiked_<<std::endl;
+            std::cout<<"Spikes sent: "<<spike_events_<<std::endl;
             std::cout<<"Total delivered: "<<all_delivered<<std::endl;
         }
         neuromapp_data.put_copy("inter_received", all_ite_received);
         neuromapp_data.put_copy("enqueued", all_enqueued);
-        neuromapp_data.put_copy("spikes", all_spiked_);
+        neuromapp_data.put_copy("spikes", spike_events_);
         neuromapp_data.put_copy("delivered", all_delivered);
-    }
-
-    /** \fn void time_step()
-     *  \brief master function to call generate, enqueue, and deliver
-     */
-    void time_step(){
-        int size = thread_datas_.size();
-        #pragma omp parallel for schedule(static,1)
-        for(int i = 0; i < size; ++i){
-            send_events(i);
-
-            //Have threads enqueue their interThreadEvents
-            thread_datas_[i].enqueue_my_events();
-
-            if(perform_algebra_)
-                thread_datas_[i].l_algebra(time_);
-
-                        /// Deliver events
-            while(thread_datas_[i].deliver(i, time_));
-        }
     }
 
     /** \fn void generate_all_events(int totalTime)
@@ -216,11 +215,12 @@ public:
      */
     void generate_all_events(int totalTime){
         event ev;
-        for(int i = 0; i < cell_groups_; ++i){
+        for(int i = 0; i < num_cells_; ++i){
             for(int j = 0; j < totalTime; ++j){
                 /// Simulated target of a NetCon and the event time
                 for(int k = 0; k < events_per_step_; ++k){
-                    //events can be generated with time range: (current time) to (current time + 10%)
+                    //events can be generated with time range:
+                    //(current time) to (current time + 10% of total)
                     gen_event g = create_event(i,j,totalTime);
                     thread_datas_[i].push_generated_event(
                         g.first.data_, g.first.t_, g.second);
@@ -256,24 +256,29 @@ public:
     }
 
     /** \fn void filter()
-     *  \brief compensates for the spike exchange by adding events every 5 timesteps
+     *  \brief filters out relevent events(using the function matches()),
+     *  and randomly selects a destination cellgroup, and delivers them
+     *  using a no-lock inter_thread_send
      */
     void filter(){
         total_received_ += spikein_.size();
 
         //"Receive" spikes
         event ev;
+        std::map<int, std::vector<int> >::iterator it;
         for(int i = 0; i < spikein_.size(); ++i){
             ev = spikein_[i];
-            if(matches(ev)){
+            it = input_presyns_.find(ev.data_);
+            if(it != input_presyns_.end()){
                 ++total_relevent_;
-                //spikein_[i];
-                int dst = ev.data_;
-                //add non-mutex inter-thread send here
-             //   thread_datas_[dst].self_send(ev.data_, ev.t_);
+                for(size_t j = 0; j < it->second.size(); ++j){
+                    int dest = it->second[j];
+                    //send using non-mutex inter-thread send here
+                    thread_datas_[dest].inter_send_no_lock(dest, ev.t_);
+                    ++spike_events_;
+                }
             }
         }
-        //"Send" spikes
         spikeout_.clear();
         spikein_.clear();
     }
@@ -304,7 +309,6 @@ public:
             int index = rand() % output_presyns_.size();
             dst = output_presyns_[index];
             is_spike = true;
-            all_spiked_++;
         }
         else if(percent < (percent_spike_ + percent_ite_)){
             //send as inter_thread_event_
@@ -316,12 +320,86 @@ public:
         return gen_event(new_event,is_spike);
     }
 
-    int mindelay(){return min_delay_;}
-    int cells(){return cell_groups_;}
-    int received(){return total_received_;}
-    int relevent(){return total_relevent_;}
+    /**
+     * \fn increment_time()
+     * \brief increments the time_ counter
+     */
     void increment_time(){++time_;}
 
+    int mindelay() const {return min_delay_;}
+    int cells() const {return num_cells_;}
+    int received() const {return total_received_;}
+    int relevent() const {return total_relevent_;}
+
+
+
+//PARALLEL FUNCTIONS
+    /** \fn void time_step()
+     *  \brief master function to call parallel
+     *   send, enqueue, algebra, and deliver
+     */
+    void time_step(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            send_events(i);
+
+            //Have threads enqueue their interThreadEvents
+            thread_datas_[i].enqueue_my_events();
+
+            if(perform_algebra_)
+                thread_datas_[i].l_algebra(time_);
+
+            /// Deliver events
+            while(thread_datas_[i].deliver(i, time_));
+        }
+    }
+
+    /** \fn void parallel_send()
+     *  \brief calls parallel send for every cellgroup
+     */
+    void parallel_send(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            send_events(i);
+        }
+    }
+
+    /** \fn void parallel_enqueue()
+     *  \brief calls parallel enqueue for every cellgroup
+     */
+    void parallel_enqueue(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            thread_datas_[i].enqueue_my_events();
+        }
+    }
+
+    /** \fn void parallel_algebra()
+     *  \brief calls parallel algebra for every cellgroup
+     */
+    void parallel_algebra(){
+        if(perform_algebra_){
+            int size = thread_datas_.size();
+            #pragma omp parallel for schedule(static,1)
+            for(int i = 0; i < size; ++i){
+                thread_datas_[i].l_algebra(time_);
+            }
+        }
+    }
+
+    /** \fn void parallel_deliver()
+     *  \brief calls parallel deliver for every cellgroup
+     */
+    void parallel_deliver(){
+        int size = thread_datas_.size();
+        #pragma omp parallel for schedule(static,1)
+        for(int i = 0; i < size; ++i){
+            while(thread_datas_[i].deliver(i, time_));
+        }
+    }
 };
 
 }

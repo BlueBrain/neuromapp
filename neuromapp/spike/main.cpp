@@ -26,11 +26,12 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-
 #include <boost/program_options.hpp>
 #include <stdlib.h>
+
 #include "spike/spike.h"
 #include "utils/error.h"
+#include "neuromapp/utils/mpi/mpi_path.h"
 
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
@@ -46,14 +47,15 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce this help message")
-    ("numprocs", po::value<size_t>()->default_value(4), "the number of MPI processes")
+    ("numprocs", po::value<size_t>()->default_value(8), "the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8), "the number of OMP threads")
     ("run", po::value<std::string>()->default_value("mpirun"), "the command to run parallel jobs")
     ("eventsper", po::value<size_t>()->default_value(10), "average number of events generated per dt")
-    ("numOut", po::value<size_t>()->default_value(4), "number of output presyns (gids) per process")
     ("simtime", po::value<size_t>()->default_value(100), "The number of timesteps in the simulation")
+    ("numOut", po::value<size_t>()->default_value(4), "number of output presyns (gids) per process")
     ("numIn", po::value<size_t>()->default_value(12), "the number of input presyns per process")
-    ("distributed", "If set, use distributed algorithm else use default (global collective)");
+    ("ncper", po::value<size_t>()->default_value(5), "average number of netcons per input presyn")
+    ("nonblocking", "If set, use non-blocking algorithm else use default (blocking collective)");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -63,13 +65,13 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
         return mapp::MAPP_USAGE;
     }
 
-    if(vm["numprocs"].as<size_t>() < 1){
-	std::cout<<"must execute on at least 1 process"<<std::endl;
+    if(vm["numthreads"].as<size_t>() < 1){
+	std::cout<<"must execute on at least 1 thread"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["numthreads"].as<size_t>() < 1){
-	std::cout<<"must execute on at least 1 thread"<<std::endl;
+    if(vm["numprocs"].as<size_t>() < 1){
+	std::cout<<"must execute on at least 1 process"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
 
@@ -86,17 +88,20 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
 }
 
 /** \fn spike_content(po::variables_map const& vm)
-    \brief Execute the Spike Exchange
+    \brief Execute the Spike Exchange by calling mpirun/srun on MPI_Exec binary file
     \param vm encapsulate the command line and all needed informations
  */
 void spike_content(po::variables_map const& vm){
 	std::stringstream command;
+        std::string path = helper_build_path::mpi_bin_path();
 
         command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
             vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
-            " neuromapp/spike/MPI_Exec " << vm["eventsper"].as<size_t>() <<" "<<
-            vm["numOut"].as<size_t>() <<" "<< vm["simtime"].as<size_t>() <<" "<<
-            vm["numIn"].as<size_t>() <<" "<< vm.count("distributed");
+            " " << path << "MPI_Exec " << vm["eventsper"].as<size_t>() << " " <<
+            //" neuromapp/spike/MPI_Exec " << vm["eventsper"].as<size_t>() << " "<<
+            vm["simtime"].as<size_t>()<< " " << vm["numOut"].as<size_t>()<<" "<<
+            vm["numIn"].as<size_t>() <<" "<< vm["ncper"].as<size_t>()
+            << " " << vm.count("nonblocking");
         std::cout<< "Running command " << command.str() <<std::endl;
 	system(command.str().c_str());
 }
