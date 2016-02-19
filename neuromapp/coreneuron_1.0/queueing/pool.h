@@ -93,15 +93,6 @@ public:
      */
     void set_displ();
 
-    bool matches(const event& item){
-        for(int i = 0; i < input_presyns_.size(); ++i){
-            if(item.data_ == input_presyns_[i]){
-                return true;
-            }
-        }
-        return false;
-    }
-
     /** \fn accumulate_stats()
      *  \brief accumulates statistics from the threadData array and stores them using impl::storage
      */
