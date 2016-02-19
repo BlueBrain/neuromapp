@@ -64,7 +64,6 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     ("percent-ite,i", po::value<int>()->default_value(90),
      "the percentage of inter-thread events out of total events")
     ("verbose,v","provides additional outputs during execution")
-    ("spinlock","runs the simulation using spinlocks/linked-list instead of mutexes/vector")
     ("with-algebra,a","simulation performs linear algebra calculations");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -104,25 +103,6 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
     return mapp::MAPP_OK;
 }
 
-/**
- * \fnrun_sim
- * \brief the actual queueing simulation
- */
-template<implementation I>
-void run_sim(pool<I> &pl, po::variables_map const&vm){
-    struct timeval start, end;
-    pl.generate_all_events(vm["time"].as<int>());
-    gettimeofday(&start, NULL);
-    for(int j = 0; j < vm["time"].as<int>(); ++j){
-        pl.time_step();
-        pl.increment_time();
-    }
-    pl.accumulate_stats();
-    gettimeofday(&end, NULL);
-    long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
-    std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
-}
-
 /** \fn queueing_miniapp(po::variables_map const& vm)
  *  \brief Execute the queing miniapp
  *  \param vm encapsulate the command line and all needed informations
@@ -134,13 +114,21 @@ void queueing_miniapp(po::variables_map const& vm){
     bool verbose = vm.count("verbose");
     bool algebra = vm.count("with-algebra");
 
-    if(vm.count("spinlock")){
-        pool<spinlock> pl(cellgroups, eventsper, p_ite, verbose, algebra);
-        run_sim(pl,vm);
-    } else {
-        pool<mutex> pl(cellgroups, eventsper, p_ite, verbose, algebra);
-        run_sim(pl,vm);
+    pool pl(cellgroups, eventsper, p_ite, verbose, algebra);
+
+    struct timeval start, end;
+    pl.generate_all_events(vm["time"].as<int>());
+    gettimeofday(&start, NULL);
+
+    for(int j = 0; j < vm["time"].as<int>(); ++j){
+        pl.time_step();
+        pl.increment_time();
     }
+    pl.accumulate_stats();
+
+    gettimeofday(&end, NULL);
+    long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
+    std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
 }
 
 } //end namespace

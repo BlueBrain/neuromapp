@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     struct timeval start, end;
     assert(numIn <= (numOut * (size - 1)));
     //numcells, eventsper, percent ite, verbose, algebra, percent spike, numout, numin, size, rank
-    queueing::pool<queueing::mutex> env(64, eventsPer, 90, false, true, 4, numOut, numIn, netconsPer, size, rank);
+    queueing::pool env(64, eventsPer, 90, false, true, 4, numOut, numIn, netconsPer, size, rank);
 
     gettimeofday(&start, NULL);
     run_sim(env, simTime, isNonBlocking);
