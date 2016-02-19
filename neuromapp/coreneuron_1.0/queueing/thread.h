@@ -31,6 +31,7 @@
 #include <iostream>
 #include <cassert>
 #include <unistd.h>
+#include <utility>
 
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
 #include "coreneuron_1.0/kernel/helper.h"
@@ -49,6 +50,7 @@
 #endif
 
 namespace queueing {
+typedef std::pair<event,bool> gen_event;
 
 enum implementation {mutex, spinlock};
 
@@ -79,7 +81,7 @@ private:
     queue qe_;
     NrnThread* nt_;
     inter_thread<I> inter_thread_events_;
-    std::vector<event> generated_events_;
+    std::vector<gen_event> generated_events_;
 public:
     int ite_received_;
     int enqueued_;
@@ -101,18 +103,18 @@ public:
         p.d = &chardata[0];
         nt_ = (NrnThread *) storage_get(p.name, make_nrnthread, p.d, free_nrnthread);
         if(nt_ == NULL){
-            std::cout<<"Error: Unable to open data file"<<std::endl;
+            std::cerr<<"Error: Unable to open data file"<<std::endl;
             storage_clear(p.name);
             exit(EXIT_FAILURE);
         }
     }
 
-    /** \fn void self_send(double d, double tt)
+    /** \fn void self_send(int d, double tt)
      *  \brief send an item directly to my priority queue
      *  \param d the Event's data value
      *  \param tt the Event's time value
      **/
-    void self_send(double d, double tt){
+    void self_send(int d, double tt){
         enqueued_++;
         qe_.insert(tt, d);
     }
@@ -147,7 +149,7 @@ public:
         event q;
         if(qe_.atomic_dq(til,q)){
             delivered_++;
-            assert((int)q.data_ == id);
+            assert(q.data_ == id);
 
             // Use imitation of the point_receive of CoreNeron.
             // Varies per a specific simulation case.
@@ -168,30 +170,41 @@ public:
      */
     size_t pq_size(){return qe_.size();}
 
-    /** \fn push_generated_event(double d, double tt, bool s)
+    /** \fn push_generated_event(int d, double tt, bool s)
      *  \brief pushes an event into generated event vector
      */
-    void push_generated_event(double d, double tt, bool s){
-        event e(d, tt, s);
-        generated_events_.push_back(e);
+    void push_generated_event(int d, double tt, bool s){
+        event e;
+        e.data_ = d;
+        e.t_ = tt;
+        gen_event g(e, s);
+        generated_events_.push_back(g);
     }
 
     /** \fn pop_generated_event()
      *  \brief pops a generated event
      *  \returns the next event in generated event vector
      */
-    event pop_generated_event(){
-        event e = generated_events_.back();
+    gen_event pop_generated_event(){
+        assert(generated_events_.size() > 0);
+        gen_event e = generated_events_.back();
         generated_events_.pop_back();
         return e;
     }
 
-    /** \fn void inter_thread_send(double d, double tt)
+    /** \fn void inter_thread_send(int d, double tt)
      *  \brief sends an Event to the destination thread's array
      *  \param d the event's data value
      *  \param tt the event's time value
      */
-    void inter_thread_send(double d, double tt) {}
+    void inter_thread_send(int d, double tt) {}
+
+    /** \fn void inter_send_no_lock(int d, double tt)
+     *  \brief send an item to inter_thread_events_ (serially)
+     *  \param d the Event's data value
+     *  \param tt the Event's time value
+     **/
+    void inter_send_no_lock(int d, double tt){}
 
     /** \fn void enqeue_my_events()
      *  \brief (for this thread) push all the events from my
@@ -201,18 +214,28 @@ public:
 };
 
 template<>
-inline void nrn_thread_data<mutex>::inter_thread_send(double d, double tt){
+inline void nrn_thread_data<mutex>::inter_thread_send(int d, double tt){
     inter_thread_events_.lock_.acquire();
-    event ite(d,tt);
+    event ite;
+    ite.data_ = d;
+    ite.t_ = tt;
     ite_received_++;
     inter_thread_events_.q_.push_back(ite);
     inter_thread_events_.lock_.release();
 }
 
 template<>
+inline void nrn_thread_data<mutex>::inter_send_no_lock(int d, double tt){
+    event ite;
+    ite.data_ = d;
+    ite.t_ = tt;
+    inter_thread_events_.q_.push_back(ite);
+}
+
+template<>
 inline void nrn_thread_data<mutex>::enqueue_my_events(){
     inter_thread_events_.lock_.acquire();
-    event ite = event();
+    event ite;
     for(int i = 0; i < inter_thread_events_.q_.size(); ++i){
         ite = inter_thread_events_.q_[i];
         self_send(ite.data_, ite.t_);
@@ -222,16 +245,27 @@ inline void nrn_thread_data<mutex>::enqueue_my_events(){
 }
 
 template<>
-inline void nrn_thread_data<spinlock>::inter_thread_send(double d, double tt){
-    event ite(d,tt,true);
+inline void nrn_thread_data<spinlock>::inter_thread_send(int d, double tt){
+    event ite;
+    ite.data_ = d;
+    ite.t_ = tt;
     inter_thread_events_.q_.push(ite, ite_received_);
+}
+
+template<>
+inline void nrn_thread_data<spinlock>::inter_send_no_lock(int d, double tt){
+    event ite;
+    ite.data_ = d;
+    ite.t_ = tt;
+    int dummy = 0;
+    inter_thread_events_.q_.push(ite, dummy);
 }
 
 template<>
 inline void nrn_thread_data<spinlock>::enqueue_my_events(){
     spinlock_queue<event>::node* head = inter_thread_events_.q_.pop_all();
     spinlock_queue<event>::node* elem = NULL;
-    event ite = event();
+    event ite;
     while(head){
         elem = head;
         ite = elem->data;

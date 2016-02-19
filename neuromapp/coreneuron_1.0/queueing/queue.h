@@ -41,11 +41,8 @@ struct event {
      *  \param d event data
      *  \param t event time
      */
-    explicit event(double d=double(), double t=double(), bool s=false):
-            data_(d), t_(t), is_spike_(s){};
-    double data_;
+    int data_;
     double t_;
-    bool is_spike_;
 };
 
 class queue {
@@ -69,12 +66,12 @@ public:
      */
     bool atomic_dq(double til, event& q);
 
-    /** \fn void insert(double t, double data)
+    /** \fn void insert(double t, int data)
      *  \brief inserts an event with time t and data value
      *  \param t the event time.
      *  \param data the event data.
      */
-    void insert(double t, double data);
+    void insert(double t, int data);
 
 private:
     std::priority_queue<event, std::vector<event>, is_more> pq_que;
