@@ -29,9 +29,9 @@
 #include <cassert>
 #include <sys/time.h>
 
-#include "utils/storage/neuromapp_data.h"
 #include "spike/algos.hpp"
 #include "spike/environment.h"
+#include "utils/storage/neuromapp_data.h"
 #include "utils/mpi/controler.h"
 #include "coreneuron_1.0/queueing/pool.h"
 

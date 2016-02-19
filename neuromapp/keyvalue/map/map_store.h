@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 
+#include "utils/omp/lock.h"
 #include "keyvalue/lock.h"
 #include "keyvalue/meta.h"
 
@@ -16,7 +17,7 @@ class keyvalue_map{
 
 private:
     bool                                                _async;
-    int						        _rank;
+    int						                            _rank;
     std::multimap<std::string, std::vector<double> *>	_map;
     std::multimap<std::string, std::size_t>             _valSizes;
 
