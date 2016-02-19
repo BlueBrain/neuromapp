@@ -51,7 +51,12 @@ namespace mapp{
 
     public:
 
-        ~controler(){
+//       PB it depends of the MPI implementation
+//        ~controler(){
+//            MPI::Finalize();
+//        }
+
+        void finalize() const{
             MPI::Finalize();
         }
 

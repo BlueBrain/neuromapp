@@ -44,14 +44,15 @@ int main(int argc, char* argv[]) {
         //print the results
         std::cout << s << std::endl;
 
-        std::pair<keyvalue::statistic,keyvalue::statistic> p = run_task(b);
-        // compute the statistic
-        p.first.process();
-        p.second.process();
-        //print the results
-        std::cout << p.first << std::endl;
-        std::cout << p.second << std::endl;
+//        std::pair<keyvalue::statistic,keyvalue::statistic> p = run_task(b);
+//        // compute the statistic
+//        p.first.process();
+//        p.second.process();
+//        //print the results
+//        std::cout << p.first << std::endl;
+//        std::cout << p.second << std::endl;
     }
 
+    mapp::master.finalize();
     return 0;
 }
