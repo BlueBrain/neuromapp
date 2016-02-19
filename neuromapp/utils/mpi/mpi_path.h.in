@@ -8,7 +8,7 @@ mpirun/srun of the executable
 */
 struct helper_build_path{
  const std::string static mpi_bin_path(){
-     return "@PROJECT_BINARY_DIR@/install/bin/";
+     return "@CMAKE_INSTALL_PREFIX@/bin/";
  }
 };
 #endif

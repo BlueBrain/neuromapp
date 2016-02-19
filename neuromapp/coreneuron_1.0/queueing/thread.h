@@ -34,7 +34,7 @@
 #include "utils/storage/storage.h"
 
 #include "coreneuron_1.0/queueing/queue.h"
-#include "coreneuron_1.0/queueing/lock.h"
+#include "utils/omp/lock.h"
 #include "coreneuron_1.0/common/data/helper.h"
 
 #ifdef _OPENMP
