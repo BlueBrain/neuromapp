@@ -27,9 +27,8 @@
 
 #define BOOST_TEST_MODULE TIMER_TEST
 
-#include <unistd.h>
-
 #include <boost/test/unit_test.hpp>
+#include "utils/mpi/controler.h"
 #include "utils/mpi/timer.h"
 
 

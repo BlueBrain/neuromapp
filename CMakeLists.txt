@@ -21,8 +21,14 @@ include(BlueGenePortability)
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
 find_package(Boost 1.44 REQUIRED program_options unit_test_framework system filesystem atomic random)
 find_package(SLURM)
-# boost include
-include_directories(${Boost_INCLUDE_DIRS})
+find_package(MPI)
+
+## MPI link flags need to be overwritten on BG/Q 
+include(BlueGenePortability)
+
+
+# include all directories
+include_directories(${Boost_INCLUDE_DIRS} ${MPI_C_INCLUDE_PATH} )
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g ")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g ")
