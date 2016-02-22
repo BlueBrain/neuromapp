@@ -42,6 +42,9 @@ struct MPIInitializer {
     }
 };
 
+//performs mpi initialization/finalize
+BOOST_GLOBAL_FIXTURE(MPIInitializer);
+
 BOOST_AUTO_TEST_CASE(timer_test){
     mapp::timer t;
     t.tic();
