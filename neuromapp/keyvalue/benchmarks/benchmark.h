@@ -35,7 +35,10 @@
 #include "keyvalue/utils/statistic.h"
 #include "keyvalue/utils/trait.h"
 #include "keyvalue/benchmarks/loop.h"
+
+#if _OPENMP >= 201307
 #include "keyvalue/benchmarks/task.h"
+#endif
 
 #include "utils/mpi/timer.h"
 
