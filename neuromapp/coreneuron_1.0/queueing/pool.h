@@ -38,9 +38,9 @@ namespace queueing {
 class pool {
 private:
 #ifdef _OPENMP
-    omp_lock spike_lock_;
+    mapp::omp_lock spike_lock_;
 #else
-    dummy_lock spike_lock_;
+    mapp::dummy_lock spike_lock_;
 #endif
 
     int num_cells_;

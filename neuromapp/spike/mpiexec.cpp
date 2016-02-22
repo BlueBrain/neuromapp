@@ -70,5 +70,6 @@ int main(int argc, char* argv[]) {
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
         std::cout<<"Process zero received: "<<env.received()<<" spikes"<<std::endl;
         std::cout<<"Process zero received: "<<env.relevent()<<" RELEVENT spikes"<<std::endl;
+    mapp::master.finalize();
     return 0;
 }

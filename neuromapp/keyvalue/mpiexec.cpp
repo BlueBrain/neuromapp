@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 #include "keyvalue/utils/trait.h"
-#include "keyvalue/benchmark.h"
+#include "keyvalue/benchmarks/benchmark.h"
 #include "keyvalue/utils/statistic.h"
 #include "keyvalue/utils/trait.h"
 
@@ -38,19 +38,19 @@ int main(int argc, char* argv[]) {
     if(a.backend() == "map"){
         benchmark<keyvalue::map> b(a);
         //bench
-        keyvalue::statistic s = run_loop(b);
+        keyvalue::statistic s = loop(b);
         //compute statistics
         s.process();
         //print the results
         std::cout << s << std::endl;
 
-//        std::pair<keyvalue::statistic,keyvalue::statistic> p = run_task(b);
-//        // compute the statistic
-//        p.first.process();
-//        p.second.process();
-//        //print the results
-//        std::cout << p.first << std::endl;
-//        std::cout << p.second << std::endl;
+        std::pair<keyvalue::statistic,keyvalue::statistic> p = task(b);
+        // compute the statistic
+        p.first.process();
+        p.second.process();
+        //print the results
+        std::cout << p.first << std::endl;
+        std::cout << p.second << std::endl;
     }
 
     mapp::master.finalize();

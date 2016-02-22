@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "utils/omp/lock.h"
-#include "keyvalue/lock.h"
+//#include "keyvalue/lock.h"
 #include "keyvalue/meta.h"
 
 class keyvalue_map{
@@ -25,11 +25,12 @@ private:
     // https://en.wikipedia.org/wiki/Readers%E2%80%93writers_problem#The_third_readers-writers_problem
     int                                             _numReaders;
     int                                             _numWriters;
-    MyLock					  * _nRdLock;
-    MyLock					  * _nWtLock;
-    MyLock					  * _readersLock;
-    MyLock					  * _writersLock;
 
+#ifdef _OPENMP
+    mapp::omp_lock _nRdLock,_nWtLock,_readersLock,_writersLock;
+#else
+    mapp::dummy_lock _nRdLock,_nWtLock,_readersLock,_writersLock;
+#endif
 
 public:
     explicit keyvalue_map (bool threadSafe = false, std::string pdsName = "");
