@@ -11,7 +11,8 @@ target_link_libraries (app
                        coreneuron10_solver
                        coreneuron10_cstep
                        storage
-                       ${READLINE_LIBRARIES}
+                       ${Readline_LIBRARIES}
+                       ${Curses_LIBRARIES}                       
                        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
                        ${Boost_SYSTEM_LIBRARIES}
                        ${Boost_ATOMIC_LIBRARIES})

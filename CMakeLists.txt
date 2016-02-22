@@ -43,21 +43,9 @@ if(NEUROMAPP_CURSOR)
     MESSAGE(STATUS "Using Cursors")
     add_definitions(-DNEUROMAPP_CURSOR)
 
-    if(NOT READLINE_FOUND)
-	find_path(READLINE_INCLUDE_DIR readline/readline.h
-	    HINTS ${READLINE_ROOT_DIR} PATH_SUFFIXES include)
-	find_library(READLINE_LIBRARY readline
-	    HINTS ${READLINE_ROOT_DIR} PATH_SUFFIXES lib)
-	find_library(NCURSES_LIBRARY ncurses)   # readline depends on libncurses
-	mark_as_advanced(READLINE_INCLUDE_DIR READLINE_LIBRARY NCURSES_LIBRARY)
-
-	include(FindPackageHandleStandardArgs)
-	find_package_handle_standard_args(Readline DEFAULT_MSG
-	READLINE_LIBRARY NCURSES_LIBRARY READLINE_INCLUDE_DIR)
-
-	set(READLINE_INCLUDE_DIRS ${READLINE_INCLUDE_DIR})
-	set(READLINE_LIBRARIES ${READLINE_LIBRARY} ${NCURSES_LIBRARY})
-    endif(NOT READLINE_FOUND)
+	set(CURSES_NEED_NCURSES TRUE)
+	find_package(Curses REQUIRED)
+	find_package(Readline REQUIRED)
 
 endif(NEUROMAPP_CURSOR)
 

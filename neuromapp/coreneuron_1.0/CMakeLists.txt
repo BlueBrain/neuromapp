@@ -40,10 +40,11 @@ add_library (coreneuron10_queueing STATIC
 target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common)
 
 
-target_link_libraries(coreneuron10_queueing storage 
-                            coreneuron10_cstep 
-                            coreneuron10_solver 
-                            ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+target_link_libraries(coreneuron10_queueing 
+                                storage 
+                                coreneuron10_cstep 
+                                coreneuron10_solver 
+                                ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 
 install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep
                  coreneuron10_common coreneuron10_queueing DESTINATION lib)
