@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include "keyvalue/keyvalue.h"
 #include "utils/error.h"
-#include "neuromapp/utils/mpi/mpi_path.h"
+#include "neuromapp/utils/mpi/mpi_helper.h"
 
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
@@ -139,10 +139,10 @@ void keyvalue_content(po::variables_map const& vm){
     	cg = nt;
     }
 
-    command << "OMP_NUM_THREADS=" << nt << " mpirun -n " << np
+    command << "OMP_NUM_THREADS=" << nt << " "  << launcher_helper::mpi_launcher() << " -n " << np
             << " " << path << "MPI_Exec_kv  -b " << backend
-    		<< " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
-    		<< " -md " << md << " -dt " << dt << " -cg " << cg;
+            << " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
+            << " -md " << md << " -dt " << dt << " -cg " << cg;
 
 	std::cout << "Running command " << command.str() << std::endl;
 	system(command.str().c_str());
