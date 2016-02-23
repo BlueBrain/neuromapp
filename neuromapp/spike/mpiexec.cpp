@@ -45,21 +45,25 @@
  * and performs run_simulation() function on it.
  */
 int main(int argc, char* argv[]) {
-    assert(argc == 7);
+    assert(argc == 10);
     int size = mapp::master.size();
     int rank = mapp::master.rank();
 
-    int eventsPer = atoi(argv[1]);
-    int simTime = atoi(argv[2]);
-    int numOut = atoi(argv[3]);
-    int numIn = atoi(argv[4]);
-    int netconsPer = atoi(argv[5]);
-    int isNonBlocking = atoi(argv[6]);
+    int cellgroups = atoi(argv[1]);
+    int eventsPer = atoi(argv[2]);
+    int pite = atoi(argv[3]);
+    int simTime = atoi(argv[4]);
+    int pspike = atoi(argv[5]);
+    int numOut = atoi(argv[6]);
+    int numIn = atoi(argv[7]);
+    int netconsPer = atoi(argv[8]);
+    int isNonBlocking = atoi(argv[9]);
 
     struct timeval start, end;
     assert(numIn <= (numOut * (size - 1)));
     //numcells, eventsper, percent ite, verbose, algebra, percent spike, numout, numin, size, rank
-    queueing::pool env(64, eventsPer, 90, false, true, 4, numOut, numIn, netconsPer, size, rank);
+    queueing::pool env(cellgroups, eventsPer, pite, true, true,
+    pspike, numOut, numIn, netconsPer, size, rank);
 
     gettimeofday(&start, NULL);
     run_sim(env, simTime, isNonBlocking);
