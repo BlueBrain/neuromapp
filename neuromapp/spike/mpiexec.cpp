@@ -29,9 +29,9 @@
 #include <cassert>
 #include <sys/time.h>
 
-#include "utils/storage/neuromapp_data.h"
 #include "spike/algos.hpp"
 #include "spike/environment.h"
+#include "utils/storage/neuromapp_data.h"
 #include "utils/mpi/controler.h"
 #include "coreneuron_1.0/queueing/pool.h"
 
@@ -70,5 +70,6 @@ int main(int argc, char* argv[]) {
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
         std::cout<<"Process zero received: "<<env.received()<<" spikes"<<std::endl;
         std::cout<<"Process zero received: "<<env.relevent()<<" RELEVENT spikes"<<std::endl;
+    mapp::master.finalize();
     return 0;
 }

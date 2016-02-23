@@ -1,0 +1,29 @@
+#ifndef NEUROMAPP_PATH
+#define NEUROMAPP_PATH
+
+/** this file is generated automatically */
+
+/** Helper to obtain the path in the build directory
+
+The path of executable files are required in order to perform
+mpirun/srun of the executable
+*/
+struct helper_build_path{
+     const std::string static mpi_bin_path(){
+         return "@CMAKE_INSTALL_PREFIX@/bin/";
+     }
+};
+
+/** Helper to obtain slurm or mpirun */
+struct launcher_helper{
+     const std::string static mpi_launcher(){
+        std::string command ;
+         if(@SLURM_FOUND@)
+             command = "@SLURM_SRUN_COMMAND@";
+         else
+             command = "@MPIEXEC@";
+         return command;
+     }
+};
+
+#endif

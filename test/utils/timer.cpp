@@ -27,11 +27,23 @@
 
 #define BOOST_TEST_MODULE TIMER_TEST
 
+#include <unistd.h>
+
 #include <boost/test/unit_test.hpp>
-#include "utils/mpi/controler.h"
 #include "utils/mpi/timer.h"
 
-#include <unistd.h>
+
+struct MPIInitializer {
+    MPIInitializer(){
+        MPI::Init();
+    }
+    ~MPIInitializer(){
+        MPI::Finalize();
+    }
+};
+
+//performs mpi initialization/finalize
+BOOST_GLOBAL_FIXTURE(MPIInitializer);
 
 BOOST_AUTO_TEST_CASE(timer_test){
     mapp::timer t;

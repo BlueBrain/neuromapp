@@ -35,7 +35,7 @@
 #include "utils/mpi/print.h"
 
 namespace mapp{
-    
+
     /** brief this singleton to wrap the mpi infos call once and destroy one using a reference */
     class controler{
     private:
@@ -51,7 +51,12 @@ namespace mapp{
 
     public:
 
-        ~controler(){
+//       PB it depends of the MPI implementation
+//        ~controler(){
+//            MPI::Finalize();
+//        }
+
+        void finalize() const{
             MPI::Finalize();
         }
 
@@ -75,6 +80,6 @@ namespace mapp{
 
     /** singleton call once at the beginning and destroy at the end automatic nothing to do */
     static controler const& master = controler::getInstance();
-    
+
 } // end namespace
 #endif
