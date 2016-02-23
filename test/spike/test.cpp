@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_max_input_presyns, T, full_test_types){
 }
 
 //non-blocking is not supported on BGQ
-#ifndef _ARCH_QP
+#if MPI_VERSION >= 3
 /**
  * for queueing::pool and spike::environment
  * test that run sim function results in the expected end state

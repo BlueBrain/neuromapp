@@ -47,9 +47,9 @@ typedef std::pair<event,bool> gen_event;
 class nrn_thread_data{
 private:
 #ifdef _OPENMP
-    omp_lock lock_;
+    mapp::omp_lock lock_;
 #else
-    dummy_lock lock_;
+    mapp::dummy_lock lock_;
 #endif
 
     queue qe_;
