@@ -98,7 +98,7 @@ template<typename data>
 MPI_Request Iallgather(data& d){
 	std::cerr<<"Error: MPI_VERSION < 3. Non-blocking allgather not supported"<<std::endl;
 	exit(EXIT_FAILURE);
-	return -1;
+	return MPI_REQUEST_NULL;
 }
 
 /**
@@ -113,7 +113,7 @@ template<typename data>
 MPI_Request Iallgatherv(data& d, MPI_Datatype spike){
 	std::cerr<<"Error: MPI_VERSION < 3. Non-blocking allgatherv not supported"<<std::endl;
 	exit(EXIT_FAILURE);
-	return -1;
+	return MPI_REQUEST_NULL;
 }
 #else
 //NON-BLOCKING
