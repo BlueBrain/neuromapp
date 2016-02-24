@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/queueing/lock.h
+ * @file neuromapp/utils/omp/lock.h
  * \brief Contains omp_lock and dummy_lock class declaration.
  */
 
@@ -29,7 +29,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 
-namespace queueing {
+namespace mapp {
 
 class omp_lock{
 private:
@@ -60,7 +60,7 @@ public:
 }
 #endif
 
-namespace queueing {
+namespace mapp {
 
 class dummy_lock{
 public:

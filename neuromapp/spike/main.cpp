@@ -31,7 +31,7 @@
 
 #include "spike/spike.h"
 #include "utils/error.h"
-#include "neuromapp/utils/mpi/mpi_path.h"
+#include "neuromapp/utils/mpi/mpi_helper.h"
 
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
@@ -49,7 +49,7 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     ("help", "produce this help message")
     ("numprocs", po::value<size_t>()->default_value(8), "the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8), "the number of OMP threads")
-    ("run", po::value<std::string>()->default_value("mpirun"), "the command to run parallel jobs")
+    ("run", po::value<std::string>()->default_value(launcher_helper::mpi_launcher()), "the command to run parallel jobs")
     ("eventsper", po::value<size_t>()->default_value(10), "average number of events generated per dt")
     ("simtime", po::value<size_t>()->default_value(100), "The number of timesteps in the simulation")
     ("numOut", po::value<size_t>()->default_value(4), "number of output presyns (gids) per process")
@@ -93,16 +93,16 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
  */
 void spike_content(po::variables_map const& vm){
 	std::stringstream command;
-        std::string path = helper_build_path::mpi_bin_path();
+    std::string path = helper_build_path::mpi_bin_path();
 
-        command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
-            vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
-            " " << path << "MPI_Exec " << vm["eventsper"].as<size_t>() << " " <<
-            //" neuromapp/spike/MPI_Exec " << vm["eventsper"].as<size_t>() << " "<<
-            vm["simtime"].as<size_t>()<< " " << vm["numOut"].as<size_t>()<<" "<<
-            vm["numIn"].as<size_t>() <<" "<< vm["ncper"].as<size_t>()
-            << " " << vm.count("nonblocking");
-        std::cout<< "Running command " << command.str() <<std::endl;
+    command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
+        vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
+        " " << path << "MPI_Exec " << vm["eventsper"].as<size_t>() << " " <<
+        vm["simtime"].as<size_t>()<< " " << vm["numOut"].as<size_t>()<<" "<<
+        vm["numIn"].as<size_t>() <<" "<< vm["ncper"].as<size_t>()
+        << " " << vm.count("nonblocking");
+
+    std::cout<< "Running command " << command.str() <<std::endl;
 	system(command.str().c_str());
 }
 

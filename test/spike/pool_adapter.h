@@ -22,11 +22,11 @@ namespace queueing{
  * These arguments were chosen for fast testing,
  * and test cases with deterministic results
  */
-class pool_adapter : public pool<mutex> {
+class pool_adapter : public pool {
 public:
     pool_adapter(int eventsPer, int numOut, int numIn,
                  int netcons, int size, int rank):
-        pool<mutex>(64, eventsPer, 0, false, false, 100, numOut,
+        pool(64, eventsPer, 0, false, false, 100, numOut,
                     numIn, netcons, size, rank){};
 };
 

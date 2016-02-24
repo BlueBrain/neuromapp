@@ -29,9 +29,9 @@
 #include <cassert>
 #include <sys/time.h>
 
-#include "utils/storage/neuromapp_data.h"
 #include "spike/algos.hpp"
 #include "spike/environment.h"
+#include "utils/storage/neuromapp_data.h"
 #include "utils/mpi/controler.h"
 #include "coreneuron_1.0/queueing/pool.h"
 
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     struct timeval start, end;
     assert(numIn <= (numOut * (size - 1)));
     //numcells, eventsper, percent ite, verbose, algebra, percent spike, numout, numin, size, rank
-    queueing::pool<queueing::mutex> env(64, eventsPer, 90, false, true, 4, numOut, numIn, netconsPer, size, rank);
+    queueing::pool env(64, eventsPer, 90, false, true, 4, numOut, numIn, netconsPer, size, rank);
 
     gettimeofday(&start, NULL);
     run_sim(env, simTime, isNonBlocking);
@@ -70,5 +70,6 @@ int main(int argc, char* argv[]) {
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
         std::cout<<"Process zero received: "<<env.received()<<" spikes"<<std::endl;
         std::cout<<"Process zero received: "<<env.relevent()<<" RELEVENT spikes"<<std::endl;
+    mapp::master.finalize();
     return 0;
 }

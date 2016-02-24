@@ -31,9 +31,19 @@
 #include <boost/algorithm/cxx11/iota.hpp> // for fun
 #include "keyvalue/utils/tools.h" // it starts the MPI, see the associated pattern
 #include "keyvalue/utils/argument.h"
-
 #include "keyvalue/utils/statistic.h"
-#include "utils/mpi/controler.h"
+
+struct MPIInitializer {
+    MPIInitializer(){
+        MPI::Init();
+    }
+    ~MPIInitializer(){
+        MPI::Finalize();
+    }
+};
+
+//performs mpi initialization/finalize
+BOOST_GLOBAL_FIXTURE(MPIInitializer);
 
 BOOST_AUTO_TEST_CASE(statistic_constructors_test){
     keyvalue::statistic s;
@@ -42,12 +52,12 @@ BOOST_AUTO_TEST_CASE(statistic_constructors_test){
 }
 
 BOOST_AUTO_TEST_CASE(accumulate_mpi_test){
-    int numprocs = mapp::master.size();
+    int numprocs = MPI::COMM_WORLD.Get_size();
     int size(100);
     std::vector<double> v(size+1,0.);
     boost::algorithm::iota(v.begin(),v.end(),0); //0,1,2 ...
     double tmp = keyvalue::accumulate(v.begin(), v.end(), 0.); // MPI is inside, reduction on 0, only
-    if(mapp::master.rank() == 0)
+    if( MPI::COMM_WORLD.Get_rank() == 0)
         BOOST_CHECK_EQUAL(tmp, size*(size+1)/2*numprocs);
 }
 

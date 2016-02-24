@@ -36,11 +36,6 @@
 namespace queueing {
 
 struct event {
-    /** \fn Event(double,double)
-     *  \brief Initializes an event with data d and time t
-     *  \param d event data
-     *  \param t event time
-     */
     int data_;
     double t_;
 };
@@ -48,6 +43,10 @@ struct event {
 class queue {
 public:
     struct is_more{
+        /** \fn operator()
+         *  \brief compares the time of two events
+         *  \return true if x(time) < y(time), else false
+         */
         bool operator() (const event &x, const event &y) const {
                 return x.t_ > y.t_;
         }

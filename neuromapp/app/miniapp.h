@@ -28,6 +28,7 @@
 
 #include "hello/hello.h"
 #include "spike/spike.h"
+#include "keyvalue/keyvalue.h"
 #include "coreneuron_1.0/queueing/queueing.h"
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/solver/solver.h"

@@ -27,12 +27,7 @@
 #define MAPP_TOOLS_H
 
 #include <mpi.h>
-#include <vector>
 #include <numeric>
-#include <functional>
-#include <iostream>
-
-#include "utils/mpi/controler.h"
 
 namespace keyvalue {
 

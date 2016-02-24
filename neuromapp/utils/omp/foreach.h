@@ -1,5 +1,5 @@
 /*
- * Miniapp - queueing_test_header.hpp, Copyright (c), 2016,
+ * Neuromapp - foreach.h, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -14,24 +14,34 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
  */
 
-#ifndef MAPP_QUEUEING_TEST_HEADER_HPP
-#define MAPP_QUEUEING_TEST_HEADER_HPP
+/**
+ * @file neuromapp/utils/omp/foreach.h
+ * \brief Contains paralle foreach implementation.
+ */
 
-#include <boost/mpl/list.hpp>
-#include "coreneuron_1.0/queueing/thread.h"
+#ifndef MAPP_FOREACH_H_
+#define MAPP_FOREACH_H_
 
-template<queueing::implementation I>
-struct data{
-	static const queueing::implementation impl = I;
-};
+#ifdef _OPENMP
+#include <omp.h>
 
-typedef boost::mpl::list<
-						data<queueing::mutex>,
-						data<queueing::spinlock>
-						> full_test_types;
+namespace queueing {
+
+template<class InputUt, class UnaryFunction>
+UnaryFunction for_each(InputIt First, InputIt last, UnaryFunction f){
+    for(; first != last; ++ first) {
+        f(*first);
+    }
+    return f;
+
+}
+
+
+}
+#endif
 
 #endif

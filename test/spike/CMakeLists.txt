@@ -1,8 +1,9 @@
 add_executable(spiketest test.cpp)
 target_link_libraries(spiketest
-                      ${MPI_CXX_LIBRARIES}
                       spike_exchange
                       spike
                       coreneuron10_queueing
-                      ${Boost_LIBRARIES})
+                      ${Boost_LIBRARIES}
+		      ${MPI_CXX_LIBRARIES}
+		      ${MPI_C_LIBRARIES})
 add_mpi_test(spiketest)
