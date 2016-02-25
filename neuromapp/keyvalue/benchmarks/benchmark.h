@@ -47,10 +47,10 @@ class benchmark{
 public:
     typedef typename keyvalue::trait_meta<S>::meta_type meta_type; // extract the good meta
     /** \fun benchmark(std::size_t choice, std::size_t qmb = 4096)
-        \brief compute the total number of compartment (2.5 = 2.5 MB per neuron, 350 compartiment per neuron)
+        \brief compute the total number of compartments (2.5 = 2.5 MB per neuron, 350 compartments per neuron)
         4096 MB, 25% of the memory of a compute node of the BG/Q
      */
-    benchmark(keyvalue::argument const& args = keyvalue::argument()):a(args){
+    benchmark(keyvalue::argument & args = keyvalue::argument()):a(args){
         s = args.voltages_size();
         int cg_size = s / args.cg();
         int first_size = cg_size + (s % args.cg());
@@ -74,13 +74,34 @@ public:
         return a;
     }
 
+    /** \fun get_args() const
+        \brief return the argument */
+    keyvalue::argument & get_args() {
+        return a;
+    }
+
 private:
     /** memory for the bench */
     keyvalue::group<meta_type> g;
     /** reference on the arguments structure */
-    keyvalue::argument const & a;
-    /** correspond to the total number of compartement */
+    keyvalue::argument & a;
+    /** corresponds to the total number of compartments */
     std::size_t s;
 };
+
+template<keyvalue::selector S>
+keyvalue::statistic run_benchmark(benchmark<S> & b){
+    if (b.get_args().taskdeps()) {
+#if _OPENMP >= 201307
+        return task<S>(b);
+#else
+        std::cout << "Error: calling OpenMP task implementation, "
+                << "but task dependencies not supported by this OpenMP version." << std::endl
+                << "Running the OpenMP loop implementation instead." << std::endl;
+        b.get_args().taskdeps() = false;
+#endif
+    }
+    return loop<S>(b);
+}
 
 #endif

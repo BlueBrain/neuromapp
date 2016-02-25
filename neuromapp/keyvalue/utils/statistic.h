@@ -40,14 +40,24 @@ class statistic{
     typedef double value_type; // maybe a day the class will be templated
     public:
         explicit statistic(keyvalue::argument const& arg = keyvalue::argument(),
-                           std::vector<value_type> vtime = std::vector<value_type>()):
-                           a(arg),v(vtime),g_mbw(0.),g_iops(0.){}
+                unsigned int num_ops = 0, double size = 0.0,
+                std::vector<value_type> vtime = std::vector<value_type>()):
+                a(arg), it_ops(num_ops), op_size(size), v(vtime), g_mbw(0.), g_iops(0.)
+        {
+            if (it_ops == 0) it_ops = (a.st() / a.dt()) * a.cg();
+            // Should use sizeof(keyvalue::nrnthread::value_type) better...
+            if (op_size == 0.0) op_size = a.voltages_size() * sizeof(double);
+            // Store op_size in MB
+            op_size = op_size / (1024. * 1024.);
+        }
     inline double mbw() const {return g_mbw;}
     inline double iops() const {return g_iops;}
     void process();
     void print(std::ostream& os) const;
 private:
     keyvalue::argument const & a;
+    unsigned int it_ops;
+    double op_size;
     std::vector<value_type> v;
     double g_mbw, g_iops;
 };
@@ -59,4 +69,5 @@ inline std::ostream &operator<<(std::ostream &out, statistic&  a){
 }
 
 } //end namespace
+
 #endif
