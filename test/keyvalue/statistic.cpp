@@ -35,7 +35,8 @@
 
 struct MPIInitializer {
     MPIInitializer(){
-        MPI::Init();
+        // Already done in mpi controler, included by argument.h
+        //MPI::Init();
     }
     ~MPIInitializer(){
         MPI::Finalize();

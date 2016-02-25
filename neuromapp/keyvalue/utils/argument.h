@@ -34,6 +34,9 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
+#include <omp.h>
+
+#include "utils/mpi/controler.h"
 
 namespace keyvalue {
 
@@ -69,7 +72,14 @@ public:
             argument_helper(v,"-a",async(),to_true());
             argument_helper(v,"-f",flash(),to_true());
         }
-
+        // Get the number of processes from the MPI controller
+        procs_ = mapp::master.size();
+        // Get the number of threads from OpenMP
+        #pragma omp parallel
+        {
+            threads_ = omp_get_num_threads();
+        }
+        // Adjust voltages_size_ according to the use case
         voltages_size_ = usecase_*4096/2.5*350;
     }
 
@@ -283,6 +293,7 @@ public:
             << " procs: " << procs() << " \n"
             << " threads_: " << threads() << " \n"
             << " backend_: " << backend() << " \n"
+            << " async_: " << async() << " \n"
             << " flash_: " << flash() << " \n"
             << " usecase_: " << usecase() << " \n"
             << " st_: " << st() << " \n"
