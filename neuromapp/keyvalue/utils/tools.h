@@ -60,6 +60,7 @@ namespace keyvalue {
     inline T accumulate(InputIt first, InputIt last, T init){
         reduce<InputIt, T>(first, last);
         T tmp  = std::accumulate(first, last, init);
+        return tmp;
     }
 
 } //end namespace keyvalue
