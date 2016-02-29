@@ -50,16 +50,20 @@ class statistic{
             // Store op_size in MB
             op_size = op_size / (1024. * 1024.);
         }
-    inline double mbw() const {return g_mbw;}
-    inline double iops() const {return g_iops;}
-    void process();
-    void print(std::ostream& os) const;
-private:
-    keyvalue::argument const & a;
-    unsigned int it_ops;
-    double op_size;
-    std::vector<value_type> v;
-    double g_mbw, g_iops;
+        inline keyvalue::argument const & args() const {return a;}
+        inline double ops() const {return it_ops;}
+        inline double size() const {return op_size;}
+        inline double mbw() const {return g_mbw;}
+        inline double iops() const {return g_iops;}
+        void process();
+        void print(std::ostream& os) const;
+
+    private:
+        keyvalue::argument const & a;
+        unsigned int it_ops;
+        double op_size;
+        std::vector<value_type> v;
+        double g_mbw, g_iops;
 };
 
 /** \brief basic overload the ostream operator to print the arguement */
