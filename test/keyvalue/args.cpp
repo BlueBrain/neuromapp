@@ -28,18 +28,8 @@
 #include "keyvalue/utils/argument.h"
 #include "utils/argv_data.h"
 
-struct MPIInitializer {
-    MPIInitializer(){
-        // Already done in mpi controler, included by argument.h
-        //MPI::Init();
-    }
-    ~MPIInitializer(){
-        MPI::Finalize();
-    }
-};
-
-//performs mpi initialization/finalize
-BOOST_GLOBAL_FIXTURE(MPIInitializer);
+//Performs MPI init/finalize
+#include "test/tools/mpi_helper.h"
 
 BOOST_AUTO_TEST_CASE(args_constructor_default_test){
     keyvalue::argument a;

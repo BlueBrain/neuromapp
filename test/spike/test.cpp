@@ -42,17 +42,8 @@
 #include "test/spike/spike_test_header.hpp"
 namespace bfs = ::boost::filesystem;
 
-struct MPIInitializer {
-	MPIInitializer(){
-		MPI::Init();
-	}
-	~MPIInitializer(){
-		MPI::Finalize();
-	}
-};
-
-//performs mpi initialization/finalize
-BOOST_GLOBAL_FIXTURE(MPIInitializer);
+//Performs MPI init/finalize
+#include "test/tools/mpi_helper.h"
 
 /**
  * tests the create_spike_type() function.

@@ -33,18 +33,9 @@
 #include "keyvalue/utils/argument.h"
 #include "keyvalue/utils/statistic.h"
 
-struct MPIInitializer {
-    MPIInitializer(){
-        // Already done in mpi controler, included by argument.h
-        //MPI::Init();
-    }
-    ~MPIInitializer(){
-        MPI::Finalize();
-    }
-};
+//Performs MPI init/finalize
+#include "test/tools/mpi_helper.h"
 
-//performs mpi initialization/finalize
-BOOST_GLOBAL_FIXTURE(MPIInitializer);
 
 BOOST_AUTO_TEST_CASE(statistic_constructors_test){
     keyvalue::statistic s;

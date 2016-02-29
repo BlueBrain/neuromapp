@@ -44,6 +44,5 @@ int main(int argc, char* argv[]) {
         std::cout << s << std::endl;
     }
 
-    mapp::master.finalize();
     return 0;
 }
