@@ -38,7 +38,6 @@
 #include <boost/lexical_cast.hpp>
 
 #include "utils/mpi/controler.h"
-#include "keyvalue/utils/tools.h"
 
 #include <utility>
 
@@ -66,7 +65,7 @@ public:
     }
 
     /** \fun size() const
-        \brief get the number of element of the vector */
+        \brief get the number of elements of the vector */
     inline std::size_t size() const{
         return cellgroup.size();
     }
@@ -119,6 +118,13 @@ public:
     typename std::vector<meta_type>::reference meta_at(std::size_t i) {
         return m.at(i);
     }
+
+    /** \fun size() const
+        \brief get the number of elements of the vectors (they are all the same size) */
+    inline std::size_t size() const{
+        return data.size();
+    }
+
 
 private:
     /** the group of cell */
