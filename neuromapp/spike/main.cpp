@@ -50,11 +50,11 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     ("numprocs", po::value<size_t>()->default_value(8), "the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8), "the number of OMP threads")
     ("run", po::value<std::string>()->default_value(launcher_helper::mpi_launcher()), "the command to run parallel jobs")
-    ("cellgroups", po::value<size_t>()->default_value(64), "the number of cell groups")
-    ("eventsper", po::value<size_t>()->default_value(10), "average number of events generated per dt")
-    ("percent-ite", po::value<size_t>()->default_value(90), "the percentage of events (per timestep) that are inter-thread")
+    //("cellgroups", po::value<size_t>()->default_value(64), "the number of cell groups")
+    //("eventsper", po::value<size_t>()->default_value(10), "average number of events generated per dt")
+    //("percent-ite", po::value<size_t>()->default_value(90), "the percentage of events (per timestep) that are inter-thread")
     ("simtime", po::value<size_t>()->default_value(100), "The number of timesteps in the simulation")
-    ("percent-spike", po::value<size_t>()->default_value(4), "the percentage of events (per timestep) that are spike")
+    ("numspike", po::value<size_t>()->default_value(30), "the total number of spikes in the simulation")
     ("numOut", po::value<size_t>()->default_value(4), "number of output presyns (gids) per process")
     ("numIn", po::value<size_t>()->default_value(12), "the number of input presyns per process")
     ("ncper", po::value<size_t>()->default_value(5), "average number of netcons per input presyn")
@@ -87,10 +87,12 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
 	std::cout<<"numIn must be less than or equal to the number of available gids ((numprocs -1) * numOut)"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
+    /*
     if(vm["percent-ite"].as<size_t>() + vm["percent-spike"].as<size_t>() > 100){
 	std::cout<<"percent-ite + percent-spike cannot be greater than 100%"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
+    */
 
     return mapp::MAPP_OK;
 }
@@ -105,10 +107,10 @@ void spike_content(po::variables_map const& vm){
 
     command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
         vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
-        " " << path << "MPI_Exec " << vm["cellgroups"].as<size_t>()<< " " <<
-        vm["eventsper"].as<size_t>() << " " << vm["percent-ite"].as<size_t>()
+        " " << path << "MPI_Exec " //<< vm["cellgroups"].as<size_t>()<< " " <<
+        //vm["eventsper"].as<size_t>() << " " << vm["percent-ite"].as<size_t>()
         << " " << vm["simtime"].as<size_t>()<< " " <<
-        vm["percent-spike"].as<size_t>() << " " << vm["numOut"].as<size_t>()
+        vm["numspike"].as<size_t>() << " " << vm["numOut"].as<size_t>()
         << " " << vm["numIn"].as<size_t>() << " " << vm["ncper"].as<size_t>()
         << " "<< vm.count("nonblocking");
 

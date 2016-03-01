@@ -65,6 +65,32 @@ BOOST_AUTO_TEST_CASE(create_spike_type_test){
 }
 
 /**
+ * tests the random_gen class's random number function
+ *  with uniform distrubution, gen_uni().
+ */
+BOOST_AUTO_TEST_CASE(random_uniform_test){
+    int seed = time(NULL);
+    int max = 10;
+    double lambda = 3.0;
+    spike::random_gen rng(seed, max, lambda);
+    int result = rng.gen_uni();
+    BOOST_CHECK(result >= 0);
+}
+
+/**
+ * tests the random_gen class's random number function
+ *  with exponential distrubution, gen_exp().
+ */
+BOOST_AUTO_TEST_CASE(random_exponential_test){
+    int seed = time(NULL);
+    int max = 10;
+    int lambda = 3;
+    spike::random_gen rng(seed, max, lambda);
+    double result = rng.gen_exp();
+    BOOST_CHECK((result >= 0) && (result <= max));
+}
+
+/**
  * tests that the pool and environment class constructors
  * correctly initialize input/output presyns containers.
  */
@@ -74,12 +100,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(setup_test, T, full_test_types){
 
     srand(time(NULL) + rank);
 
-    int eventsPer = 10;
+    int nspikes = 10;
+    int simtime = 10;
     int netcons = 5;
     int numOut = 2;
     int numIn = rand()%(numOut * (size - 1) - 1) + 1;
 
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
+    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
 
     if(size == 1)
     	BOOST_CHECK(env.input_presyns_.size() == 0);
@@ -100,23 +127,25 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(generate_spikes, T, full_test_types){
 
     srand(time(NULL) + rank);
 
-    int eventsPer = 10;
+    int nspikes = 10;
+    int simtime = 10;
     int netcons = 5;
     int numOut = 2;
     int numIn = rand()%(numOut * (size - 1) - 1) + 1;
-    int simtime = 10;
 
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
-    env.generate_all_events(simtime);
+    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
+    env.generate_all_events();
+    for(int i = 0; i < simtime; ++i)
+        env.increment_time();
+
     env.time_step();
 
-    BOOST_CHECK(env.spikeout_.size() == (eventsPer * env.cells()));
     //check that the new spike's dest field is set to one of env's output_presyns
     bool isValid = false;
     spike_item sitem;
 
     //check that each new spike matches one of env's output presyns
-    for(int i = 0; i < env.mindelay(); ++i){
+    while(!env.spikeout_.empty()){
         sitem = env.spikeout_.back();
         env.spikeout_.pop_back();
         for(int i = 0; i < env.output_presyns_.size(); ++i){
@@ -146,12 +175,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(displ_test, T, full_test_types){
 
     srand(time(NULL) + rank);
 
-    int eventsPer = 10;
+    int nspikes = 10;
+    int simtime = 10;
     int netcons = 5;
     int numOut = 2;
     int numIn = rand()%(numOut * (size - 1) - 1) + 1;
 
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
+    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
 
     int num = rand()%5;
     for(int i = 0; i < size; ++i){
@@ -168,37 +198,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(displ_test, T, full_test_types){
 
 /**
  * for queueing::pool and spike::environment
- * test that filter() function produces the correct number for total_relevent_
- * (for case with matching and non-matching event destination)
- */
-/*BOOST_AUTO_TEST_CASE_TEMPLATE(env_matches_test, T, full_test_types){
-    int size = MPI::COMM_WORLD.Get_size();
-    int rank = MPI::COMM_WORLD.Get_rank();
-
-    srand(time(NULL) + rank);
-
-    int eventsPer = 10;
-    int netcons = 5;
-    int numOut = 2;
-    int numIn = rand()%(numOut * (size - 1) - 1) + 1;
-    //numIn is some value in the range [1, total number of output _presyns]
-    int simtime = 10;
-
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
-    for(int i = 0; i < num; 
-    env
-    //Should match with a spike containing one of my input presyns
-    if(size > 1){
-        int index = rand()%(env.input_presyns_.size());
-        spike_item spike2;
-        spike2.t_ = 0.0;
-        spike2.data_ = env.input_presyns_[index];
-        BOOST_CHECK(env.matches(spike2));
-    }
-}*/
-
-/**
- * for queueing::pool and spike::environment
  * test that run sim function results in the expected end state
  * for the case of blocking spike exchange (random # of input_presyns)
  */
@@ -208,14 +207,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_spike_exchange, T, full_test_types){
 
     srand(time(NULL) + rank);
 
-    int eventsPer = 10;
+    int nspikes = 10;
+    int simtime = 10;
     int netcons = 5;
     int numOut = 2;
     int numIn = rand()%(numOut * (size - 1) - 1) + 1;
-    int simtime = 10;
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
-    run_sim(env,simtime,false);
-    BOOST_CHECK(env.received() == (eventsPer * size * simtime *env.cells()));
+    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
+    run_sim(env, false);
+    BOOST_CHECK((env.received() <= nspikes * size) && (env.received() > 0));
 }
 
 /**
@@ -229,15 +228,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_max_input_presyns, T, full_test_types){
 
     srand(time(NULL) + rank);
 
-    int eventsPer = 1;
+    int nspikes = 10;
+    int simtime = 10;
     int netcons = 5;
     int numOut = 4;
     int numIn = numOut*(size - 1);
     //simtime must be a multiple of min_delay (5) for this to pass
-    int simtime = 10;
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
-    run_sim(env,simtime,false);
-    BOOST_CHECK((env.received() - (eventsPer * simtime * env.cells())) == env.relevent());
+    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
+    run_sim(env,false);
+    BOOST_CHECK(env.relevant() >= (env.received() - nspikes));
 
 }
 
@@ -254,14 +253,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_spike_exchange, T, full_test_types){
 
     srand(time(NULL) + rank);
 
-    int eventsPer = 1;
+    int nspikes = 10;
+    int simtime = 10;
     int netcons = 5;
     int numOut = 4;
     int numIn = rand()%(numOut * (size - 1) - 1) + 1;
-    int simtime = 10;
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
-    run_sim(env,simtime,true);
-    BOOST_CHECK(env.received() == (eventsPer * size * simtime * env.cells()));
+    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
+    run_sim(env,true);
+    BOOST_CHECK((env.received() <= nspikes * size) && (env.received() > 0));
 }
 
 /**
@@ -275,16 +274,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(nonblocking_max_input_presyns, T, full_test_types)
 
     srand(time(NULL) + rank);
 
-    int eventsPer = 10;
+    int nspikes = 10;
+    int simtime = 10;
     int netcons = 5;
     int numOut = 4;
     int numIn = numOut*(size - 1);
     //simtime must be a multiple of min_delay (5) for this to pass
-    int simtime = 10;
-    T env(eventsPer, numOut, numIn, netcons, size, rank);
-    run_sim(env,simtime,true);
-//    std::cout<<"RECEIVED "<<env.received()<<" EXPECTED: "<<(eventsPer * size * simtime * env.cells())<<std::endl;
-    BOOST_CHECK((env.received() - (eventsPer*simtime*env.cells())) == env.relevent() );
+    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
+    run_sim(env, true);
+    BOOST_CHECK(env.relevant() >= (env.received() - nspikes));
 }
 
 #endif

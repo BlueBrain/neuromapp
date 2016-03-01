@@ -237,7 +237,7 @@ void non_blocking_spike(data& d, MPI_Datatype spike){
 }
 
 /**
- * \fn run_sim(data& d, int simtime, bool non_blocking)
+ * \fn run_sim(data& d, bool non_blocking)
  * \brief runs the simulation with either a blocking or non-blocking
  *  spike exchange depending on the parameter "non_blocking"
  * \param d the data environment on which this algo is called
@@ -245,11 +245,11 @@ void non_blocking_spike(data& d, MPI_Datatype spike){
  *  implementation of spike exchange.
  */
 template<typename data>
-void run_sim(data& d, int simtime, bool non_blocking){
+void run_sim(data& d, bool non_blocking){
     MPI_Datatype spike = create_spike_type();
-    d.generate_all_events(simtime);
-    for(int i = 1; i <= simtime; ++i){
-        if((i % 5) == 0){
+    d.generate_all_events();
+    for(int i = 0; i <= d.simtime(); ++i){
+        if((i % d.mindelay()) == 0){
             //load spikeout with the spikes to be sent
             if(non_blocking)
                 non_blocking_spike(d, spike);
@@ -258,6 +258,7 @@ void run_sim(data& d, int simtime, bool non_blocking){
 
             d.filter();
             d.spikeout_.clear();
+            d.spikein_.clear();
         }
         else{
             d.time_step();

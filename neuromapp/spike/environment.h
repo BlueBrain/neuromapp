@@ -24,10 +24,12 @@
  */
 #ifndef enviro_h
 #define enviro_h
-#include <stdlib.h>
-#include <stddef.h>
-#include <vector>
-#include <unistd.h>
+
+#include <iostream>
+#include <boost/range/algorithm/random_shuffle.hpp>
+#include <boost/random.hpp>
+#include <boost/range/algorithm_ext/iota.hpp>
+#include <boost/random/mersenne_twister.hpp>
 
 #include "spike/algos.hpp"
 
@@ -35,6 +37,39 @@ namespace spike {
 
 typedef std::vector<int> int_vec;
 typedef std::vector<spike_item> spike_vec;
+typedef boost::mt19937 rng;
+typedef boost::random::uniform_int_distribution<> uniform;
+typedef boost::random::exponential_distribution<double> exp;
+
+
+/**
+ * Random number generator wrapper. Used to create random numbers with a
+ * uniform and exponential distribution.
+ *
+ */
+struct random_gen {
+private:
+    rng rng_;
+    uniform uni_;
+    exp exp_;
+
+public:
+
+    /**
+     * \fn environment(int e, int ns, int o, int i, int nc, int p, int r)
+     * \brief environment constructor. Initializes member variables.
+     * \param seed unique seed to generate random numbers
+     * \param max the maximum value in the uniform range
+     * \param lambda the number of spikes divided by the simulation time
+     *  used to generate an exponential distribution
+     */
+    explicit random_gen(int seed=0, int max=1, double lambda=2):
+    rng_(seed), uni_(0, max), exp_(lambda) {}
+
+    int gen_uni(){return uni_(rng_);}
+    double gen_exp(){return exp_(rng_);}
+};
+
 
 /**
  * Dummy environment. It's a simplified copy of the pool class from queueing
@@ -47,14 +82,19 @@ struct environment {
 private:
     int num_out_;
     int num_in_;
-    int events_per_;
     int netcons_per_input_;
     int num_procs_;
     int rank_;
+    int time_;
+    int num_spikes_;
+    int sim_time_;
     int total_received_;
-    int total_relevent_;
+    int total_relevant_;
     static const int num_cells_ = 1;
     static const int min_delay_ = 5;
+
+    double exp_dist_lambda_;
+    random_gen rng_;
 
 public:
     /*
@@ -69,10 +109,17 @@ public:
     int_vec output_presyns_;
 
     /**
-     * \fn environment(int e, int o, int i, int nc, int p, int r)
+     * \fn environment(int e, int ns, int o, int i, int nc, int p, int r)
      * \brief environment constructor. Initializes member variables.
+     * \param ns total number of spikes
+     * \param t simulation time
+     * \param o output presyns per mpi task
+     * \param i input presyns per mpi task
+     * \param nc netcons per input presyn
+     * \param p number of processes
+     * \param r rank of this process
      */
-    environment(int e, int o, int i, int nc, int p, int r);
+    environment(int ns, int t, int o, int i, int nc, int p, int r);
 
     /**
      * \fn void time_step()
@@ -89,17 +136,15 @@ public:
     void set_displ();
 
     /**
-     * \fn void generate_all_events(int totalTime)
+     * \fn void generate_all_events()
      * \brief creates all events that will be used during the simulation
      */
-    void generate_all_events(int totalTime);
+    void generate_all_events();
 
     /**
-     * \fn bool matches(const spike_item& sitem)
-     * \brief compares the destination of sitem to the input_presyns
-     * \returns true on a positive match, else false
+     * \brief dummy function to match pool function
      */
-//    bool matches(const spike_item& sitem);
+    bool accumulate_stats() {};
 
     /**
      * \fn void filter()
@@ -110,15 +155,16 @@ public:
 
     /**
      * \fn void intcrement_time()
-     * \brief empty function that mirrors pool::increment_time()
+     * \brief function that mirrors pool::increment_time()
      */
-    void increment_time(){}
+    void increment_time(){++time_;}
 
 //GETTERS
     int mindelay() const {return min_delay_;}
     int cells() const {return num_cells_;}
     int received() const {return total_received_;}
-    int relevent() const {return total_relevent_;}
+    int relevant() const {return total_relevant_;}
+    int simtime() const {return sim_time_;}
 
 //TASKS
     void parallel_send();
