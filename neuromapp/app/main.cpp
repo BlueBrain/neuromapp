@@ -56,7 +56,6 @@ int main(int argc, char * const argv[]){
      d.insert("cstep",coreneuron10_cstep_execute);
      d.insert("keyvalue",keyvalue_execute);
 
-
      //direct run
      if(argv[1] != NULL){
          try {
@@ -83,7 +82,7 @@ int main(int argc, char * const argv[]){
      // interactive run
      while(1) {
 #ifdef NEUROMAPP_CURSOR
-         input = readline("");
+         char* input = readline("");
          add_history(input);
          std::string command(input);
 #else

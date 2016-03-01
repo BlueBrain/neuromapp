@@ -17,8 +17,8 @@ class keyvalue_map{
 
 private:
     bool                                                _async;
-    int						                            _rank;
-    std::multimap<std::string, std::vector<double> *>	_map;
+    int                                                 _rank;
+    std::multimap<std::string, std::vector<double> *>   _map;
     std::multimap<std::string, std::size_t>             _valSizes;
 
     // Allow concurrent reads, but exclusive writes

@@ -13,16 +13,22 @@ option (NEUROMAPP_CURSOR "Allow the use of cursors during input" OFF)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake)
 include(Compiler)
 string(REPLACE "-std=c++11" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-
-set(Boost_USE_STATIC_LIBS  ON)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 
+
+include(BlueGenePortability)
 
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
 find_package(Boost 1.44 REQUIRED program_options unit_test_framework system filesystem atomic random)
 find_package(SLURM)
-# boost include
-include_directories(${Boost_INCLUDE_DIRS})
+find_package(MPI)
+
+## MPI link flags need to be overwritten on BG/Q 
+include(BlueGenePortability)
+
+
+# include all directories
+include_directories(${Boost_INCLUDE_DIRS} ${MPI_C_INCLUDE_PATH} )
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g ")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g ")
@@ -37,21 +43,9 @@ if(NEUROMAPP_CURSOR)
     MESSAGE(STATUS "Using Cursors")
     add_definitions(-DNEUROMAPP_CURSOR)
 
-    if(NOT READLINE_FOUND)
-	find_path(READLINE_INCLUDE_DIR readline/readline.h
-	    HINTS ${READLINE_ROOT_DIR} PATH_SUFFIXES include)
-	find_library(READLINE_LIBRARY readline
-	    HINTS ${READLINE_ROOT_DIR} PATH_SUFFIXES lib)
-	find_library(NCURSES_LIBRARY ncurses)   # readline depends on libncurses
-	mark_as_advanced(READLINE_INCLUDE_DIR READLINE_LIBRARY NCURSES_LIBRARY)
-
-	include(FindPackageHandleStandardArgs)
-	find_package_handle_standard_args(Readline DEFAULT_MSG
-	READLINE_LIBRARY NCURSES_LIBRARY READLINE_INCLUDE_DIR)
-
-	set(READLINE_INCLUDE_DIRS ${READLINE_INCLUDE_DIR})
-	set(READLINE_LIBRARIES ${READLINE_LIBRARY} ${NCURSES_LIBRARY})
-    endif(NOT READLINE_FOUND)
+	set(CURSES_NEED_NCURSES TRUE)
+	find_package(Curses REQUIRED)
+	find_package(Readline REQUIRED)
 
 endif(NEUROMAPP_CURSOR)
 
