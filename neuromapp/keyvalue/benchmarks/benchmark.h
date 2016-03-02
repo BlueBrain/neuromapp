@@ -50,16 +50,12 @@ public:
         \brief compute the total number of compartments (2.5 = 2.5 MB per neuron, 350 compartments per neuron)
         4096 MB, 25% of the memory of a compute node of the BG/Q
      */
-    benchmark(keyvalue::argument & args = keyvalue::argument()):a(args){
-        s = args.voltages_size();
-        int cg_size = s / args.cg();
-        int first_size = cg_size + (s % args.cg());
+    benchmark(keyvalue::argument & args):a(args){
+        init();
+    }
 
-        g = keyvalue::group<meta_type>(cg_size);
-        g.push_back(keyvalue::nrnthread(first_size));
-
-        for (int i = 1; i < args.cg(); i++)
-            g.push_back(keyvalue::nrnthread(cg_size));
+    benchmark() : a(keyvalue::argument()) {
+        init();
     }
 
     /** \fun get_group() const
@@ -87,6 +83,20 @@ private:
     keyvalue::argument & a;
     /** corresponds to the total number of compartments */
     std::size_t s;
+
+    /** \fun init()
+        \brief initialize the object, common code for different constructors */
+    void init() {
+        s = a.voltages_size();
+        int cg_size = s / a.cg();
+        int first_size = cg_size + (s % a.cg());
+
+        g = keyvalue::group<meta_type>(cg_size);
+        g.push_back(keyvalue::nrnthread(first_size));
+
+        for (int i = 1; i < a.cg(); i++)
+            g.push_back(keyvalue::nrnthread(cg_size));
+    }
 };
 
 template<keyvalue::selector S>
