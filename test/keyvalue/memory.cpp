@@ -52,9 +52,7 @@ BOOST_AUTO_TEST_CASE(group_constructor_default_test){
 }
 
 BOOST_AUTO_TEST_CASE(group_constructor_test){
-    // Need to set the number of elements, otherwise the test fails
-    // as g.meta_at(n).value()[i] is 0
-    keyvalue::group<keyvalue::trait_meta<keyvalue::map>::meta_type> g(3);
+    keyvalue::group<keyvalue::trait_meta<keyvalue::map>::meta_type> g;
     keyvalue::nrnthread n1(10);
     keyvalue::nrnthread n2(15);
     keyvalue::nrnthread n3(20);
@@ -66,7 +64,6 @@ BOOST_AUTO_TEST_CASE(group_constructor_test){
     for (int i = 0; i < n1.size(); i++) {
         BOOST_CHECK_EQUAL(g.meta_at(0).value()[i], n1.front_pointer()[i]);
     }
-    BOOST_CHECK_EQUAL(g.meta_at(0).value_size(), n1.size());
 
     g.push_back(n2);
     BOOST_CHECK_EQUAL(g.size(), 2);
@@ -75,13 +72,11 @@ BOOST_AUTO_TEST_CASE(group_constructor_test){
     for (int i = 0; i < n1.size(); i++) {
         BOOST_CHECK_EQUAL(g.meta_at(0).value()[i], n1.front_pointer()[i]);
     }
-    BOOST_CHECK_EQUAL(g.meta_at(0).value_size(), n1.size());
     // n2
     BOOST_CHECK_EQUAL(g.meta_at(1).value_size(), n2.size());
     for (int i = 0; i < n2.size(); i++) {
         BOOST_CHECK_EQUAL(g.meta_at(1).value()[i], n2.front_pointer()[i]);
     }
-    BOOST_CHECK_EQUAL(g.meta_at(1).value_size(), n2.size());
 
     g.push_back(n3);
     BOOST_CHECK_EQUAL(g.size(), 3);
@@ -90,17 +85,38 @@ BOOST_AUTO_TEST_CASE(group_constructor_test){
     for (int i = 0; i < n1.size(); i++) {
         BOOST_CHECK_EQUAL(g.meta_at(0).value()[i], n1.front_pointer()[i]);
     }
-    BOOST_CHECK_EQUAL(g.meta_at(0).value_size(), n1.size());
     // n2
     BOOST_CHECK_EQUAL(g.meta_at(1).value_size(), n2.size());
     for (int i = 0; i < n2.size(); i++) {
         BOOST_CHECK_EQUAL(g.meta_at(1).value()[i], n2.front_pointer()[i]);
     }
-    BOOST_CHECK_EQUAL(g.meta_at(1).value_size(), n2.size());
     // n3
     BOOST_CHECK_EQUAL(g.meta_at(2).value_size(), n3.size());
     for (int i = 0; i < n3.size(); i++) {
         BOOST_CHECK_EQUAL(g.meta_at(2).value()[i], n3.front_pointer()[i]);
     }
-    BOOST_CHECK_EQUAL(g.meta_at(2).value_size(), n3.size());
+}
+
+BOOST_AUTO_TEST_CASE(group_constructor_killer_test){
+    std::vector<keyvalue::nrnthread> nts;
+    unsigned int numnts = 130;
+    keyvalue::group<keyvalue::trait_meta<keyvalue::map>::meta_type> g(numnts);
+
+    nts.reserve(numnts);
+    for (int i = 0; i < nts.capacity(); i++) {
+        // introduce some variability in size
+        unsigned int ntsize = 20 + i - (i%3 * i%4 + i%2);
+        nts.push_back(keyvalue::nrnthread(ntsize));
+    }
+
+    for (int i = 0; i < nts.size(); i++) {
+        g.push_back(nts[i]);
+        BOOST_CHECK_EQUAL(g.size(), i+1);
+        for (int j = 0; j < g.size(); j++) {
+            BOOST_CHECK_EQUAL(g.meta_at(j).value_size(), nts[j].size());
+            for (int k = 0; k < nts[j].size(); k++) {
+                BOOST_CHECK_EQUAL(g.meta_at(j).value()[k], nts[j].front_pointer()[k]);
+            }
+        }
+    }
 }

@@ -90,7 +90,7 @@ public:
 
     /** \fun group(std::size_t n=0)
         \brief allocate the memory of the group */
-    explicit group(std::size_t n=0){
+    explicit group(std::size_t n=16){
         data.reserve(n);
         gid.reserve(n);
         m.reserve(n);
@@ -100,6 +100,9 @@ public:
         \brief push_back a nrnthread group and do the initialisation
         of the uuid and the meta data */
     void push_back(nrnthread const& v){
+        // Make sure there is space for the new element as vector reallocation is not
+        // working properly
+        assert(m.capacity() > m.size());
         std::string uuid = boost::uuids::to_string(generator())
                             + boost::lexical_cast<std::string>(mapp::master.rank());
         data.push_back(v);
