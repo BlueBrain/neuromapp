@@ -27,7 +27,6 @@
 #include "keyvalue/utils/trait.h"
 #include "keyvalue/benchmarks/benchmark.h"
 #include "keyvalue/utils/statistic.h"
-#include "keyvalue/utils/trait.h"
 
 int main(int argc, char* argv[]) {
 
