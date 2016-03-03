@@ -30,18 +30,8 @@
 #include <boost/test/unit_test.hpp>
 #include "utils/mpi/timer.h"
 
-
-struct MPIInitializer {
-    MPIInitializer(){
-        MPI::Init();
-    }
-    ~MPIInitializer(){
-        MPI::Finalize();
-    }
-};
-
-//performs mpi initialization/finalize
-BOOST_GLOBAL_FIXTURE(MPIInitializer);
+//Performs MPI init/finalize
+#include "test/tools/mpi_helper.h"
 
 BOOST_AUTO_TEST_CASE(timer_test){
     mapp::timer t;
