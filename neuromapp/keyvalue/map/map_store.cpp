@@ -16,16 +16,14 @@
 
 
 keyvalue_map::keyvalue_map(bool threadSafe, std::string pdsName):
-                                    _numReaders(0), _async(false), _numWriters(0){
-                                   _rank = mapp::master.rank();
-    std::cout << "[" << _rank << "] initialized skv map successfully" << std::endl;
+        _numReaders(0), _async(false), _numWriters(0){
+    _rank = mapp::master.rank();
 }
 
 
 keyvalue_map::~keyvalue_map(){
     _map.clear();
     _valSizes.clear();
-    std::cout << "[" << _rank << "] Finalized successfully" << std::endl;
 }
 
 int keyvalue_map::retrieve(keyvalue::meta& m)

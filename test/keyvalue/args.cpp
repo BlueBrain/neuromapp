@@ -28,14 +28,26 @@
 #include "keyvalue/utils/argument.h"
 #include "utils/argv_data.h"
 
+//Performs MPI init/finalize
+#include "test/tools/mpi_helper.h"
+
 BOOST_AUTO_TEST_CASE(args_constructor_default_test){
     keyvalue::argument a;
     float st = 1.0;
     float md = 0.1;
     float dt = 0.025;
+    int procs = 1;
+    int threads = 1;
 
-    BOOST_CHECK_EQUAL(a.procs(), 1);
-    BOOST_CHECK_EQUAL(a.threads(), 1);
+    MPI_Comm_size(MPI_COMM_WORLD, &procs); 
+
+    #pragma omp parallel
+    {
+        threads = omp_get_num_threads();
+    }
+
+    BOOST_CHECK_EQUAL(a.procs(), procs);
+    BOOST_CHECK_EQUAL(a.threads(), threads);
     BOOST_CHECK_EQUAL(a.backend(), "map");
     BOOST_CHECK_EQUAL(a.async(), false);
     BOOST_CHECK_EQUAL(a.flash(), false);
@@ -90,6 +102,9 @@ BOOST_AUTO_TEST_CASE(args_constructor_argv_test){
     char * const *argv=A.argv();
 
     keyvalue::argument a(argc, argv);
+
+    a.procs() = 1;
+    a.threads() = 1;
 
     BOOST_CHECK_EQUAL(a.procs(), 1);
     BOOST_CHECK_EQUAL(a.threads(), 1);
