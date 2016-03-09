@@ -32,7 +32,7 @@
 #include "spike/algos.hpp"
 #include "spike/environment.h"
 #include "utils/storage/neuromapp_data.h"
-#include "utils/mpi/controler.h"
+//#include "utils/mpi/controler.h"
 #include "coreneuron_1.0/queueing/pool.h"
 
 #ifdef _OPENMP
@@ -45,9 +45,18 @@
  * and performs run_simulation() function on it.
  */
 int main(int argc, char* argv[]) {
+
     assert(argc == 7);
-    int size = mapp::master.size();
-    int rank = mapp::master.rank();
+
+    MPI_Init(NULL, NULL);
+
+	int rank, size;
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+//    int size = mapp::master.size();
+//    int rank = mapp::master.rank();
 
 //    int cellgroups = atoi(argv[1]);
 //    int eventsPer = atoi(argv[2]);
@@ -74,6 +83,7 @@ int main(int argc, char* argv[]) {
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
         std::cout<<"Process zero received: "<<env.received()<<" spikes"<<std::endl;
         std::cout<<"Process zero received: "<<env.relevant()<<" RELEVANT spikes"<<std::endl;
-    mapp::master.finalize();
+    MPI_Finalize();
+    //mapp::master.finalize();
     return 0;
 }

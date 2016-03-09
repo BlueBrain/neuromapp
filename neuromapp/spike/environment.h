@@ -30,11 +30,11 @@
 #include <boost/random.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <boost/random/mersenne_twister.hpp>
-
-#include "spike/algos.hpp"
+#include "coreneuron_1.0/queueing/queue.h"
 
 namespace spike {
 
+typedef queueing::event spike_item;
 typedef std::vector<int> int_vec;
 typedef std::vector<spike_item> spike_vec;
 typedef boost::mt19937 rng;
