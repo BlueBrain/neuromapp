@@ -107,7 +107,7 @@ void spike_content(po::variables_map const& vm){
 
     command << "OMP_NUM_THREADS=" << vm["numthreads"].as<size_t>() << " " <<
         vm["run"].as<std::string>() <<" -n "<< vm["numprocs"].as<size_t>()<<
-        " " << path << "MPI_Exec " //<< vm["cellgroups"].as<size_t>()<< " " <<
+        " " << path << "spike_exec " //<< vm["cellgroups"].as<size_t>()<< " " <<
         //vm["eventsper"].as<size_t>() << " " << vm["percent-ite"].as<size_t>()
         << " " << vm["simtime"].as<size_t>()<< " " <<
         vm["numspike"].as<size_t>() << " " << vm["numOut"].as<size_t>()

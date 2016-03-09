@@ -37,6 +37,7 @@
 #include <boost/array.hpp>
 
 #include "coreneuron_1.0/queueing/queue.h"
+#include "spike/environment.h"
 
 //define events as spike_item
 typedef queueing::event spike_item;
@@ -61,6 +62,16 @@ inline MPI_Datatype create_spike_type(){
     MPI_Type_commit(&spike);
     return spike;
 }
+
+
+/**
+ * \fn barrier()
+ * \brief performs an MPI_Barrier
+ */
+inline void barrier(){
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
 
 //BLOCKING
 /**
@@ -253,9 +264,11 @@ void run_sim(data& d, bool non_blocking){
             //load spikeout with the spikes to be sent
             if(non_blocking)
                 non_blocking_spike(d, spike);
-            else
+            else{
+                barrier();
                 blocking_spike(d, spike);
-
+                barrier();
+            }
             d.filter();
             d.spikeout_.clear();
             d.spikein_.clear();
