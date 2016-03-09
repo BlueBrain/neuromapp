@@ -40,7 +40,11 @@ namespace mapp{
     class controler{
     private:
         controler(){
-            MPI::Init();
+            int init = 0;
+            MPI_Initialized(&init);
+            if (init == 0) {
+                MPI::Init();
+            }
             s = MPI::COMM_WORLD.Get_size();
             r = MPI::COMM_WORLD.Get_rank();
             std::cout << mapp::mpi_filter_master(); // MPI print master only move to  mpi_filter_all for all
@@ -52,12 +56,12 @@ namespace mapp{
     public:
 
 //       PB it depends of the MPI implementation
-//        ~controler(){
-//            MPI::Finalize();
-//        }
-
-        void finalize() const{
-            MPI::Finalize();
+        ~controler(){
+            int fini = 0;
+            MPI_Finalized(&fini);
+            if (!fini) {
+                MPI::Finalize();
+            }
         }
 
         static controler& getInstance(){

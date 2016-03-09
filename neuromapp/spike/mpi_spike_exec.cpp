@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
         std::cout<<"Process zero received: "<<env.received()<<" spikes"<<std::endl;
         std::cout<<"Process zero received: "<<env.relevant()<<" RELEVANT spikes"<<std::endl;
 
-   MPI_Finalize();
+    MPI_Finalize();
     //mapp::master.finalize();
     return 0;
 }

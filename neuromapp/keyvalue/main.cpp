@@ -57,6 +57,7 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
     ("flash,f", "If available, use flash memory as storage")
     ("usecase,u", po::value<int>()->default_value(1), "[int] Use case to simulate. Creates a data set size of: \
                   1 (25% BG/Q node DRAM, 4 GB), 2 (50% DRAM, 8 GB), 3 (75% DRAM, 12 GB)")
+    ("task,d", "Use the OpenMP task dependency implementation instead of the default for loop (needs OpenMP >= 4.0)")
     ("st", po::value<float>()->default_value(1.0), "[float]  Simulation time in ms")
     ("md", po::value<float>()->default_value(0.1), "[float]  Min delay in ms")
     ("dt", po::value<float>()->default_value(0.025), "[float]  Delta time in ms")
@@ -86,17 +87,17 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
 
     if(vm["usecase"].as<int>() < 1 || vm["usecase"].as<int>() > 3){
         std::cout << "Error: usecase must be between 1 and 3." << std::endl;
-	    return mapp::MAPP_BAD_ARG;
+           return mapp::MAPP_BAD_ARG;
     }
 
     if(vm["md"].as<float>() > vm["st"].as<float>()){
         std::cout << "Error: md cannot be greater than st." << std::endl;
-	    return mapp::MAPP_BAD_ARG;
+           return mapp::MAPP_BAD_ARG;
     }
 
     if(vm["dt"].as<float>() > vm["md"].as<float>()){
         std::cout << "Error: dt cannot be greater than md." << std::endl;
-	    return mapp::MAPP_BAD_ARG;
+           return mapp::MAPP_BAD_ARG;
     }
 
     if(vm["cg"].as<int>() != 0 && vm["cg"].as<int>() < vm["numthread"].as<int>()){
@@ -129,6 +130,7 @@ void keyvalue_content(po::variables_map const& vm){
     bool async = !(vm["async"].empty());
     bool flash = !(vm["flash"].empty());
     int uc = vm["usecase"].as<int>();
+    bool tdeps = !(vm["task"].empty());
     float st = vm["st"].as<float>();
     float md = vm["md"].as<float>();
     float dt = vm["dt"].as<float>();
@@ -136,15 +138,16 @@ void keyvalue_content(po::variables_map const& vm){
 
     // Last checks
     if (cg == 0) {
-    	cg = nt;
+       cg = nt;
     }
 
     command << "OMP_NUM_THREADS=" << nt << " "  << launcher_helper::mpi_launcher() << " -n " << np
             << " " << path << "MPI_Exec_kv  -b " << backend
-            << " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc << " -st " << st
-            << " -md " << md << " -dt " << dt << " -cg " << cg;
+            << " " << (async ? "-a" : "") << " " << (flash ? "-f" : "") << " -uc " << uc
+            << (tdeps ? " -d" : "") << " -st " << st << " -md " << md << " -dt " << dt
+            << " -cg " << cg;
 
-	std::cout << "Running command " << command.str() << std::endl;
+	std::cout << "Running command: " << command.str() << std::endl;
 	system(command.str().c_str());
 }
 

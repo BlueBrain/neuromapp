@@ -44,7 +44,7 @@ class benchmark;
 template<keyvalue::selector S>
 keyvalue::statistic loop(benchmark<S> const& b){
     typedef typename keyvalue::trait_meta<S>::meta_type meta_type; // get the good meta type
-    // extract the group of memory
+    // extract the group of memory and the argument
     keyvalue::group<meta_type> const& g = b.get_group(); //git it to the group
     keyvalue::argument const& a = b.get_args();
 
@@ -59,9 +59,9 @@ keyvalue::statistic loop(benchmark<S> const& b){
 
     // keep time trace
     std::vector<double> vtime;
-    vtime.reserve(1024);
+    vtime.reserve(a.st() / a.dt());
 
-    // these two loops should be merge
+    // these two loops should be merged
     for (float st = 0; st < a.st(); st += a.md()) {
         for (float md = 0; md < a.md(); md += a.dt()) {
             usleep(comp_time_us);
@@ -82,6 +82,7 @@ keyvalue::statistic loop(benchmark<S> const& b){
         }
     }
 
-    return keyvalue::statistic(a,vtime);
+    return keyvalue::statistic(a, (a.st() / a.dt()) * a.cg(),
+            a.voltages_size() * sizeof(keyvalue::nrnthread::value_type) / a.cg(), vtime);
 }
 #endif

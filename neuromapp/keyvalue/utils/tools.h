@@ -31,17 +31,38 @@
 
 namespace keyvalue {
 
+    /** \fun reduce(T & value)
+    returns the reduction of the value of each rank
+    it should be generic blabla, not type safe only work with DOUBLE */
+    template<class T>
+    inline T reduce(T & value) {
+        T red_mpi = 0.0;
+        MPI_Reduce(&value, &red_mpi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+        return red_mpi;
+    }
+
+    /** \fun reduce(InputIt first, InputIt last)
+    reduce in rank's 0 vector the addition of the values of all ranks
+    it should be generic blabla, not type safe only work with DOUBLE */
+    template<class InputIt, class T>
+    inline void reduce(InputIt first, InputIt last) {
+        for (InputIt it = first; it != last; it++) {
+            T red_mpi = 0.0;
+            MPI_Reduce(&(*it), &red_mpi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+            *it = red_mpi;
+        }
+    }
+
     /** \fun accumulate(InputIt first, InputIt last, T init) 
     a kind of MPI accumulate
-      it should be generic blabla, not type safe only work with DOUBLE */
+    it should be generic blabla, not type safe only work with DOUBLE */
     template<class InputIt, class T>
     inline T accumulate(InputIt first, InputIt last, T init){
-        T tmp(0.), rec_mpi(0.);
-        tmp  = std::accumulate(first,last, init);
-        MPI_Reduce(&tmp, &rec_mpi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
-        return rec_mpi;
+        reduce<InputIt, T>(first, last);
+        T tmp  = std::accumulate(first, last, init);
+        return tmp;
     }
-    
+
 } //end namespace keyvalue
 
 #endif
