@@ -33,29 +33,29 @@
 #include <numeric>
 #include <boost/range/algorithm/random_shuffle.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random.hpp>
 
 #include "coreneuron_1.0/queueing/pool.h"
 
 namespace queueing {
 
-pool::pool(int numCells, int eventsPer, int pITE,
-bool verbose, bool algebra, int pSpike,
+pool::pool(int numCells, int nLocal, int nIte,
+bool verbose, bool algebra, int nSpike,
 int out, int in, int nc, int procs, int rank){
-    srand(time(NULL));
-
     num_cells_ = numCells;
-    events_per_step_ = eventsPer;
-    percent_ite_ = pITE;
+    num_local_ = nLocal;
+    num_ite_ = nIte;
+    num_spike_ = nSpike;
     v_ = verbose;
     perform_algebra_ = algebra;
-    percent_spike_ = pSpike;
     num_out_ = out;
     num_in_ = in;
     netcons_per_input_ = nc;
     num_procs_ = procs;
     rank_ = rank;
-    spike_events_ = 0;
     time_ = 0;
+    spike_events_ = 0;
     total_received_ = 0;
     total_relevent_ = 0;
 
@@ -64,6 +64,7 @@ int out, int in, int nc, int procs, int rank){
     //assign input and output gid's
     std::vector<int> available_inputs;
     std::vector<int> cellgroups;
+    assert(num_cells_ > 2);
     if(num_procs_ > 1){
         for(int i = 0; i < (num_procs_ * num_out_); ++i){
             if(i >= (rank_ * num_out_) && i < ((rank_ * num_out_) + num_out_)){
@@ -80,15 +81,14 @@ int out, int in, int nc, int procs, int rank){
         //create a vector of randomly ordered cellgroups
         cellgroups.resize(num_cells_);
         boost::iota(cellgroups, 0);
-        boost::random_shuffle(cellgroups);
 
         //for each input presyn,
         //select N unique netcons to cell groups
         for(int i = 0; i < num_in_; ++i){
             int presyn = available_inputs[i];
-            int index = rand()%(num_cells_ - netcons_per_input_);
+            boost::random_shuffle(cellgroups);
             for(int j = 0; j < netcons_per_input_; ++j){
-                input_presyns_[presyn].push_back(cellgroups[index+j]);
+                input_presyns_[presyn].push_back(cellgroups[j]);
             }
         }
 
@@ -100,7 +100,6 @@ int out, int in, int nc, int procs, int rank){
         assert(input_presyns_.empty());
     }
 
-    spikein_.reserve(num_procs_ * events_per_step_ * min_delay_);
     nin_.resize(num_procs_);
     displ_.resize(num_procs_);
 }
@@ -145,39 +144,101 @@ void pool::accumulate_stats(){
     neuromapp_data.put_copy("delivered", all_delivered);
 }
 
+void pool::calculate_probs(double& lambda, double* cdf, int totalTime){
+    double sum = num_spike_ + num_ite_ + num_local_;
+    //mean here the amount of time between spikes for entire sim
+    double mean = static_cast<double>(totalTime) / sum;
+    //redefine mean as amount of time between spikes
+    //PER cellgroup
+    mean = mean * num_procs_ * num_cells_;
+    std::cout<<"MEAN = "<<mean<<std::endl;
+    lambda = 1.0/mean;
+    std::cout<<"LAMBDA = "<<lambda<<std::endl;
+    cdf[SPIKE] = num_spike_/sum;
+    cdf[ITE] = (num_spike_ + num_ite_)/sum;
+}
+
 void pool::generate_all_events(int totalTime){
-    event ev;
-    for(int i = 0; i < num_cells_; ++i){
-        for(int j = 0; j < totalTime; ++j){
-            /// Simulated target of a NetCon and the event time
-            for(int k = 0; k < events_per_step_; ++k){
-                //events can be generated with time range:
-                //(current time) to (current time + 10% of total)
-                gen_event g = create_event(i,j,totalTime);
-                thread_datas_[i].push_generated_event(
-                    g.first.data_, g.first.t_, g.second);
+    int dest = 0;
+    double event_time = 0;
+    int int_tt = 0;
+    double percent = 0;
+    double end = static_cast<double>(totalTime);
+    event_type type;
+    boost::mt19937 gen(rank_ + time(NULL));
+
+    double cumulative_percents[2];
+    double lambda = 0;
+    calculate_probs(lambda, cumulative_percents, totalTime);
+
+    //generates percentages between 0 and 1
+    boost::random::uniform_real_distribution<> percent_g(0.0,1.0);
+    //generates random increment for event time
+    //follows poisson process
+    boost::random::exponential_distribution<double> time_g(lambda);
+
+    //generates indices for output_presyns_
+    boost::random::uniform_int_distribution<> gid_g(0, (output_presyns_.size() - 1));
+
+    //generates indices for threadDatas
+    boost::random::uniform_int_distribution<> cellgroup_g(0, (num_cells_ - 1));
+
+    for(size_t i = 0; i < thread_datas_.size(); ++i){
+        event_time = 0;
+        while(event_time < end){
+            //increment event time
+            event_time += time_g(gen);
+
+            percent = percent_g(gen);
+            if(percent < cumulative_percents[SPIKE]){
+                type = SPIKE;
+                dest = gid_g(gen);
             }
+            else if(percent < cumulative_percents[ITE]){
+                type = ITE;
+                dest = cellgroup_g(gen);
+                //dst cannot equal i
+                while(dest == i)
+                    dest = cellgroup_g(gen);
+
+            }
+            else{
+                type = LOCAL;
+                dest = i;//myID
+            }
+            int_tt = static_cast<int>(event_time);
+            //push into generated events array
+            thread_datas_[i].push_generated_event(dest, int_tt, type);
         }
     }
 }
 
 void pool::send_events(int myID){
-    for(int i = 0; i < events_per_step_; ++i){
+    while(thread_datas_[myID].top_event_time() <= time_){
         gen_event g = thread_datas_[myID].pop_generated_event();
         event e = g.first;
-        bool is_spike_ = g.second;
+        event_type type = g.second;
+        assert(e.data_ < num_cells_);
         //if spike event send to spike_out
-        if(is_spike_){
-            spike_lock_.acquire();
-            e.t_ += min_delay_;
-            spikeout_.push_back(e);
-            spike_lock_.release();
+        switch(type){
+            case SPIKE:
+                spike_lock_.acquire();
+                e.t_ += min_delay_;
+                spikeout_.push_back(e);
+                spike_lock_.release();
+                break;
+            case LOCAL:
+            //if destination id is my own, self event, else ite
+                thread_datas_[e.data_].self_send(e.data_, e.t_);
+                break;
+            case ITE:
+                thread_datas_[e.data_].inter_thread_send(
+                    e.data_, (e.t_ + min_delay_));
+                break;
+            default:
+                std::cerr<<"error: invalid event type:"<<type<<std::endl;
+                exit(EXIT_FAILURE);
         }
-        //if destination id is my own, self event, else ite
-        else if(e.data_ == myID)
-            thread_datas_[e.data_].self_send(e.data_, e.t_);
-        else
-            thread_datas_[e.data_].inter_thread_send(e.data_, (e.t_ + min_delay_));
     }
 }
 
@@ -204,42 +265,12 @@ void pool::filter(){
     spikein_.clear();
 }
 
-gen_event pool::create_event(int myID, int curTime, int totalTime){
-    event new_event;
-    int diff = 1;
-    if(totalTime > 10)
-           diff = rand() % (totalTime/10);
-
-    //set time_ to be some time in the future t + diff
-    new_event.t_ = static_cast<double>(curTime + diff);
-
-    int dst = myID;
-    bool is_spike = false;
-    int percent = rand() % 100;
-    if (percent < percent_spike_){
-        //send as spike
-        assert(output_presyns_.size() > 0);
-        int index = rand() % output_presyns_.size();
-        dst = output_presyns_[index];
-        is_spike = true;
-    }
-    else if(percent < (percent_spike_ + percent_ite_)){
-        //send as inter_thread_event_
-        while(dst == myID)
-            dst = rand() % thread_datas_.size();
-    }
-    //else self send
-    new_event.data_ = dst;
-    return gen_event(new_event,is_spike);
-}
-
 //PARALLEL FUNCTIONS
 void pool::time_step(){
     int size = thread_datas_.size();
     #pragma omp parallel for schedule(static,1)
     for(int i = 0; i < size; ++i){
         send_events(i);
-
         //Have threads enqueue their interThreadEvents
         thread_datas_[i].enqueue_my_events();
 

@@ -26,6 +26,8 @@
 #ifndef thread_h
 #define thread_h
 
+#include <queue>
+
 #include "coreneuron_1.0/kernel/mechanism/mechanism.h"
 #include "coreneuron_1.0/kernel/helper.h"
 #include "coreneuron_1.0/common/memory/nrnthread.h"
@@ -42,7 +44,7 @@
 #endif
 
 namespace queueing {
-typedef std::pair<event,bool> gen_event;
+typedef std::pair<event,event_type> gen_event;
 
 class nrn_thread_data{
 private:
@@ -56,7 +58,7 @@ private:
     NrnThread* nt_;
     /// vector for inter thread events
     std::vector<event> inter_thread_events_;
-    std::vector<gen_event> generated_events_;
+    std::queue<gen_event> generated_events_;
 public:
     int ite_received_;
     int enqueued_;
@@ -89,26 +91,32 @@ public:
      */
     bool deliver(int id, int til);
 
-    /** \fn inter_thread_size()
+    /** \fn bool inter_thread_size()
      *  \return the size of inter_thread_events_
      */
     size_t inter_thread_size(){return inter_thread_events_.size();}
 
-    /** \fn pq_size()
+    /** \fn size_t pq_size()
      *  \return the size of qe_
      */
     size_t pq_size(){return qe_.size();}
 
-    /** \fn push_generated_event(int d, double tt, bool s)
+    /** \fn size_t push_generated_event(int d, double tt, bool s)
      *  \brief pushes an event into generated event vector
      */
-    void push_generated_event(int d, double tt, bool s);
+    void push_generated_event(int d, double tt, event_type et);
 
-    /** \fn pop_generated_event()
+    /** \fn gen_event pop_generated_event()
      *  \brief pops a generated event
      *  \returns the next event in generated event vector
      */
     gen_event pop_generated_event();
+
+    /** \fn double top_event_time()
+     *  \brief tops a generated event time
+     *  \returns the time of the next event in generated event vector
+     */
+    double top_event_time();
 
     /** \fn void inter_thread_send(int d, double tt)
      *  \brief sends an Event to the destination thread's array

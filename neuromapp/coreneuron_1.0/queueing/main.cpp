@@ -57,12 +57,12 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
      "number of OMP thread")
     ("cell-groups,c", po::value<int>()->default_value(64),
 	 "number of cell groups in the simulation")
-    ("events-per,e", po::value<int>()->default_value(50),
-     "number of events created per time step")
+    ("num-local,l", po::value<int>()->default_value(50000),
+     "number of local events")
     ("time,t", po::value<int>()->default_value(5000),
      "number of time steps in the simulation")
-    ("percent-ite,i", po::value<int>()->default_value(90),
-     "the percentage of inter-thread events out of total events")
+    ("num-ite,i", po::value<int>()->default_value(0),
+     "the number of inter-thread events")
     ("verbose,v","provides additional outputs during execution")
     ("with-algebra,a","simulation performs linear algebra calculations");
 
@@ -81,22 +81,23 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
         std::cout<<"cell-groups should be >= numthreads"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
-    if(vm["events-per"].as<int>() < 1){
-        std::cout<<"eventsper must be non-zero"<<std::endl;
+    if(vm["num-local"].as<int>() < 0){
+        std::cout<<"num-local must be non-zero"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
     if(vm["time"].as<int>() < 1){
         std::cout<<"time must be non-zero"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
-   if( (vm["percent-ite"].as<int>() < 0)){
-        std::cout<<"percentages cannot be negative"<<std::endl;
+   if( (vm["num-ite"].as<int>() < 0)){
+        std::cout<<"num-ite cannot be negative"<<std::endl;
         return mapp::MAPP_BAD_ARG;
-   }
-   if( (vm["percent-ite"].as<int>()) > 100 ){
-        std::cout<<"percent-ite can not exceed 100%"<<std::endl;
+    }
+   if( (vm["num-ite"].as<int>() + vm["num-local"].as<int>() == 0)){
+        std::cout<<"running test with no events"<<std::endl;
         return mapp::MAPP_BAD_ARG;
-   }
+    }
+
 #ifdef _OPENMP
     omp_set_num_threads(vm["nthreads"].as<int>());
 #endif
@@ -109,12 +110,12 @@ int qhelp(int argc, char* const argv[], po::variables_map& vm){
  */
 void queueing_miniapp(po::variables_map const& vm){
     int cellgroups = vm["cell-groups"].as<int>();
-    int p_ite = vm["percent-ite"].as<int>();
-    int eventsper = vm["events-per"].as<int>();
+    int n_ite = vm["num-ite"].as<int>();
+    int n_local = vm["num-local"].as<int>();
     bool verbose = vm.count("verbose");
     bool algebra = vm.count("with-algebra");
 
-    pool pl(cellgroups, eventsper, p_ite, verbose, algebra);
+    pool pl(cellgroups, n_local, n_ite, verbose, algebra);
 
     struct timeval start, end;
     pl.generate_all_events(vm["time"].as<int>());

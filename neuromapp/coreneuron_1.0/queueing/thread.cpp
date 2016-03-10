@@ -116,19 +116,26 @@ bool nrn_thread_data::deliver(int id, int til){
     return false;
 }
 
-void nrn_thread_data::push_generated_event(int d, double tt, bool s){
+void nrn_thread_data::push_generated_event(int d, double tt, event_type et){
     event e;
     e.data_ = d;
     e.t_ = tt;
-    gen_event g(e, s);
-    generated_events_.push_back(g);
+    gen_event g(e, et);
+    generated_events_.push(g);
 }
 
 gen_event nrn_thread_data::pop_generated_event(){
-    assert(generated_events_.size() > 0);
-    gen_event e = generated_events_.back();
-    generated_events_.pop_back();
-    return e;
+    assert(!generated_events_.empty());
+    gen_event g = generated_events_.front();
+    generated_events_.pop();
+    return g;
+}
+
+double nrn_thread_data::top_event_time(){
+    assert(!generated_events_.empty());
+    gen_event g = generated_events_.front();
+    event e = g.first;
+    return e.t_;
 }
 
 } //endnamespace

@@ -46,7 +46,6 @@ environment::environment(int nspikes,int simtime,int out,int in,int netcons,int 
 
     //random number generation for setup and spike vals spikes
     int seed = time(NULL)+rank;
-    srand(seed);
     exp_dist_lambda_ = static_cast<double>(num_spikes_) /
                        static_cast<double>(sim_time_ - min_delay_);
     std::cout<<"lambda = "<<exp_dist_lambda_<<std::endl;
@@ -79,9 +78,8 @@ environment::environment(int nspikes,int simtime,int out,int in,int netcons,int 
         //select N unique netcons to cell groups
         for(int i = 0; i < num_in_; ++i){
             int presyn = available_inputs[i];
-            int index = rand()%(num_cells_ - netcons_per_input_);
             for(int j = 0; j < netcons_per_input_; ++j){
-                input_presyns_[presyn].push_back(cellgroups[index+j]);
+                input_presyns_[presyn].push_back(cellgroups[j]);
             }
         }
     }

@@ -56,7 +56,7 @@ private:
 public:
 
     /**
-     * \fn environment(int e, int ns, int o, int i, int nc, int p, int r)
+     * \fn random_gen(int seed, int max, double lambda)
      * \brief environment constructor. Initializes member variables.
      * \param seed unique seed to generate random numbers
      * \param max the maximum value in the uniform range

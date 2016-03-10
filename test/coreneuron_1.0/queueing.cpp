@@ -46,40 +46,6 @@ namespace bfs = ::boost::filesystem;
 //UNIT TESTS
 
 /*
- * Unit test for pool::create_event function
- *
- *     - Test boundary case where percent-ite = 0%, all events should be self-events
- *       (i.e. if src == 0, dst == 0)
- *     - Test boundary where percent-ite = 100%, no events should be self-events
- *       (i.e. if src == 0, dst != 0)
- */
-BOOST_AUTO_TEST_CASE(pool_create_event){
-    int cellgroups = 64;
-    int eventsper = 20;
-    int pite = 0;
-    //percent-ite = 0%
-    queueing::pool pl1(cellgroups, eventsper, pite);
-    queueing::gen_event g;
-    queueing::event e;
-    int totalTime = 1000;
-    int curTime = 0;
-    for(int i = 0; i < 10; ++i){
-            g = pl1.create_event(0,curTime,totalTime);
-            e = g.first;
-            BOOST_CHECK(e.data_ == 0);
-    }
-
-    pite = 100;
-    //percent-ite = 100%
-    queueing::pool pl2(cellgroups, eventsper, pite);
-    for(int i = 0; i < 10; ++i){
-            g = pl2.create_event(0,curTime,totalTime);
-            e = g.first;
-            BOOST_CHECK(e.data_ != 0);
-    }
-}
-
-/*
  * Unit test for nrn_thread_data::self_send function
  *
  *    - after n number of self-send events:
@@ -88,7 +54,7 @@ BOOST_AUTO_TEST_CASE(pool_create_event){
  */
 BOOST_AUTO_TEST_CASE(thread_self_send){
 	queueing::nrn_thread_data nt;
-	double data = 0.0;
+	int data = 0;
 	double time = 0.0;
 	int n = rand() % 10;
 
@@ -108,7 +74,7 @@ BOOST_AUTO_TEST_CASE(thread_self_send){
  */
 BOOST_AUTO_TEST_CASE(thread_inter_send){
 	queueing::nrn_thread_data nt;
-	double data = 0.0;
+	int data = 0;
 	double time = 0.0;
 	int n = rand() % 10;
 
@@ -131,7 +97,7 @@ BOOST_AUTO_TEST_CASE(thread_inter_send){
  */
 BOOST_AUTO_TEST_CASE(thread_enqueue){
 	queueing::nrn_thread_data nt;
-	double data = 0.0;
+	int data = 0;
 	double time = 0.0;
 	int m = (rand() % 10) + 1;
 	int n = (rand() % 10);
@@ -164,13 +130,13 @@ BOOST_AUTO_TEST_CASE(thread_deliver){
     queueing::nrn_thread_data nt;
 
 	//enqueue 6 events
-    nt.self_send(0.0,4.0);
-    nt.inter_thread_send(0.0,1.0);
-    nt.inter_thread_send(0.0,2.0);
-    nt.inter_thread_send(0.0,3.0);
-    nt.self_send(0.0,5.0);
+    nt.self_send(0,4.0);
+    nt.inter_thread_send(0,1.0);
+    nt.inter_thread_send(0,2.0);
+    nt.inter_thread_send(0,3.0);
+    nt.self_send(0,5.0);
     nt.enqueue_my_events();
-    nt.self_send(0.0,6.0);
+    nt.self_send(0,6.0);
     BOOST_CHECK(nt.pq_size() == 6);
 
 
@@ -226,9 +192,9 @@ BOOST_AUTO_TEST_CASE(net_receive){
 BOOST_AUTO_TEST_CASE(mutex_test){
     char arg1[]="NULL";
     char arg2[]="--nthreads=8";
-    char arg3[]="--events-per=25";
+    char arg3[]="--num-local=50";
     char arg4[]="--time=50";
-    char arg5[]="--percent-ite=90";
+    char arg5[]="--num-ite=400";
     char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
     int argc = 5;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
@@ -244,9 +210,9 @@ BOOST_AUTO_TEST_CASE(mutex_test){
 BOOST_AUTO_TEST_CASE(mech_solver){
     char arg1[]="NULL";
     char arg2[]="--nthreads=8";
-    char arg3[]="--events-per=25";
-    char arg4[]="--time=100";
-    char arg5[]="--percent-ite=0";
+    char arg3[]="--num-local=2500";
+    char arg4[]="--time=10";
+    char arg5[]="--num-ite=0";
     char arg6[]="--with-algebra";
     char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
     int argc = 6;
@@ -269,9 +235,9 @@ BOOST_AUTO_TEST_CASE(mech_solver){
 BOOST_AUTO_TEST_CASE(full_ite){
     char arg1[]="NULL";
     char arg2[]="--nthreads=8";
-    char arg3[]="--events-per=25";
+    char arg3[]="--num-local=0";
     char arg4[]="--time=25";
-    char arg5[]="--percent-ite=100";
+    char arg5[]="--num-ite=100";
     char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg5};
     int argc = 5;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
@@ -284,10 +250,12 @@ BOOST_AUTO_TEST_CASE(full_ite){
 
     const int time = 25;
     const int cellgroups = 64;
-    const int eventsper = 25;
-    //verify the correct number of inter-thread events were received
-    BOOST_CHECK(neuromapp_data.get<int>(key1) == (time * cellgroups * eventsper));
-    BOOST_CHECK(neuromapp_data.get<int>(key2) <= (time * cellgroups * eventsper));
+    const double num_ite = 100.0;
+    double percent_received = neuromapp_data.get<int>(key1) / num_ite;
+    double percent_enqueued = neuromapp_data.get<int>(key2) / num_ite;
+
+    //verify the number of received and enqueued inter-thread events were close
+    BOOST_CHECK_CLOSE(percent_received, percent_enqueued, 10);
     BOOST_CHECK(neuromapp_data.get<int>(key3) == 0);
     neuromapp_data.clear("inter_received");
     neuromapp_data.clear("enqueued");
@@ -305,9 +273,9 @@ BOOST_AUTO_TEST_CASE(full_ite){
 BOOST_AUTO_TEST_CASE(no_ite){
     char arg1[]="NULL";
     char arg2[]="--nthreads=8";
-    char arg3[]="--events-per=25";
+    char arg3[]="--num-local=25";
     char arg4[]="--time=25";
-    char arg5[]="--percent-ite=0";
+    char arg5[]="--num-ite=0";
     char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
     int argc = 5;
     BOOST_CHECK(queueing_execute(argc,argv)==0);
@@ -323,7 +291,7 @@ BOOST_AUTO_TEST_CASE(no_ite){
     //verify that no inter-thread events were received
     BOOST_CHECK( neuromapp_data.get<int>(key1) == 0);
     //verify that the correct number of events were enqueued
-    BOOST_CHECK(neuromapp_data.get<int>(key2) == (time * cellgroups * eventsper));
+    //BOOST_CHECK(neuromapp_data.get<int>(key2) == (time * cellgroups * eventsper));
     neuromapp_data.clear("inter_received");
     neuromapp_data.clear("enqueued");
     neuromapp_data.clear("delivered");
@@ -331,14 +299,14 @@ BOOST_AUTO_TEST_CASE(no_ite){
 }
 
 /**
- * Verifies that the test returns MAPP_BAD_ARG when percentages > 100%:
+ * Handle test with no events gracefully
  */
-BOOST_AUTO_TEST_CASE(invalid_percentages){
+BOOST_AUTO_TEST_CASE(no_events){
     char arg1[]="NULL";
     char arg2[]="--nthreads=8";
-    char arg3[]="--events-per=25";
+    char arg3[]="--num-local=0";
     char arg4[]="--time=25";
-    char arg5[]="--percent-ite=101";
+    char arg5[]="--num-ite=0";
     char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
     int argc = 5;
 

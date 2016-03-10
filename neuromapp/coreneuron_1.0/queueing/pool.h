@@ -44,10 +44,10 @@ private:
 #endif
 
     int num_cells_;
-    int events_per_step_;
     int netcons_per_input_;
-    int percent_ite_;
-    int percent_spike_;
+    int num_local_;
+    int num_ite_;
+    int num_spike_;
     bool v_;
     bool perform_algebra_;
     int time_;
@@ -72,8 +72,8 @@ public:
     std::vector<int> nin_;
     std::vector<int> displ_;
 
-    /** \fn pool(int numCells, int eventsPer, int pITE, bool verbose, bool algebra
-     * int pSpike, int out, int in, int procs, int rank)
+    /** \fn pool(int numCells, int nLocal, int nIte, bool verbose, bool algebra
+     * int nSpike, int out, int in, int procs, int rank)
      *  \brief initializes a pool with a thread_datas_ array
      *  \param verbose verbose mode: 1 = on, 0 = off
      *  \param events_per_step_ number of events per time step
@@ -81,8 +81,8 @@ public:
      *  \param isSpike determines whether or not there are spike events
      *  \param algebra determines whether to perform linear algebra calculations
      */
-    explicit pool(int numCells=1, int eventsPer=1, int pITE=0,
-    bool verbose=false, bool algebra=false, int pSpike=0,
+    explicit pool(int numCells=1, int nLocal=0, int nIte=0,
+    bool verbose=false, bool algebra=false, int nSpike=0,
     int out=1, int in=1, int nc=1, int procs=1, int rank=0);
 
     /**
@@ -97,6 +97,13 @@ public:
      *  \brief accumulates statistics from the threadData array and stores them using impl::storage
      */
     void accumulate_stats();
+
+
+    /** \fn calculate_probs(double& lambda, double* cdf, int totalTime)
+     *  \brief updates the values of lambda and cdf based on the number
+     *  of events of each type (spike, ite, local), and the time
+     */
+    void calculate_probs(double& lambda, double* cdf, int totalTime);
 
     /** \fn void generate_all_events(int totalTime)
      *  \brief creates all events for each thread that will be sent
@@ -121,16 +128,6 @@ public:
      *  using a no-lock inter_thread_send
      */
     void filter();
-
-    /** \fn int create_event(int myID, int curTime, int totalTime)
-     *  \brief randomly generates a new event with data dependent on the values of
-     *  percent-ite and percent-spike
-     *  \param myID the thread index
-     *  \param curTime the current time
-     *  \param totalTime the total simulation time
-     *  \return new_event
-     */
-    gen_event create_event(int myID, int curTime, int totalTime);
 
     /* \fn increment_time()
      * \brief increments the time_ counter
