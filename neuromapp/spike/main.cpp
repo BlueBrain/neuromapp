@@ -54,7 +54,7 @@ int spike_help(int argc, char* const argv[], po::variables_map& vm){
     //("eventsper", po::value<size_t>()->default_value(10), "average number of events generated per dt")
     //("percent-ite", po::value<size_t>()->default_value(90), "the percentage of events (per timestep) that are inter-thread")
     ("simtime", po::value<size_t>()->default_value(100), "The number of timesteps in the simulation")
-    ("numspike", po::value<size_t>()->default_value(30), "the total number of spikes in the simulation")
+    ("numspike", po::value<size_t>()->default_value(30), "the number of spikes generated per process")
     ("numOut", po::value<size_t>()->default_value(4), "number of output presyns (gids) per process")
     ("numIn", po::value<size_t>()->default_value(12), "the number of input presyns per process")
     ("ncper", po::value<size_t>()->default_value(5), "average number of netcons per input presyn")

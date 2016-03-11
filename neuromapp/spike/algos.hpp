@@ -189,7 +189,6 @@ inline void wait(MPI_Request request){
  */
 template<typename data>
 void blocking_spike(data& d, MPI_Datatype spike){
-    d.time_step();
     //gather how many spikes each process is sending
     allgather(d);
     //set the displacements
@@ -259,51 +258,15 @@ template<typename data>
 void run_sim(data& d, bool non_blocking){
     MPI_Datatype spike = create_spike_type();
     d.generate_all_events();
-    for(int i = 0; i <= d.simtime(); ++i){
-        if((i % d.mindelay()) == 0){
-            //load spikeout with the spikes to be sent
-            if(non_blocking)
-                non_blocking_spike(d, spike);
-            else{
-                barrier();
-                blocking_spike(d, spike);
-                barrier();
-            }
-            d.filter();
-            d.spikeout_.clear();
-            d.spikein_.clear();
-        }
-        else{
-            d.time_step();
-        }
-        d.increment_time();
+    for(int i = 0; i <= (d.simtime() / d.mindelay()); ++i){
+        //load spikeout with the spikes to be sent
+        d.fixed_step();
+        blocking_spike(d, spike);
+        d.filter();
+        d.spikeout_.clear();
+        d.spikein_.clear();
     }
     MPI_Type_free(&spike);
 }
 
 #endif
-
-//DISTRIBUTED
-/*
-template<typename data>
-MPI_COMM create_dist_graph(data& d){
-    MPI_COMM neighborhood;
-    MPI_Dist_graph_create_adjacent(MPI_COMM_WORLD, d.in_neighbors_.size(),
-        &(d.in_neighbors_[0]), MPI_UNWEIGHTED, d.out_neighbors_.size(),
-        &(d.out_neighbors_[0]), MPI_UNWEIGHTED, MPI_INFO_NULL,
-        false, &neighborhood);
-    return neighborhood;
-}
-
-template<typename data>
-void neighbor_allgather(data& d, MPI_Comm neighborhood){
-    MPI_Neighbor_allgather(&(d.spikeout_.size()), 1, MPI_INT,
-        &(d.nin_[0]), 1, MPI_INT, neighborhood);
-}
-
-template<typename data>
-void neighbor_allgatherv(data& d, MPI_Datatype spike, MPI_Comm neighborhood){
-    MPI_Neighbor_allgatherv(&(d.spikeout_[0]), d.spikeout_.size(), spike,
-        &(d.spikein_[0]), &(d.nin_[0]), &(d.displ_[0]), spike, neighborhood);
-}
-*/

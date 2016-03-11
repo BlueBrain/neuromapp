@@ -48,6 +48,7 @@ private:
     int num_local_;
     int num_ite_;
     int num_spike_;
+    double sim_time_;
     bool v_;
     bool perform_algebra_;
     int time_;
@@ -60,7 +61,7 @@ private:
     int num_procs_;
     int rank_;
     int total_received_;
-    int total_relevent_;
+    int total_relevant_;
 
     std::vector<nrn_thread_data> thread_datas_;
 
@@ -75,14 +76,20 @@ public:
     /** \fn pool(int numCells, int nLocal, int nIte, bool verbose, bool algebra
      * int nSpike, int out, int in, int procs, int rank)
      *  \brief initializes a pool with a thread_datas_ array
+     *  \param numCells number of cell groups
+     *  \param nLocal number of local events
+     *  \param nIte number of ite events
+     *  \param simTime the run time of the simulation
      *  \param verbose verbose mode: 1 = on, 0 = off
-     *  \param events_per_step_ number of events per time step
-     *  \param percent_ite_ is the percentage of inter-thread events
-     *  \param isSpike determines whether or not there are spike events
      *  \param algebra determines whether to perform linear algebra calculations
+     *  \param nSpike number of spike events
+     *  \param out the number of output presyns
+     *  \param in the number of input presyns
+     *  \param procs the number of processes
+     *  \param rank the rank of the current process
      */
     explicit pool(int numCells=1, int nLocal=0, int nIte=0,
-    bool verbose=false, bool algebra=false, int nSpike=0,
+    int simTime=0, bool verbose=false, bool algebra=false, int nSpike=0,
     int out=1, int in=1, int nc=1, int procs=1, int rank=0);
 
     /**
@@ -99,28 +106,28 @@ public:
     void accumulate_stats();
 
 
-    /** \fn calculate_probs(double& lambda, double* cdf, int totalTime)
+    /** \fn calculate_probs(double& lambda, double* cdf)
      *  \brief updates the values of lambda and cdf based on the number
      *  of events of each type (spike, ite, local), and the time
      */
-    void calculate_probs(double& lambda, double* cdf, int totalTime);
+    void calculate_probs(double& lambda, double* cdf);
 
-    /** \fn void generate_all_events(int totalTime)
+    /** \fn void generate_all_events()
      *  \brief creates all events for each thread that will be sent
      *   and received during the simulation lifetime.
      *  these are stored in the vector generated_events[] for each thread
-     *  \param totalTime provides the total simulation time
      *  \postcond all events for the simulation are generated
      */
-    void generate_all_events(int totalTime);
+    void generate_all_events();
 
     /** \fn send_events(int myID)
      *  \brief sends event to it's destination
      *  \param myID the thread index
      *  \precond generateAllEvents has been called
      *  \postcond thread_datas_[myID].generated_events size -= 1
+     *  \return the time of the top element
      */
-    void send_events(int myID);
+    double send_events(int myID);
 
     /** \fn void filter()
      *  \brief filters out relevent events(using the function matches()),
@@ -133,6 +140,11 @@ public:
      * \brief increments the time_ counter
      */
     void increment_time(){++time_;}
+
+    /* \fn simtime()
+     * \return the value of sim_time_
+     */
+    int simtime() const {return sim_time_;}
 
     /* \fn mindelay()
      * \return the value of min_delay_
@@ -152,16 +164,17 @@ public:
     /* \fn relevent()
      * \return the value of total_relevent_
      */
-    int relevent() const {return total_relevent_;}
+    int relevant() const {return total_relevant_;}
 
 
 
 //PARALLEL FUNCTIONS
-    /** \fn void time_step()
+    /** \fn void fixed_step()
      *  \brief master function to call parallel
-     *   send, enqueue, algebra, and deliver
+     *   send, enqueue, algebra, and deliver.
+     *   performs (min_delay_) time steps.
      */
-    void time_step();
+    void fixed_step();
 
     /** \fn void parallel_send()
      *  \brief calls parallel send for every cellgroup

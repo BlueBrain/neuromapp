@@ -25,7 +25,7 @@
 #include "test/spike/pool_adapter.h"
 #include "spike/environment.h"
 typedef boost::mpl::list<
-//                            queueing::pool_adapter,
+                            queueing::pool_adapter,
                             spike::environment
                             > full_test_types;
 

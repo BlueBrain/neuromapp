@@ -58,9 +58,6 @@ int main(int argc, char* argv[]) {
 //    int size = mapp::master.size();
 //    int rank = mapp::master.rank();
 
-//    int cellgroups = atoi(argv[1]);
-//    int eventsPer = atoi(argv[2]);
-//    int pite = atoi(argv[3]);
     int simTime = atoi(argv[1]);
     int nspike = atoi(argv[2]);
     int numOut = atoi(argv[3]);
@@ -70,9 +67,8 @@ int main(int argc, char* argv[]) {
 
     struct timeval start, end;
     assert(numIn <= (numOut * (size - 1)));
-    //numcells, eventsper, percent ite, verbose, algebra, percent spike, numout, numin, size, rank
-    //queueing::pool env(cellgroups, eventsPer, pite, true, true,
-    spike::environment env(nspike, simTime, numOut, numIn, netconsPer, size, rank);
+    //spike::environment env(nspike, simTime, numOut, numIn, netconsPer, size, rank);
+    queueing::pool env(64, 0, 0, simTime, false, false, nspike, numOut, numIn, netconsPer, size, rank);
 
     gettimeofday(&start, NULL);
     run_sim(env, isNonBlocking);
@@ -80,9 +76,9 @@ int main(int argc, char* argv[]) {
 
     env.accumulate_stats();
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec)) + ((end.tv_usec - start.tv_usec) / 1000);
-        std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
-        std::cout<<"Process zero received: "<<env.received()<<" spikes"<<std::endl;
-        std::cout<<"Process zero received: "<<env.relevant()<<" RELEVANT spikes"<<std::endl;
+        //std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+        std::cout<<"Process "<<rank<<" received: "<<env.received()<<" spikes"<<std::endl;
+        //std::cout<<"Process "<<rank<<" received: "<<env.relevant()<<" RELEVANT spikes"<<std::endl;
     MPI_Finalize();
     //mapp::master.finalize();
     return 0;

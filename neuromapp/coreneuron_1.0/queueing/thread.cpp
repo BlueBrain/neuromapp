@@ -36,6 +36,7 @@ namespace queueing {
 
 nrn_thread_data::nrn_thread_data(): ite_received_(0), enqueued_(0), delivered_(0) {
     input_parameters p;
+    time_ = 0;
     char name[] = "coreneuron_1.0_queueing_data";
     std::string data = mapp::data_test();
     p.name = name;

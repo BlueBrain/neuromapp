@@ -114,16 +114,15 @@ void queueing_miniapp(po::variables_map const& vm){
     int n_local = vm["num-local"].as<int>();
     bool verbose = vm.count("verbose");
     bool algebra = vm.count("with-algebra");
-
-    pool pl(cellgroups, n_local, n_ite, verbose, algebra);
+    int simtime = vm["time"].as<int>();
+    pool pl(cellgroups, n_local, n_ite, simtime, verbose, algebra);
 
     struct timeval start, end;
-    pl.generate_all_events(vm["time"].as<int>());
+    pl.generate_all_events();
     gettimeofday(&start, NULL);
 
-    for(int j = 0; j < vm["time"].as<int>(); ++j){
-        pl.time_step();
-        pl.increment_time();
+    for(int j = 0; j < (simtime/pl.mindelay()); ++j){
+        pl.fixed_step();
     }
     pl.accumulate_stats();
 

@@ -24,10 +24,10 @@ namespace queueing{
  */
 class pool_adapter : public pool {
 public:
-    pool_adapter(int eventsPer, int numOut, int numIn,
-                 int netcons, int size, int rank):
-        pool(64, eventsPer, 0, false, false, 100, numOut,
-                    numIn, netcons, size, rank){};
+    pool_adapter(int nSpike, int simtime, int numOut,
+        int numIn, int netcons, int size, int rank):
+        pool(64, 0, 0, simtime, true, false, nSpike,
+            numOut, numIn, netcons, size, rank){};
 };
 
 }

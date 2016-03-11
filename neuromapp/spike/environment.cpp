@@ -45,7 +45,7 @@ environment::environment(int nspikes,int simtime,int out,int in,int netcons,int 
     time_ = 0;
 
     //random number generation for setup and spike vals spikes
-    int seed = time(NULL)+rank;
+    int seed = time(NULL) + rank;
     exp_dist_lambda_ = static_cast<double>(num_spikes_) /
                        static_cast<double>(sim_time_ - min_delay_);
     std::cout<<"lambda = "<<exp_dist_lambda_<<std::endl;
@@ -111,11 +111,14 @@ void environment::generate_all_events(){
 }
 
 
-void environment::time_step(){
+void environment::fixed_step(){
     //enqueue all spikes up to the current time
-    while(!generated_spikes_.empty() && generated_spikes_.back().t_ <= time_){
-        spikeout_.push_back(generated_spikes_.back());
-        generated_spikes_.pop_back();
+    for(int i = 0; i < min_delay_; ++i){
+        while(!generated_spikes_.empty() && generated_spikes_.back().t_ <= time_){
+            spikeout_.push_back(generated_spikes_.back());
+            generated_spikes_.pop_back();
+        }
+        ++time_;
     }
 }
 
@@ -127,24 +130,20 @@ void environment::set_displ(){
         total += nin_[i];
     }
     spikein_.resize(total);
-    std::cout<<"Total spikes sent at time "<<time_<<": "<<total<<std::endl;
-    std::cout<<"Outbound spikes: "<<spikeout_.size()<<std::endl;
+    //std::cout<<"Total spikes sent at time "<<time_<<": "<<total<<std::endl;
+    //std::cout<<"Outbound spikes: "<<spikeout_.size()<<std::endl;
 }
 
 void environment::filter(){
     total_received_ += spikein_.size();
     std::map<int, int_vec>::iterator it;
     spike_item ev;
-    int rel = 0;
-    int cntr = 0;
     for(size_t i = 0; i < spikein_.size(); ++i){
         it = input_presyns_.begin();
         ev = spikein_[i];
         it = input_presyns_.find(ev.data_);
         if(it != input_presyns_.end()){
             ++total_relevant_;
-        }
-        else{
         }
     }
 }

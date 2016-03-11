@@ -63,6 +63,7 @@ public:
     int ite_received_;
     int enqueued_;
     int delivered_;
+    int time_;
 
     /** \fn nrn_thread_data()
      *  \brief initializes nrn_thread_data and creates a new priority queue
@@ -91,15 +92,20 @@ public:
      */
     bool deliver(int id, int til);
 
-    /** \fn bool inter_thread_size()
+    /** \fn size_t inter_thread_size()
      *  \return the size of inter_thread_events_
      */
-    size_t inter_thread_size(){return inter_thread_events_.size();}
+    size_t inter_thread_size() const {return inter_thread_events_.size();}
 
     /** \fn size_t pq_size()
      *  \return the size of qe_
      */
-    size_t pq_size(){return qe_.size();}
+    size_t pq_size() const {return qe_.size();}
+
+    /** \fn size_t pq_size()
+     *  \return the size of qe_
+     */
+    size_t gen_size() const {return generated_events_.size();}
 
     /** \fn size_t push_generated_event(int d, double tt, bool s)
      *  \brief pushes an event into generated event vector

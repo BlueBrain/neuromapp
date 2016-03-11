@@ -41,12 +41,14 @@
 namespace queueing {
 
 pool::pool(int numCells, int nLocal, int nIte,
-bool verbose, bool algebra, int nSpike,
+int simTime, bool verbose, bool algebra, int nSpike,
 int out, int in, int nc, int procs, int rank){
     num_cells_ = numCells;
     num_local_ = nLocal;
     num_ite_ = nIte;
     num_spike_ = nSpike;
+    sim_time_ = static_cast<double>(simTime);
+    std::cout<<simTime<<std::endl;
     v_ = verbose;
     perform_algebra_ = algebra;
     num_out_ = out;
@@ -54,10 +56,9 @@ int out, int in, int nc, int procs, int rank){
     netcons_per_input_ = nc;
     num_procs_ = procs;
     rank_ = rank;
-    time_ = 0;
     spike_events_ = 0;
     total_received_ = 0;
-    total_relevent_ = 0;
+    total_relevant_ = 0;
 
     thread_datas_.resize(num_cells_);
 
@@ -76,7 +77,13 @@ int out, int in, int nc, int procs, int rank){
         }
         //create a randomly ordered list of input_presyns_
         assert(available_inputs.size() >= num_in_);
-        boost::random_shuffle(available_inputs);
+
+        //random presyn and netcon selection
+        boost::mt19937 generator(time(NULL) + rank_);
+        boost::uniform_int<> uni_dist;
+        boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
+            randomNumber(generator, uni_dist);
+        boost::random_shuffle(available_inputs, randomNumber);
         available_inputs.resize(num_in_);
         //create a vector of randomly ordered cellgroups
         cellgroups.resize(num_cells_);
@@ -84,14 +91,13 @@ int out, int in, int nc, int procs, int rank){
 
         //for each input presyn,
         //select N unique netcons to cell groups
+        boost::random_shuffle(cellgroups, randomNumber);
         for(int i = 0; i < num_in_; ++i){
             int presyn = available_inputs[i];
-            boost::random_shuffle(cellgroups);
             for(int j = 0; j < netcons_per_input_; ++j){
                 input_presyns_[presyn].push_back(cellgroups[j]);
             }
         }
-
     }
     else{
         for(int i = 0; i < num_out_; ++i){
@@ -122,14 +128,6 @@ void pool::accumulate_stats(){
         all_ite_received += thread_datas_[i].ite_received_;
         all_enqueued += thread_datas_[i].enqueued_;
         all_delivered += thread_datas_[i].delivered_;
-/*        if(v_){
-            std::cout<<"Cellgroup "<<i<<" ite received: "
-            <<thread_datas_[i].ite_received_<<std::endl;
-            std::cout<<"Cellgroup "<<i<<" enqueued: "<<
-            thread_datas_[i].enqueued_<<std::endl;
-            std::cout<<"Cellgroup "<<i<<" delivered: "<<
-            thread_datas_[i].delivered_<<std::endl;
-        }*/
     }
 
     if(v_){
@@ -144,32 +142,29 @@ void pool::accumulate_stats(){
     neuromapp_data.put_copy("delivered", all_delivered);
 }
 
-void pool::calculate_probs(double& lambda, double* cdf, int totalTime){
+void pool::calculate_probs(double& lambda, double* cdf){
     double sum = num_spike_ + num_ite_ + num_local_;
     //mean here the amount of time between spikes for entire sim
-    double mean = static_cast<double>(totalTime) / sum;
-    //redefine mean as amount of time between spikes
-    //PER cellgroup
-    mean = mean * num_procs_ * num_cells_;
+    double mean = sim_time_ / sum;
     std::cout<<"MEAN = "<<mean<<std::endl;
-    lambda = 1.0/mean;
+    lambda = 1.0 / (mean * num_cells_);
     std::cout<<"LAMBDA = "<<lambda<<std::endl;
     cdf[SPIKE] = num_spike_/sum;
     cdf[ITE] = (num_spike_ + num_ite_)/sum;
 }
 
-void pool::generate_all_events(int totalTime){
+void pool::generate_all_events(){
     int dest = 0;
+    int n = 0;
     double event_time = 0;
     int int_tt = 0;
     double percent = 0;
-    double end = static_cast<double>(totalTime);
     event_type type;
-    boost::mt19937 gen(rank_ + time(NULL));
+    boost::mt19937 rng(rank_ + time(NULL));
 
     double cumulative_percents[2];
     double lambda = 0;
-    calculate_probs(lambda, cumulative_percents, totalTime);
+    calculate_probs(lambda, cumulative_percents);
 
     //generates percentages between 0 and 1
     boost::random::uniform_real_distribution<> percent_g(0.0,1.0);
@@ -185,23 +180,30 @@ void pool::generate_all_events(int totalTime){
 
     for(size_t i = 0; i < thread_datas_.size(); ++i){
         event_time = 0;
-        while(event_time < end){
+        //create events up until simulation end
+        while(event_time < sim_time_){
             //increment event time
-            event_time += time_g(gen);
-
-            percent = percent_g(gen);
+            double diff = time_g(rng);
+            event_time += diff;
+            if(event_time <= sim_time_){
+                ++n;
+            }
+            percent = percent_g(rng);
+            //SPIKE EVENT
             if(percent < cumulative_percents[SPIKE]){
                 type = SPIKE;
-                dest = gid_g(gen);
+                dest = output_presyns_[gid_g(rng)];
             }
+            //INTER THREAD EVENT
             else if(percent < cumulative_percents[ITE]){
                 type = ITE;
-                dest = cellgroup_g(gen);
+                dest = cellgroup_g(rng);
                 //dst cannot equal i
                 while(dest == i)
-                    dest = cellgroup_g(gen);
+                    dest = cellgroup_g(rng);
 
             }
+            //LOCAL EVENT
             else{
                 type = LOCAL;
                 dest = i;//myID
@@ -210,11 +212,14 @@ void pool::generate_all_events(int totalTime){
             //push into generated events array
             thread_datas_[i].push_generated_event(dest, int_tt, type);
         }
+        //std::cout<<"created "<<n<<" events"<<std::endl;
     }
 }
 
-void pool::send_events(int myID){
-    while(thread_datas_[myID].top_event_time() <= time_){
+double pool::send_events(int myID){
+    int curTime = thread_datas_[myID].time_;
+    while((thread_datas_[myID].gen_size() != 0) &&
+          (thread_datas_[myID].top_event_time() <= curTime)){
         gen_event g = thread_datas_[myID].pop_generated_event();
         event e = g.first;
         event_type type = g.second;
@@ -240,19 +245,19 @@ void pool::send_events(int myID){
                 exit(EXIT_FAILURE);
         }
     }
+    return thread_datas_[myID].top_event_time();
 }
 
 void pool::filter(){
     total_received_ += spikein_.size();
-
-    //"Receive" spikes
-    event ev;
     std::map<int, std::vector<int> >::iterator it;
+    event ev;
     for(int i = 0; i < spikein_.size(); ++i){
+        it = input_presyns_.begin();
         ev = spikein_[i];
         it = input_presyns_.find(ev.data_);
         if(it != input_presyns_.end()){
-            ++total_relevent_;
+            ++total_relevant_;
             for(size_t j = 0; j < it->second.size(); ++j){
                 int dest = it->second[j];
                 //send using non-mutex inter-thread send here
@@ -266,19 +271,30 @@ void pool::filter(){
 }
 
 //PARALLEL FUNCTIONS
-void pool::time_step(){
+void pool::fixed_step(){
     int size = thread_datas_.size();
+    double top_time = 0;
+    int curTime;
     #pragma omp parallel for schedule(static,1)
     for(int i = 0; i < size; ++i){
-        send_events(i);
-        //Have threads enqueue their interThreadEvents
-        thread_datas_[i].enqueue_my_events();
+        for(int j = 0; j < size; ++j){
+            curTime = thread_datas_[i].time_;
+            if(top_time <= curTime){
+                assert(curTime <= sim_time_);
+                std::cout<<"sim time:"<<sim_time_<<" time: "<<curTime<<std::endl;
+                top_time = send_events(i);
+            }
+            //Have threads enqueue their interThreadEvents
+            thread_datas_[i].enqueue_my_events();
 
-        if(perform_algebra_)
-            thread_datas_[i].l_algebra(time_);
+            if(perform_algebra_)
+                thread_datas_[i].l_algebra(curTime);
 
-        /// Deliver events
-        while(thread_datas_[i].deliver(i, time_));
+            /// Deliver events
+            while(thread_datas_[i].deliver(i, curTime));
+
+            ++thread_datas_[i].time_;
+        }
     }
 }
 
@@ -303,7 +319,7 @@ void pool::parallel_algebra(){
         int size = thread_datas_.size();
         #pragma omp parallel for schedule(static,1)
         for(int i = 0; i < size; ++i){
-            thread_datas_[i].l_algebra(time_);
+            thread_datas_[i].l_algebra(thread_datas_[i].time_);
         }
     }
 }
@@ -312,7 +328,7 @@ void pool::parallel_deliver(){
     int size = thread_datas_.size();
     #pragma omp parallel for schedule(static,1)
     for(int i = 0; i < size; ++i){
-        while(thread_datas_[i].deliver(i, time_));
+        while(thread_datas_[i].deliver(i, thread_datas_[i].time_));
     }
 }
 

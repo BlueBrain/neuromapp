@@ -58,7 +58,7 @@ public:
     /** \fn size()
      *  \return the size of pq_que
      */
-    size_t size(){return pq_que.size();}
+    size_t size() const {return pq_que.size();}
 
     /** \fn Event* atomic_dq(double til, event q)
      *  \brief pops a single event off of the queue with time < til

@@ -122,10 +122,10 @@ public:
     environment(int ns, int t, int o, int i, int nc, int p, int r);
 
     /**
-     * \fn void time_step()
+     * \fn void fixed_step()
      * \brief prepares spikeout for allgather/allgatherv.
      */
-    void time_step();
+    void fixed_step();
 
     /**
      * \fn void set_displ()
