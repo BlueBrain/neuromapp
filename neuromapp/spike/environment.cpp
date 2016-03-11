@@ -110,7 +110,6 @@ void environment::generate_all_events(){
     }
 }
 
-
 void environment::fixed_step(){
     //enqueue all spikes up to the current time
     for(int i = 0; i < min_delay_; ++i){
@@ -120,18 +119,6 @@ void environment::fixed_step(){
         }
         ++time_;
     }
-}
-
-void environment::set_displ(){
-    displ_[0] = 0;
-    int total = nin_[0];
-    for(int i=1; i < num_procs_; ++i){
-        displ_[i] = total;
-        total += nin_[i];
-    }
-    spikein_.resize(total);
-    //std::cout<<"Total spikes sent at time "<<time_<<": "<<total<<std::endl;
-    //std::cout<<"Outbound spikes: "<<spikeout_.size()<<std::endl;
 }
 
 void environment::filter(){
@@ -145,17 +132,6 @@ void environment::filter(){
         if(it != input_presyns_.end()){
             ++total_relevant_;
         }
-    }
-}
-
-//USED BY NON-BLOCKING API
-void environment::parallel_send(){
-    //should still send out events
-    //all other tasks are calls to usleep
-    //enqueue all spikes up to the current time
-    while(!generated_spikes_.empty() && generated_spikes_.back().t_ <= time_){
-        spikeout_.push_back(generated_spikes_.back());
-        generated_spikes_.pop_back();
     }
 }
 

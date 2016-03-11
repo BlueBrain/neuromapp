@@ -166,11 +166,6 @@ public:
     int relevant() const {return total_relevant_;}
     int simtime() const {return sim_time_;}
 
-//TASKS
-    void parallel_send();
-    void parallel_enqueue(){usleep(10);}
-    void parallel_algebra(){usleep(10);}
-    void parallel_deliver(){usleep(10);}
 };
 
 }

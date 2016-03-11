@@ -57,23 +57,6 @@ void nrn_thread_data::self_send(int d, double tt){
     qe_.insert(tt, d);
 }
 
-void nrn_thread_data::l_algebra(int time){
-    nt_->_t = static_cast<double>(time);
-
-       //Update the current
-       mech_current_NaTs2_t(nt_,&(nt_->ml[17]));
-       mech_current_Ih(nt_,&(nt_->ml[10]));
-       mech_current_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
-
-    //Call solver
-    nrn_solve_minimal(nt_);
-
-    //Update the states
-    mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
-    mech_state_Ih(nt_,&(nt_->ml[10]));
-    mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
-}
-
 void nrn_thread_data::inter_thread_send(int d, double tt){
     lock_.acquire();
     event ite;
@@ -117,26 +100,21 @@ bool nrn_thread_data::deliver(int id, int til){
     return false;
 }
 
-void nrn_thread_data::push_generated_event(int d, double tt, event_type et){
-    event e;
-    e.data_ = d;
-    e.t_ = tt;
-    gen_event g(e, et);
-    generated_events_.push(g);
-}
+void nrn_thread_data::l_algebra(int time){
+    nt_->_t = static_cast<double>(time);
 
-gen_event nrn_thread_data::pop_generated_event(){
-    assert(!generated_events_.empty());
-    gen_event g = generated_events_.front();
-    generated_events_.pop();
-    return g;
-}
+       //Update the current
+       mech_current_NaTs2_t(nt_,&(nt_->ml[17]));
+       mech_current_Ih(nt_,&(nt_->ml[10]));
+       mech_current_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
 
-double nrn_thread_data::top_event_time(){
-    assert(!generated_events_.empty());
-    gen_event g = generated_events_.front();
-    event e = g.first;
-    return e.t_;
+    //Call solver
+    nrn_solve_minimal(nt_);
+
+    //Update the states
+    mech_state_NaTs2_t(nt_,&(nt_->ml[17]));
+    mech_state_Ih(nt_,&(nt_->ml[10]));
+    mech_state_ProbAMPANMDA_EMS(nt_,&(nt_->ml[18]));
 }
 
 } //endnamespace

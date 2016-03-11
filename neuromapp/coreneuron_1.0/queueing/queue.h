@@ -35,9 +35,6 @@
 
 namespace queueing {
 
-//events can be sent to other process, other thread or self
-enum event_type{SPIKE,ITE,LOCAL};
-
 struct event {
     int data_;
     double t_;

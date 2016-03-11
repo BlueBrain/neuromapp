@@ -136,11 +136,6 @@ public:
      */
     void filter();
 
-    /* \fn increment_time()
-     * \brief increments the time_ counter
-     */
-    void increment_time(){++time_;}
-
     /* \fn simtime()
      * \return the value of sim_time_
      */
@@ -165,36 +160,6 @@ public:
      * \return the value of total_relevent_
      */
     int relevant() const {return total_relevant_;}
-
-
-
-//PARALLEL FUNCTIONS
-    /** \fn void fixed_step()
-     *  \brief master function to call parallel
-     *   send, enqueue, algebra, and deliver.
-     *   performs (min_delay_) time steps.
-     */
-    void fixed_step();
-
-    /** \fn void parallel_send()
-     *  \brief calls parallel send for every cellgroup
-     */
-    void parallel_send();
-
-    /** \fn void parallel_enqueue()
-     *  \brief calls parallel enqueue for every cellgroup
-     */
-    void parallel_enqueue();
-
-    /** \fn void parallel_algebra()
-     *  \brief calls parallel algebra for every cellgroup
-     */
-    void parallel_algebra();
-
-    /** \fn void parallel_deliver()
-     *  \brief calls parallel deliver for every cellgroup
-     */
-    void parallel_deliver();
 };
 
 }

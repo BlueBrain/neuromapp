@@ -44,7 +44,6 @@
 #endif
 
 namespace queueing {
-typedef std::pair<event,event_type> gen_event;
 
 class nrn_thread_data{
 private:
@@ -79,51 +78,6 @@ public:
      **/
     void self_send(int d, double tt);
 
-    /** \fn void l_algebra()
-     *  \brief performs the mechanism calculations/updates for linear algebra
-     */
-    void l_algebra(int time);
-
-    /** \fn bool deliver(int id, int til)
-     *  \brief dequeue all items with time < til
-     *  \param id used in sanity check to verify destination
-     *  \param til the current time. compared against event times
-     *  \return true if event delivered, else false
-     */
-    bool deliver(int id, int til);
-
-    /** \fn size_t inter_thread_size()
-     *  \return the size of inter_thread_events_
-     */
-    size_t inter_thread_size() const {return inter_thread_events_.size();}
-
-    /** \fn size_t pq_size()
-     *  \return the size of qe_
-     */
-    size_t pq_size() const {return qe_.size();}
-
-    /** \fn size_t pq_size()
-     *  \return the size of qe_
-     */
-    size_t gen_size() const {return generated_events_.size();}
-
-    /** \fn size_t push_generated_event(int d, double tt, bool s)
-     *  \brief pushes an event into generated event vector
-     */
-    void push_generated_event(int d, double tt, event_type et);
-
-    /** \fn gen_event pop_generated_event()
-     *  \brief pops a generated event
-     *  \returns the next event in generated event vector
-     */
-    gen_event pop_generated_event();
-
-    /** \fn double top_event_time()
-     *  \brief tops a generated event time
-     *  \returns the time of the next event in generated event vector
-     */
-    double top_event_time();
-
     /** \fn void inter_thread_send(int d, double tt)
      *  \brief sends an Event to the destination thread's array
      *  \param d the event's data value
@@ -143,6 +97,29 @@ public:
      *  ites_ to my priority queue
      */
     void enqueue_my_events();
+
+    /** \fn bool deliver(int id, int til)
+     *  \brief dequeue all items with time < til
+     *  \param id used in sanity check to verify destination
+     *  \param til the current time. compared against event times
+     *  \return true if event delivered, else false
+     */
+    bool deliver(int id, int til);
+
+    /** \fn void l_algebra()
+     *  \brief performs the mechanism calculations/updates for linear algebra
+     */
+    void l_algebra(int time);
+
+    /** \fn size_t inter_thread_size()
+     *  \return the size of inter_thread_events_
+     */
+    size_t inter_thread_size() const {return inter_thread_events_.size();}
+
+    /** \fn size_t pq_size()
+     *  \return the size of qe_
+     */
+    size_t pq_size() const {return qe_.size();}
 };
 
 } //endnamespace

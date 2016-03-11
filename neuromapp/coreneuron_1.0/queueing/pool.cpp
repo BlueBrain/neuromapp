@@ -40,13 +40,10 @@
 
 namespace queueing {
 
-pool::pool(int numCells, int nLocal, int nIte,
-int simTime, bool verbose, bool algebra, int nSpike,
+pool::pool(int numCells,
+int simTime, bool verbose, bool algebra,
 int out, int in, int nc, int procs, int rank){
     num_cells_ = numCells;
-    num_local_ = nLocal;
-    num_ite_ = nIte;
-    num_spike_ = nSpike;
     sim_time_ = static_cast<double>(simTime);
     std::cout<<simTime<<std::endl;
     v_ = verbose;
@@ -61,7 +58,12 @@ int out, int in, int nc, int procs, int rank){
     total_relevant_ = 0;
 
     thread_datas_.resize(num_cells_);
+    create_presysns();
+    nin_.resize(num_procs_);
+    displ_.resize(num_procs_);
+}
 
+void pool::create_presyns(){
     //assign input and output gid's
     std::vector<int> available_inputs;
     std::vector<int> cellgroups;
@@ -105,19 +107,6 @@ int out, int in, int nc, int procs, int rank){
         }
         assert(input_presyns_.empty());
     }
-
-    nin_.resize(num_procs_);
-    displ_.resize(num_procs_);
-}
-
-void pool::set_displ(){
-    displ_[0] = 0;
-    int total = nin_[0];
-    for(int i=1; i < num_procs_; ++i){
-        displ_[i] = total;
-        total += nin_[i];
-    }
-    spikein_.resize(total);
 }
 
 void pool::accumulate_stats(){
@@ -142,85 +131,11 @@ void pool::accumulate_stats(){
     neuromapp_data.put_copy("delivered", all_delivered);
 }
 
-void pool::calculate_probs(double& lambda, double* cdf){
-    double sum = num_spike_ + num_ite_ + num_local_;
-    //mean here the amount of time between spikes for entire sim
-    double mean = sim_time_ / sum;
-    std::cout<<"MEAN = "<<mean<<std::endl;
-    lambda = 1.0 / (mean * num_cells_);
-    std::cout<<"LAMBDA = "<<lambda<<std::endl;
-    cdf[SPIKE] = num_spike_/sum;
-    cdf[ITE] = (num_spike_ + num_ite_)/sum;
-}
-
-void pool::generate_all_events(){
-    int dest = 0;
-    int n = 0;
-    double event_time = 0;
-    int int_tt = 0;
-    double percent = 0;
-    event_type type;
-    boost::mt19937 rng(rank_ + time(NULL));
-
-    double cumulative_percents[2];
-    double lambda = 0;
-    calculate_probs(lambda, cumulative_percents);
-
-    //generates percentages between 0 and 1
-    boost::random::uniform_real_distribution<> percent_g(0.0,1.0);
-    //generates random increment for event time
-    //follows poisson process
-    boost::random::exponential_distribution<double> time_g(lambda);
-
-    //generates indices for output_presyns_
-    boost::random::uniform_int_distribution<> gid_g(0, (output_presyns_.size() - 1));
-
-    //generates indices for threadDatas
-    boost::random::uniform_int_distribution<> cellgroup_g(0, (num_cells_ - 1));
-
-    for(size_t i = 0; i < thread_datas_.size(); ++i){
-        event_time = 0;
-        //create events up until simulation end
-        while(event_time < sim_time_){
-            //increment event time
-            double diff = time_g(rng);
-            event_time += diff;
-            if(event_time <= sim_time_){
-                ++n;
-            }
-            percent = percent_g(rng);
-            //SPIKE EVENT
-            if(percent < cumulative_percents[SPIKE]){
-                type = SPIKE;
-                dest = output_presyns_[gid_g(rng)];
-            }
-            //INTER THREAD EVENT
-            else if(percent < cumulative_percents[ITE]){
-                type = ITE;
-                dest = cellgroup_g(rng);
-                //dst cannot equal i
-                while(dest == i)
-                    dest = cellgroup_g(rng);
-
-            }
-            //LOCAL EVENT
-            else{
-                type = LOCAL;
-                dest = i;//myID
-            }
-            int_tt = static_cast<int>(event_time);
-            //push into generated events array
-            thread_datas_[i].push_generated_event(dest, int_tt, type);
-        }
-        //std::cout<<"created "<<n<<" events"<<std::endl;
-    }
-}
-
 double pool::send_events(int myID){
     int curTime = thread_datas_[myID].time_;
-    while((thread_datas_[myID].gen_size() != 0) &&
-          (thread_datas_[myID].top_event_time() <= curTime)){
-        gen_event g = thread_datas_[myID].pop_generated_event();
+    while(generator_.empty(myID)) &&
+    (generator_.compare_lte(myID, curTime)){
+        gen_event g = generator_.pop(myID);
         event e = g.first;
         event_type type = g.second;
         assert(e.data_ < num_cells_);
@@ -245,7 +160,7 @@ double pool::send_events(int myID){
                 exit(EXIT_FAILURE);
         }
     }
-    return thread_datas_[myID].top_event_time();
+    return generator_[myID].compare_lte(myID, curTime);
 }
 
 void pool::filter(){
@@ -272,12 +187,11 @@ void pool::filter(){
 
 //PARALLEL FUNCTIONS
 void pool::fixed_step(){
-    int size = thread_datas_.size();
     double top_time = 0;
     int curTime;
     #pragma omp parallel for schedule(static,1)
-    for(int i = 0; i < size; ++i){
-        for(int j = 0; j < size; ++j){
+    for(int i = 0; i < num_cells_; ++i){
+        for(int j = 0; j < num_cells_; ++j){
             curTime = thread_datas_[i].time_;
             if(top_time <= curTime){
                 assert(curTime <= sim_time_);
@@ -295,40 +209,6 @@ void pool::fixed_step(){
 
             ++thread_datas_[i].time_;
         }
-    }
-}
-
-void pool::parallel_send(){
-    int size = thread_datas_.size();
-    #pragma omp parallel for schedule(static,1)
-    for(int i = 0; i < size; ++i){
-        send_events(i);
-    }
-}
-
-void pool::parallel_enqueue(){
-    int size = thread_datas_.size();
-    #pragma omp parallel for schedule(static,1)
-    for(int i = 0; i < size; ++i){
-        thread_datas_[i].enqueue_my_events();
-    }
-}
-
-void pool::parallel_algebra(){
-    if(perform_algebra_){
-        int size = thread_datas_.size();
-        #pragma omp parallel for schedule(static,1)
-        for(int i = 0; i < size; ++i){
-            thread_datas_[i].l_algebra(thread_datas_[i].time_);
-        }
-    }
-}
-
-void pool::parallel_deliver(){
-    int size = thread_datas_.size();
-    #pragma omp parallel for schedule(static,1)
-    for(int i = 0; i < size; ++i){
-        while(thread_datas_[i].deliver(i, thread_datas_[i].time_));
     }
 }
 
