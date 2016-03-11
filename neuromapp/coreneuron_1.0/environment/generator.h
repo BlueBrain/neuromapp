@@ -1,7 +1,7 @@
-#ifndef MAPP_QUEUEING_GENERATOR_H
-#define MAPP_QUEUEING_GENERATOR_H
+#ifndef MAPP_GENERATOR_H
+#define MAPP_GENERATOR_H
 
-namespace queueing {
+namespace environment {
 
 //events can be sent to other process, other thread or self
 //create a pair out of event and event type
@@ -11,16 +11,13 @@ typedef std::pair<event,event_type> gen_event;
 class event_generator {
 private:
     int cumulative_percents_[2];
-    double sim_time_;
-    int cell_groups_;
-    int num_out_;
-    double lambda_;
+    int sum_;
     std::vector<std::queue<gen_event> > event_pool_;
 
 public:
     event_generator();
 
-    void operator(std::vector<int>& outputs);
+    void operator()(const sim_env& env, const presyn_maker& presyns);
 
     bool compare_lte const (int id, double comparator);
 
