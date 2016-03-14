@@ -1,5 +1,5 @@
 /*
- * Neuromapp - test.cpp, Copyright (c), 2015,
+ * Neuromapp - spike.cpp, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/test/spike/test.cpp
+ * @file neuromapp/test/coreneuron_1.0/event_passing/spike.cpp
  *  Test on the Spike Miniapp.
  */
 

@@ -3,10 +3,12 @@
 
 namespace environment {
 
+#include "coreneuron_1.0/event_passing/queueing/queue.h"
+
 //events can be sent to other process, other thread or self
 //create a pair out of event and event type
 enum event_type{SPIKE,ITE,LOCAL};
-typedef std::pair<event,event_type> gen_event;
+typedef std::pair<queueing::event,event_type> gen_event;
 
 class event_generator {
 private:
@@ -17,7 +19,8 @@ private:
 public:
     event_generator();
 
-    void operator()(const sim_env& env, const presyn_maker& presyns);
+    void operator()(
+    const sim_constraints& constraints, const presyn_maker& presyns);
 
     bool compare_lte const (int id, double comparator);
 

@@ -49,4 +49,4 @@ bool queue::atomic_dq(double tt, event& q) {
     return false;
 }
 
-}
+} //end of namespace

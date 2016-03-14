@@ -69,8 +69,8 @@ public:
      */
     void filter();
 
-    void fixed_step(){
+    void fixed_step();
 };
 
-}
+} //end of namespace
 #endif

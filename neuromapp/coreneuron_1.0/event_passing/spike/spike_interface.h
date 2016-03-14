@@ -1,5 +1,5 @@
 /*
- * Neuromapp - sim_env.h, Copyright (c), 2015,
+ * Neuromapp - spike_interface.h, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,29 +19,22 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/environment/sim_env.h
- * \brief Contains sim_env class declaration.
+ * @file neuromapp/coreneuron_1.0/spike/spike_interface.h
+ * \brief Contains spike_interface class declaration.
  */
 
-#ifndef MAPP_SIM_ENV_H
-#define MAPP_SIM_ENV_H
+#ifndef MAPP_SPIKE_INTERFACE_H
+#define MAPP_SPIKE_INTERFACE_H
 
-namespace environment {
 
-struct sim_env{
+namespace spike {
+
+struct spike_interface{
 #ifdef _OPENMP
     mapp::omp_lock lock_;
 #else
     mapp::dummy_lock lock_;
 #endif
-
-    //simulation variables
-    const static int min_delay_ = 5;
-    int num_groups_;
-    double sim_time_;
-    int num_procs_;
-    int time_;
-    int rank_;
 
     //CONTAINERS
     std::vector<event> spikein_;
@@ -50,5 +43,6 @@ struct sim_env{
     std::vector<int> displ_;
 };
 
-}
+} //end of namespace
+
 #endif

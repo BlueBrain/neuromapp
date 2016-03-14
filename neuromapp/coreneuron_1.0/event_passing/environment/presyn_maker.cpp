@@ -7,18 +7,18 @@
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-#include "coreneuron_1.0/environment/presyn_maker.h"
-#include "coreneuron_1.0/environment/environment.h"
+#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
+#include "coreneuron_1.0/event_passing/environment/environment.h"
 
 namespace environment {
 
-void presyn_maker::operator()(const sim_env& env){
+void presyn_maker::operator()(const sim_constraints& constraints){
     //assign input and output gid's
     std::vector<int> available_inputs;
     std::vector<int> cellgroups;
-    int nprocs = env.num_procs_;
-    int ngroups = env.num_group_;
-    int rank = env.rank_;
+    int nprocs = constraints.get_nprocs();
+    int ngroups = constraints.get_ngroups();
+    int rank = constraints.get_rank();
 
     assert(ngroups > 2);
     if(nprocs > 1){

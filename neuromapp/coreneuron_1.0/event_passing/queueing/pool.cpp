@@ -147,4 +147,4 @@ void pool::fixed_step(){
     }
 }
 
-}
+} //end of namespace

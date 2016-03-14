@@ -131,7 +131,6 @@ void queueing_miniapp(po::variables_map const& vm){
     std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
 }
 
-} //end namespace
 int queueing_execute(int argc, char* const argv[]){
     try {
         po::variables_map vm; // it contains everything
@@ -145,3 +144,4 @@ int queueing_execute(int argc, char* const argv[]){
     return mapp::MAPP_OK; // 0 ok, 1 not ok
 }
 
+} //end namespace

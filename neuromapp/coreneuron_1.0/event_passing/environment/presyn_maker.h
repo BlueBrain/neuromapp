@@ -28,7 +28,8 @@
 
 namespace environment {
 
-#include "coreneuron_1.0/environment/generator.h"
+#include "coreneuron_1.0/event_passing/environment/environment.h"
+#include "coreneuron_1.0/event_passing/environment/generator.h"
 
 class presyn_maker {
 private:
@@ -38,10 +39,14 @@ private:
     std::vector<int> outputs_;
     std::map<int, std::vector<int> > inputs_;
 public:
-    presyn_maker(int out, int in, int netcons_per) : n_out_(out), n_in_(in), nets_per_(netcons_per);
+    presyn_maker(int out, int in, int netcons_per):
+    n_out_(out), n_in_(in), nets_per_(netcons_per);
 
-    void operator()(const sim_env& env);
+    void operator()(const sim_constraints& constraints);
 
-    friend void operator()(const sim_env& env, const presyn_maker& presyns);
-}
+    friend void operator()(
+    const sim_constraints& constraints, const presyn_maker& presyns);
+};
+
+} //end of namespace
 #endif

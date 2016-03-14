@@ -1,6 +1,5 @@
 add_subdirectory (utils)
 add_subdirectory (hello)
-add_subdirectory (spike)
 add_subdirectory (keyvalue)
 add_subdirectory (coreneuron_1.0)
 add_subdirectory (app)
