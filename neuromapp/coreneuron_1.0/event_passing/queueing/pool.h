@@ -26,7 +26,10 @@
 #ifndef MAPP_POOL_H_
 #define MAPP_POOL_H_
 
-#include "coreneuron_1.0/queueing/thread.h"
+#include "coreneuron_1.0/event_passing/queueing/thread.h"
+#include "coreneuron_1.0/event_passing/environment/generator.h"
+#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
+#include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "utils/storage/neuromapp_data.h"
 
 #ifdef _OPENMP
@@ -38,6 +41,11 @@ namespace queueing {
 class pool {
 private:
     bool perform_algebra_;
+    const static int min_delay_ = 5;
+    int time_;
+    int relevant_;
+    int received_;
+    spike::spike_interface& spike_;
     std::vector<nrn_thread_data> thread_datas_;
 
 public:
@@ -46,7 +54,9 @@ public:
      *  \brief initializes a pool with a thread_datas_ array
      *  \param algebra determines whether to perform linear algebra calculations
      */
-    explicit pool(bool algebra=false);
+    pool(bool algebra, int ngroups, spike::spike_interface& s_interface):
+    perform_algebra_(algebra), spike_(s_interface), time_(0), received_(0), relevant_(0)
+    {thread_datas_.resize(ngroups);}
 
     /** \fn ~pool()
      *  \brief accumulates statistics from the threadData array and stores them using impl::storage
@@ -60,16 +70,20 @@ public:
      *  \postcond thread_datas_[myID].generated_events size -= 1
      *  \return the time of the top element
      */
-    double send_events(int myID);
+    void send_events(int myID, environment::event_generator& generator);
 
     /** \fn void filter()
      *  \brief filters out relevent events(using the function matches()),
      *  and randomly selects a destination cellgroup, and delivers them
      *  using a no-lock inter_thread_send
      */
-    void filter();
+    void filter(environment::presyn_maker& presyns);
 
-    void fixed_step();
+    void fixed_step(environment::event_generator& generator);
+
+    int get_ngroups() const { return thread_datas_.size(); }
+
+    int get_time() const { return time_; }
 };
 
 } //end of namespace

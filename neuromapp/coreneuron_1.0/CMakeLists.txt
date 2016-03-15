@@ -35,9 +35,12 @@ target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common
 
 install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep
                  coreneuron10_common DESTINATION lib)
+
 install (FILES  kernel/mechanism/mechanism.h
                 kernel/kernel.h
                 solver/solver.h
                 cstep/cstep.h
                 common/data/helper.h
                 DESTINATION include)
+
+add_subdirectory (event_passing)

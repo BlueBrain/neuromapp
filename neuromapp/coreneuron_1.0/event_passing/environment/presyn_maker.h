@@ -26,10 +26,13 @@
 #ifndef MAPP_PRESYN_MAKER_H
 #define MAPP_PRESYN_MAKER_H
 
+#include <map>
+
+#include "coreneuron_1.0/event_passing/environment/generator.h"
+
 namespace environment {
 
-#include "coreneuron_1.0/event_passing/environment/environment.h"
-#include "coreneuron_1.0/event_passing/environment/generator.h"
+typedef std::pair<int, std::vector<int> > input_presyn;
 
 class presyn_maker {
 private:
@@ -39,14 +42,22 @@ private:
     std::vector<int> outputs_;
     std::map<int, std::vector<int> > inputs_;
 public:
-    presyn_maker(int out, int in, int netcons_per):
-    n_out_(out), n_in_(in), nets_per_(netcons_per);
+    explicit presyn_maker(int out=0, int in=0, int netcons_per=0):
+    n_out_(out), n_in_(in), nets_per_(netcons_per) {}
 
-    void operator()(const sim_constraints& constraints);
+    void operator()(int nprocs, int ngroups, int rank);
 
-    friend void operator()(
-    const sim_constraints& constraints, const presyn_maker& presyns);
+    //GETTERS
+    //gets from output presyns
+    int operator[](int id) const;
+
+    int get_nout() const { return n_out_; }
+    int get_nin() const { return n_in_; }
+
+    //gets from input presyns
+    bool find_input(int id, input_presyn& presyn) const;
 };
 
 } //end of namespace
+
 #endif

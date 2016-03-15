@@ -35,7 +35,7 @@
 #include "coreneuron_1.0/solver/hines.h"
 #include "utils/storage/storage.h"
 
-#include "coreneuron_1.0/queueing/queue.h"
+#include "coreneuron_1.0/event_passing/queueing/queue.h"
 #include "utils/omp/lock.h"
 #include "coreneuron_1.0/common/data/helper.h"
 
@@ -57,7 +57,6 @@ private:
     NrnThread* nt_;
     /// vector for inter thread events
     std::vector<event> inter_thread_events_;
-    std::queue<gen_event> generated_events_;
 public:
     int ite_received_;
     int enqueued_;
@@ -104,12 +103,12 @@ public:
      *  \param til the current time. compared against event times
      *  \return true if event delivered, else false
      */
-    bool deliver(int id, int til);
+    bool deliver(int id);
 
     /** \fn void l_algebra()
      *  \brief performs the mechanism calculations/updates for linear algebra
      */
-    void l_algebra(int time);
+    void l_algebra();
 
     /** \fn size_t inter_thread_size()
      *  \return the size of inter_thread_events_
@@ -120,6 +119,10 @@ public:
      *  \return the size of qe_
      */
     size_t pq_size() const {return qe_.size();}
+
+    int get_time() const {return time_;}
+
+    void increment_time() {++time_;}
 };
 
 } //endnamespace

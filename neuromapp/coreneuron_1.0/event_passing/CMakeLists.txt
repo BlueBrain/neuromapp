@@ -3,10 +3,44 @@
 
 
 #ENVIRONMENT LIBRARY
-add_library (coreneuron10_environment generator.cpp presyn_maker.cpp)
+add_library (coreneuron10_environment environment/generator.cpp
+                                      environment/presyn_maker.cpp)
 
-install (TARGETS environment DESTINATION lib)
-install (FILES environment.h generator.h presyn_maker.h DESTINATION include)
+install (TARGETS coreneuron10_environment DESTINATION lib)
+install (FILES environment/environment.h
+               environment/generator.h
+               environment/presyn_maker.h DESTINATION include)
+
+
+#QUEUEING LIBRARY
+add_library (coreneuron10_queueing queueing/pool.cpp
+                                   queueing/thread.cpp
+                                   queueing/queue.cpp)
+
+install (TARGETS coreneuron10_queueing DESTINATION lib)
+install (FILES queueing/pool.h
+               queueing/thread.h
+               queueing/queue.h DESTINATION include)
+target_link_libraries (coreneuron10_queueing
+                       coreneuron10_environment
+                       coreneuron10_solver
+                       coreneuron10_cstep
+                       storage)
+
+#SPIKE LIBRARY
+install (FILES spike/algos.hpp
+               spike/spike.h
+               spike/spike_interface.h DESTINATION include)
+
+#APP
+add_executable(coreneuron10_event_app   drivers/main2.cpp)
+target_link_libraries (coreneuron10_event_app
+                       coreneuron10_queueing
+                       coreneuron10_environment
+                       ${MPI_CXX_LIBRARIES}
+                       ${MPI_C_LIBRARIES})
+
+install (TARGETS coreneuron10_event_app DESTINATION bin)
 
 
 #Add spike to the mini-app library

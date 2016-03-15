@@ -33,18 +33,19 @@
 #include <iostream>
 #include <fstream>
 
-#include "coreneuron_1.0/queueing/queueing.h"
-#include "coreneuron_1.0/queueing/queue.h"
-#include "coreneuron_1.0/queueing/pool.h"
-#include "coreneuron_1.0/queueing/thread.h"
+#include "coreneuron_1.0/event_passing/queueing/queue.h"
+#include "coreneuron_1.0/event_passing/queueing/pool.h"
+#include "coreneuron_1.0/event_passing/queueing/thread.h"
+#include "coreneuron_1.0/event_passing/environment/generator.h"
+#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
+#include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "utils/error.h"
 #include "utils/storage/neuromapp_data.h"
 #include "coreneuron_1.0/common/data/helper.h"
 
 namespace bfs = ::boost::filesystem;
 
-//UNIT TESTS
-
+//THREAD TESTS
 /*
  * Unit test for nrn_thread_data::self_send function
  *
@@ -140,22 +141,25 @@ BOOST_AUTO_TEST_CASE(thread_deliver){
     BOOST_CHECK(nt.pq_size() == 6);
 
 
-	//deliver the first item
-	int til = 6;
-    nt.deliver(0,til);
+    //deliver the first item
+    nt.increment_time();
+    nt.deliver(0);
     BOOST_CHECK(nt.delivered_ == 1);
     BOOST_CHECK(nt.pq_size() == 5);
 
-	//deliver the next 2
-	til = 3;
-    while(nt.deliver(0,til))
+    //deliver the next 2
+    nt.increment_time();
+    nt.increment_time();
+    while(nt.deliver(0))
         ;
     BOOST_CHECK(nt.delivered_ == 3);
     BOOST_CHECK(nt.pq_size() == 3);
 
-	//deliver the remaining
-	til = 6;
-    while(nt.deliver(0,til))
+    //deliver the remaining
+    nt.increment_time();
+    nt.increment_time();
+    nt.increment_time();
+    while(nt.deliver(0))
         ;
     BOOST_CHECK(nt.delivered_ == 6);
     BOOST_CHECK(nt.pq_size() == 0);
@@ -185,136 +189,81 @@ BOOST_AUTO_TEST_CASE(net_receive){
     mapp::helper_check(name, "net_receive", mapp::data_test());
 }
 
-//INTEGRATION TESTS
-/*
- * Tests that the program executes using mutex/vector implementation
- */
-BOOST_AUTO_TEST_CASE(mutex_test){
-    char arg1[]="NULL";
-    char arg2[]="--nthreads=8";
-    char arg3[]="--num-local=50";
-    char arg4[]="--time=50";
-    char arg5[]="--num-ite=400";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
-    int argc = 5;
-    BOOST_CHECK(queueing_execute(argc,argv)==0);
-    neuromapp_data.clear("inter_received");
-    neuromapp_data.clear("enqueued");
-    neuromapp_data.clear("delivered");
-    neuromapp_data.clear("spikes");
+
+//POOL REGRESSION TESTING
+BOOST_AUTO_TEST_CASE(pool_constructor){
+    int nprocs = 4;
+    int ngroups = 8;
+    spike::spike_interface spike(nprocs);
+
+    queueing::pool pl(false, ngroups, spike);
+    BOOST_CHECK(pl.get_ngroups() == ngroups);
 }
 
-/*
- * Tests that the program executes using with-algebra option
- */
-BOOST_AUTO_TEST_CASE(mech_solver){
-    char arg1[]="NULL";
-    char arg2[]="--nthreads=8";
-    char arg3[]="--num-local=2500";
-    char arg4[]="--time=10";
-    char arg5[]="--num-ite=0";
-    char arg6[]="--with-algebra";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg6};
-    int argc = 6;
 
-    BOOST_CHECK(queueing_execute(argc,argv)==0);
-    neuromapp_data.clear("inter_received");
-    neuromapp_data.clear("enqueued");
-    neuromapp_data.clear("delivered");
-    neuromapp_data.clear("spikes");
+BOOST_AUTO_TEST_CASE(pool_send_spikes){
+    int out = 10;
+    int in = 5;
+    int netconsper = 1;
+    int nprocs = 4;
+    int ngroups = 8;
+    int nspike = 100;
+    int simtime = 5;
+    int rank = 0;
+
+    //create the test environment
+    environment::presyn_maker presyns(out, in, netconsper);
+    environment::event_generator generator(nspike, 0, 0);
+    spike::spike_interface spike(nprocs);
+
+    //generate
+    presyns(nprocs, ngroups, rank);
+    generator(simtime, ngroups, rank, presyns);
+    int sum_events = 0;
+    for(int i = 0; i < ngroups; ++i){
+        sum_events += generator.get_size(i);
+    }
+
+    //process events
+    queueing::pool pl(false, ngroups, spike);
+    pl.fixed_step(generator);
+
+    //check that every event went to the spikeout_ buffer
+    BOOST_CHECK(sum_events == spike.spikeout_.size());
+    std::cout<<"SUM: "<<sum_events<<" SPIKES: "<<spike.spikeout_.size()<<std::endl;
 }
 
-/**
- * Verifies that the expected results occur when percent_ite = 100%:
- *
- * 	  - inter_received should equal the total number of events in the simulation
- * 	    (time * cellgroups * eventsper)
- * 	  - enqueued events should not exceed the number of inter_thread events
- * 	  - spikes should equal 0
- */
-BOOST_AUTO_TEST_CASE(full_ite){
-    char arg1[]="NULL";
-    char arg2[]="--nthreads=8";
-    char arg3[]="--num-local=0";
-    char arg4[]="--time=25";
-    char arg5[]="--num-ite=100";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5, arg5};
-    int argc = 5;
-    BOOST_CHECK(queueing_execute(argc,argv)==0);
-    std::string key1("inter_received");
-    BOOST_CHECK(neuromapp_data.has<int>(key1));
-    std::string key2("enqueued");
-    BOOST_CHECK(neuromapp_data.has<int>(key2));
-    std::string key3("spikes");
-    BOOST_CHECK(neuromapp_data.has<int>(key3));
+BOOST_AUTO_TEST_CASE(pool_send_ite){
+    int out = 10;
+    int in = 5;
+    int netconsper = 1;
+    int nprocs = 4;
+    int ngroups = 8;
+    int nspike = 0;
+    int nite = 100;
+    int nlocal = 0;
+    int simtime = 100;
+    int rank = 0;
 
-    const int time = 25;
-    const int cellgroups = 64;
-    const double num_ite = 100.0;
-    double percent_received = neuromapp_data.get<int>(key1) / num_ite;
-    double percent_enqueued = neuromapp_data.get<int>(key2) / num_ite;
+    //create the test environment
+    environment::presyn_maker presyns(out, in, netconsper);
+    environment::event_generator generator(nspike, nite, nlocal);
+    spike::spike_interface spike(nprocs);
 
-    //verify the number of received and enqueued inter-thread events were close
-    BOOST_CHECK_CLOSE(percent_received, percent_enqueued, 10);
-    BOOST_CHECK(neuromapp_data.get<int>(key3) == 0);
-    neuromapp_data.clear("inter_received");
-    neuromapp_data.clear("enqueued");
-    neuromapp_data.clear("delivered");
-    neuromapp_data.clear("spikes");
+    //generate
+    presyns(nprocs, ngroups, rank);
+    generator(simtime, ngroups, rank, presyns);
+
+    //process events
+    queueing::pool pl(false, ngroups, spike);
+    while(pl.get_time() <= simtime){
+        pl.fixed_step(generator);
+    }
+
+    //check that every event went to the spikeout_ buffer
+    BOOST_CHECK(spike.spikeout_.size() == 0);
 }
 
-/**
- * Verifies that the expected results occur when percent_ite = 0%:
- *
- * 	  - inter_received should equal 0
- * 	  - enqueued events should equal the total number of events
- * 	    (time * cellgroups * eventsper)
- */
-BOOST_AUTO_TEST_CASE(no_ite){
-    char arg1[]="NULL";
-    char arg2[]="--nthreads=8";
-    char arg3[]="--num-local=25";
-    char arg4[]="--time=25";
-    char arg5[]="--num-ite=0";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
-    int argc = 5;
-    BOOST_CHECK(queueing_execute(argc,argv)==0);
+BOOST_AUTO_TEST_CASE(pool_filter){
 
-    std::string key1("inter_received");
-    BOOST_CHECK(neuromapp_data.has<int>(key1));
-    std::string key2("enqueued");
-    BOOST_CHECK(neuromapp_data.has<int>(key2));
-
-    const int time = 25;
-    const int cellgroups = 64;
-    const int eventsper = 25;
-    //verify that no inter-thread events were received
-    BOOST_CHECK( neuromapp_data.get<int>(key1) == 0);
-    //verify that the correct number of events were enqueued
-    //BOOST_CHECK(neuromapp_data.get<int>(key2) == (time * cellgroups * eventsper));
-    neuromapp_data.clear("inter_received");
-    neuromapp_data.clear("enqueued");
-    neuromapp_data.clear("delivered");
-    neuromapp_data.clear("spikes");
 }
-
-/**
- * Handle test with no events gracefully
- */
-BOOST_AUTO_TEST_CASE(no_events){
-    char arg1[]="NULL";
-    char arg2[]="--nthreads=8";
-    char arg3[]="--num-local=0";
-    char arg4[]="--time=25";
-    char arg5[]="--num-ite=0";
-    char * const argv[] = {arg1, arg2, arg3, arg4, arg5};
-    int argc = 5;
-
-    neuromapp_data.clear("inter_received");
-    neuromapp_data.clear("enqueued");
-    neuromapp_data.clear("delivered");
-    neuromapp_data.clear("spikes");
-
-    BOOST_CHECK(queueing_execute(argc,argv)==mapp::MAPP_BAD_ARG);
-}
-

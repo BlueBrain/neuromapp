@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <utility>
 
-#include "coreneuron_1.0/queueing/thread.h"
+#include "coreneuron_1.0/event_passing/queueing/thread.h"
 
 namespace queueing {
 
@@ -53,7 +53,7 @@ nrn_thread_data::nrn_thread_data(): ite_received_(0), enqueued_(0), delivered_(0
 }
 
 void nrn_thread_data::self_send(int d, double tt){
-    enqueued_++;
+    ++enqueued_;
     qe_.insert(tt, d);
 }
 
@@ -62,7 +62,7 @@ void nrn_thread_data::inter_thread_send(int d, double tt){
     event ite;
     ite.data_ = d;
     ite.t_ = tt;
-    ite_received_++;
+    ++ite_received_;
     inter_thread_events_.push_back(ite);
     lock_.release();
 }
@@ -79,16 +79,17 @@ void nrn_thread_data::enqueue_my_events(){
     event ite;
     for(int i = 0; i < inter_thread_events_.size(); ++i){
         ite = inter_thread_events_[i];
-        self_send(ite.data_, ite.t_);
+        ++enqueued_;
+        qe_.insert(ite.t_, ite.data_);
     }
     inter_thread_events_.clear();
     lock_.release();
 }
 
-bool nrn_thread_data::deliver(int id, int til){
+bool nrn_thread_data::deliver(int id){
     event q;
-    if(qe_.atomic_dq(til,q)){
-        delivered_++;
+    if(qe_.atomic_dq(time_,q)){
+        ++delivered_;
         assert(q.data_ == id);
 
         // Use imitation of the point_receive of CoreNeron.
@@ -100,8 +101,8 @@ bool nrn_thread_data::deliver(int id, int til){
     return false;
 }
 
-void nrn_thread_data::l_algebra(int time){
-    nt_->_t = static_cast<double>(time);
+void nrn_thread_data::l_algebra(){
+    nt_->_t = static_cast<double>(time_);
 
        //Update the current
        mech_current_NaTs2_t(nt_,&(nt_->ml[17]));

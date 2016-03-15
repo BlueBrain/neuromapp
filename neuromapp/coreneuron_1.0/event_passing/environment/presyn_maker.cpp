@@ -6,22 +6,27 @@
 #include <boost/range/algorithm/random_shuffle.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/random.hpp>
 
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
-#include "coreneuron_1.0/event_passing/environment/environment.h"
 
 namespace environment {
 
-void presyn_maker::operator()(const sim_constraints& constraints){
+void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     //assign input and output gid's
     std::vector<int> available_inputs;
     std::vector<int> cellgroups;
-    int nprocs = constraints.get_nprocs();
-    int ngroups = constraints.get_ngroups();
-    int rank = constraints.get_rank();
+    assert(nprocs >= 1);
+    assert(n_out_ >= ngroups);
 
-    assert(ngroups > 2);
-    if(nprocs > 1){
+    if(nprocs == 1){
+        for(int i = 0; i < n_out_; ++i){
+            outputs_.push_back(i);
+        }
+        assert(inputs_.empty());
+    }
+    else{
+        //create a list of outputs (rank, rank + n_out)
         for(int i = 0; i < (nprocs * n_out_); ++i){
             if(i >= (rank * n_out_) && i < ((rank * n_out_) + n_out_)){
                 outputs_.push_back(i);
@@ -30,40 +35,36 @@ void presyn_maker::operator()(const sim_constraints& constraints){
                 available_inputs.push_back(i);
             }
         }
-        //create a randomly ordered list of inputs_
         assert(available_inputs.size() >= n_in_);
 
-        //random presyn and netcon selection
-        boost::mt19937 generator(time(NULL) + rank);
-        boost::uniform_int<> uni_dist;
-        boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
-            randomNumber(generator, uni_dist);
-        boost::random_shuffle(available_inputs, randomNumber);
-        available_inputs.resize(n_in_);
-        //create a vector of randomly ordered cellgroups
-        cellgroups.resize(ngroups);
-        boost::iota(cellgroups, 0);
+        if(n_in_ > 0 && nets_per_ > 0){
+            //used for random presyn and netcon selection
+            boost::mt19937 generator(time(NULL) + rank);
+            boost::uniform_int<> uni_dist;
+            boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
+                randomNumber(generator, uni_dist);
+            boost::random_shuffle(available_inputs, randomNumber);
 
-        //for each input presyn,
-        //select N unique netcons to cell groups
-        boost::random_shuffle(cellgroups, randomNumber);
-        for(int i = 0; i < n_in_; ++i){
-            int presyn = available_inputs[i];
-            for(int j = 0; j < nets_per_; ++j){
-                inputs_[presyn].push_back(cellgroups[j]);
+            //create a random map of inputs presyns
+            available_inputs.resize(n_in_);
+            cellgroups.resize(ngroups);
+            boost::iota(cellgroups, 0);
+
+            //for each input presyn,
+            //select N unique net connections to cell groups
+            boost::random_shuffle(cellgroups, randomNumber);
+            for(int i = 0; i < n_in_; ++i){
+                int presyn = available_inputs[i];
+                for(int j = 0; j < nets_per_; ++j){
+                    inputs_[presyn].push_back(cellgroups[j]);
+                }
             }
         }
     }
-    else{
-        for(int i = 0; i < num_out_; ++i){
-            outputs_.push_back(i);
-        }
-        assert(inputs_.empty());
-    }
 }
 
-bool find const(int id, input_presyn& presyn){
-    std::map<int, std::vector<int> >::iterator it = inputs_.begin();
+bool presyn_maker::find_input(int id, input_presyn& presyn) const{
+    std::map<int, std::vector<int> >::const_iterator it = inputs_.begin();
     it = inputs_.find(id);
     if(it == inputs_.end())
         return false;
@@ -71,6 +72,11 @@ bool find const(int id, input_presyn& presyn){
         presyn = *it;
         return true;
     }
+}
+
+int presyn_maker::operator[](int id) const {
+    assert(!outputs_.empty());
+    return outputs_[id];
 }
 
 } //end of namespace

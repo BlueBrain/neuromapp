@@ -36,8 +36,7 @@
 #include <boost/bind.hpp>
 #include <boost/array.hpp>
 
-#include "coreneuron_1.0/queueing/queue.h"
-#include "spike/environment.h"
+#include "coreneuron_1.0/event_passing/queueing/queue.h"
 
 //define events as spike_item
 typedef queueing::event spike_item;
@@ -99,11 +98,12 @@ template<typename data>
 void set_displ(data& d){
     d.displ_[0] = 0;
     int total = d.nin_[0];
-    for(int i=1; i < d.num_procs_; ++i){
-        displ_[i] = total;
+    for(int i=1; i < d.nin_.size(); ++i){
+        d.displ_[i] = total;
         total += d.nin_[i];
     }
     d.spikein_.resize(total);
+    std::cout<<"TOTAL: "<<total<<std::endl;
 }
 
 
@@ -118,7 +118,7 @@ void blocking_spike(data& d, MPI_Datatype spike){
     //gather how many spikes each process is sending
     allgather(d);
     //set the displacements
-    d.set_displ();
+    set_displ(d);
     //next distribute items to every other process using allgatherv
     allgatherv(d, spike);
 }
@@ -130,7 +130,7 @@ void blocking_spike(data& d, MPI_Datatype spike){
  * \param d the data environment on which this algo is called
  * \param non_blocking specifies whether to use the blocking or non-blocking
  *  implementation of spike exchange.
- */
+ *
 template<typename data>
 void run_sim(data& d){
     //create the spike type and free at end
@@ -148,5 +148,5 @@ void run_sim(data& d){
 
     MPI_Type_free(&spike);
 }
-
+*/
 #endif

@@ -26,6 +26,9 @@
 #ifndef MAPP_SPIKE_INTERFACE_H
 #define MAPP_SPIKE_INTERFACE_H
 
+#include <iostream> 
+
+#include "utils/omp/lock.h"
 
 namespace spike {
 
@@ -37,10 +40,12 @@ struct spike_interface{
 #endif
 
     //CONTAINERS
-    std::vector<event> spikein_;
-    std::vector<event> spikeout_;
+    std::vector<queueing::event> spikein_;
+    std::vector<queueing::event> spikeout_;
     std::vector<int> nin_;
     std::vector<int> displ_;
+
+    spike_interface(int nprocs){ nin_.resize(nprocs); displ_.resize(nprocs); }
 };
 
 } //end of namespace

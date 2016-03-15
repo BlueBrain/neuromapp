@@ -29,7 +29,7 @@
 #include <stdarg.h>
 #include <utility>
 
-#include "coreneuron_1.0/queueing/queue.h"
+#include "coreneuron_1.0/event_passing/queueing/queue.h"
 
 namespace queueing {
 
