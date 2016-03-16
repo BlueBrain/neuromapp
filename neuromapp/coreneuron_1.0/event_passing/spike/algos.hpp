@@ -94,6 +94,11 @@ void allgatherv(data& d, MPI_Datatype spike){
         &(d.spikein_[0]), &(d.nin_[0]), &(d.displ_[0]), spike, MPI_COMM_WORLD);
 }
 
+/**
+ * \fn set_displ(data& d)
+ * \brief sets displacements needed for the algatherv
+ * \param d the data environment on which this algo is called
+ */
 template<typename data>
 void set_displ(data& d){
     d.displ_[0] = 0;
@@ -103,7 +108,7 @@ void set_displ(data& d){
         total += d.nin_[i];
     }
     d.spikein_.resize(total);
-    std::cout<<"TOTAL: "<<total<<std::endl;
+    // std::cout<<"TOTAL: "<<total<<std::endl;
 }
 
 
@@ -123,30 +128,4 @@ void blocking_spike(data& d, MPI_Datatype spike){
     allgatherv(d, spike);
 }
 
-/**
- * \fn run_sim(data& d)
- * \brief runs the simulation with either a blocking or non-blocking
- *  spike exchange depending on the parameter "non_blocking"
- * \param d the data environment on which this algo is called
- * \param non_blocking specifies whether to use the blocking or non-blocking
- *  implementation of spike exchange.
- *
-template<typename data>
-void run_sim(data& d){
-    //create the spike type and free at end
-    MPI_Datatype spike = create_spike_type();
-
-    d.generate_all_events();
-    for(int i = 0; i <= (d.simtime() / d.mindelay()); ++i){
-        //load spikeout with the spikes to be sent
-        d.fixed_step();
-        blocking_spike(d, spike);
-        d.filter();
-        d.spikeout_.clear();
-        d.spikein_.clear();
-    }
-
-    MPI_Type_free(&spike);
-}
-*/
 #endif

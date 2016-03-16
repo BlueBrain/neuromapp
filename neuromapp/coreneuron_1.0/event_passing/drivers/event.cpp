@@ -36,6 +36,7 @@
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
+#include "coreneuron_1.0/event_passing/drivers/drivers.h"
 #include "utils/storage/neuromapp_data.h"
 
 #ifdef _OPENMP

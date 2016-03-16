@@ -1,5 +1,5 @@
 Description of the simulation:
-    This simulation is modelled after the CoreNeuron queueing functionality.
+    This simulation is modelled after the CoreNeuron event passing functionality.
     In the simulation a number of threads(specified by the user) are generated
     and perform a message passing algorithm. Each of these threads contains a
     priority queue to sort events based on time and an inter_thread_events_ queue
@@ -13,30 +13,21 @@ Description of the simulation:
     2. Each thread enqueues all event from it's inter_thread_events_ queue into
     it's priority queue.
 
-    3. each thread delivers all events in the priority queue with time
+    3. Each thread delivers all events in the priority queue with time
     t <= the current time (here delivery is simulated using a usleep function)
 
-    4. Every 5 time steps, the simulation handles spike exchange. This term is used
-    for events which are communicated between processes.
-
-
-    The simulation allows the user to test 2 different implementations:
-    one in which the inter_thread_event_ queue uses vectors/mutexes, and one where
-    inter_thread_event_ queue uses linked-lists/spinlocks.
-
+    4. Each thread performs linear algebra calculations, modelling the computation
+    of CoreNeuron.
 
 Description of the different files:
 
-    - main.cpp the miniapp driver
-    - queueing.h the main include file for the miniapp
+    - pool contains the pool class which spawns threads and to perform a fixed_step task.
+      also filters events produced by spike exchange.
 
-    - pool contains the pool class which spawns threads to execute a timestep
     - thread contains the thread class. Every time step, they generate, send,
         enqueue and deliver events
+
     - queue the priority queue class used by thread to order events in a heap with
         the least-most time at the front
-    - lock used in the mutex implementation. Contains an OMP lock wrapper
-    - spinlock_queue used in the spinlock implementation. Contains a linked-list
-        that uses spinlocks to provide thread-safe push/pop
-    - spinlock_apple contains the spinlock implementation for apple users
+
 

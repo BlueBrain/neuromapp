@@ -50,39 +50,59 @@ private:
 
 public:
 
-    /** \fn pool(bool algebra)
-     *  \brief initializes a pool with a thread_datas_ array
+    /** \fn pool(bool algebra, int ngroups, spike_interface& s_interface)
+     *  \brief initializes a pool with a thread_datas_ array of size ngroups.
      *  \param algebra determines whether to perform linear algebra calculations
+     *  \param ngroups the number of cell groups per node
+     *  \param s_interface the spike interface used to communicate
+     *  with the spike exchange algos
      */
     pool(bool algebra, int ngroups, spike::spike_interface& s_interface):
     perform_algebra_(algebra), spike_(s_interface), time_(0), received_(0), relevant_(0)
     {thread_datas_.resize(ngroups);}
 
     /** \fn ~pool()
-     *  \brief accumulates statistics from the threadData array and stores them using impl::storage
+     *  \brief before destroying the pool, accumulate statistics from the threadData
+     *  array and store them using impl::storage
      */
     ~pool();
 
-    /** \fn send_events(int myID)
+    /** \fn send_events(int myID, event_generator& generator)
      *  \brief sends event to it's destination
      *  \param myID the thread index
-     *  \precond generateAllEvents has been called
-     *  \postcond thread_datas_[myID].generated_events size -= 1
-     *  \return the time of the top element
+     *  \param generator the event generator from which events are received
+     *  \precond generator has been initialized
      */
     void send_events(int myID, environment::event_generator& generator);
 
-    /** \fn void filter()
+    /** \fn void filter(presyn_maker& presyns)
      *  \brief filters out relevent events(using the function matches()),
      *  and randomly selects a destination cellgroup, and delivers them
      *  using a no-lock inter_thread_send
+     *  \param presyns the presyn maker from which input presyn information
+     *  is gathered (used to distribute spike events between cell groups).
      */
     void filter(environment::presyn_maker& presyns);
 
+    /** \fn void fixed_step(event_generator& generator)
+     *  \brief performs (min_delay_) iterations of a timestep in which:
+     *      - events are sent
+     *      - events are enqueued
+     *      - events are delivered
+     *      - linear algebra is performed
+     *  \param generator the event generator from which events are received
+     */
     void fixed_step(environment::event_generator& generator);
 
+//GETTERS
+    /** \fn get_ngroups()
+     *  \return the number of cellgroups
+     */
     int get_ngroups() const { return thread_datas_.size(); }
 
+    /** \fn get_time()
+     * \return the current time_ value for this pool
+     */
     int get_time() const { return time_; }
 };
 

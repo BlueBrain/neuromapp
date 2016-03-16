@@ -41,25 +41,29 @@
 namespace queueing {
 
 pool::~pool(){
-    int all_ite_received = 0;
+    int ite_received = 0;
+    int local_received = 0;
     int all_enqueued = 0;
     int all_delivered = 0;
     for(int i=0; i < thread_datas_.size(); ++i){
-        all_ite_received += thread_datas_[i].ite_received_;
+        ite_received += thread_datas_[i].ite_received_;
+        local_received += thread_datas_[i].local_received_;
         all_enqueued += thread_datas_[i].enqueued_;
         all_delivered += thread_datas_[i].delivered_;
         assert(thread_datas_[i].get_time() == time_);
     }
 
-    std::cout<<"Total inter-thread received: "<<all_ite_received<<std::endl;
-    std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
-    std::cout<<"Total delivered: "<<all_delivered<<std::endl;
+    std::cout<<"Total inter-thread received: "<<ite_received<<std::endl;
+    std::cout<<"Total local received: "<<local_received<<std::endl;
     std::cout<<"Total spikes received: "<<received_<<std::endl;
     std::cout<<"Total relevent spikes: "<<relevant_<<std::endl;
+    std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
+    std::cout<<"Total delivered: "<<all_delivered<<std::endl;
 
-    neuromapp_data.put_copy("inter_received", all_ite_received);
+/*    neuromapp_data.put_copy("inter_received", ite_received);
+    neuromapp_data.put_copy("local_received", ite_received);
     neuromapp_data.put_copy("enqueued", all_enqueued);
-    neuromapp_data.put_copy("delivered", all_delivered);
+    neuromapp_data.put_copy("delivered", all_delivered);*/
 }
 
 void pool::send_events(int myID, environment::event_generator& generator){
