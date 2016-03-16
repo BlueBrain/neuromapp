@@ -36,6 +36,7 @@
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
+#include "coreneuron_1.0/event_passing/drivers/drivers.h"
 #include "utils/storage/neuromapp_data.h"
 
 #ifdef _OPENMP
@@ -44,7 +45,7 @@
 
 int main(int argc, char* argv[]) {
 
-    assert(argc == 10);
+    assert(argc == 11);
 
     MPI_Init(NULL, NULL);
     MPI_Datatype mpi_spike = create_spike_type();
@@ -60,7 +61,8 @@ int main(int argc, char* argv[]) {
     int nSpikes = atoi(argv[6]);
     int nIte = atoi(argv[7]);
     int nLocal = atoi(argv[8]);
-    bool algebra = atoi(argv[9]);
+    int mindelay = atoi(argv[9]);
+    bool algebra = atoi(argv[10]);
 
     struct timeval start, end;
     assert(in <= (out * (size - 1)));
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
 
 
     //run simulation
-    queueing::pool pl(algebra, ngroups, s_interface);
+    queueing::pool pl(algebra, ngroups, mindelay, s_interface);
     gettimeofday(&start, NULL);
     for(int i = 0; i < size; ++i){
         while(pl.get_time() <= simtime){

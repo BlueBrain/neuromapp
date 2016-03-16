@@ -34,6 +34,9 @@ namespace environment {
 
 typedef std::pair<int, std::vector<int> > input_presyn;
 
+/** presyn_maker
+ * creates input and output presyns required for spike exchange
+ */
 class presyn_maker {
 private:
     int n_out_;
@@ -42,6 +45,12 @@ private:
     std::vector<int> outputs_;
     std::map<int, std::vector<int> > inputs_;
 public:
+    /** \fn presyn_maker(int out, int in, int netconsper)
+     *  \brief creates the presyn_maker and sets member variables
+     *  \param out number of output presyns
+     *  \param in number of input presyns
+     *  \param netconsper number of netcons per input presyn
+     */
     explicit presyn_maker(int out=0, int in=0, int netcons_per=0):
     n_out_(out), n_in_(in), nets_per_(netcons_per) {}
 

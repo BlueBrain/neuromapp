@@ -8,6 +8,7 @@ target_link_libraries (app
                        coreneuron10_kernel
                        coreneuron10_solver
                        coreneuron10_cstep
+                       coreneuron10_event
                        storage
                        ${Readline_LIBRARIES}
                        ${Curses_LIBRARIES}

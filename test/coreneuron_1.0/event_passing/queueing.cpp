@@ -194,9 +194,10 @@ BOOST_AUTO_TEST_CASE(net_receive){
 BOOST_AUTO_TEST_CASE(pool_constructor){
     int nprocs = 4;
     int ngroups = 8;
+    int mindelay = 5;
     spike::spike_interface spike(nprocs);
 
-    queueing::pool pl(false, ngroups, spike);
+    queueing::pool pl(false, ngroups, mindelay, spike);
     BOOST_CHECK(pl.get_ngroups() == ngroups);
 }
 
@@ -210,6 +211,7 @@ BOOST_AUTO_TEST_CASE(pool_send_spikes){
     int nspike = 100;
     int simtime = 5;
     int rank = 0;
+    int mindelay = 5;
 
     //create the test environment
     environment::presyn_maker presyns(out, in, netconsper);
@@ -225,7 +227,7 @@ BOOST_AUTO_TEST_CASE(pool_send_spikes){
     }
 
     //process events
-    queueing::pool pl(false, ngroups, spike);
+    queueing::pool pl(false, ngroups, mindelay, spike);
     pl.fixed_step(generator);
 
     //check that every event went to the spikeout_ buffer
@@ -242,6 +244,7 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     int nspike = 0;
     int nite = 100;
     int nlocal = 0;
+    int mindelay = 5;
     int simtime = 100;
     int rank = 0;
 
@@ -255,7 +258,7 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     generator(simtime, ngroups, rank, presyns);
 
     //process events
-    queueing::pool pl(false, ngroups, spike);
+    queueing::pool pl(false, ngroups, mindelay, spike);
     while(pl.get_time() <= simtime){
         pl.fixed_step(generator);
     }

@@ -26,12 +26,18 @@
 #ifndef MAPP_SPIKE_INTERFACE_H
 #define MAPP_SPIKE_INTERFACE_H
 
-#include <iostream> 
+#include <iostream>
 
 #include "utils/omp/lock.h"
 
 namespace spike {
 
+/**
+    \brief spike_interface acts as the interface between spike exchange
+    and queueing. Queueing stores events in spikeout_, which are
+    communicated between processes by spike exchange (and stored in spikein_).
+    Afterwards, events are retreived and processed by the queueing algo.
+ */
 struct spike_interface{
 #ifdef _OPENMP
     mapp::omp_lock lock_;
@@ -45,6 +51,10 @@ struct spike_interface{
     std::vector<int> nin_;
     std::vector<int> displ_;
 
+    /** \fn spike_interface(int nprocs)
+        \brief spike_interface constructor. Initializes nin and displ buffers
+        to have size == number of processes
+     */
     spike_interface(int nprocs){ nin_.resize(nprocs); displ_.resize(nprocs); }
 };
 

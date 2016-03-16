@@ -59,6 +59,7 @@ private:
     std::vector<event> inter_thread_events_;
 public:
     int ite_received_;
+    int local_received_;
     int enqueued_;
     int delivered_;
     int time_;
@@ -120,8 +121,14 @@ public:
      */
     size_t pq_size() const {return qe_.size();}
 
+    /** \fn get_time()
+     *  \return the current time value for this thread
+     */
     int get_time() const {return time_;}
 
+    /** \fn increment_time()
+     *  \brief increments thread time by 1
+     */
     void increment_time() {++time_;}
 };
 

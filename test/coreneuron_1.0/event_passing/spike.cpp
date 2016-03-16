@@ -34,7 +34,6 @@
 
 #include "coreneuron_1.0/common/data/helper.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
-#include "coreneuron_1.0/event_passing/spike/spike.h"
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "utils/error.h"
 namespace bfs = ::boost::filesystem;
@@ -104,28 +103,5 @@ BOOST_AUTO_TEST_CASE(blocking_spike_exchange){
     int numIn = numOut * (size - 1);
 
 
-
-}
-
-/x**
- * for queueing::pool and spike::environment
- * test that run sim function results in the expected end state
- * for the case of blocking spike exchange (max # of input_presyns)
- *
-BOOST_AUTO_TEST_CASE_TEMPLATE(blocking_max_input_presyns, T, full_test_types){
-    int size = MPI::COMM_WORLD.Get_size();
-    int rank = MPI::COMM_WORLD.Get_rank();
-
-    srand(time(NULL) + rank);
-
-    int nspikes = 10;
-    int simtime = 10;
-    int netcons = 5;
-    int numOut = 4;
-    int numIn = numOut*(size - 1);
-    //simtime must be a multiple of min_delay (5) for this to pass
-    T env(nspikes, simtime, numOut, numIn, netcons, size, rank);
-    run_sim(env,false);
-    BOOST_CHECK(env.relevant() >= (env.received() - nspikes));
 
 }*/

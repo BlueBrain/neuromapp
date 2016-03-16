@@ -49,7 +49,7 @@ int main(int argc, char * const argv[]){
 
      mapp::driver d;
      d.insert("hello",hello_execute);
-//     d.insert("queueing",queueing_execute);
+     d.insert("event",event_execute);
 //     d.insert("spike",spike_execute);
      d.insert("kernel",coreneuron10_kernel_execute);
      d.insert("solver",coreneuron10_solver_execute);

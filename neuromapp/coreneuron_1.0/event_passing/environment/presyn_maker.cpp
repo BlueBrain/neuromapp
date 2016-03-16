@@ -17,7 +17,6 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     std::vector<int> available_inputs;
     std::vector<int> cellgroups;
     assert(nprocs >= 1);
-    assert(n_out_ >= ngroups);
 
     if(nprocs == 1){
         for(int i = 0; i < n_out_; ++i){

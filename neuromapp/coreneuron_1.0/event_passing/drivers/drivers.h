@@ -1,5 +1,5 @@
 /*
- * Neuromapp - spike.h, Copyright (c), 2015,
+ * Neuromapp - drivers.h, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,12 +19,12 @@
  */
 
 /**
- * @file neuromapp/spike/spike.h
+ * @file neuromapp/event_passing/drivers/drivers.h
  * Spike Exchange Miniapp
  */
 
-#ifndef MAPP_SPIKE_EXECUTE_
-#define MAPP_SPIKE_EXECUTE_
+#ifndef MAPP_EVENT_DRIVERS_H_
+#define MAPP_EVENT_DRIVERS_H_
 
 /** \fn spike_execute(int argc, char *const argv[])
     \brief Spike Exchange Miniapp
@@ -32,6 +32,6 @@
     \param argv the command line from the driver or external call
     \return error message from mapp::mapp_error
  */
-int spike_execute(int argc, char* const argv[]);
+int event_execute(int argc, char* const argv[]);
 
 #endif
