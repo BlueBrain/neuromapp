@@ -1,5 +1,5 @@
 /*
- * Neuromapp - mpiexec.cpp, Copyright (c), 2015,
+ * Neuromapp - event.cpp, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/spike/mpiexec.cpp
+ * @file neuromapp/event_passing/drivers/event.cpp
  * runs the spike exchange simulation
  */
 #include <mpi.h>
@@ -78,21 +78,21 @@ int main(int argc, char* argv[]) {
 
 
     //run simulation
-    queueing::pool pl(algebra, ngroups, mindelay, s_interface);
+    queueing::pool pl(algebra, ngroups, mindelay, rank, s_interface);
     gettimeofday(&start, NULL);
-    for(int i = 0; i < size; ++i){
-        while(pl.get_time() <= simtime){
-            pl.fixed_step(generator);
-            blocking_spike(s_interface, mpi_spike);
-            pl.filter(presyns);
-        }
+    while(pl.get_time() <= simtime){
+        pl.fixed_step(generator);
+        blocking_spike(s_interface, mpi_spike);
+        pl.filter(presyns);
     }
     gettimeofday(&end, NULL);
 
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec))
         + ((end.tv_usec - start.tv_usec) / 1000);
 
-    std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+    if(rank == 0)
+        std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+
     MPI_Type_free(&mpi_spike);
     MPI_Finalize();
     return 0;

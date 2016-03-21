@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/queueing/pool.h
+ * @file neuromapp/coreneuron_1.0/event_passing/queueing/pool.h
  * \brief Contains pool class declaration.
  */
 
@@ -45,6 +45,7 @@ private:
     int time_;
     int relevant_;
     int received_;
+    int rank_;
     spike::spike_interface& spike_;
     std::vector<nrn_thread_data> thread_datas_;
 
@@ -57,8 +58,8 @@ public:
      *  \param s_interface the spike interface used to communicate
      *  with the spike exchange algos
      */
-    pool(bool algebra, int ngroups,int md, spike::spike_interface& s_interface):
-    perform_algebra_(algebra), min_delay_(md), spike_(s_interface),
+    pool(bool algebra, int ngroups,int md, int rank, spike::spike_interface& s_interface):
+    perform_algebra_(algebra), min_delay_(md), rank_(rank), spike_(s_interface),
     time_(0), received_(0), relevant_(0) {thread_datas_.resize(ngroups);}
 
     /** \fn ~pool()

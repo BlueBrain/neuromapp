@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/queueing/thread.cpp
+ * @file neuromapp/coreneuron_1.0/event_passing/queueing/thread.cpp
  * \brief Contains nrn_thread_data class definition.
  */
 

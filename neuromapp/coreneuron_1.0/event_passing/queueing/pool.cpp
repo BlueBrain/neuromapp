@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/queueing/pool.cpp
+ * @file neuromapp/coreneuron_1.0/event_passing/queueing/pool.cpp
  * \brief Contains pool class definition.
  */
 
@@ -53,14 +53,16 @@ pool::~pool(){
         assert(thread_datas_[i].get_time() == time_);
     }
 
-    std::cout<<"Total inter-thread received: "<<ite_received<<std::endl;
-    std::cout<<"Total local received: "<<local_received<<std::endl;
-    std::cout<<"Total spikes received: "<<received_<<std::endl;
-    std::cout<<"Total relevent spikes: "<<relevant_<<std::endl;
-    std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
-    std::cout<<"Total delivered: "<<all_delivered<<std::endl;
+    if(rank_ == 0){
+        std::cout<<"Total inter-thread received: "<<ite_received<<std::endl;
+        std::cout<<"Total local received: "<<local_received<<std::endl;
+        std::cout<<"Total spikes received: "<<received_<<std::endl;
+    }
 
-/*    neuromapp_data.put_copy("inter_received", ite_received);
+/*   std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
+    std::cout<<"Total delivered: "<<all_delivered<<std::endl;
+    std::cout<<"Total relevent spikes: "<<relevant_<<std::endl;
+    neuromapp_data.put_copy("inter_received", ite_received);
     neuromapp_data.put_copy("local_received", ite_received);
     neuromapp_data.put_copy("enqueued", all_enqueued);
     neuromapp_data.put_copy("delivered", all_delivered);*/

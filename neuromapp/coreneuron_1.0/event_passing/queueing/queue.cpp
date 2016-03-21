@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/queueing/queue.cpp
+ * @file neuromapp/coreneuron_1.0/event_passing/queueing/queue.cpp
  * \brief Contains Queue and Event class implementation
  */
 

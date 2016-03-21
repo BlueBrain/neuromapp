@@ -54,17 +54,40 @@ public:
     explicit presyn_maker(int out=0, int in=0, int netcons_per=0):
     n_out_(out), n_in_(in), nets_per_(netcons_per) {}
 
+    /** \fn void operator()(int nprocs, int ngroups, int rank)
+     *  \brief generates both the input and output presyns.
+     *  \param nprocs the number of processes in the simulation
+     *  \param ngroups the number of cell groups per process
+     *  \param rank the rank of the current process
+     */
     void operator()(int nprocs, int ngroups, int rank);
 
-    //GETTERS
-    //gets from output presyns
-    int operator[](int id) const;
+//GETTERS
+    /** \fn int operator[](int id)
+     *  \param index the index used to retrieve the output presyn
+     *  \return the value stored in output_presyns_ at index id
+     */
+    int operator[](int index) const;
 
+    /** \fn int get_nout()
+     *  \return the number of output presyns
+     */
     int get_nout() const { return n_out_; }
+
+    /** \fn int get_nin()
+     *  \return the number of input presyns
+     */
     int get_nin() const { return n_in_; }
 
-    //gets from input presyns
-    bool find_input(int id, input_presyn& presyn) const;
+    /** \fn find_input(int id, input_presyn& presyn)
+     *  \brief searches for an input presyn(IP) matching the parameter key. If
+     *  IP is found, the param presyn is modified to reference the desired IP.
+     *  \param key integer key used to find the input presyn
+     *  \param presyn used to return the matching input_presyn val by reference
+     *  only valid if find_input returns true.
+     *  \return true if matching presyn is found, else false
+     */
+    bool find_input(int key, input_presyn& presyn) const;
 };
 
 } //end of namespace

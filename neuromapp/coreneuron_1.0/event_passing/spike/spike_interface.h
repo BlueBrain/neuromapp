@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/spike/spike_interface.h
+ * @file neuromapp/coreneuron_1.0/event_passing/spike/spike_interface.h
  * \brief Contains spike_interface class declaration.
  */
 

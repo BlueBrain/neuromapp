@@ -62,9 +62,9 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     }
 }
 
-bool presyn_maker::find_input(int id, input_presyn& presyn) const{
+bool presyn_maker::find_input(int key, input_presyn& presyn) const{
     std::map<int, std::vector<int> >::const_iterator it = inputs_.begin();
-    it = inputs_.find(id);
+    it = inputs_.find(key);
     if(it == inputs_.end())
         return false;
     else{
@@ -73,9 +73,9 @@ bool presyn_maker::find_input(int id, input_presyn& presyn) const{
     }
 }
 
-int presyn_maker::operator[](int id) const {
+int presyn_maker::operator[](int index) const {
     assert(!outputs_.empty());
-    return outputs_[id];
+    return outputs_[index];
 }
 
 } //end of namespace

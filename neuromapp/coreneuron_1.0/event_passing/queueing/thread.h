@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/queueing/thread.h
+ * @file neuromapp/coreneuron_1.0/event_passing/queueing/thread.h
  * \brief Contains nrn_thread_data class declaration.
  */
 

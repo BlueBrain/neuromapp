@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/spike/algos.hpp
+ * @file neuromapp/coreneuron_1.0/event_passing/spike/algos.hpp
  * contains algorithm definitions for spike exchange
  */
 

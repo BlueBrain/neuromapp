@@ -33,10 +33,6 @@ int simtime, int ngroups, int rank, const presyn_maker& presyns){
     double mean = simtime / sum_;
     double lambda = 1.0 / (mean * ngroups);
 
-    std::cout<<"MEAN: "<<mean<<std::endl;
-    std::cout<<"LAMBDA: "<<lambda<<std::endl;
-
-
     //create random number generator/distributions
     /*
      * rng       => random number generator

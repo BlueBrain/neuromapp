@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(pool_constructor){
     int mindelay = 5;
     spike::spike_interface spike(nprocs);
 
-    queueing::pool pl(false, ngroups, mindelay, spike);
+    queueing::pool pl(false, ngroups, mindelay, 0, spike);
     BOOST_CHECK(pl.get_ngroups() == ngroups);
 }
 
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_CASE(pool_send_spikes){
     }
 
     //process events
-    queueing::pool pl(false, ngroups, mindelay, spike);
+    queueing::pool pl(false, ngroups, mindelay, rank, spike);
     pl.fixed_step(generator);
 
     //check that every event went to the spikeout_ buffer
@@ -258,15 +258,11 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     generator(simtime, ngroups, rank, presyns);
 
     //process events
-    queueing::pool pl(false, ngroups, mindelay, spike);
+    queueing::pool pl(false, ngroups, mindelay, rank, spike);
     while(pl.get_time() <= simtime){
         pl.fixed_step(generator);
     }
 
     //check that every event went to the spikeout_ buffer
     BOOST_CHECK(spike.spikeout_.size() == 0);
-}
-
-BOOST_AUTO_TEST_CASE(pool_filter){
-
 }

@@ -19,8 +19,8 @@
  */
 
 /**
- * @file neuromapp/spike/main.cpp
- * Spike Exchange Miniapp
+ * @file neuromapp/event_passing/drivers/main.cpp
+ * Event Passing Miniapp
  */
 
 #include <iostream>
