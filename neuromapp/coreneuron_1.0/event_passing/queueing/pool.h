@@ -51,7 +51,7 @@ private:
 
 public:
 
-    /** \fn pool(bool algebra, int ngroups, int min_delay, spike_interface& s_interface)
+    /** \fn pool(bool algebra, int ngroups, int min_delay, int rank, spike_interface& s_interface)
      *  \brief initializes a pool with a thread_datas_ array of size ngroups.
      *  \param algebra determines whether to perform linear algebra calculations
      *  \param ngroups the number of cell groups per node

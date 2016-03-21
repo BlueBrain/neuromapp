@@ -113,7 +113,6 @@ void event_content(po::variables_map const& vm){
     std::stringstream command;
     std::string path = helper_build_path::mpi_bin_path();
 
-
     size_t nthread = vm["numthreads"].as<size_t>();
     std::string mpi_run = vm["run"].as<std::string>();
     size_t nproc = vm["numprocs"].as<size_t>();

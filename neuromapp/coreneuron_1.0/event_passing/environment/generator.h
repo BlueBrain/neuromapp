@@ -51,7 +51,6 @@ public:
     void operator()(
     int simtime, int ngroups, int rank, const presyn_maker& presyns);
 
-
     /** \fn gen_event pop()(int id)
      *  \brief retrieves the top most element from the specified queue
      *  \param id specifies which queue to pop from
