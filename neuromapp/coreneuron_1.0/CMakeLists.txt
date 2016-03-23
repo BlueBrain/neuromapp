@@ -31,30 +31,16 @@ add_library (coreneuron10_cstep STATIC
              cstep/helper.c
              cstep/main.c)
 
-add_library (coreneuron10_queueing STATIC
-             queueing/queue.cpp
-             queueing/pool.cpp
-             queueing/thread.cpp
-             queueing/main.cpp)
-
 target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common)
 
-
-target_link_libraries(coreneuron10_queueing 
-                                storage 
-                                coreneuron10_cstep 
-                                coreneuron10_solver 
-                                ${Boost_PROGRAM_OPTIONS_LIBRARIES})
-
 install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep
-                 coreneuron10_common coreneuron10_queueing DESTINATION lib)
+                 coreneuron10_common DESTINATION lib)
+
 install (FILES  kernel/mechanism/mechanism.h
                 kernel/kernel.h
                 solver/solver.h
                 cstep/cstep.h
                 common/data/helper.h
-                queueing/queue.h
-                queueing/pool.h
-                queueing/queueing.h
-                queueing/thread.h
                 DESTINATION include)
+
+add_subdirectory (event_passing)

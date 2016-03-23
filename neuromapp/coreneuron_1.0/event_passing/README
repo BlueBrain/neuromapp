@@ -1,0 +1,18 @@
+Subdirectories and brief descriptions:
+
+Environment:
+    - Contains classes used to set up the simulation environment.
+    These create presyns ( used during spike exchange) and events.
+
+Queueing:
+    - Processes events every time step and performs calculations.
+    Events are sent to the spike interface, the inter-thread event buffer of the
+    destination thread, or are enqueued directly, depending on the event type.
+
+Spike:
+    - Handles event exchange between processes. Communicates with
+    queueing via the spike interface.
+
+Drivers:
+    - Contains the application drivers to execute the program
+    within the miniapp framework.
