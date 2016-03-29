@@ -23,8 +23,8 @@
  * contains algorithm definitions for spike exchange
  */
 
-#ifndef algos_h
-#define algos_h
+#ifndef MAPP_ALGOS_H
+#define MAPP_ALGOS_H
 
 #include <assert.h>
 #include <cstddef>
@@ -78,8 +78,8 @@ inline void barrier(){
  */
 template<typename data>
 void allgather(data& d){
-    int size = d.spikeout_.size();
-    MPI_Allgather(&size, 1, MPI_INT, &(d.nin_[0]), 1, MPI_INT, MPI_COMM_WORLD);
+    int send_size = d.spikeout_.size();
+    MPI_Allgather(&send_size, 1, MPI_INT, &(d.nin_[0]), 1, MPI_INT, MPI_COMM_WORLD);
 }
 
 /**

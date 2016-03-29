@@ -42,4 +42,11 @@ target_link_libraries (event_exec
                        ${MPI_CXX_LIBRARIES}
                        ${MPI_C_LIBRARIES})
 
-install (TARGETS event_exec DESTINATION bin)
+add_executable(dist_exec drivers/distributed_driver.cpp)
+target_link_libraries (dist_exec
+                       coreneuron10_queueing
+                       coreneuron10_environment
+                       ${MPI_CXX_LIBRARIES}
+                       ${MPI_C_LIBRARIES})
+
+install (TARGETS event_exec dist_exec DESTINATION bin)

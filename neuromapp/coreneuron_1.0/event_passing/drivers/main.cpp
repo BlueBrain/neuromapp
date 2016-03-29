@@ -70,8 +70,8 @@ int event_help(int argc, char* const argv[], po::variables_map& vm){
     "the number of spikes generated per process")
     ("mindelay", po::value<size_t>()->default_value(3),
     "the number of timesteps per fixed step function")
-    ("algebra",
-    "If set, perform linear algebra");
+    ("distributed", "if set, use distributed graph implementation")
+    ("algebra","If set, perform linear algebra");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -128,9 +128,18 @@ void event_content(po::variables_map const& vm){
     size_t nlocal = vm["numlocals"].as<size_t>();
     size_t mindelay = vm["mindelay"].as<size_t>();
     size_t algebra = vm.count("algebra");
+    bool distributed = vm.count("distributed");
+
+    std::string exec;
+    if(distributed){
+        exec="dist_exec ";
+    }
+    else{
+        exec="event_exec ";
+    }
 
     command << "OMP_NUM_THREADS=" << nthread << " " <<
-        mpi_run <<" -n "<< nproc << " " << path << "event_exec " <<
+        mpi_run <<" -n "<< nproc << " " << path << exec <<
         ngroup << " " << simtime << " " <<
         nout << " " << nin << " " << ncper << " " <<
         nspike << " " << nite << " " << nlocal << " " <<
