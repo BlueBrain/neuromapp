@@ -25,6 +25,8 @@
 #include <vector>
 #include <mpi.h>
 #include <unistd.h>
+#include <string.h>
+
 
 #include "replib/utils/tools.h"
 #include "replib/utils/config.h"
