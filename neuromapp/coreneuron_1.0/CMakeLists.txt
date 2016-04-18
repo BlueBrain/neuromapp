@@ -6,15 +6,15 @@ configure_file("${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/path.
                "${PROJECT_BINARY_DIR}/neuromapp/coreneuron_1.0/common/data/path.h")
 
 
-add_library (coreneuron10_common
+add_library (coreneuron10_common STATIC
             common/memory/nrnthread.c
             common/memory/memory.c
             common/util/nrnthread_handler.c
             common/util/timer.c
-			common/data/helper.cpp)
+            common/data/helper.cpp)
 
 
-add_library (coreneuron10_kernel
+add_library (coreneuron10_kernel STATIC
             kernel/helper.c
             kernel/mechanism/NaTs2_t.c
             kernel/mechanism/ProbAMPANMDA_EMS.c
@@ -22,35 +22,25 @@ add_library (coreneuron10_kernel
             kernel/main.c)
 
 
-add_library (coreneuron10_solver
+add_library (coreneuron10_solver STATIC
              solver/helper.c
              solver/hines.c
              solver/main.c)
 
-add_library (coreneuron10_cstep
+add_library (coreneuron10_cstep STATIC
              cstep/helper.c
              cstep/main.c)
 
-add_library (coreneuron10_queueing
-		     queueing/queue.cpp
-		     queueing/main.cpp)
-
 target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common)
 
-
-target_link_libraries(coreneuron10_queueing storage coreneuron10_cstep coreneuron10_solver)
-
 install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep
-				 coreneuron10_common coreneuron10_queueing DESTINATION lib)
+                 coreneuron10_common DESTINATION lib)
+
 install (FILES  kernel/mechanism/mechanism.h
-				kernel/kernel.h
-				solver/solver.h
-				cstep/cstep.h
-				common/data/helper.h
-				queueing/queue.h
-				queueing/pool.h
-				queueing/queueing.h
-				queueing/spinlock_apple.h
-				queueing/spinlock_queue.h
-				queueing/thread.h
-				DESTINATION include)
+                kernel/kernel.h
+                solver/solver.h
+                cstep/cstep.h
+                common/data/helper.h
+                DESTINATION include)
+
+add_subdirectory (event_passing)

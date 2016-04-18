@@ -1,5 +1,6 @@
 #Brief description of the directory
 
+    spike: contain the spike exchange miniapp (C++)
     app : contains the main app that organize all the mini app (C++)
     hello: contains a basic example of hello world miniapp (C++)
     queueing: contains a simulation of the CoreNeuron queueing functionality (C++)

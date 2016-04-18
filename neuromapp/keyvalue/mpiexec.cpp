@@ -25,45 +25,23 @@
 #include <stdlib.h>
 
 #include "keyvalue/utils/trait.h"
-#include "keyvalue/benchmark.h"
+#include "keyvalue/benchmarks/benchmark.h"
 #include "keyvalue/utils/statistic.h"
-#include "keyvalue/utils/trait.h"
 
 int main(int argc, char* argv[]) {
 
-
     // build argument from the command line
-	keyvalue::argument a(argc, argv);
+    keyvalue::argument a(argc, argv);
     // build the bench infunction of the argument
     if(a.backend() == "map"){
         benchmark<keyvalue::map> b(a);
         //bench
-        keyvalue::statistic s = run_loop(b);
-        //compute statistics
-        s.process();
-        //print the results
-        std::cout << s << std::endl;
-
-        std::pair<keyvalue::statistic,keyvalue::statistic> p = run_task(b);
-        // compute the statistic
-        p.first.process();
-        p.second.process();
-        //print the results
-        std::cout << p.first << std::endl;
-        std::cout << p.second << std::endl;
-    }
-    
-#ifdef SKV_STORE
-    if(a.backend() == "skv"){
-        benchmark<keyvalue::skv> b(a);
-        //bench
-        keyvalue::statistic s = run_loop(b);
+        keyvalue::statistic s = run_benchmark(b);
         //compute statistics
         s.process();
         //print the results
         std::cout << s << std::endl;
     }
-#endif
 
-     return 0;
+    return 0;
 }

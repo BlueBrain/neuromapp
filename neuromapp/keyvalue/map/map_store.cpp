@@ -16,29 +16,14 @@
 
 
 keyvalue_map::keyvalue_map(bool threadSafe, std::string pdsName):
-                                    _numReaders(0), _numWriters(0), _async(false){
-                                   _rank = mapp::master.rank();
-    if (threadSafe) {
-#ifdef _OPENMP
-        _nRdLock = new MyOMPLock();
-        _nWtLock = new MyOMPLock();
-        _readersLock = new MyOMPLock();
-        _writersLock = new MyOMPLock();
-#endif
-    } else {
-        _nRdLock = new MyDummyLock();
-        _nWtLock = new MyDummyLock();
-        _readersLock = new MyDummyLock();
-        _writersLock = new MyDummyLock();
-    }
-    std::cout << "[" << _rank << "] initialized skv map successfully" << std::endl;
+        _numReaders(0), _async(false), _numWriters(0){
+    _rank = mapp::master.rank();
 }
 
 
 keyvalue_map::~keyvalue_map(){
     _map.clear();
     _valSizes.clear();
-    std::cout << "[" << _rank << "] Finalized successfully" << std::endl;
 }
 
 int keyvalue_map::retrieve(keyvalue::meta& m)
@@ -46,12 +31,12 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
     unsigned int size = 0;
 
     /****************************************/
-    _readersLock->lock();
+    _readersLock.acquire();
     while (_numWriters > 0) {}
-    _nRdLock->lock();
+    _nRdLock.acquire();
     _numReaders++;
-    _nRdLock->unlock();
-    _readersLock->unlock();
+    _nRdLock.release();
+    _readersLock.release();
     /****************************************/
 
 
@@ -69,9 +54,9 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
             << " given value size too small, it should be " << size << " bytes" << std::endl;
 
             /****************************************/
-            _nRdLock->lock();
+            _nRdLock.acquire();
             _numReaders--;
-            _nRdLock->unlock();
+            _nRdLock.release();
             /****************************************/
 
             return 0;
@@ -85,9 +70,9 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
         << " key (" << m.key() << ") does not exist" << std::endl;
     }
     /****************************************/
-    _nRdLock->lock();
+    _nRdLock.acquire();
     _numReaders--;
-    _nRdLock->unlock();
+    _nRdLock.release();
     /****************************************/
     return size;
 }
@@ -96,13 +81,13 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
 
 void keyvalue_map::remove(const keyvalue::meta& m){
     /****************************************/
-    _readersLock->lock();
+    _readersLock.acquire();
     while (_numReaders > 0) {}
-    _writersLock->lock();
+    _writersLock.acquire();
     while (_numReaders > 0) {}
-    _nWtLock->lock();
+    _nWtLock.acquire();
     _numWriters++;
-    _nWtLock->unlock();
+    _nWtLock.release();
     while (_numReaders > 0) {}
     /****************************************/
 
@@ -120,23 +105,23 @@ void keyvalue_map::remove(const keyvalue::meta& m){
     }
 
     /****************************************/
-    _nWtLock->lock();
+    _nWtLock.acquire();
     _numWriters--;
-    _nWtLock->unlock();
-    _writersLock->unlock();
-    _readersLock->unlock();
+    _nWtLock.release();
+    _writersLock.release();
+    _readersLock.release();
     /****************************************/
 }
 
 void  keyvalue_map::insert(const keyvalue::meta& m){
     /****************************************/
-    _readersLock->lock();
+    _readersLock.acquire();
     while (_numReaders > 0) {}
-    _writersLock->lock();
+    _writersLock.acquire();
     while (_numReaders > 0) {}
-    _nWtLock->lock();
+    _nWtLock.acquire();
     _numWriters++;
-    _nWtLock->unlock();
+    _nWtLock.release();
     while (_numReaders > 0) {}
     /****************************************/
     std::vector<double> * v = new std::vector<double>(m.value(),m.value()+m.value_size());
@@ -145,11 +130,11 @@ void  keyvalue_map::insert(const keyvalue::meta& m){
     _valSizes.insert(std::make_pair(m.key(),m.key_size()));
 
     /****************************************/
-    _nWtLock->lock();
+    _nWtLock.acquire();
     _numWriters--;
-    _nWtLock->unlock();
-    _writersLock->unlock();
-    _readersLock->unlock();
+    _nWtLock.release();
+    _writersLock.release();
+    _readersLock.release();
     /****************************************/
     
 }

@@ -31,15 +31,17 @@
 namespace mapp{
 
     void usage(){
+//        std::string intro(
         std::cout << "Usage: < >  means optional \n";
         std::cout << "   miniapp --help provides the help of your miniapp \n \n";
         std::cout << "   The list of the following miniapps are available: \n";
         std::cout << "       hello <arg> \n";
-        std::cout << "       queueing <arg> \n";
+        std::cout << "       event <arg> \n";
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
         std::cout << "       cstep <arg> \n";
         std::cout << "       keyvalue <arg> \n";
+        std::cout << "       replib <arg> \n";
         std::cout << "   quit to exit \n";
         std::cout << "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
         std::cout << "\n";

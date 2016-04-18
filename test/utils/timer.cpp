@@ -28,10 +28,10 @@
 #define BOOST_TEST_MODULE TIMER_TEST
 
 #include <boost/test/unit_test.hpp>
-#include "utils/mpi/controler.h"
 #include "utils/mpi/timer.h"
 
-#include <unistd.h>
+//Performs MPI init/finalize
+#include "test/tools/mpi_helper.h"
 
 BOOST_AUTO_TEST_CASE(timer_test){
     mapp::timer t;

@@ -1,0 +1,33 @@
+Description of the simulation:
+    This simulation is modelled after the CoreNeuron event passing functionality.
+    In the simulation a number of threads(specified by the user) are generated
+    and perform a message passing algorithm. Each of these threads contains a
+    priority queue to sort events based on time and an inter_thread_events_ queue
+    to pass events between threads. The algorithm can be explained in 4 steps:
+
+    1. Send Events: Each thread takes from a list of generated events (which is
+    filled at the start of the simulation). Depending on the event's destination,
+    these are either stored in the local priority queue, or sent to another
+    thread's inter_thread_events_ queue.
+
+    2. Each thread enqueues all event from it's inter_thread_events_ queue into
+    it's priority queue.
+
+    3. Each thread delivers all events in the priority queue with time
+    t <= the current time (here delivery is simulated using a usleep function)
+
+    4. Each thread performs linear algebra calculations, modelling the computation
+    of CoreNeuron.
+
+Description of the different files:
+
+    - pool contains the pool class which spawns threads and to perform a fixed_step task.
+      also filters events produced by spike exchange.
+
+    - thread contains the thread class. Every time step, they generate, send,
+        enqueue and deliver events
+
+    - queue the priority queue class used by thread to order events in a heap with
+        the least-most time at the front
+
+
