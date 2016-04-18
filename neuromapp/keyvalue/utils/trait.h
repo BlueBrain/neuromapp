@@ -31,7 +31,7 @@
 
 namespace keyvalue {
 
-    enum selector { map = 0 };
+    enum selector { map = 0, skv };
 
     template<selector M>
     struct trait_meta;
@@ -42,5 +42,20 @@ namespace keyvalue {
         typedef keyvalue_map keyvalue_type;
     };
 }
+
+#ifdef SKV_STORE
+
+#include "keyvalue/skv/skv_store.h"
+
+namespace keyvalue {
+
+    template<>
+    struct trait_meta<skv>{
+        typedef meta_skv meta_type;
+        typedef keyvalue_skv keyvalue_type;
+    };
+} //end namespace keyvalue
+
+#endif
 
 #endif
