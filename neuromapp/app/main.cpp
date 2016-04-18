@@ -55,6 +55,7 @@ int main(int argc, char * const argv[]){
      d.insert("solver",coreneuron10_solver_execute);
      d.insert("cstep",coreneuron10_cstep_execute);
      d.insert("keyvalue",keyvalue_execute);
+     d.insert("replib",replib_execute);
 
      //direct run
      if(argv[1] != NULL){
