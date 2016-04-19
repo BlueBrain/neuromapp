@@ -33,6 +33,13 @@
 
 #include <skv/client/skv_client.hpp>
 
+
+#ifdef SKV_STORE
+#include "keyvalue/meta.h"
+#endif
+
+
+
 namespace keyvalue{
 
 class meta;
@@ -91,6 +98,7 @@ private:
     skv_client_cmd_ext_hdl_t h;
 };
 
-#endif
+}
 
 #endif
+

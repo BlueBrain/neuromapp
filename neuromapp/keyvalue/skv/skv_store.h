@@ -12,7 +12,7 @@
 #include <skv/client/skv_client.hpp>
 
 #include "utils/omp/lock.h"
-#include "keyvalue/meta.h"
+#include "keyvalue/skv/meta_skv.h"
 
 class keyvalue_skv{
 
