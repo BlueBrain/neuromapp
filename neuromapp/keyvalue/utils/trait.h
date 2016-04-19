@@ -27,11 +27,12 @@
 #define MAPP_TRAIT_H
 
 #include "keyvalue/map/map_store.h"
+#include "keyvalue/ceph/ceph_store.h"
 #include "keyvalue/meta.h"
 
 namespace keyvalue {
 
-    enum selector { map = 0 };
+    enum selector { map = 0, ceph = 2 };
 
     template<selector M>
     struct trait_meta;
@@ -40,6 +41,12 @@ namespace keyvalue {
     struct trait_meta<map>{
         typedef meta meta_type;
         typedef keyvalue_map keyvalue_type;
+    };
+
+    template<>
+    struct trait_meta<ceph>{
+        typedef meta_ceph meta_type;
+        typedef keyvalue_ceph keyvalue_type;
     };
 }
 

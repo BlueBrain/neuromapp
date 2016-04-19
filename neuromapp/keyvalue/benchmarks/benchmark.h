@@ -64,6 +64,12 @@ public:
         return g;
     }
 
+    /** \fun get_group()
+        \brief get the group i.e. the memory */
+    keyvalue::group<meta_type> & get_group_nc() {
+        return g;
+    }
+
     /** \fun get_args() const
         \brief return the argument */
     keyvalue::argument const & get_args() const {
