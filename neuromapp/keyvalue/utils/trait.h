@@ -31,7 +31,7 @@
 
 namespace keyvalue {
 
-    enum selector { map = 0, skv };
+    enum selector { map = 0, skv = 1};
 
     template<selector M>
     struct trait_meta;
