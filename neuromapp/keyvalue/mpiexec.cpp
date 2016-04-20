@@ -1,7 +1,9 @@
 /*
- * Neuromapp - meta.h, Copyright (c), 2015,
+ * Neuromapp - mpiexec.cpp, Copyright (c), 2015,
  * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
  * timothee.ewart@epfl.ch,
+ * Judit Planas - Swiss Federal Institute of technology in Lausanne,
+ * judit.planas@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +37,22 @@ int main(int argc, char* argv[]) {
     // build the bench infunction of the argument
     if(a.backend() == "map"){
         benchmark<keyvalue::map> b(a);
+        //bench
+        keyvalue::statistic s = run_benchmark(b);
+        //compute statistics
+        s.process();
+        //print the results
+        std::cout << s << std::endl;
+    } else if (a.backend() == "skv") {
+            benchmark<keyvalue::skv> b(a);
+            //bench
+            keyvalue::statistic s = run_benchmark(b);
+            //compute statistics
+            s.process();
+            //print the results
+            std::cout << s << std::endl;
+    } else if (a.backend() == "ceph") {
+        benchmark<keyvalue::ceph> b(a);
         //bench
         keyvalue::statistic s = run_benchmark(b);
         //compute statistics

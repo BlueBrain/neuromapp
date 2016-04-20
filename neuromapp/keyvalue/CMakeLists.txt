@@ -21,14 +21,6 @@ install (FILES map/map_store.h DESTINATION include)
 
 #SKV IBM backend
 #set(SKV_PATH "/gpfs/bbp.cscs.ch/home/jplanas/bgas/skv/cnk/" CACHE PATH "IBM SKV library root directory path")
-add_executable(MPI_Exec_kv utils/statistic.cpp mpiexec.cpp )
-
-# Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-target_link_libraries (MPI_Exec_kv map_store ${MPI_CXX_LIBRARIES})
-
-set_target_properties(MPI_Exec_kv PROPERTIES
-		COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-
 if(IS_DIRECTORY ${SKV_PATH})
   include_directories(${SKV_PATH}/include)
   message (STATUS "Using SKV in root dir: ${SKV_PATH}")
@@ -58,17 +50,32 @@ endif()
 # SKV link flags must be after SKV_LIBRARIES
 set(MPI_LIBRARIES ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
 
+
+# Ceph - Rados backend
+if(IS_DIRECTORY ${CEPH_PATH}/include/rados)
+  include_directories(${CEPH_PATH}/include/rados)
+  message (STATUS "Using CEPH in root dir: ${CEPH_PATH}")
+  set(CEPH_LIBRARIES "ceph_store")
+  set(ceph_link_flags "-L${CEPH_PATH}/lib64 -lrados")
+  add_definitions(-DCEPH_STORE)
+
+  add_library (ceph_store ceph/ceph_store.cpp)
+
+  set_target_properties(ceph_store PROPERTIES
+                  LINK_FLAGS "-lrados")
+
+  install (TARGETS ceph_store DESTINATION lib)
+  install (FILES ceph/ceph_store.h DESTINATION include)
+else()
+  message(STATUS "Couldn't find SKV library, ignoring it.")
+  set(CEPH_LIBRARIES "")
+  set(ceph_link_flags "")
+endif()
+
+add_executable(MPI_Exec_kv utils/statistic.cpp mpiexec.cpp )
+
 # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-target_link_libraries (MPI_Exec_kv map_store ${SKV_LIBRARIES} ${skv_link_flags})
-
-if (MPI_COMPILE_FLAGS)
-	set_target_properties(MPI_Exec_kv PROPERTIES
-		COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
-endif()
-
-if (MPI_LINK_FLAGS)
-	set_target_properties(MPI_Exec_kv PROPERTIES
-            LINK_FLAGS "${MPI_LINK_FLAGS}")
-endif()
+target_link_libraries (MPI_Exec_kv map_store ${SKV_LIBRARIES} ${skv_link_flags} ${CEPH_LIBRARIES} ${ceph_link_flags} ${MPI_CXX_LIBRARIES})
 
 install (TARGETS MPI_Exec_kv DESTINATION bin)
+
