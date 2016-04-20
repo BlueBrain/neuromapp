@@ -27,7 +27,9 @@
 #define MAPP_TRAIT_H
 
 #include "keyvalue/map/map_store.h"
+#ifdef CEPH_STORE
 #include "keyvalue/ceph/ceph_store.h"
+#endif
 #include "keyvalue/meta.h"
 
 namespace keyvalue {
@@ -45,9 +47,15 @@ namespace keyvalue {
 
     template<>
     struct trait_meta<ceph>{
+#ifdef CEPH_STORE
         typedef meta_ceph meta_type;
         typedef keyvalue_ceph keyvalue_type;
+#else
+        typedef meta meta_type;
+        typedef keyvalue_map keyvalue_type;
+#endif
     };
+
 } //end namespace keyvalue
 
 #endif

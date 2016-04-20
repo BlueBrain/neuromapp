@@ -26,8 +26,8 @@
 #ifndef MAPP_TOOLS_H
 #define MAPP_TOOLS_H
 
-#include <numeric>
 #include <mpi.h>
+#include <numeric>
 
 namespace keyvalue {
 
