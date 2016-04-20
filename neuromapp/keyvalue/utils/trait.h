@@ -27,6 +27,9 @@
 #define MAPP_TRAIT_H
 
 #include "keyvalue/map/map_store.h"
+#ifdef SKV_STORE
+#include "keyvalue/skv/skv_store.h"
+#endif
 #include "keyvalue/meta.h"
 
 namespace keyvalue {
@@ -41,21 +44,18 @@ namespace keyvalue {
         typedef meta meta_type;
         typedef keyvalue_map keyvalue_type;
     };
-}
-
-#ifdef SKV_STORE
-
-#include "keyvalue/skv/skv_store.h"
-
-namespace keyvalue {
 
     template<>
     struct trait_meta<skv>{
+#ifdef SKV_STORE
         typedef meta_skv meta_type;
         typedef keyvalue_skv keyvalue_type;
-    };
-} //end namespace keyvalue
-
+#else
+        typedef meta meta_type;
+        typedef keyvalue_map keyvalue_type;
 #endif
+    };
+
+} //end namespace keyvalue
 
 #endif
