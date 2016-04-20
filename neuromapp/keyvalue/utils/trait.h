@@ -48,6 +48,6 @@ namespace keyvalue {
         typedef meta_ceph meta_type;
         typedef keyvalue_ceph keyvalue_type;
     };
-}
+} //end namespace keyvalue
 
 #endif
