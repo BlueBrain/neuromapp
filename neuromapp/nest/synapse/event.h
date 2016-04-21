@@ -29,54 +29,67 @@
 
 #include <vector>
 
-namespace nest{
-
-/**
- * Spike event class
- */
-class Event
+namespace nest
 {
-public:
-
-	double t;
-	int sender;
-	int receiver;
-
-	double weight;
-	double delay;
-
-	virtual void operator()() {}
-};
-
-/**
- * Spike event class.
- * The Event class is extended with a weight logging vector.
- */
-class VectorEvent: public Event
-{
-private:
-	std::vector<double>& ptr_weights;
-public:
-	VectorEvent(const double& t,
-			    const int& sender,
-			    const int& receiver,
-			    const double& weight,
-			    const double& delay,
-			    std::vector<double>& ptr_weights):
-				   ptr_weights(ptr_weights)
+	/**
+	 * event class
+	 */
+	struct event
 	{
-		   this->t = t;
-		   this->sender = sender;
-		   this->receiver = receiver;
-		   this->weight = weight;
-		   this->delay = delay;
-	}
-	void operator()()
+		double t;
+		int sender;
+		int receiver;
+
+		double weight;
+		double delay;
+
+		/** \fn virtual void operator()()
+					\brief has to be implemented by inherited class
+				 */
+		virtual void operator()()
+		{}
+	};
+	/**
+	 * logevent class.
+	 * The event class is extended with a weight logging vector.
+	 */
+	class logevent: public event
 	{
-		ptr_weights.push_back(weight);
-	}
-};
+	private:
+		std::vector<double>& weightlog;
+	public:
+		/** \fn logevent(const double& t, const int& sender, const int& receiver, const double& weight, const double& delay, std::vector<double>& weightlog)
+					\brief Constructor of the logevent class
+					\param t time of event
+					\param sender event sender
+					\param receiver event receiver
+					\param weight weight
+					\param delay delay
+					\param weightlog reference to the weight log vector
 
-};
+				 */
+		logevent(const double& t,
+					const int& sender,
+					const int& receiver,
+					const double& weight,
+					const double& delay,
+					std::vector<double>& weightlog):
+						weightlog(weightlog)
+		{
+			   this->t = t;
+			   this->sender = sender;
+			   this->receiver = receiver;
+			   this->weight = weight;
+			   this->delay = delay;
+		}
 
+		/** \fn void operator()()
+				\brief Pushes the current weight to the log vector
+			 */
+		void operator()()
+		{
+			weightlog.push_back(weight);
+		}
+	};
+};
 #endif /* EVENT_H_ */

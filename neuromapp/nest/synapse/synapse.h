@@ -26,17 +26,15 @@
 #ifndef MAPP_SYNAPSE_EXECUTE_
 #define MAPP_SYNAPSE_EXECUTE_
 
-
-/** \fn nestconnection_execute(int argc, char *const argv[])
-    \brief nest synapse miniapp
-    \param argc number of argument from the command line
-    \param argv the command line from the driver or external call
-    \return error message from mapp::mapp_error
- */
-namespace nest {
-
+namespace nest
+{
+	/** \fn nestconnection_execute(int argc, char *const argv[])
+		\brief nest synapse miniapp
+		\param argc number of argument from the command line
+		\param argv the command line from the driver or external call
+		\return error message from mapp::mapp_error
+	 */
 	int synapse_execute(int argc, char* const argv[]);
-
 };
 
 #endif

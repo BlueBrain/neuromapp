@@ -31,10 +31,33 @@
 #include "nest/synapse/event.h"
 
 namespace nest{
-	class Tsodyks2
+
+	/**
+	 * NEST synapse model: Tsodyks2
+	 *  * This synapse model implements synaptic short-term depression and short-term facilitation
+     * according to [1] and [2]. It solves Eq (2) from [1] and modulates U according to eq. (2) of [2].
+     * [1] Tsodyks, M. V., & Markram, H. (1997). The neural code between neocortical pyramidal neurons
+     *  depends on neurotransmitter release probability. PNAS, 94(2), 719-23.
+     * [2] Fuhrmann, G., Segev, I., Markram, H., & Tsodyks, M. V. (2002). Coding of temporal
+     * information by activity-dependent synapses. Journal of neurophysiology, 87(1), 140-8.
+	 * [3] Maass, W., & Markram, H. (2002). Synapses as dynamic memory buffers. Neural networks, 15(2),
+     * 155–61.synapse/args
+	 */
+
+	class tsodyks2
 	{
 	public:
-		Tsodyks2(const double& delay,
+		/** \fun Tsodyks2(const double& delay, const double& weight, const double& U, const double& u, const double& x, const double& tau_rec, const double& tau_fac)
+		        \brief Constructor of the Tsodyks2 class
+		        \param delay delay
+		        \param weight weight
+		        \param U U
+		        \param u u
+		        \param x x
+		        \param tau_rec tau_rec
+		        \param tau_fac tau_fac
+		        */
+		tsodyks2(const double& delay,
 				 const double& weight,
 				 const double& U,
 				 const double& u,
@@ -50,7 +73,13 @@ namespace nest{
 			tau_fac_(tau_fac)
 		{}
 
-		void send(Event& e, double t_lastspike) {
+		/** \fn void send()
+			        \brief Sends a spike event through the synapse
+			        \param e spike event
+    				\param t_lastspike time of last spike
+			     */
+		void send(event& e, double t_lastspike)
+		{
 			double h = e.t - t_lastspike;
 			double x_decay = std::exp(-h / tau_rec_);
 			double u_decay = (tau_fac_ < 1.0e-10) ? 0.0 : std::exp(-h / tau_fac_);
@@ -62,63 +91,103 @@ namespace nest{
 			e();
 		}
 
-		double get_delay() const
+		/** \fun delay() const
+		        \brief get delay, read only */
+		const double& delay() const
 		{
 			return delay_;
 		}
 
-		void set_delay(double delay) {
-			delay_ = delay;
+		/** \fun delay()
+				\brief returns a reference to delay */
+		double& delay()
+		{
+			return delay_;
 		}
 
-		double get_tau_fac() const {
+		/** \fun tau_fac() const
+				        \brief get tau_fac, read only */
+		const double& tau_fac() const
+		{
 			return tau_fac_;
 		}
 
-		void set_tau_fac(double tauFac) {
-			tau_fac_ = tauFac;
+		/** \fun tau_fac()
+						\brief returns a reference to tau_fac */
+		double& tau_fac()
+		{
+			return tau_fac_;
 		}
 
-		double get_tau_rec() const {
+		/** \fun tau_rec() const
+				        \brief get tau_rec, read only */
+		const double& tau_rec() const
+		{
 			return tau_rec_;
 		}
 
-		void set_tau_rec(double tauRec) {
-			tau_rec_ = tauRec;
+		/** \fun tau_rec()
+						\brief returns a reference to tau_rec */
+		double& tau_rec()
+		{
+			return tau_rec_;
 		}
 
-		double get_u() const {
+		/** \fun u() const
+				        \brief get u, read only */
+		const double& u() const
+		{
 			return u_;
 		}
 
-		void set_u(double u) {
-			u_ = u;
+		/** \fun u()
+						\brief returns a reference to u */
+		double& u()
+		{
+			return u_;
 		}
 
-		double get_U() const {
+		/** \fun U() const
+				        \brief get U, read only */
+		const double& U() const
+		{
 			return U_;
 		}
 
-		void set_U(double u) {
-			U_ = u;
+		/** \fun U()
+						\brief returns a reference to U */
+		double& U()
+		{
+			return U_;
 		}
 
-		double get_weight() const {
+		/** \fun weight() const
+						        \brief get weight, read only */
+		const double& weight() const
+		{
 			return weight_;
 		}
 
-		void set_weight(double weight) {
-			weight_ = weight;
+		/** \fun weight()
+								\brief returns a reference to weight */
+		double& weight()
+		{
+			return weight_;
 		}
 
-		double get_x() const {
+		/** \fun x() const
+						        \brief get x, read only */
+		const double& x() const
+		{
 			return x_;
 		}
 
-		void set_x(double x) {
-			x_ = x;
+		/** \fun x()
+										\brief returns a reference to x */
+		double& x()
+		{
+			return x_;
 		}
-
 
 	private:
 		double delay_;  //!< synapse weight
@@ -128,9 +197,6 @@ namespace nest{
 		double x_; //!< current fraction of the synaptic weight
 		double tau_rec_; //!< [ms] time constant for recovery
 		double tau_fac_; //!< [ms] time constant for facilitation
-
 	};
 };
-
-
 #endif /* TSODYKS2_H_ */

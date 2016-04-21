@@ -28,6 +28,7 @@
 
 
 #include <boost/program_options.hpp>
+#include <boost/chrono.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include "nest/synapse/synapse.h"
@@ -38,133 +39,143 @@
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
 
-namespace nest {
-
-/** \fn help(int argc, char *const argv[], po::variables_map& vm)
-    \brief Helper using boost program option to facilitate the command line manipulation
-    \param argc number of argument from the command line
-    \param argv the command line from the driver or external call
-    \param vm encapsulate the command line
-    \return error message from mapp::mapp_error
- */
-int synapse_help(int argc, char* const argv[], po::variables_map& vm){
-    po::options_description desc("Allowed options");
-    desc.add_options()
-    ("help", "produce help message")
-    ("models", "list available synapse models")
-    ("model", po::value<std::string>()->default_value("tsodyks2"), "synapse model")
-
-    // tsodyks2 parameters
-    ("delay", po::value<double>()->default_value(1.0), "delay")
-    ("weight", po::value<double>()->default_value(1.0), "weight")
-    ("U", po::value<double>()->default_value(0.5), "U")
-    ("u", po::value<double>()->default_value(0.5), "u")
-    ("x", po::value<double>()->default_value(1), "x")
-    ("tau_rec", po::value<double>()->default_value(800.0), "tau_rec")
-    ("tau_fac", po::value<double>()->default_value(0.0), "tau_fac")
-
-
-    // simulation parameters
-    ("dt", po::value<double>()->default_value(0.1), "time between spikes")
-    ("iterations", po::value<int>()->default_value(1), "number of iterations (spikes)");
-
-
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
-
-    //check for valid synapse model
-    if (!(vm["model"].as<std::string>() == "tsodyks2") /* || further models*/) {
-    	std::cout << "synapse model unknown" << std::endl;
-    	return mapp::MAPP_BAD_DATA;
-    }
-
-    //list available synapse models
-    if (vm.count("models")){
-    	std::cout << "   Following synapse models are available: \n";
-    	std::cout << "       name           list of accepted parameters\n";
-		std::cout << "       tsodyks2       delay, weight, U, u, x, tau_rec, tau_fac\n";
-            std::cout << "";
-            return mapp::MAPP_USAGE;
-        }
-
-    if (vm.count("help")){
-        std::cout << desc;
-        return mapp::MAPP_USAGE;
-    }
-    return mapp::MAPP_OK;
-}
-
-/** \fn content(po::variables_map const& vm)
-    \brief Execute the NEST synapse Miniapp.
-    \param vm encapsulate the command line and all needed informations
- */
-void synapse_content(po::variables_map const& vm){
-
-	double dt = vm["dt"].as<double>();
-	int iterations = vm["iterations"].as<int>();
-
-	boost::scoped_ptr<Tsodyks2> syn;
-
-
-	if (vm["model"].as<std::string>() == "tsodyks2") {
-		const double delay = vm["delay"].as<double>();
-		const double weight = vm["weight"].as<double>();
-		const double U = vm["U"].as<double>();
-		const double u = vm["u"].as<double>();
-		const double x = vm["x"].as<double>();
-		const double tau_rec = vm["tau_rec"].as<double>();
-		const double tau_fac = vm["tau_fac"].as<double>();
-
-		syn.reset(new Tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac));
-	}
-	/* else if () .. further synapse models*/
-	else
+namespace nest
+{
+	/** \fn help(int argc, char *const argv[], po::variables_map& vm)
+		\brief Helper using boost program option to facilitate the command line manipulation
+		\param argc number of argument from the command line
+		\param argv the command line from the driver or external call
+		\param vm encapsulate the command line
+		\return error message from mapp::mapp_error
+	 */
+	int synapse_help(int argc, char* const argv[], po::variables_map& vm)
 	{
-		std::cerr << "synapse model implementation missing" << std::endl;
+		po::options_description desc("Allowed options");
+		desc.add_options()
+		("help", "produce help message")
+		("models", "list available synapse models")
+		("model", po::value<std::string>()->default_value("tsodyks2"), "synapse model")
+
+		// tsodyks2 parameters
+		("delay", po::value<double>()->default_value(1.0), "delay")
+		("weight", po::value<double>()->default_value(1.0), "weight")
+		("U", po::value<double>()->default_value(0.5), "U")
+		("u", po::value<double>()->default_value(0.5), "u")
+		("x", po::value<double>()->default_value(1), "x")
+		("tau_rec", po::value<double>()->default_value(800.0), "tau_rec")
+		("tau_fac", po::value<double>()->default_value(0.0), "tau_fac")
+
+
+		// simulation parameters
+		("dt", po::value<double>()->default_value(0.1), "time between spikes")
+		("iterations", po::value<int>()->default_value(1), "number of iterations (spikes)");
+
+
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm);
+
+		//check for valid synapse model
+		if (!(vm["model"].as<std::string>() == "tsodyks2") /* || further models*/) {
+			std::cout << "Error: Selected synapse model is  unknown" << std::endl;
+			return mapp::MAPP_BAD_DATA;
+		}
+
+		//check for valid dt
+		if (vm["dt"].as<double>() < 0.1) {
+				std::cout << "Error: Time between spikes has to be bigger than 0.1" << std::endl;
+				return mapp::MAPP_BAD_DATA;
+		}
+
+		//check for valid iterations
+		if (vm["iterations"].as<int>() < 1) {
+				std::cout << "Error: Number of iterations has to be a greater than 0" << std::endl;
+				return mapp::MAPP_BAD_DATA;
+		}
+
+		//list available synapse models
+		if (vm.count("models")){
+			std::cout << "   Following synapse models are available: \n";
+			std::cout << "       name           list of accepted parameters\n";
+			std::cout << "       tsodyks2       delay, weight, U, u, x, tau_rec, tau_fac\n";
+				std::cout << "";
+				return mapp::MAPP_USAGE;
+			}
+
+		if (vm.count("help")){
+			std::cout << desc;
+			return mapp::MAPP_USAGE;
+		}
+		return mapp::MAPP_OK;
 	}
 
-	//preallocate vector for results
-	std::vector<double> weights;
-	weights.reserve(iterations);
+	/** \fn content(po::variables_map const& vm)
+		\brief Execute the NEST synapse Miniapp.
+		\param vm encapsulate the command line and all needed informations
+	 */
+	void synapse_content(po::variables_map const& vm)
+	{
+		double dt = vm["dt"].as<double>();
+		int iterations = vm["iterations"].as<int>();
 
-	//create a few events
-	std::vector< boost::shared_ptr<VectorEvent> > events(iterations);
-	for (unsigned int i=0; i<iterations; i++) {
-		const double t = dt*(i+1);
-		const int sender = -1;
-		const int receiver = -1;
-		const double weight = 1.;
-		const double delay = 0.1;
-		events[i].reset(new VectorEvent(t, sender, receiver, weight, delay, weights));
+		boost::scoped_ptr<tsodyks2> syn;
+
+		if (vm["model"].as<std::string>() == "tsodyks2") {
+			const double delay = vm["delay"].as<double>();
+			const double weight = vm["weight"].as<double>();
+			const double U = vm["U"].as<double>();
+			const double u = vm["u"].as<double>();
+			const double x = vm["x"].as<double>();
+			const double tau_rec = vm["tau_rec"].as<double>();
+			const double tau_fac = vm["tau_fac"].as<double>();
+
+			syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac));
+		}
+		/* else if () .. further synapse models*/
+		else {
+			std::cerr << "synapse model implementation missing" << std::endl;
+		}
+
+		//preallocate vector for results
+		std::vector<double> weights;
+		weights.reserve(iterations);
+
+		//create a few events
+		std::vector< boost::shared_ptr<logevent> > events(iterations);
+		for (unsigned int i=0; i<iterations; i++) {
+			const double t = dt*(i+1);
+			const int sender = -1;
+			const int receiver = -1;
+			const double weight = 1.;
+			const double delay = 0.1;
+			events[i].reset(new logevent(t, sender, receiver, weight, delay, weights));
+		}
+
+		double t_lastspike = 0.0;
+		boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
+		for (unsigned int i=0; i<iterations; i++) {
+			//send spike
+			syn->send(*(event*)events[i].get(), t_lastspike);
+
+			t_lastspike += dt;
+		}
+		boost::chrono::system_clock::duration delay = boost::chrono::system_clock::now() - start;
+
+		std::cout << "duration: " << delay << std::endl;
+		std::cout << "Last weight " << weights.back() << std::endl;
 	}
 
-
-
-	double t_lastspike = 0.0;
-	for (unsigned int i=0; i<iterations; i++) {
-		events[i]->receiver = -1;
-		events[i]->t = t_lastspike + dt;
-
-		//send spike
-		syn->send(*(Event*)events[i].get(), t_lastspike);
-
-		t_lastspike += dt;
+	int synapse_execute(int argc, char* const argv[])
+	{
+		try {
+			po::variables_map vm; // it contains everything
+			if(int error = synapse_help(argc, argv, vm)) return error;
+			synapse_content(vm); // execute the miniapp
+		}
+		catch(std::exception& e){
+			std::cout << e.what() << "\n";
+			return mapp::MAPP_UNKNOWN_ERROR;
+		}
+		return mapp::MAPP_OK; // 0 ok, 1 not ok
 	}
-
-	std::cout << "Last weight " << weights.back() << std::endl;
-}
-
-int synapse_execute(int argc, char* const argv[]){
-    try {
-        po::variables_map vm; // it contains everything
-        if(int error = synapse_help(argc, argv, vm)) return error;
-        synapse_content(vm); // execute the miniapp
-    }
-    catch(std::exception& e){
-        std::cout << e.what() << "\n";
-        return mapp::MAPP_UNKNOWN_ERROR;
-    }
-    return mapp::MAPP_OK; // 0 ok, 1 not ok
-}
 
 };

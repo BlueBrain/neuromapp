@@ -36,7 +36,8 @@
 
 #include "coreneuron_1.0/common/data/helper.h" // common functionalities
 
-BOOST_AUTO_TEST_CASE(nest_synapse_test){
+BOOST_AUTO_TEST_CASE(nest_synapse_test)
+{
 	std::vector<std::string> command_v;
 	int error(mapp::MAPP_OK);
 
@@ -53,6 +54,22 @@ BOOST_AUTO_TEST_CASE(nest_synapse_test){
 	error = mapp::execute(command_v,nest::synapse_execute);
 	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
+	//trying out invalid dt
+	command_v.clear();
+	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("--dt");
+	command_v.push_back("0"); // model does not exist
+	error = mapp::execute(command_v,nest::synapse_execute);
+	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
+
+	//trying out invalid iterations
+	command_v.clear();
+	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("--iterations");
+	command_v.push_back("0"); // model does not exist
+	error = mapp::execute(command_v,nest::synapse_execute);
+	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
+
 	//asking for helper
 	command_v.clear();
 	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
@@ -61,7 +78,8 @@ BOOST_AUTO_TEST_CASE(nest_synapse_test){
 	BOOST_CHECK(error==mapp::MAPP_USAGE);
 }
 
-BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_constructor_test){
+BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_constructor_test)
+{
 	std::vector<double> weights;
 
 	const double t = 0.1;
@@ -70,7 +88,7 @@ BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_constructor_test){
 	const double weight = 2.;
 	const double delay = 0.5;
 
-	nest::VectorEvent event1(t, sender, receiver, weight, delay, weights);
+	nest::logevent event1(t, sender, receiver, weight, delay, weights);
 
 	BOOST_REQUIRE_EQUAL(event1.sender, sender);
 	BOOST_REQUIRE_EQUAL(event1.receiver, receiver);
@@ -79,8 +97,8 @@ BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_constructor_test){
 	BOOST_REQUIRE_CLOSE(event1.delay, delay, 0.001);
 }
 
-BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_test){
-
+BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_test)
+{
 	std::vector<double> weights;
 
 	const int sender = -1;
@@ -88,9 +106,9 @@ BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_test){
 	const double weight = 1.;
 	const double delay = 0.1;
 
-	nest::VectorEvent event1(1, sender, receiver, 0.1, delay, weights);
-	nest::VectorEvent event2(2, sender, receiver, 0.2, delay, weights);
-	nest::VectorEvent event3(3, sender, receiver, 0.3, delay, weights);
+	nest::logevent event1(1, sender, receiver, 0.1, delay, weights);
+	nest::logevent event2(2, sender, receiver, 0.2, delay, weights);
+	nest::logevent event3(3, sender, receiver, 0.3, delay, weights);
 
 	//trigger events - push weights to vector
 	event1();
@@ -103,7 +121,8 @@ BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_test){
 	BOOST_REQUIRE_CLOSE(weights[2], 0.3, 0.001);
 }
 
-BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_constructor_test){
+BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_constructor_test)
+{
 	//parameters
 	const double delay = 0.2;
 	const double weight = 1.0;
@@ -113,19 +132,20 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_constructor_test){
 	const double tau_rec = 800.0;
 	const double tau_fac = 20.0;
 
-	nest::Tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac);
+	nest::tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac);
 
-	BOOST_REQUIRE_CLOSE(synapse.get_U(), U, 0.01);
-	BOOST_REQUIRE_CLOSE(synapse.get_u(), u, 0.01);
-	BOOST_REQUIRE_CLOSE(synapse.get_x(), x, 0.01);
-	BOOST_REQUIRE_CLOSE(synapse.get_delay(), delay, 0.01);
-	BOOST_REQUIRE_CLOSE(synapse.get_weight(), weight, 0.01);
-	BOOST_REQUIRE_CLOSE(synapse.get_tau_rec(), tau_rec, 0.01);
-	BOOST_REQUIRE_CLOSE(synapse.get_tau_fac(), tau_fac, 0.01);
+	BOOST_REQUIRE_CLOSE(synapse.U(), U, 0.01);
+	BOOST_REQUIRE_CLOSE(synapse.u(), u, 0.01);
+	BOOST_REQUIRE_CLOSE(synapse.x(), x, 0.01);
+	BOOST_REQUIRE_CLOSE(synapse.delay(), delay, 0.01);
+	BOOST_REQUIRE_CLOSE(synapse.weight(), weight, 0.01);
+	BOOST_REQUIRE_CLOSE(synapse.tau_rec(), tau_rec, 0.01);
+	BOOST_REQUIRE_CLOSE(synapse.tau_fac(), tau_fac, 0.01);
 
 }
 
-BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test){
+BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
+{
 	/**
 	 * tsodyks2 model documentation from NEST
 	 *
@@ -141,7 +161,6 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test){
 
 	std::vector<double> weights;
 
-
 	//parameters
 	const double delay = 0.2;
 	const double weight = 1.0;
@@ -152,14 +171,13 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test){
 	const double tau_fac = 20.0;
 	const double dt = 1;
 
-	nest::Tsodyks2 synapse(delay, weight, U, u0, x0, tau_rec, tau_fac);
-
+	nest::tsodyks2 synapse(delay, weight, U, u0, x0, tau_rec, tau_fac);
 	//state variables
 	double x = x0;
 	double u = u0;
 	for (int i=0; i<3; i++) {
 		//generate spike
-		nest::VectorEvent spike(dt*(i+1), -1, -1, weight, delay, weights);
+		nest::logevent spike(dt*(i+1), -1, -1, weight, delay, weights);
 
 		synapse.send(spike, dt*i);
 
@@ -171,15 +189,15 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test){
 		double w = x * u * weight;
 
 		//check if parameters stay constant
-		BOOST_REQUIRE_CLOSE(synapse.get_U(), U, 0.01);
-		BOOST_REQUIRE_CLOSE(synapse.get_delay(), delay, 0.01);
-		BOOST_REQUIRE_CLOSE(synapse.get_weight(), weight, 0.01);
-		BOOST_REQUIRE_CLOSE(synapse.get_tau_rec(), tau_rec, 0.01);
-		BOOST_REQUIRE_CLOSE(synapse.get_tau_fac(), tau_fac, 0.01);
+		BOOST_REQUIRE_CLOSE(synapse.U(), U, 0.01);
+		BOOST_REQUIRE_CLOSE(synapse.delay(), delay, 0.01);
+		BOOST_REQUIRE_CLOSE(synapse.weight(), weight, 0.01);
+		BOOST_REQUIRE_CLOSE(synapse.tau_rec(), tau_rec, 0.01);
+		BOOST_REQUIRE_CLOSE(synapse.tau_fac(), tau_fac, 0.01);
 
 		//check variables
-		BOOST_REQUIRE_CLOSE(synapse.get_x(), x, 0.01);
-		BOOST_REQUIRE_CLOSE(synapse.get_u(), u, 0.01);
+		BOOST_REQUIRE_CLOSE(synapse.x(), x, 0.01);
+		BOOST_REQUIRE_CLOSE(synapse.u(), u, 0.01);
 
 		//check results
 		BOOST_REQUIRE_CLOSE(spike.weight, w, 1);

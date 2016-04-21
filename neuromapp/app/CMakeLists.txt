@@ -14,6 +14,7 @@ target_link_libraries (app
                        ${Readline_LIBRARIES}
                        ${Curses_LIBRARIES}
                        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
+                       ${Boost_CHRONO_LIBRARIES}
                        ${Boost_SYSTEM_LIBRARIES}
                        ${Boost_ATOMIC_LIBRARIES})
 install (TARGETS app DESTINATION bin)
