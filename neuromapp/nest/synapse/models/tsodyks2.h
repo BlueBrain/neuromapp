@@ -30,8 +30,8 @@
 
 #include "nest/synapse/event.h"
 
-namespace nest{
-
+namespace nest
+{
 	/**
 	 * NEST synapse model: Tsodyks2
 	 *  * This synapse model implements synaptic short-term depression and short-term facilitation
@@ -43,7 +43,6 @@ namespace nest{
 	 * [3] Maass, W., & Markram, H. (2002). Synapses as dynamic memory buffers. Neural networks, 15(2),
      * 155–61.synapse/args
 	 */
-
 	class tsodyks2
 	{
 	public:

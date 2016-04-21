@@ -160,7 +160,7 @@ namespace nest
 		}
 		boost::chrono::system_clock::duration delay = boost::chrono::system_clock::now() - start;
 
-		std::cout << "duration: " << delay << std::endl;
+		std::cout << "Duration: " << delay << std::endl;
 		std::cout << "Last weight " << weights.back() << std::endl;
 	}
 
