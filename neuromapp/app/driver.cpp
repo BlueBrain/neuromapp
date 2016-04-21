@@ -36,6 +36,7 @@ namespace mapp{
         std::cout << "   miniapp --help provides the help of your miniapp \n \n";
         std::cout << "   The list of the following miniapps are available: \n";
         std::cout << "       hello <arg> \n";
+        std::cout << "       synapse <arg> \n";
         std::cout << "       event <arg> \n";
         std::cout << "       kernel <arg> \n";
         std::cout << "       solver <arg> \n";
