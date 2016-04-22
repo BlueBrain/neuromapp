@@ -49,6 +49,7 @@ int main(int argc, char * const argv[]){
 
      mapp::driver d;
      d.insert("hello",hello_execute);
+     d.insert("synapse", nest::synapse_execute);
      d.insert("event",event_execute);
 //     d.insert("spike",spike_execute);
      d.insert("kernel",coreneuron10_kernel_execute);
@@ -90,7 +91,7 @@ int main(int argc, char * const argv[]){
          std::string command;
          std::getline(std::cin, command);
 #endif
-         // I need to split the string into an array of strings to pass it
+         // I need to split the string into an arranesty of strings to pass it
          // in an argv style
          std::vector<std::string> command_v;
          command_v.push_back(argv[0]);
