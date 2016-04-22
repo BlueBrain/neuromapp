@@ -46,11 +46,21 @@ BOOST_AUTO_TEST_CASE(nest_synapse_test)
 	error = mapp::execute(command_v,nest::synapse_execute);
 	BOOST_CHECK(error==mapp::MAPP_OK);
 
-	//trying out wrong model parameter
+	//trying out wrong model
 	command_v.clear();
 	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
 	command_v.push_back("--model");
 	command_v.push_back("synnotthere"); // model does not exist
+	error = mapp::execute(command_v,nest::synapse_execute);
+	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
+
+	//trying out wrong model parameters
+	command_v.clear();
+	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("--model");
+	command_v.push_back("tsodyks2");
+	command_v.push_back("--U");
+	command_v.push_back("2.0"); // model does not exist
 	error = mapp::execute(command_v,nest::synapse_execute);
 	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 

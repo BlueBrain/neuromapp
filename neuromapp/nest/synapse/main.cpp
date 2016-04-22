@@ -84,11 +84,13 @@ namespace nest
 			const double x = vm["x"].as<double>();
 			const double tau_rec = vm["tau_rec"].as<double>();
 			const double tau_fac = vm["tau_fac"].as<double>();
+
 			try {
-				tsodyks2 syn tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac);
+				tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac);
 			}
-			catch std::invalid_argument& e {
+			catch (std::invalid_argument& e) {
 				std::cout << "Error in model parameters: " << e.what() << std::endl;
+				return mapp::MAPP_BAD_DATA;
 			}
 		}
 		/* else if ( more models ) */
@@ -134,6 +136,7 @@ namespace nest
 		double dt = vm["dt"].as<double>();
 		int iterations = vm["iterations"].as<int>();
 
+		//will turn into ptr to base class if more synapse are implemented
 		boost::scoped_ptr<tsodyks2> syn;
 
 		if (vm["model"].as<std::string>() == "tsodyks2") {
@@ -145,11 +148,16 @@ namespace nest
 			const double tau_rec = vm["tau_rec"].as<double>();
 			const double tau_fac = vm["tau_fac"].as<double>();
 
-			syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac));
+			try {
+				syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac));
+			}
+			catch (std::invalid_argument& e) {
+				std::cout << "Error in model parameters: " << e.what() << std::endl;
+			}
 		}
 		/* else if () .. further synapse models*/
 		else {
-			std::cerr << "synapse model implementation missing" << std::endl;
+			std::cout << "Error: Synapse model implementation missing" << std::endl;
 		}
 
 		//preallocate vector for results
