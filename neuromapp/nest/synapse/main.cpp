@@ -75,7 +75,7 @@ namespace nest
 		po::store(po::parse_command_line(argc, argv, desc), vm);
 		po::notify(vm);
 
-		//check for valid synapse model & parameter
+		//check for valid synapse model & parameters
 		if (vm["model"].as<std::string>() == "tsodyks2") {
 			const double delay = vm["delay"].as<double>();
 			const double weight = vm["weight"].as<double>();
@@ -86,6 +86,9 @@ namespace nest
 			const double tau_fac = vm["tau_fac"].as<double>();
 			try {
 				tsodyks2 syn tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac);
+			}
+			catch std::invalid_argument& e {
+				std::cout << "Error in model parameters: " << e.what() << std::endl;
 			}
 		}
 		/* else if ( more models ) */
