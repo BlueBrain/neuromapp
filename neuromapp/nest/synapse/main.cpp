@@ -57,6 +57,7 @@ namespace nest
 		("model", po::value<std::string>()->default_value("tsodyks2"), "synapse model")
 
 		// tsodyks2 parameters
+		// synapse parameters are not checked
 		("delay", po::value<double>()->default_value(1.0), "delay")
 		("weight", po::value<double>()->default_value(1.0), "weight")
 		("U", po::value<double>()->default_value(0.5), "U")
@@ -74,10 +75,23 @@ namespace nest
 		po::store(po::parse_command_line(argc, argv, desc), vm);
 		po::notify(vm);
 
-		//check for valid synapse model
-		if (!(vm["model"].as<std::string>() == "tsodyks2") /* || further models*/) {
+		//check for valid synapse model & parameter
+		if (vm["model"].as<std::string>() == "tsodyks2") {
+			const double delay = vm["delay"].as<double>();
+			const double weight = vm["weight"].as<double>();
+			const double U = vm["U"].as<double>();
+			const double u = vm["u"].as<double>();
+			const double x = vm["x"].as<double>();
+			const double tau_rec = vm["tau_rec"].as<double>();
+			const double tau_fac = vm["tau_fac"].as<double>();
+			try {
+				tsodyks2 syn tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac);
+			}
+		}
+		/* else if ( more models ) */
+		else {
 			std::cout << "Error: Selected synapse model is  unknown" << std::endl;
-			return mapp::MAPP_BAD_DATA;
+						return mapp::MAPP_BAD_DATA;
 		}
 
 		//check for valid dt

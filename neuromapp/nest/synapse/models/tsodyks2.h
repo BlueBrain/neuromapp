@@ -74,7 +74,16 @@ namespace nest
 			x_(x),
 			tau_rec_(tau_rec),
 			tau_fac_(tau_fac)
-		{}
+		{
+			if ( U_ > 1.0 || U_ < 0.0 )
+			    throw std::invalid_argument( "U must be in [0,1]." );
+			  if ( u_ > 1.0 || u_ < 0.0 )
+			    throw std::invalid_argument( "u must be in [0,1]." );
+			  if ( tau_rec_ <= 0.0 )
+			    throw std::invalid_argument( "tau_rec must be > 0." );
+			  if ( tau_fac_ < 0.0 )
+			    throw std::invalid_argument( "tau_fac must be >= 0." );
+		}
 
 		/** \fn void send()
 			        \brief Sends a spike event through the synapse
