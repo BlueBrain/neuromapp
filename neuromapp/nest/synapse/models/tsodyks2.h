@@ -33,6 +33,10 @@
 namespace nest
 {
 	/**
+	 *
+	 * \class tsodyks2
+	 * \brief tsodyks2 model from NEST
+	 *
 	 * NEST synapse model: Tsodyks2
 	 *  * This synapse model implements synaptic short-term depression and short-term facilitation
      * according to [1] and [2]. It solves Eq (2) from [1] and modulates U according to eq. (2) of [2].

@@ -32,7 +32,8 @@
 namespace nest
 {
 	/**
-	 * event class
+	 * \struct event
+	 * \brief It represents a spike event
 	 */
 	struct event
 	{
@@ -50,8 +51,8 @@ namespace nest
 		{}
 	};
 	/**
-	 * logevent class.
-	 * The event class is extended with a weight logging vector.
+	 * \class logevent
+	 * \brief The event class is extended with a weight logging vector.
 	 */
 	class logevent: public event
 	{
