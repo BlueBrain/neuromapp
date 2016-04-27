@@ -74,16 +74,8 @@ public:
      *  \param generator the event generator from which events are received
      *  \precond generator has been initialized
      */
-    void send_events(int myID, environment::event_generator& generator);
-
-    /** \fn void filter(presyn_maker& presyns)
-     *  \brief filters out relevent events(using the function matches()),
-     *  and randomly selects a destination cellgroup, and delivers them
-     *  using a no-lock inter_thread_send
-     *  \param presyns the presyn maker from which input presyn information
-     *  is gathered (used to distribute spike events between cell groups).
-     */
-    void filter(environment::presyn_maker& presyns);
+    template <typename G>
+    void send_events(int myID, G& generator);
 
     /** \fn void fixed_step(event_generator& generator)
      *  \brief performs (min_delay_) iterations of a timestep in which:
@@ -93,7 +85,18 @@ public:
      *      - linear algebra is performed
      *  \param generator the event generator from which events are received
      */
-    void fixed_step(environment::event_generator& generator);
+    template <typename G>
+    void fixed_step(G& generator);
+
+    /** \fn void filter(presyn_maker& presyns)
+     *  \brief filters out relevent events(using the function matches()),
+     *  and randomly selects a destination cellgroup, and delivers them
+     *  using a no-lock inter_thread_send
+     *  \param presyns the presyn maker from which input presyn information
+     *  is gathered (used to distribute spike events between cell groups).
+     */
+    template <typename P>
+    void filter(P& presyns);
 
 //GETTERS
     /** \fn get_ngroups()
@@ -108,4 +111,7 @@ public:
 };
 
 } //end of namespace
+
+#include "coreneuron_1.0/event_passing/queueing/pool.ipp"
+
 #endif

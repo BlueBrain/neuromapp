@@ -18,6 +18,7 @@ add_library (coreneuron10_queueing queueing/pool.cpp
 
 install (TARGETS coreneuron10_queueing DESTINATION lib)
 install (FILES queueing/pool.h
+               queueing/pool.ipp
                queueing/thread.h
                queueing/queue.h DESTINATION include)
 target_link_libraries (coreneuron10_queueing

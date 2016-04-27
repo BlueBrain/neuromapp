@@ -34,8 +34,8 @@
 #include "coreneuron_1.0/event_passing/queueing/queue.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
 
-inline
-MPI_Comm create_dist_graph(environment::presyn_maker& presyns, int nout){
+template <typename P>
+MPI_Comm create_dist_graph(P& presyns, int nout){
     MPI_Comm neighborhood;
     int size;
     int rank;
@@ -50,10 +50,10 @@ MPI_Comm create_dist_graph(environment::presyn_maker& presyns, int nout){
     std::vector<int> inNeighbors;
 
     //Every rank takes a turn to broadcast their output presyns
-    //If receiver has a corresponding input presyn, add as inNeighor
+    //If receiver has a corresponding input presyn, add as inNeighbor
     for(int i = 0; i < size; ++i){
         if(rank == i){
-            for(int j = 0; j < presyns.get_nout(); ++j){
+            for(int j = 0; j < nout; ++j){
                 sendbuf.push_back(presyns[j]);
             }
         }
@@ -84,7 +84,7 @@ MPI_Comm create_dist_graph(environment::presyn_maker& presyns, int nout){
         }
         MPI_Bcast(&send_size, 1, MPI_INT, i, MPI_COMM_WORLD);
 
-        //send outNeighbors
+        //send inNeighbors
         if(rank == i){
             for(int i = 0; i < inNeighbors.size(); ++i){
                 sendbuf.push_back(inNeighbors[i]);
@@ -97,7 +97,7 @@ MPI_Comm create_dist_graph(environment::presyn_maker& presyns, int nout){
 
         //add sender to outNeighbors if receiver is an inNeighbor
         if(rank != i){
-            for(int j = 0; j < nout; ++j){
+            for(int j = 0; j < send_size; ++j){
                 if(sendbuf[j] == rank){
                     outNeighbors.push_back(i);
                     break;
