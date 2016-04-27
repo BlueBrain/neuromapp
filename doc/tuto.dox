@@ -24,6 +24,7 @@ Usage: < >  means optional
 
    The list of the following miniapps are available:
        hello <arg>
+       synapse <arg>
        kernel <arg>
        solver <arg>
        cstep <arg>
@@ -62,6 +63,7 @@ Table
  <TR>
  <TH>                  </TH>
  <TH> hello      </TH>
+ <TH> synapse      </TH>
  <TH> solver     </TH>
  <TH> kernel     </TH>
  <TH> cstep     </TH>
