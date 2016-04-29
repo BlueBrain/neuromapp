@@ -150,6 +150,7 @@ namespace nest
 
 			try {
 				syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac));
+				syn.receiver =
 			}
 			catch (std::invalid_argument& e) {
 				std::cout << "Error in model parameters: " << e.what() << std::endl;
@@ -167,12 +168,17 @@ namespace nest
 		//create a few events
 		std::vector< boost::shared_ptr<logevent> > events(iterations);
 		for (unsigned int i=0; i<iterations; i++) {
-			const double t = dt*(i+1);
+			/*const double t = dt*(i+1);
 			const int sender = -1;
 			const int receiver = -1;
 			const double weight = 1.;
 			const double delay = 0.1;
-			events[i].reset(new logevent(t, sender, receiver, weight, delay, weights));
+			events[i].reset(new logevent(t, sender, receiver, weight, delay, weights));*/
+
+			SpikeEvent se;
+			se.set_stamp( get_slice_origin() + Time::step( lag + 1 ) );
+		    se.set_sender( NULL );
+
 		}
 
 		double t_lastspike = 0.0;

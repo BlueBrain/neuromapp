@@ -32,6 +32,14 @@
 
 namespace nest
 {
+
+class Connection
+{
+	targetidentifierT target_;
+	double delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
+};
+
+
 	/**
 	 *
 	 * \class tsodyks2
@@ -47,7 +55,7 @@ namespace nest
 	 * [3] Maass, W., & Markram, H. (2002). Synapses as dynamic memory buffers. Neural networks, 15(2),
      * 155–61.synapse/args
 	 */
-	class tsodyks2
+	class tsodyks2 /// 10k of this synapse per neuron
 	{
 	public:
 		/** \fun Tsodyks2(const double& delay, const double& weight, const double& U, const double& u, const double& x, const double& tau_rec, const double& tau_fac)
@@ -86,82 +94,86 @@ namespace nest
 		}
 
 		/** \fn void send()
-			        \brief Sends a spike event through the synapse
+			        \brief Sends a spike event through the synapse as implemented in NEST software 2.10 (2016) official release
+			        \brief In nest we execute this function once per synapse per time step (worst case)
+			        \brief On average --> to be added to use case document
 			        \param e spike event
     				\param t_lastspike time of last spike
 			     */
 		void send(event& e, double t_lastspike)
 		{
-			double h = e.t - t_lastspike;
-			double x_decay = std::exp(-h / tau_rec_);
-			double u_decay = (tau_fac_ < 1.0e-10) ? 0.0 : std::exp(-h / tau_fac_);
+			double h = e.stamp_.get_ms() - t_lastspike;
+			double x_decay = std::exp(-h / tau_rec_); /// To be checked which implementation of exponential is being used
+			double u_decay = (tau_fac_ < 1.0e-10) ? 0.0 : std::exp(-h / tau_fac_); // branching
 			// now we compute spike number n+1
-			x_ = 1. + (x_ - x_ * u_ - 1.) * x_decay; // Eq. 5 from reference [3]
-			u_ = U_ + u_ * (1. - U_) * u_decay; // Eq. 4 from [3]
-			e.weight = x_ * u_ * weight_;
-			e.delay = delay_;
-			e();
+			/// no forward dependency between next 2 statements
+			x_ = 1. + (x_ - x_ * u_ - 1.) * x_decay; // Eq. 5 from reference [3] ---> 2 Multiply + 3 adds + 1 assignment
+			u_ = U_ + u_ * (1. - U_) * u_decay; // Eq. 4 from [3] --> 2 Muliply + 2 adds + 1 assignment
+			e.weight = x_ * u_ * weight_; // weight constant for the object after the synapase is created (can we use const?) --> 2 Multiply +  1 assignment
+			e.delay = delay_; // 1 assignment
+			e(); // append right now, in nest sending to post synaptic neuron
 		}
+
 
 		/** \fun delay() const
 		        \brief get delay, read only */
-		const double& delay() const
+		inline const double& delay() const
 		{
 			return delay_;
 		}
 
 		/** \fun delay()
 				\brief returns a reference to delay */
-		double& delay()
+		inline double& delay()
 		{
 			return delay_;
 		}
 
 		/** \fun tau_fac() const
 				        \brief get tau_fac, read only */
-		const double& tau_fac() const
+		inline const double& tau_fac() const
 		{
 			return tau_fac_;
 		}
 
 		/** \fun tau_fac()
 						\brief returns a reference to tau_fac */
-		double& tau_fac()
+		inline double& tau_fac()
 		{
 			return tau_fac_;
 		}
 
 		/** \fun tau_rec() const
 				        \brief get tau_rec, read only */
-		const double& tau_rec() const
+		inline const double& tau_rec() const
 		{
 			return tau_rec_;
 		}
 
 		/** \fun tau_rec()
 						\brief returns a reference to tau_rec */
-		double& tau_rec()
+		inline double& tau_rec()
 		{
 			return tau_rec_;
 		}
 
 		/** \fun u() const
 				        \brief get u, read only */
-		const double& u() const
+		inline const double& u() const
 		{
 			return u_;
 		}
 
 		/** \fun u()
 						\brief returns a reference to u */
-		double& u()
+		inline double& u()
 		{
 			return u_;
 		}
 
 		/** \fun U() const
 				        \brief get U, read only */
-		const double& U() const
+		inline const double& U() const
 		{
 			return U_;
 		}
@@ -175,34 +187,34 @@ namespace nest
 
 		/** \fun weight() const
 						        \brief get weight, read only */
-		const double& weight() const
+		inline const double& weight() const
 		{
 			return weight_;
 		}
 
 		/** \fun weight()
 								\brief returns a reference to weight */
-		double& weight()
+		inline double& weight()
 		{
 			return weight_;
 		}
 
 		/** \fun x() const
 						        \brief get x, read only */
-		const double& x() const
+		inline const double& x() const
 		{
 			return x_;
 		}
 
 		/** \fun x()
 										\brief returns a reference to x */
-		double& x()
+		inline double& x()
 		{
 			return x_;
 		}
 
 	private:
-		double delay_;  //!< synapse weight
+		double delay_;  //!< synapse delay
 		double weight_; //!< synapse weight
 		double U_; //!< unit increment of a facilitating synapse
 		double u_; //!< dynamic value of probability of release
