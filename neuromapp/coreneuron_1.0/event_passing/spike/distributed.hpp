@@ -42,7 +42,7 @@ MPI_Comm create_dist_graph(P& presyns, int nout){
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     //passed in as argument but not used
-    environment::input_presyn dummy_input;
+    environment::presyn dummy_input;
 
     //create a temporary buffer for sending
     std::vector<int> sendbuf;
@@ -54,7 +54,7 @@ MPI_Comm create_dist_graph(P& presyns, int nout){
     for(int i = 0; i < size; ++i){
         if(rank == i){
             for(int j = 0; j < nout; ++j){
-                sendbuf.push_back(presyns[j]);
+                //sendbuf.push_back(presyns[j]);
             }
         }
         else{
@@ -65,7 +65,7 @@ MPI_Comm create_dist_graph(P& presyns, int nout){
         //add sender to inNeighbors if there is matching input presyn
         if(rank != i){
             for(int j = 0; j < nout; ++j){
-                if(presyns.find_input(sendbuf[j], dummy_input)){
+                if(presyns.find_input(sendbuf[j])){
                     inNeighbors.push_back(i);
                     break;
                 }

@@ -59,8 +59,6 @@ int main(int argc, char* argv[]) {
     int in = atoi(argv[4]);
     int netconsper = atoi(argv[5]);
     int nSpikes = atoi(argv[6]);
-    int nIte = atoi(argv[7]);
-    int nLocal = atoi(argv[8]);
     int mindelay = atoi(argv[9]);
     bool algebra = atoi(argv[10]);
 
@@ -68,22 +66,24 @@ int main(int argc, char* argv[]) {
     assert(in <= (out * (size - 1)));
 
     //create environment
+    environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, out);
     environment::presyn_maker presyns(out, in, netconsper);
-    environment::event_generator generator(nSpikes, nIte, nLocal);
-    spike::spike_interface s_interface(size);
-
-    //generate presyns/events
     presyns(size, ngroups, rank);
-    generator(simtime, ngroups, rank, presyns);
-
+    spike::spike_interface s_interface(size);
 
     //run simulation
     queueing::pool pl(algebra, ngroups, mindelay, rank, s_interface);
     gettimeofday(&start, NULL);
+    int cntr = 0;
     while(pl.get_time() <= simtime){
-        pl.fixed_step(generator);
+        pl.fixed_step(generator, presyns);
         blocking_spike(s_interface, mpi_spike);
         pl.filter(presyns);
+        if(rank == 0){
+            std::cout<<"Finished fixed step: "<<cntr<<std::endl;
+            std::cout<<"cur time: "<<pl.get_time()<<std::endl;
+        }
+        cntr++;
     }
     gettimeofday(&end, NULL);
 

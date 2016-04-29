@@ -74,8 +74,8 @@ public:
      *  \param generator the event generator from which events are received
      *  \precond generator has been initialized
      */
-    template <typename G>
-    void send_events(int myID, G& generator);
+    template <typename G, typename P>
+    void send_events(int myID, G& generator, P& presyns);
 
     /** \fn void fixed_step(event_generator& generator)
      *  \brief performs (min_delay_) iterations of a timestep in which:
@@ -85,8 +85,8 @@ public:
      *      - linear algebra is performed
      *  \param generator the event generator from which events are received
      */
-    template <typename G>
-    void fixed_step(G& generator);
+    template <typename G, typename P>
+    void fixed_step(G& generator, P& presyns);
 
     /** \fn void filter(presyn_maker& presyns)
      *  \brief filters out relevent events(using the function matches()),

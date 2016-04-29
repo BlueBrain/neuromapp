@@ -12,8 +12,7 @@ install (FILES environment/generator.h
 
 
 #QUEUEING LIBRARY
-add_library (coreneuron10_queueing queueing/pool.cpp
-                                   queueing/thread.cpp
+add_library (coreneuron10_queueing queueing/thread.cpp
                                    queueing/queue.cpp)
 
 install (TARGETS coreneuron10_queueing DESTINATION lib)

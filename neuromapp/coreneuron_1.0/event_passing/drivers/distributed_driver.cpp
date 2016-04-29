@@ -68,20 +68,17 @@ int main(int argc, char* argv[]) {
     assert(in <= (out * (size - 1)));
 
     //create environment
+    environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, out);
     environment::presyn_maker presyns(out, in, netconsper);
-    environment::event_generator generator(nSpikes, nIte, nLocal);
-    spike::spike_interface s_interface(size);
-
-    //generate presyns/events
     presyns(size, ngroups, rank);
-    generator(simtime, ngroups, rank, presyns);
+    spike::spike_interface s_interface(size);
 
     //run simulation
     MPI_Comm neighborhood = create_dist_graph(presyns, out);
     queueing::pool pl(algebra, ngroups, mindelay, rank, s_interface);
     gettimeofday(&start, NULL);
     while(pl.get_time() <= simtime){
-        pl.fixed_step(generator);
+        pl.fixed_step(generator, presyns);
         distributed_spike(s_interface, mpi_spike, neighborhood);
         pl.filter(presyns);
     }

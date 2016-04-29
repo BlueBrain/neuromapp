@@ -26,7 +26,6 @@
 #include <queue>
 #include <vector>
 #include <iostream>
-#include <cassert>
 #include <unistd.h>
 #include <utility>
 
@@ -88,11 +87,10 @@ void nrn_thread_data::enqueue_my_events(){
     lock_.release();
 }
 
-bool nrn_thread_data::deliver(int id){
+bool nrn_thread_data::deliver(){
     event q;
-    if(qe_.atomic_dq(time_,q)){
+    if(qe_.atomic_dq(time_, q)){
         ++delivered_;
-        assert(q.data_ == id);
 
         // Use imitation of the point_receive of CoreNeron.
         // Varies per a specific simulation case.

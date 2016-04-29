@@ -1,5 +1,5 @@
 /*
- * Neuromapp - pool.cpp, Copyright (c), 2015,
+ * Neuromapp - pool.ipp, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/coreneuron_1.0/event_passing/queueing/pool.cpp
+ * @file neuromapp/coreneuron_1.0/event_passing/queueing/pool.ipp
  * \brief Contains pool class definition.
  */
 
@@ -35,48 +35,42 @@
 
 namespace queueing {
 
-template<typename G>
-void pool::send_events(int myID, G& generator){
+template<typename G, typename P>
+void pool::send_events(int myID, G& generator, P& presyns){
     int curTime = thread_datas_[myID].get_time();
-    while((!generator.empty(myID)) &&
-    (generator.compare_top_lte(myID, curTime))){
+    int gid = 0;
+    const environment::presyn* output = NULL;
+    event new_event;
+    while(generator.compare_top_lte(myID, curTime)){
         environment::gen_event g = generator.pop(myID);
-        event e = g.first;
-        environment::event_type type = g.second;
-        //if spike event send to spike_out
-        switch(type){
-            case environment::SPIKE:
-                e.t_ += min_delay_;
-                spike_.lock_.acquire();
-                spike_.spikeout_.push_back(e);
-                spike_.lock_.release();
-                break;
-
-            case environment::ITE:
-                assert(e.data_ < thread_datas_.size());
-                thread_datas_[e.data_].inter_thread_send(
-                    e.data_, (e.t_ + min_delay_));
-                break;
-
-            case environment::LOCAL:
-                assert(e.data_ == myID);
-                thread_datas_[e.data_].self_send(e.data_, e.t_);
-                break;
-
-            default:
-                std::cerr<<"error: invalid event type:"<<type<<std::endl;
-                exit(EXIT_FAILURE);
+        gid = g.second;
+        output = presyns.find_output(gid);
+        assert(output != NULL);
+        //send to all local destinations
+        for(int i = 0; i < output->size(); ++i){
+            if((*output)[i] == myID)
+                thread_datas_[myID].self_send(gid, g.first);
+            else
+                thread_datas_[i].inter_thread_send(gid, g.first);
         }
+        //send to spikeout_ buffer
+        new_event.data_ = gid;
+        new_event.t_ = g.first;
+
+        spike_.lock_.acquire();
+        spike_.spikeout_.push_back(new_event);
+        spike_.lock_.release();
+
     }
 }
 
 //PARALLEL FUNCTIONS
-template <typename G>
-void pool::fixed_step(G& generator){
+template <typename G, typename P>
+void pool::fixed_step(G& generator, P& presyns){
     #pragma omp parallel for schedule(static,1)
     for(int i = 0; i < thread_datas_.size(); ++i){
         for(int j = 0; j < min_delay_; ++j){
-            send_events(i, generator);
+            send_events(i, generator, presyns);
             //Have threads enqueue their interThreadEvents
             thread_datas_[i].enqueue_my_events();
 
@@ -84,7 +78,7 @@ void pool::fixed_step(G& generator){
                 thread_datas_[i].l_algebra();
 
             /// Deliver events
-            while(thread_datas_[i].deliver(i));
+            while(thread_datas_[i].deliver());
 
             thread_datas_[i].increment_time();
         }
@@ -96,15 +90,15 @@ template <typename P>
 void pool::filter(P& presyns){
     std::map<int, std::vector<int> >::iterator it;
     event ev;
-    environment::input_presyn input;
+    const environment::presyn* input = NULL;
     int spike_gid;
     received_ += spike_.spikein_.size();
     for(int i = 0; i < spike_.spikein_.size(); ++i){
         spike_gid = spike_.spikein_[i].data_;
-        if(presyns.find_input(spike_gid, input)){
+        if((input = presyns.find_input(spike_gid)) != NULL){
             ++relevant_;
-            for(size_t j = 0; j < input.second.size(); ++j){
-                int dest = input.second[j];
+            for(size_t j = 0; j < input->size(); ++j){
+                int dest = (*input)[j];
                 //send using non-mutex inter-thread send here
                 thread_datas_[dest].inter_send_no_lock(dest, ev.t_);
             }
@@ -112,6 +106,30 @@ void pool::filter(P& presyns){
     }
     spike_.spikeout_.clear();
     spike_.spikein_.clear();
+}
+
+inline pool::~pool(){
+    int ite_received = 0;
+    int local_received = 0;
+    int all_enqueued = 0;
+    int all_delivered = 0;
+    for(int i=0; i < thread_datas_.size(); ++i){
+        ite_received += thread_datas_[i].ite_received_;
+        local_received += thread_datas_[i].local_received_;
+        all_enqueued += thread_datas_[i].enqueued_;
+        all_delivered += thread_datas_[i].delivered_;
+        assert(thread_datas_[i].get_time() == time_);
+    }
+
+    if(rank_ == 0){
+        std::cout<<"Total inter-thread received: "<<ite_received<<std::endl;
+        std::cout<<"Total local received: "<<local_received<<std::endl;
+        std::cout<<"Total spikes received: "<<received_<<std::endl;
+    }
+
+/*   std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
+    std::cout<<"Total delivered: "<<all_delivered<<std::endl;
+    std::cout<<"Total relevent spikes: "<<relevant_<<std::endl;*/
 }
 
 } //end of namespace

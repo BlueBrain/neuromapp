@@ -20,7 +20,10 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
 
     if(nprocs == 1){
         for(int i = 0; i < n_out_; ++i){
-            outputs_.push_back(i);
+            for(int j = 0; j < ngroups; ++j){
+                /* Form a connection to every cellgroup */
+                outputs_[i].push_back(j);
+            }
         }
         assert(inputs_.empty());
     }
@@ -28,7 +31,10 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
         //create a list of outputs (rank, rank + n_out)
         for(int i = 0; i < (nprocs * n_out_); ++i){
             if(i >= (rank * n_out_) && i < ((rank * n_out_) + n_out_)){
-                outputs_.push_back(i);
+                for(int j = 0; j < ngroups; ++j){
+                    /* Form a connection to every cellgroup */
+                    outputs_[i].push_back(j);
+                }
             }
             else{
                 available_inputs.push_back(i);
@@ -53,29 +59,33 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
             //select N unique net connections to cell groups
             boost::random_shuffle(cellgroups, randomNumber);
             for(int i = 0; i < n_in_; ++i){
-                int presyn = available_inputs[i];
+                int input_gid = available_inputs[i];
                 for(int j = 0; j < nets_per_; ++j){
-                    inputs_[presyn].push_back(cellgroups[j]);
+                    inputs_[input_gid].push_back(cellgroups[j]);
                 }
             }
         }
     }
 }
 
-bool presyn_maker::find_input(int key, input_presyn& presyn) const{
+const presyn* presyn_maker::find_input(int key) const{
     std::map<int, std::vector<int> >::const_iterator it = inputs_.begin();
+    const presyn* input_ptr = NULL;
     it = inputs_.find(key);
-    if(it == inputs_.end())
-        return false;
-    else{
-        presyn = *it;
-        return true;
+    if(it != inputs_.end()){
+        input_ptr = &((*it).second);
     }
+    return input_ptr;
 }
 
-int presyn_maker::operator[](int index) const {
-    assert(!outputs_.empty());
-    return outputs_[index];
+const presyn* presyn_maker::find_output(int key) const{
+    std::map<int, std::vector<int> >::const_iterator it = outputs_.begin();
+    const presyn* output_ptr = NULL;
+    it = outputs_.find(key);
+    if(it != outputs_.end()){
+        output_ptr = &((*it).second);
+    }
+    return output_ptr;
 }
 
 } //end of namespace

@@ -46,79 +46,79 @@
 namespace bfs = ::boost::filesystem;
 
 //THREAD TESTS
-/*
+/**
  * Unit test for nrn_thread_data::self_send function
  *
  *    - after n number of self-send events:
- *    		pq_size == n
+ *    	    pq_size == n
  *          enqueued_ == n
  */
 BOOST_AUTO_TEST_CASE(thread_self_send){
-	queueing::nrn_thread_data nt;
-	int data = 0;
-	double time = 0.0;
-	int n = rand() % 10;
+    queueing::nrn_thread_data nt;
+    int data = 0;
+    double time = 0.0;
+    int n = rand() % 10;
 
-	for(int i = 0; i < n; ++i){
-		nt.self_send(data,(time + i));
-	}
-	BOOST_CHECK(nt.pq_size() == n);
-	BOOST_CHECK(nt.enqueued_ == n);
+    for(int i = 0; i < n; ++i){
+        nt.self_send(data,(time + i));
+    }
+    BOOST_CHECK(nt.pq_size() == n);
+    BOOST_CHECK(nt.enqueued_ == n);
 }
 
-/*
+/**
  * Unit test for nrn_thread_data::inter_thread_send function
  *
  *    - after n number of inter_thread_send events:
- *    		inter_thread_size == n
+ *          inter_thread_size == n
  *          inter_thread_received_ == n
  */
 BOOST_AUTO_TEST_CASE(thread_inter_send){
-	queueing::nrn_thread_data nt;
-	int data = 0;
-	double time = 0.0;
-	int n = rand() % 10;
+    queueing::nrn_thread_data nt;
+    int data = 0;
+    double time = 0.0;
+    int n = rand() % 10;
 
-	for(int i = 0; i < n; ++i){
-		nt.inter_thread_send(data, (time + i));
-	}
-	BOOST_CHECK(nt.inter_thread_size() == n);
-	BOOST_CHECK(nt.ite_received_ == n);
+    for(int i = 0; i < n; ++i){
+        nt.inter_thread_send(data, (time + i));
+    }
+    BOOST_CHECK(nt.inter_thread_size() == n);
+    BOOST_CHECK(nt.ite_received_ == n);
 }
 
-/*
+/**
  * Unit test for nrn_thread_data::enqueue_my_events function
  *
  *    - checks the combination of enqueue and selfsend:
- *    		n self sends increases pq_size by n
- *    		m inter_thread_sends followed by an enqueue increases pq_size by m
+ *        self sends increases pq_size by n
+ *        inter_thread_sends followed by an enqueue increases pq_size by m
  *    - pq_size = m + n
  *    - enqueued = m + n
  *    - inter_thread_events_ should be empty
  */
 BOOST_AUTO_TEST_CASE(thread_enqueue){
-	queueing::nrn_thread_data nt;
-	int data = 0;
-	double time = 0.0;
-	int m = (rand() % 10) + 1;
-	int n = (rand() % 10);
+    queueing::nrn_thread_data nt;
+    int data = 0;
+    double time = 0.0;
+    int m = (rand() % 10) + 1;
+    int n = (rand() % 10);
 
-	nt.self_send(0.0,4.0);
+    nt.self_send(0.0,4.0);
 
-	//inter_thread_sends/enqueue
-	for(int i = 0; i < n; ++i){
-		nt.inter_thread_send(data,(time + i));
-	}
-	nt.enqueue_my_events();
+    //inter_thread_sends/enqueue
+    for(int i = 0; i < n; ++i){
+            nt.inter_thread_send(data,(time + i));
+    }
+    nt.enqueue_my_events();
 
-	//self_sends
-	for(int i = 0; i < (m - 1); ++i){
-		nt.self_send(data,(time + i));
-	}
+    //self_sends
+    for(int i = 0; i < (m - 1); ++i){
+            nt.self_send(data,(time + i));
+    }
 
-	BOOST_CHECK(nt.pq_size() == (m + n));
-	BOOST_CHECK(nt.inter_thread_size() == 0);
-	BOOST_CHECK(nt.enqueued_ == (m + n));
+    BOOST_CHECK(nt.pq_size() == (m + n));
+    BOOST_CHECK(nt.inter_thread_size() == 0);
+    BOOST_CHECK(nt.enqueued_ == (m + n));
 }
 
 /*
@@ -143,14 +143,14 @@ BOOST_AUTO_TEST_CASE(thread_deliver){
 
     //deliver the first item
     nt.increment_time();
-    nt.deliver(0);
+    nt.deliver();
     BOOST_CHECK(nt.delivered_ == 1);
     BOOST_CHECK(nt.pq_size() == 5);
 
     //deliver the next 2
     nt.increment_time();
     nt.increment_time();
-    while(nt.deliver(0))
+    while(nt.deliver())
         ;
     BOOST_CHECK(nt.delivered_ == 3);
     BOOST_CHECK(nt.pq_size() == 3);
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(thread_deliver){
     nt.increment_time();
     nt.increment_time();
     nt.increment_time();
-    while(nt.deliver(0))
+    while(nt.deliver())
         ;
     BOOST_CHECK(nt.delivered_ == 6);
     BOOST_CHECK(nt.pq_size() == 0);
@@ -191,6 +191,9 @@ BOOST_AUTO_TEST_CASE(net_receive){
 
 
 //POOL REGRESSION TESTING
+/**
+ * Tests the constructor of the pool function
+ */
 BOOST_AUTO_TEST_CASE(pool_constructor){
     int nprocs = 4;
     int ngroups = 8;
@@ -201,26 +204,30 @@ BOOST_AUTO_TEST_CASE(pool_constructor){
     BOOST_CHECK(pl.get_ngroups() == ngroups);
 }
 
-
-BOOST_AUTO_TEST_CASE(pool_send_spikes){
-    int out = 10;
-    int in = 5;
+/**
+ * Tests fixed_step function of the pool classi for one mindelay
+ */
+BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
+    int out = 4;
+    int in = 4;
     int netconsper = 1;
-    int nprocs = 4;
     int ngroups = 8;
-    int nspike = 100;
-    int simtime = 5;
+    int nspikes = 100;
     int rank = 0;
+    int nprocs = 4;
+
+    //only run one mindelay
     int mindelay = 5;
+    int simtime = mindelay;
 
     //create the test environment
     environment::presyn_maker presyns(out, in, netconsper);
-    environment::event_generator generator(nspike, 0, 0);
     spike::spike_interface spike(nprocs);
 
     //generate
     presyns(nprocs, ngroups, rank);
-    generator(simtime, ngroups, rank, presyns);
+    environment::event_generator generator(nspikes, simtime, ngroups,
+    rank, nprocs, out);
     int sum_events = 0;
     for(int i = 0; i < ngroups; ++i){
         sum_events += generator.get_size(i);
@@ -235,28 +242,33 @@ BOOST_AUTO_TEST_CASE(pool_send_spikes){
     std::cout<<"SUM: "<<sum_events<<" SPIKES: "<<spike.spikeout_.size()<<std::endl;
 }
 
+/**
+ * Tests the fixed step function of the pool class for a larger simulation (100 dt)
+ */
 BOOST_AUTO_TEST_CASE(pool_send_ite){
     int out = 10;
     int in = 5;
     int netconsper = 1;
     int nprocs = 4;
     int ngroups = 8;
-    int nspike = 0;
-    int nite = 100;
-    int nlocal = 0;
+    int nspikes = 1000;
     int mindelay = 5;
     int simtime = 100;
     int rank = 0;
 
     //create the test environment
     environment::presyn_maker presyns(out, in, netconsper);
-    environment::event_generator generator(nspike, nite, nlocal);
     spike::spike_interface spike(nprocs);
 
     //generate
     presyns(nprocs, ngroups, rank);
-    generator(simtime, ngroups, rank, presyns);
+    environment::event_generator generator(nspikes, simtime,
+    ngroups, rank, nprocs, out);
 
+    int sum_events = 0;
+    for(int i = 0; i < ngroups; ++i){
+        sum_events += generator.get_size(i);
+    }
     //process events
     queueing::pool pl(false, ngroups, mindelay, rank, spike);
     while(pl.get_time() <= simtime){
@@ -264,5 +276,5 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     }
 
     //check that every event went to the spikeout_ buffer
-    BOOST_CHECK(spike.spikeout_.size() == 0);
+    BOOST_CHECK(spike.spikeout_.size() == sum_events);
 }
