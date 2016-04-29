@@ -45,7 +45,7 @@
 
 int main(int argc, char* argv[]) {
 
-    assert(argc == 11);
+    assert(argc == 9);
 
     MPI_Init(NULL, NULL);
     MPI_Datatype mpi_spike = create_spike_type();
@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
     int in = atoi(argv[4]);
     int netconsper = atoi(argv[5]);
     int nSpikes = atoi(argv[6]);
-    int mindelay = atoi(argv[9]);
-    bool algebra = atoi(argv[10]);
+    int mindelay = atoi(argv[7]);
+    bool algebra = atoi(argv[8]);
 
     struct timeval start, end;
     assert(in <= (out * (size - 1)));
@@ -79,11 +79,6 @@ int main(int argc, char* argv[]) {
         pl.fixed_step(generator, presyns);
         blocking_spike(s_interface, mpi_spike);
         pl.filter(presyns);
-        if(rank == 0){
-            std::cout<<"Finished fixed step: "<<cntr<<std::endl;
-            std::cout<<"cur time: "<<pl.get_time()<<std::endl;
-        }
-        cntr++;
     }
     gettimeofday(&end, NULL);
 

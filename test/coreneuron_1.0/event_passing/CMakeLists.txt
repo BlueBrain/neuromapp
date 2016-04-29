@@ -1,5 +1,5 @@
 #list of tests
-set(event_tests environment queueing )#spike)
+set(event_tests environment queueing spike)
 
 #loop over event_tests for creation
 foreach(i ${event_tests})

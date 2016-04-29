@@ -51,10 +51,12 @@ MPI_Comm create_dist_graph(P& presyns, int nout){
 
     //Every rank takes a turn to broadcast their output presyns
     //If receiver has a corresponding input presyn, add as inNeighbor
+    int start = 0;
     for(int i = 0; i < size; ++i){
         if(rank == i){
+            start = rank * nout;
             for(int j = 0; j < nout; ++j){
-                //sendbuf.push_back(presyns[j]);
+                sendbuf.push_back(start + j);
             }
         }
         else{

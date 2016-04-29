@@ -64,10 +64,6 @@ int event_help(int argc, char* const argv[], po::variables_map& vm){
     "average number of netcons per input presyn")
     ("numspikes", po::value<size_t>()->default_value(30),
     "the number of spikes generated per process")
-    ("numites", po::value<size_t>()->default_value(30),
-    "the number of inter-thread generated per process")
-    ("numlocals", po::value<size_t>()->default_value(30),
-    "the number of spikes generated per process")
     ("mindelay", po::value<size_t>()->default_value(3),
     "the number of timesteps per fixed step function")
     ("distributed", "if set, use distributed graph implementation")
@@ -124,8 +120,6 @@ void event_content(po::variables_map const& vm){
     size_t nin = vm["numin"].as<size_t>();
     size_t ncper = vm["ncper"].as<size_t>();
     size_t nspike = vm["numspikes"].as<size_t>();
-    size_t nite = vm["numites"].as<size_t>();
-    size_t nlocal = vm["numlocals"].as<size_t>();
     size_t mindelay = vm["mindelay"].as<size_t>();
     size_t algebra = vm.count("algebra");
     bool distributed = vm.count("distributed");
@@ -142,8 +136,7 @@ void event_content(po::variables_map const& vm){
         mpi_run <<" -n "<< nproc << " " << path << exec <<
         ngroup << " " << simtime << " " <<
         nout << " " << nin << " " << ncper << " " <<
-        nspike << " " << nite << " " << nlocal << " " <<
-        mindelay << " " << algebra;
+        nspike << " " << mindelay << " " << algebra;
 
     std::cout<< "Running command " << command.str() <<std::endl;
 	system(command.str().c_str());

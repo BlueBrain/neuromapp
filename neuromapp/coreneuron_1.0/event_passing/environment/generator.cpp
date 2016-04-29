@@ -37,7 +37,8 @@ int ngroups, int rank, int size, int out){
      */
     boost::mt19937 rng(rank + time(NULL));
     boost::random::exponential_distribution<double> time_d(lambda);
-    boost::random::uniform_int_distribution<> gid_d(0, (out - 1));
+    int start = rank * out;
+    boost::random::uniform_int_distribution<> gid_d(start, (start + out - 1));
     boost::random::uniform_int_distribution<> cellgroup_d(0, (ngroups-1));
 
 

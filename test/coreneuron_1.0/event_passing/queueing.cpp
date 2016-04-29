@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
 
     //process events
     queueing::pool pl(false, ngroups, mindelay, rank, spike);
-    pl.fixed_step(generator);
+    pl.fixed_step(generator, presyns);
 
     //check that every event went to the spikeout_ buffer
     BOOST_CHECK(sum_events == spike.spikeout_.size());
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     //process events
     queueing::pool pl(false, ngroups, mindelay, rank, spike);
     while(pl.get_time() <= simtime){
-        pl.fixed_step(generator);
+        pl.fixed_step(generator, presyns);
     }
 
     //check that every event went to the spikeout_ buffer

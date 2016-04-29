@@ -43,19 +43,22 @@ void pool::send_events(int myID, G& generator, P& presyns){
     event new_event;
     while(generator.compare_top_lte(myID, curTime)){
         environment::gen_event g = generator.pop(myID);
-        gid = g.second;
+        gid = g.first;
         output = presyns.find_output(gid);
-        assert(output != NULL);
+        if(output == NULL){
+            std::cout<<"Rank: "<<rank_<<" Could not find gid: "<<gid<<std::endl;
+            assert(false);
+        }
         //send to all local destinations
         for(int i = 0; i < output->size(); ++i){
             if((*output)[i] == myID)
-                thread_datas_[myID].self_send(gid, g.first);
+                thread_datas_[myID].self_send(gid, g.second);
             else
-                thread_datas_[i].inter_thread_send(gid, g.first);
+                thread_datas_[i].inter_thread_send(gid, g.second);
         }
         //send to spikeout_ buffer
         new_event.data_ = gid;
-        new_event.t_ = g.first;
+        new_event.t_ = g.second;
 
         spike_.lock_.acquire();
         spike_.spikeout_.push_back(new_event);
