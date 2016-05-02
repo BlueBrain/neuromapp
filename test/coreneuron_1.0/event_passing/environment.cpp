@@ -39,18 +39,14 @@
  */
 BOOST_AUTO_TEST_CASE(presyns_constructor){
     environment::presyn_maker p1;
-    BOOST_CHECK(p1.get_nout() == 0);
-    BOOST_CHECK(p1.get_nin() == 0);
-
 
     boost::mt19937 rng(time(NULL));
     boost::random::uniform_int_distribution<> uniform(1, 10);
-    int out = uniform(rng);
-    int in = uniform(rng);
+    int ncells = uniform(rng);
+    int fanin = ncells / 2 + 1;
     int netcons = uniform(rng);
-    environment::presyn_maker p2(out, in, netcons);
-    BOOST_CHECK(p2.get_nout() == out);
-    BOOST_CHECK(p2.get_nin() == in);
+    environment::presyn_maker p2(ncells, fanin);
+    //previously had tests here
 }
 
 /**
@@ -58,37 +54,40 @@ BOOST_AUTO_TEST_CASE(presyns_constructor){
  */
 BOOST_AUTO_TEST_CASE(presyns_functor_test){
     boost::mt19937 rng(time(NULL));
-    boost::random::uniform_int_distribution<> uniform(5, 10);
+    boost::random::uniform_int_distribution<> uniform(50, 100);
 
     //passed into the find function, but not used
-    int out = uniform(rng);
-    int in = uniform(rng);
-    int netcons = uniform(rng);
-    environment::presyn_maker p(out, in, netcons);
+    int ncells = uniform(rng);
+    int fanin = ncells;
+    environment::presyn_maker p(ncells, fanin);
     int nprocs = 3;
     int ngroups = 3;
     int rank = 0;
     //create presyns
     p(nprocs, ngroups, rank);
 
+    int cellsper = ncells / nprocs;
+
     //check for valid output presyns
-    bool flag = true;
-    for(int i = 0; i < out; ++i){
+    bool valid_input = true;
+    bool  valid_output = true;
+    for(int i = 0; i < cellsper; ++i){
         if(!p.find_output((rank + i))){
-            flag = false;
+            valid_output = false;
+            std::cerr<<"Error: rank "<<rank<<" could not find output: "<<rank + i<<std::endl;
             break;
         }
     }
-    BOOST_CHECK(flag);
+    BOOST_CHECK(valid_output);
     //ensure NO invalid input presyns
-    for(int i = 0; i < out; ++i){
+    for(int i = 0; i < cellsper; ++i){
         if(p.find_input((rank + i))){
-            flag = false;
-            std::cerr<<"Error: found invalid input, "<<rank + i<<std::endl;
+            valid_input = false;
+            std::cerr<<"Error: rank "<<rank<<" found invalid input: "<<rank + i<<std::endl;
             break;
         }
     }
-    BOOST_CHECK(flag);
+    BOOST_CHECK(valid_input);
 }
 
 /**
@@ -98,32 +97,35 @@ BOOST_AUTO_TEST_CASE(presyns_functor_test){
  */
 BOOST_AUTO_TEST_CASE(presyns_find_test){
     boost::mt19937 rng(time(NULL));
-    boost::random::uniform_int_distribution<> uniform(5, 10);
-    int out = uniform(rng);
+    boost::random::uniform_int_distribution<> uniform(50, 100);
+    int ncells = uniform(rng);
     int nprocs = 3;
     int ngroups = 3;
     int rank = 0;
-    int in = out * (nprocs - 1);
-    int netcons = uniform(rng);
-    environment::presyn_maker p(out, in, netcons);
+    int fanin = ncells;
+    environment::presyn_maker p(ncells, fanin);
     p(nprocs, ngroups, rank);
 
-    bool flag = true;
+    int cellsper = ncells / nprocs;
+
+    bool valid_input = true;
+    bool valid_output = true;
 
     //check for valid input presyns
-    for(int i = out; i < (out * nprocs); ++i){
+    for(int i = cellsper; i < ncells; ++i){
         if(!p.find_input(i)){
-            std::cerr<<"Error: could not find input: "<<i<<std::endl;
-            flag = false;
+            std::cerr<<"Error: rank "<<rank<<" could not find input: "<<i<<std::endl;
+            valid_input = false;
             break;
         }
         else if(p.find_output(i)){
-            std::cerr<<"Error: invalid output presyn: "<<i<<std::endl;
-            flag = false;
+            std::cerr<<"Error: rank "<<rank<<" found invalid output presyn: "<<i<<std::endl;
+            valid_output = false;
             break;
         }
     }
-    BOOST_CHECK(flag);
+    BOOST_CHECK(valid_input);
+    BOOST_CHECK(valid_output);
 }
 
 /**
@@ -133,19 +135,18 @@ BOOST_AUTO_TEST_CASE(generator_constructor){
     boost::mt19937 rng(time(NULL));
     boost::random::uniform_int_distribution<> uniform(50, 100);
     int nspike = uniform(rng);
-    int netconsper = uniform(rng);
-    int out = 10;
+    int ncells = 10;
     int nprocs = 1;
     int ngroups = 1;
     int simtime = 100;
     int rank = 0;
-    int in = out * (nprocs - 1);
+    int fanin = ncells;
 
     //generate events
-    environment::presyn_maker p(out, in, netconsper);
+    environment::presyn_maker p(ncells, fanin);
     p(nprocs, ngroups, rank);
     environment::event_generator generator(nspike, simtime, ngroups,
-    rank, nprocs, out);
+    rank, nprocs, ncells);
 
     environment::gen_event ev;
     BOOST_CHECK(!generator.empty(0));
@@ -178,7 +179,7 @@ BOOST_AUTO_TEST_CASE(generator_constructor){
  */
 BOOST_AUTO_TEST_CASE(generator_compare_top_lte){
     int nspike = 100;
-    int out = 10;
+    int ncells = 10;
     int nprocs = 1;
     int ngroups = 5;
     int simtime = 100;
@@ -186,7 +187,7 @@ BOOST_AUTO_TEST_CASE(generator_compare_top_lte){
 
     //generate events
     environment::event_generator generator(nspike, simtime,
-    ngroups, rank, nprocs, out);
+    ngroups, rank, nprocs, ncells);
 
     bool greater_than_min = true;
     bool less_than_max = true;

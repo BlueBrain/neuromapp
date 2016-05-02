@@ -43,9 +43,8 @@ private:
     bool perform_algebra_;
     int min_delay_;
     int time_;
-    int relevant_;
-    int received_;
     int rank_;
+    int spike_stats_;
     spike::spike_interface& spike_;
     std::vector<nrn_thread_data> thread_datas_;
 
@@ -60,13 +59,7 @@ public:
      */
     pool(bool algebra, int ngroups,int md, int rank, spike::spike_interface& s_interface):
     perform_algebra_(algebra), min_delay_(md), rank_(rank), spike_(s_interface),
-    time_(0), received_(0), relevant_(0) {thread_datas_.resize(ngroups);}
-
-    /** \fn ~pool()
-     *  \brief before destroying the pool, accumulate statistics from the threadData
-     *  array and store them using impl::storage
-     */
-    ~pool();
+    time_(0), spike_stats_(0) {thread_datas_.resize(ngroups);}
 
     /** \fn send_events(int myID, event_generator& generator)
      *  \brief sends event to it's destination
@@ -98,16 +91,22 @@ public:
     template <typename P>
     void filter(P& presyns);
 
+
+    /** \fn accumulate_stats()
+     *  \brief accumulate statistics from the threadData array and store them in spike_interface
+     */
+    void accumulate_stats();
+
 //GETTERS
     /** \fn get_ngroups()
      *  \return the number of cellgroups
      */
-    int get_ngroups() const { return thread_datas_.size(); }
+    inline int get_ngroups() const { return thread_datas_.size(); }
 
     /** \fn get_time()
      * \return the current time_ value for this pool
      */
-    int get_time() const { return time_; }
+    inline int get_time() const { return time_; }
 };
 
 } //end of namespace

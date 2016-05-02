@@ -15,7 +15,7 @@
 namespace environment {
 
 event_generator::event_generator(int nSpikes, int simtime,
-int ngroups, int rank, int size, int out){
+int ngroups, int rank, int size, int ncells){
     int dest = 0;
     double event_time = 0;
     int src_gid = 0;
@@ -24,6 +24,7 @@ int ngroups, int rank, int size, int out){
     presyn* output;
 
     assert(nSpikes > 0);
+    int cells_per = ncells / size;
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
     double lambda = 1.0 / static_cast<double>(mean * ngroups * size);
@@ -37,8 +38,8 @@ int ngroups, int rank, int size, int out){
      */
     boost::mt19937 rng(rank + time(NULL));
     boost::random::exponential_distribution<double> time_d(lambda);
-    int start = rank * out;
-    boost::random::uniform_int_distribution<> gid_d(start, (start + out - 1));
+    int start = rank * cells_per;
+    boost::random::uniform_int_distribution<> gid_d(start, (start + cells_per - 1));
     boost::random::uniform_int_distribution<> cellgroup_d(0, (ngroups-1));
 
 

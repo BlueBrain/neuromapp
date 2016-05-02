@@ -208,8 +208,8 @@ BOOST_AUTO_TEST_CASE(pool_constructor){
  * Tests fixed_step function of the pool classi for one mindelay
  */
 BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
-    int out = 4;
-    int in = 4;
+    int ncells = 4;
+    int fanin = 4;
     int netconsper = 1;
     int ngroups = 8;
     int nspikes = 100;
@@ -221,13 +221,13 @@ BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
     int simtime = mindelay;
 
     //create the test environment
-    environment::presyn_maker presyns(out, in, netconsper);
+    environment::presyn_maker presyns(ncells, fanin);
     spike::spike_interface spike(nprocs);
 
     //generate
     presyns(nprocs, ngroups, rank);
     environment::event_generator generator(nspikes, simtime, ngroups,
-    rank, nprocs, out);
+    rank, nprocs, ncells);
     int sum_events = 0;
     for(int i = 0; i < ngroups; ++i){
         sum_events += generator.get_size(i);
@@ -246,9 +246,8 @@ BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
  * Tests the fixed step function of the pool class for a larger simulation (100 dt)
  */
 BOOST_AUTO_TEST_CASE(pool_send_ite){
-    int out = 10;
-    int in = 5;
-    int netconsper = 1;
+    int ncells = 10;
+    int fanin = 5;
     int nprocs = 4;
     int ngroups = 8;
     int nspikes = 1000;
@@ -257,13 +256,13 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     int rank = 0;
 
     //create the test environment
-    environment::presyn_maker presyns(out, in, netconsper);
+    environment::presyn_maker presyns(ncells, fanin);
     spike::spike_interface spike(nprocs);
 
     //generate
     presyns(nprocs, ngroups, rank);
     environment::event_generator generator(nspikes, simtime,
-    ngroups, rank, nprocs, out);
+    ngroups, rank, nprocs, ncells);
 
     int sum_events = 0;
     for(int i = 0; i < ngroups; ++i){

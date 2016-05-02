@@ -39,31 +39,38 @@ template<typename G, typename P>
 void pool::send_events(int myID, G& generator, P& presyns){
     int curTime = thread_datas_[myID].get_time();
     int gid = 0;
+    int dest;
     const environment::presyn* output = NULL;
     event new_event;
-    while(generator.compare_top_lte(myID, curTime)){
-        environment::gen_event g = generator.pop(myID);
-        gid = g.first;
-        output = presyns.find_output(gid);
-        if(output == NULL){
-            std::cout<<"Rank: "<<rank_<<" Could not find gid: "<<gid<<std::endl;
-            assert(false);
-        }
-        //send to all local destinations
-        for(int i = 0; i < output->size(); ++i){
-            if((*output)[i] == myID)
-                thread_datas_[myID].self_send(gid, g.second);
-            else
-                thread_datas_[i].inter_thread_send(gid, g.second);
-        }
-        //send to spikeout_ buffer
-        new_event.data_ = gid;
-        new_event.t_ = g.second;
+    try{
+        while(generator.compare_top_lte(myID, curTime)){
+            environment::gen_event g = generator.pop(myID);
+            gid = g.first;
+            output = presyns.find_output(gid);
+            if(output == NULL){
+                std::cout<<"Rank: "<<rank_<<" Could not find gid: "<<gid<<std::endl;
+                assert(false);
+            }
+            //send to all local destinations
+            for(int i = 0; i < output->size(); ++i){
+                dest = (*output)[i] % thread_datas_.size();
+                if(dest == myID)
+                    thread_datas_[myID].self_send(gid, g.second);
+                else
+                    thread_datas_[dest].inter_thread_send(gid, g.second);
+            }
+            //send to spikeout_ buffer
+            new_event.data_ = gid;
+            new_event.t_ = g.second;
 
-        spike_.lock_.acquire();
-        spike_.spikeout_.push_back(new_event);
-        spike_.lock_.release();
-
+            spike_.lock_.acquire();
+            spike_.spikeout_.push_back(new_event);
+            ++spike_stats_;
+            spike_.lock_.release();
+        }
+    }
+    catch(const std::bad_alloc& e) {
+        std::cout <<"send failed: "<<e.what()<<std::endl;
     }
 }
 
@@ -92,47 +99,45 @@ void pool::fixed_step(G& generator, P& presyns){
 template <typename P>
 void pool::filter(P& presyns){
     std::map<int, std::vector<int> >::iterator it;
-    event ev;
+    double tt;
     const environment::presyn* input = NULL;
     int spike_gid;
-    received_ += spike_.spikein_.size();
-    for(int i = 0; i < spike_.spikein_.size(); ++i){
-        spike_gid = spike_.spikein_[i].data_;
-        if((input = presyns.find_input(spike_gid)) != NULL){
-            ++relevant_;
-            for(size_t j = 0; j < input->size(); ++j){
-                int dest = (*input)[j];
-                //send using non-mutex inter-thread send here
-                thread_datas_[dest].inter_send_no_lock(dest, ev.t_);
+    int dest;
+    try{
+        for(int i = 0; i < spike_.spikein_.size(); ++i){
+            tt = spike_.spikein_[i].t_;
+            spike_gid = spike_.spikein_[i].data_;
+            if((input = presyns.find_input(spike_gid)) != NULL){
+                for(size_t j = 0; j < input->size(); ++j){
+                    dest = (*input)[j] % thread_datas_.size();
+                    //send using non-mutex inter-thread send here
+                    thread_datas_[dest].inter_send_no_lock(dest, tt);
+                }
             }
         }
     }
+    catch(const std::bad_alloc& e) {
+        std::cout<<"Rank: "<<rank_<<" failed receiving: "<<spike_gid<<std::endl;
+        std::cout <<"Filter failed: "<<e.what()<<std::endl;
+    }
+
     spike_.spikeout_.clear();
     spike_.spikein_.clear();
 }
 
-inline pool::~pool(){
-    int ite_received = 0;
-    int local_received = 0;
-    int all_enqueued = 0;
-    int all_delivered = 0;
+inline void pool::accumulate_stats(){
+    int ite_stats = 0;
+    int local_stats = 0;
     for(int i=0; i < thread_datas_.size(); ++i){
-        ite_received += thread_datas_[i].ite_received_;
-        local_received += thread_datas_[i].local_received_;
-        all_enqueued += thread_datas_[i].enqueued_;
-        all_delivered += thread_datas_[i].delivered_;
+        ite_stats += thread_datas_[i].ite_received_;
+        local_stats += thread_datas_[i].local_received_;
         assert(thread_datas_[i].get_time() == time_);
     }
 
-    if(rank_ == 0){
-        std::cout<<"Total inter-thread received: "<<ite_received<<std::endl;
-        std::cout<<"Total local received: "<<local_received<<std::endl;
-        std::cout<<"Total spikes received: "<<received_<<std::endl;
-    }
-
-/*   std::cout<<"Total enqueued: "<<all_enqueued<<std::endl;
-    std::cout<<"Total delivered: "<<all_delivered<<std::endl;
-    std::cout<<"Total relevent spikes: "<<relevant_<<std::endl;*/
+    //ACCUMULATE ACROSS RANKS
+    spike_.spike_stats_ = spike_stats_;
+    spike_.ite_stats_ = ite_stats;
+    spike_.local_stats_ = local_stats;
 }
 
 } //end of namespace

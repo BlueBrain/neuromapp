@@ -27,6 +27,7 @@
 #define MAPP_PRESYN_MAKER_H
 
 #include <map>
+#include <cassert>
 
 #include "coreneuron_1.0/event_passing/environment/generator.h"
 
@@ -39,9 +40,8 @@ typedef std::vector<int> presyn;
  */
 class presyn_maker {
 private:
-    int n_out_;
-    int n_in_;
-    int nets_per_;
+    int n_cells_;
+    int fan_in_;
     std::map<int, presyn> inputs_;
     std::map<int, presyn> outputs_;
 public:
@@ -51,8 +51,8 @@ public:
      *  \param in number of input presyns
      *  \param netconsper number of netcons per input presyn
      */
-    explicit presyn_maker(int out=0, int in=0, int netcons_per=0):
-    n_out_(out), n_in_(in), nets_per_(netcons_per){}
+    explicit presyn_maker(int ncells=0, int fanin=0):
+    n_cells_(ncells), fan_in_(fanin){assert(ncells >= fanin);}
 
     /** \fn void operator()(int nprocs, int ngroups, int rank)
      *  \brief generates both the input and output presyns.
@@ -63,15 +63,6 @@ public:
     void operator()(int nprocs, int ngroups, int rank);
 
 //GETTERS
-    /** \fn int get_nout()
-     *  \return the number of output presyns
-     */
-    int get_nout() const { return n_out_; }
-
-    /** \fn int get_nin()
-     *  \return the number of input presyns
-     */
-    int get_nin() const { return n_in_; }
 
     /** \fn find_input(int id, presyn& ps)
      *  \brief searches for an input presyn(IP) matching the parameter key. If

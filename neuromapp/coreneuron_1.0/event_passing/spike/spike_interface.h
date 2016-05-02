@@ -51,6 +51,11 @@ struct spike_interface{
     std::vector<int> nin_;
     std::vector<int> displ_;
 
+    //STATS ACCUMULATOR BUFFERS
+    int spike_stats_;
+    int ite_stats_;
+    int local_stats_;
+
     /** \fn spike_interface(int nprocs)
         \brief spike_interface constructor. Initializes nin and displ buffers
         to have size == number of processes

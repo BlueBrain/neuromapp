@@ -29,10 +29,10 @@ public:
      *  \param simtime the total time of the simulation
      *  \param ngroups the number of cell groups
      *  \param rank the rank of the current process (for a unique random seed)
-     *  \param out specifies the number of output gids
+     *  \param ncells specifies the total number of cells
      */
     event_generator(int nSpikes, int simtime, int ngroups,
-    int rank, int size, int out);
+    int rank, int size, int ncells);
 
     /** \fn gen_event pop()(int id)
      *  \brief retrieves the top most element from the specified queue

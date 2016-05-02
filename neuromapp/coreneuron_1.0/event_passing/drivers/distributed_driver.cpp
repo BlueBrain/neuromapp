@@ -45,7 +45,7 @@
 
 int main(int argc, char* argv[]) {
 
-    assert(argc == 9);
+    assert(argc == 8);
 
     MPI_Init(NULL, NULL);
     MPI_Datatype mpi_spike = create_spike_type();
@@ -55,24 +55,25 @@ int main(int argc, char* argv[]) {
 
     int ngroups = atoi(argv[1]);
     int simtime = atoi(argv[2]);
-    int out = atoi(argv[3]);
-    int in = atoi(argv[4]);
-    int netconsper = atoi(argv[5]);
-    int nSpikes = atoi(argv[6]);
-    int mindelay = atoi(argv[7]);
-    bool algebra = atoi(argv[8]);
+    int ncells = atoi(argv[3]);
+    int fanin = atoi(argv[4]);
+    int nSpikes = atoi(argv[5]);
+    int mindelay = atoi(argv[6]);
+    bool algebra = atoi(argv[7]);
 
     struct timeval start, end;
-    assert(in <= (out * (size - 1)));
+    assert(fanin <= ncells);
+
+    int cellsper = ncells / size;
 
     //create environment
-    environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, out);
-    environment::presyn_maker presyns(out, in, netconsper);
+    environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
+    environment::presyn_maker presyns(ncells, fanin);
     presyns(size, ngroups, rank);
     spike::spike_interface s_interface(size);
 
     //run simulation
-    MPI_Comm neighborhood = create_dist_graph(presyns, out);
+    MPI_Comm neighborhood = create_dist_graph(presyns, cellsper);
     queueing::pool pl(algebra, ngroups, mindelay, rank, s_interface);
     gettimeofday(&start, NULL);
     while(pl.get_time() <= simtime){
@@ -89,6 +90,8 @@ int main(int argc, char* argv[]) {
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
     }
 
+    pl.accumulate_stats();
+    accumulate_stats(s_interface);
 
     MPI_Comm_free(&neighborhood);
     MPI_Type_free(&mpi_spike);

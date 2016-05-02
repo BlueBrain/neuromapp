@@ -50,6 +50,7 @@ ite_received_(0), local_received_(0), enqueued_(0), delivered_(0) {
         storage_clear(p.name);
         exit(EXIT_FAILURE);
     }
+    inter_thread_events_.reserve(1000);
 }
 
 void nrn_thread_data::self_send(int d, double tt){
