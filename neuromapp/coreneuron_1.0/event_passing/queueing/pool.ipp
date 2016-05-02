@@ -65,7 +65,7 @@ void pool::send_events(int myID, G& generator, P& presyns){
 
             spike_.lock_.acquire();
             spike_.spikeout_.push_back(new_event);
-            ++spike_stats_;
+            ++(spike_.spike_stats_);
             spike_.lock_.release();
         }
     }
@@ -112,6 +112,7 @@ void pool::filter(P& presyns){
                     dest = (*input)[j] % thread_datas_.size();
                     //send using non-mutex inter-thread send here
                     thread_datas_[dest].inter_send_no_lock(dest, tt);
+                    ++(spike_.post_spike_stats_);
                 }
             }
         }
@@ -135,7 +136,6 @@ inline void pool::accumulate_stats(){
     }
 
     //ACCUMULATE ACROSS RANKS
-    spike_.spike_stats_ = spike_stats_;
     spike_.ite_stats_ = ite_stats;
     spike_.local_stats_ = local_stats;
 }

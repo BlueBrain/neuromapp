@@ -52,22 +52,24 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
             }
         }
     }
+    /*
     if(rank == 0){
-    for(std::map<int,presyn>::iterator it = inputs_.begin(); it != inputs_.end(); ++it){
-        std::cout<<"Input: "<<it->first<<" has "<<it->second.size()<<" connections";
-        for(int i = 0; i < it->second.size(); ++i){
-            std::cout<<" "<<it->second[i];
+        for(std::map<int,presyn>::iterator it = inputs_.begin(); it != inputs_.end(); ++it){
+            std::cout<<"Input: "<<it->first<<" has "<<it->second.size()<<" connections";
+            for(int i = 0; i < it->second.size(); ++i){
+                std::cout<<" "<<it->second[i];
+            }
+            std::cout<<std::endl;
         }
-        std::cout<<std::endl;
-    }
-    for(std::map<int,presyn>::iterator it = outputs_.begin(); it != outputs_.end(); ++it){
-        std::cout<<"Output: "<<it->first<<" has "<<it->second.size()<<"connections";
-        for(int i = 0; i < it->second.size(); ++i){
-            std::cout<<" "<<it->second[i];
+        for(std::map<int,presyn>::iterator it = outputs_.begin(); it != outputs_.end(); ++it){
+            std::cout<<"Output: "<<it->first<<" has "<<it->second.size()<<" connections";
+            for(int i = 0; i < it->second.size(); ++i){
+                std::cout<<" "<<it->second[i];
+            }
+            std::cout<<std::endl;
         }
-        std::cout<<std::endl;
     }
-    }
+    */
 }
 
 const presyn* presyn_maker::find_input(int key) const{

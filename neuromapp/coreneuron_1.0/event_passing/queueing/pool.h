@@ -44,7 +44,6 @@ private:
     int min_delay_;
     int time_;
     int rank_;
-    int spike_stats_;
     spike::spike_interface& spike_;
     std::vector<nrn_thread_data> thread_datas_;
 
@@ -59,7 +58,7 @@ public:
      */
     pool(bool algebra, int ngroups,int md, int rank, spike::spike_interface& s_interface):
     perform_algebra_(algebra), min_delay_(md), rank_(rank), spike_(s_interface),
-    time_(0), spike_stats_(0) {thread_datas_.resize(ngroups);}
+    time_(0) {thread_datas_.resize(ngroups);}
 
     /** \fn send_events(int myID, event_generator& generator)
      *  \brief sends event to it's destination
