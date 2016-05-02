@@ -62,7 +62,6 @@ int main(int argc, char* argv[]) {
     bool algebra = atoi(argv[7]);
 
     struct timeval start, end;
-    assert(fanin <= ncells);
 
     int cellsper = ncells / size;
 

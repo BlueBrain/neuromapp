@@ -27,7 +27,6 @@
 #define MAPP_PRESYN_MAKER_H
 
 #include <map>
-#include <cassert>
 
 #include "coreneuron_1.0/event_passing/environment/generator.h"
 
@@ -52,7 +51,7 @@ public:
      *  \param netconsper number of netcons per input presyn
      */
     explicit presyn_maker(int ncells=0, int fanin=0):
-    n_cells_(ncells), fan_in_(fanin){assert(ncells >= fanin);}
+    n_cells_(ncells), fan_in_(fanin){}
 
     /** \fn void operator()(int nprocs, int ngroups, int rank)
      *  \brief generates both the input and output presyns.

@@ -90,11 +90,6 @@ int event_help(int argc, char* const argv[], po::variables_map& vm){
 	return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["fanin"].as<size_t>() > vm["numcells"].as<size_t>()){
-	std::cout<<"fanin must be less than or equal to the number of \
-available gids, ncells"<<std::endl;
-	return mapp::MAPP_BAD_ARG;
-    }
     return mapp::MAPP_OK;
 }
 
