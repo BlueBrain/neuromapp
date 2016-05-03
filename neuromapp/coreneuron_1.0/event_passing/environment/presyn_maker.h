@@ -44,11 +44,10 @@ private:
     std::map<int, presyn> inputs_;
     std::map<int, presyn> outputs_;
 public:
-    /** \fn presyn_maker(int out, int in, int netconsper)
+    /** \fn presyn_maker(int ncells, int fanin)
      *  \brief creates the presyn_maker and sets member variables
-     *  \param out number of output presyns
-     *  \param in number of input presyns
-     *  \param netconsper number of netcons per input presyn
+     *  \param ncells the total number of cells in the simulation
+     *  \param fanin the number of incoming connections per cell
      */
     explicit presyn_maker(int ncells=0, int fanin=0):
     n_cells_(ncells), fan_in_(fanin){}
@@ -78,7 +77,7 @@ public:
      *  OP is found, the param presyn is modified to reference the desired OP.
      *  \param key the integer used to retrieve the output presyn
      *  \param ps used to return the matching presyn val by reference
-     *  only valid if find_presyn returns true.
+     *  only valid if find_output returns true.
      *  \return true if matching presyn is found, else false
      */
     const presyn* find_output(int key) const;

@@ -108,7 +108,6 @@ void set_displ(data& d){
         total += d.nin_[i];
     }
     d.spikein_.resize(total);
-    // std::cout<<"TOTAL: "<<total<<std::endl;
 }
 
 template<typename data>
@@ -122,12 +121,14 @@ void accumulate_stats(data& d){
         MPI_Reduce(MPI_IN_PLACE, &(d.ite_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(MPI_IN_PLACE, &(d.local_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(MPI_IN_PLACE, &(d.post_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(MPI_IN_PLACE, &(d.received_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     }
     else{
         MPI_Reduce(&(d.spike_stats_), &(d.spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(&(d.ite_stats_), &(d.ite_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(&(d.local_stats_), &(d.local_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(&(d.post_spike_stats_), &(d.post_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&(d.received_spike_stats_), &(d.received_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     }
 
     if(rank == 0){
@@ -135,6 +136,7 @@ void accumulate_stats(data& d){
         std::cout<<"Total Inter-thread: "<<d.ite_stats_<<std::endl;
         std::cout<<"Total Local: "<<d.local_stats_<<std::endl;
         std::cout<<"Total Post-spike Events: "<<d.post_spike_stats_<<std::endl;
+        std::cout<<"Total Received spikes: "<<d.received_spike_stats_<<std::endl;
     }
 }
 

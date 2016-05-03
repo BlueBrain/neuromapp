@@ -24,15 +24,18 @@ private:
 
 public:
 
-    /** \fn event_generator(int nSpike, int nIte, int nLocal)
-     *  \brief "generate" function for the generator. Creates all the events.
+    /** \fn event_generator(int nSpike, int simtime, int ngroups,
+     *      int rank, int nprocs, int ncells)
+     *  \brief the generator constructor. Creates all the events.
+     *  \param nspikes the total number of spikes created in the simulation
      *  \param simtime the total time of the simulation
      *  \param ngroups the number of cell groups
      *  \param rank the rank of the current process (for a unique random seed)
-     *  \param ncells specifies the total number of cells
+     *  \param nprocs the number of processes in the simulation
+     *  \param ncells the total number of cells
      */
     event_generator(int nSpikes, int simtime, int ngroups,
-    int rank, int size, int ncells);
+    int rank, int nprocs, int ncells);
 
     /** \fn gen_event pop()(int id)
      *  \brief retrieves the top most element from the specified queue

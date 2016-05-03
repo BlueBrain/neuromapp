@@ -104,6 +104,7 @@ void pool::filter(P& presyns){
     int spike_gid;
     int dest;
     try{
+        spike_.received_spike_stats_ += spike_.spikein_.size();
         for(int i = 0; i < spike_.spikein_.size(); ++i){
             tt = spike_.spikein_[i].t_;
             spike_gid = spike_.spikein_[i].data_;

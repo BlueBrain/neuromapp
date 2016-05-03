@@ -15,7 +15,7 @@
 namespace environment {
 
 event_generator::event_generator(int nSpikes, int simtime,
-int ngroups, int rank, int size, int ncells){
+int ngroups, int rank, int nprocs, int ncells){
     int dest = 0;
     double event_time = 0;
     int src_gid = 0;
@@ -24,10 +24,10 @@ int ngroups, int rank, int size, int ncells){
     presyn* output;
 
     assert(nSpikes > 0);
-    int cells_per = ncells / size;
+    int cells_per = ncells / nprocs;
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
-    double lambda = 1.0 / static_cast<double>(mean * ngroups * size);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
     //create random number generator/distributions
     /*
@@ -44,23 +44,25 @@ int ngroups, int rank, int size, int ncells){
 
 
     event_pool_.resize(ngroups);
-    for(size_t i = 0; i < ngroups; ++i){
-        event_time = 0;
-        //create events up until simulation end
-        while(event_time < simtime){
-            double diff = time_d(rng);
-            assert(diff > 0.0);
-            event_time += diff;
-            if(event_time >= simtime){
-                break;
-            }
-            else{
-                src_gid = gid_d(rng);
+    event_time = 0;
+    //create events up until simulation end
+    while(event_time < simtime){
+        double diff = time_d(rng);
+        assert(diff > 0.0);
+        event_time += diff;
+        if(event_time >= simtime){
+            break;
+        }
+        else{
+            src_gid = gid_d(rng);
 
-                new_event.first = src_gid;
-                new_event.second = static_cast<int>(event_time);
-                event_pool_[i].push(new_event);
-            }
+            //cellgroups are determined by:
+            //group # = gid % number of groups
+            dest = src_gid % ngroups;
+
+            new_event.first = src_gid;
+            new_event.second = static_cast<int>(event_time);
+            event_pool_[dest].push(new_event);
         }
     }
 }

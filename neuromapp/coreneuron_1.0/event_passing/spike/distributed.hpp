@@ -34,8 +34,26 @@
 #include "coreneuron_1.0/event_passing/queueing/queue.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
 
+/**
+ * \fn create_dist_graph(P& presyns, int ncells)
+ * \brief Creates a distributed graph topology in order to perform nearest
+ * neighbor communication.
+ *
+ *Summary:
+ * - Uses MPI broadcast in order to exchange information about the cells
+ *   on each ranks.
+ *
+ * - If you care about a cell on a different rank,
+ *   add them as an inNeighbor.
+ *
+ * - Next exchange inNeighbor information.
+ *
+ * - If another rank has you as an inNeighbor, add them as an outNeighbor.
+ *
+ * - Use this information to construct topology.
+ */
 template <typename P>
-MPI_Comm create_dist_graph(P& presyns, int nout){
+MPI_Comm create_dist_graph(P& presyns, int ncells){
     MPI_Comm neighborhood;
     int size;
     int rank;
@@ -54,19 +72,19 @@ MPI_Comm create_dist_graph(P& presyns, int nout){
     int start = 0;
     for(int i = 0; i < size; ++i){
         if(rank == i){
-            start = rank * nout;
-            for(int j = 0; j < nout; ++j){
+            start = rank * ncells;
+            for(int j = 0; j < ncells; ++j){
                 sendbuf.push_back(start + j);
             }
         }
         else{
-            sendbuf.resize(nout);
+            sendbuf.resize(ncells);
         }
-        MPI_Bcast(&sendbuf[0], nout, MPI_INT, i, MPI_COMM_WORLD);
+        MPI_Bcast(&sendbuf[0], ncells, MPI_INT, i, MPI_COMM_WORLD);
 
         //add sender to inNeighbors if there is matching input presyn
         if(rank != i){
-            for(int j = 0; j < nout; ++j){
+            for(int j = 0; j < ncells; ++j){
                 if(presyns.find_input(sendbuf[j])){
                     inNeighbors.push_back(i);
                     break;
