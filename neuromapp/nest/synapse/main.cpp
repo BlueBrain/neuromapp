@@ -86,7 +86,8 @@ namespace nest
 			const double tau_fac = vm["tau_fac"].as<double>();
 
 			try {
-				tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac);
+				spikedetector sd;
+				tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, &sd);
 			}
 			catch (std::invalid_argument& e) {
 				std::cout << "Error in model parameters: " << e.what() << std::endl;
@@ -139,6 +140,9 @@ namespace nest
 		//will turn into ptr to base class if more synapse are implemented
 		boost::scoped_ptr<tsodyks2> syn;
 
+		//preallocate vector for results
+		spikedetector sd;
+
 		if (vm["model"].as<std::string>() == "tsodyks2") {
 			const double delay = vm["delay"].as<double>();
 			const double weight = vm["weight"].as<double>();
@@ -149,8 +153,7 @@ namespace nest
 			const double tau_fac = vm["tau_fac"].as<double>();
 
 			try {
-				syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac));
-				syn.receiver =
+				syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, &sd));
 			}
 			catch (std::invalid_argument& e) {
 				std::cout << "Error in model parameters: " << e.what() << std::endl;
@@ -161,24 +164,15 @@ namespace nest
 			std::cout << "Error: Synapse model implementation missing" << std::endl;
 		}
 
-		//preallocate vector for results
-		std::vector<double> weights;
-		weights.reserve(iterations);
-
 		//create a few events
-		std::vector< boost::shared_ptr<logevent> > events(iterations);
+		std::vector< boost::shared_ptr<spikeevent> > events(iterations);
 		for (unsigned int i=0; i<iterations; i++) {
-			/*const double t = dt*(i+1);
-			const int sender = -1;
-			const int receiver = -1;
-			const double weight = 1.;
-			const double delay = 0.1;
-			events[i].reset(new logevent(t, sender, receiver, weight, delay, weights));*/
+			Time t(i*10.0);
 
-			SpikeEvent se;
-			se.set_stamp( get_slice_origin() + Time::step( lag + 1 ) );
-		    se.set_sender( NULL );
-
+		    events[i].reset(new spikeevent);
+		    events[i]->set_stamp( t ); // in Network::send< SpikeEvent >
+		    events[i]->set_sender( NULL ); // in Network::send< SpikeEvent >
+		    //events[i]->set_sender_gid( sgid ); // Network::send_local
 		}
 
 		double t_lastspike = 0.0;
@@ -192,7 +186,7 @@ namespace nest
 		boost::chrono::system_clock::duration delay = boost::chrono::system_clock::now() - start;
 
 		std::cout << "Duration: " << delay << std::endl;
-		std::cout << "Last weight " << weights.back() << std::endl;
+		std::cout << "Last weight " << sd.spikes.back() << std::endl;
 	}
 
 	int synapse_execute(int argc, char* const argv[])

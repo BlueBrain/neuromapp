@@ -28,28 +28,42 @@
 #define EVENT_H_
 
 #include <vector>
+#include <cstddef>
+#include "nest/synapse/node.h"
+#include <limits.h>
+#include <limits>
 
+namespace nest
+{
 struct Time {
 	long tics;
-	 double_t get_ms() const
+	Time(): tics(0) {}
+	Time(const double& t): tics(t*1000.0) {}
+	 double get_ms() const
 	 {
 	    if ( tics == LONG_MAX / (long)8. + 1 )
-	      return DBL_MAX;
+	      return std::numeric_limits<double>::max();
 	    if ( tics == -LONG_MAX / (long)8 + 1 )
-	      return -DBL_MAX;
+	      return -std::numeric_limits<double>::max();
 	    return 1/1000.0 * tics;
 	 }
 };
 
-namespace nest
-{
+typedef size_t index;
+typedef long port;
+typedef long rport;
+typedef long delay;
+typedef double weight;
+
+class node;
+
+
 	/**
 	 * \struct event
 	 * \brief It represents a spike event
 	 */
 	struct event
 	{
-	protected:
 		index sender_gid_; //!< GID of sender or -1.
 		                     /*
 		                      * The original formulation used references to Nodes as
@@ -58,8 +72,8 @@ namespace nest
 		                      * references in the interface.
 		                      * Thus, we can still ensure that the pointers are never NULL.
 		                      */
-		  Node* sender_;     //!< Pointer to sender or NULL.
-		  Node* receiver_;   //!< Pointer to receiver or NULL.
+		  node* sender_;     //!< Pointer to sender or NULL.
+		  node* receiver_;   //!< Pointer to receiver or NULL.
 
 
 		  /**
@@ -119,6 +133,35 @@ namespace nest
 		 * the receiver.
 		 */
 		 virtual void operator()() = 0;
+
+		 const weight get_weight() const
+		 {
+			 return w_;
+		 }
+
+		 void set_stamp( Time const& stamp )
+		 {
+			 stamp_ = stamp;
+		 }
+
+		 const Time& get_stamp() const
+		 {
+			 return stamp_;
+		 }
+
+		 void set_receiver( node* node ) // ref in NEST
+		 {
+			 receiver_ = node;
+		 }
+		 void set_sender( node* node ) // ref in NEST
+		 {
+			 sender_ = node;
+		 }
+
+		 void set_weight(weight w)
+		 {
+			 w_ = w;
+		 }
 	};
 	/**
 	 * Event for spike information.
@@ -127,23 +170,18 @@ namespace nest
 	class spikeevent : public event
 	{
 	public:
-		SpikeEvent();
-		void SpikeEvent::operator()()
-		{
-			  receiver_->handle( *this );
-		}
+		//spikeevent();
+		void operator()();
 		//SpikeEvent* clone() const;
 
 		//void set_multiplicity( int_t );
 		//int_t get_multiplicity() const;
-
+		inline spikeevent()
+				  : multiplicity_( 1 )
+				{}
 		protected:
-		  	  int_t multiplicity_;
-		};
+		  	  int multiplicity_;
 
-		inline SpikeEvent::SpikeEvent()
-		  : multiplicity_( 1 )
-		{
 	};
 
 

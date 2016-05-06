@@ -33,10 +33,15 @@
 namespace nest
 {
 
-class Connection
+typedef unsigned short targetindex;
+
+class connection
 {
-	targetidentifierT target_;
+protected:
+	node* target_; //simplification of NEST
 	double delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
+
+	virtual void send(event& e, double t_lastspike) = 0;
 };
 
 
@@ -55,7 +60,7 @@ class Connection
 	 * [3] Maass, W., & Markram, H. (2002). Synapses as dynamic memory buffers. Neural networks, 15(2),
      * 155–61.synapse/args
 	 */
-	class tsodyks2 /// 10k of this synapse per neuron
+	class tsodyks2 : public connection /// 10k of this synapse per neuron
 	{
 	public:
 		/** \fun Tsodyks2(const double& delay, const double& weight, const double& U, const double& u, const double& x, const double& tau_rec, const double& tau_fac)
@@ -74,7 +79,8 @@ class Connection
 				 const double& u,
 				 const double& x,
 				 const double& tau_rec,
-				 const double& tau_fac) :
+				 const double& tau_fac,
+				 node* target) :
 			delay_(delay),
 			weight_(weight),
 			U_(U),
@@ -83,6 +89,7 @@ class Connection
 			tau_rec_(tau_rec),
 			tau_fac_(tau_fac)
 		{
+			target_ = target;
 			if ( U_ > 1.0 || U_ < 0.0 )
 			    throw std::invalid_argument( "U must be in [0,1]." );
 			  if ( u_ > 1.0 || u_ < 0.0 )
@@ -102,15 +109,17 @@ class Connection
 			     */
 		void send(event& e, double t_lastspike)
 		{
-			double h = e.stamp_.get_ms() - t_lastspike;
+			double h = e.get_stamp().get_ms() - t_lastspike;
 			double x_decay = std::exp(-h / tau_rec_); /// To be checked which implementation of exponential is being used
 			double u_decay = (tau_fac_ < 1.0e-10) ? 0.0 : std::exp(-h / tau_fac_); // branching
 			// now we compute spike number n+1
 			/// no forward dependency between next 2 statements
 			x_ = 1. + (x_ - x_ * u_ - 1.) * x_decay; // Eq. 5 from reference [3] ---> 2 Multiply + 3 adds + 1 assignment
 			u_ = U_ + u_ * (1. - U_) * u_decay; // Eq. 4 from [3] --> 2 Muliply + 2 adds + 1 assignment
-			e.weight = x_ * u_ * weight_; // weight constant for the object after the synapase is created (can we use const?) --> 2 Multiply +  1 assignment
-			e.delay = delay_; // 1 assignment
+			e.set_receiver( target_ ); //simplification
+			e.set_weight(x_ * u_ * weight_); // weight constant for the object after the synapase is created (can we use const?) --> 2 Multiply +  1 assignment
+			//e.set_delay( delay_ ); //  1 assignment
+			//e.set_rport( -1 );
 			e(); // append right now, in nest sending to post synaptic neuron
 		}
 

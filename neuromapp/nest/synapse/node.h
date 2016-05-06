@@ -24,19 +24,27 @@
  */
 
 
-#ifndef EVENT_H_
-#define EVENT_H_
+#ifndef NODE_H_
+#define NODE_H_
 
 #include <vector>
+#include "nest/synapse/event.h"
+
+
+
+
+namespace nest
+{
+
+class spikeevent;
 
 typedef size_t index;
-typedef int_t thread;
+typedef int thread;
 
 typedef void Network;
 typedef void Subnet;
 
-namespace nest
-{
+
 	/**
 	 * \struct node
 	 * \brief nest node
@@ -71,20 +79,16 @@ namespace nest
 	protected:
 		static Network* net_; //!< Pointer to global network driver.
 	public:
-		virtual void handle( SpikeEvent& e );
+		virtual void handle( spikeevent& e ) = 0;
 
 	};
 
 	class spikedetector : public node
 	{
-	private:
-		std::vector<double>& spikes;
-
 	public:
-		void handle( spikeevent& e )
-		{
-			spikes.push_back(e.stamp_.get_ms());
-		}
-
+		std::vector<double> spikes;
+		void handle( spikeevent& e );
 	};
 };
+
+#endif
