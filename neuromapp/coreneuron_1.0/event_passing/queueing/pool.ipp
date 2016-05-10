@@ -36,7 +36,7 @@
 namespace queueing {
 
 template<typename G, typename P>
-void pool::send_events(int myID, G& generator, P& presyns){
+void pool::send_events(const int myID, G& generator, const P& presyns){
     int curTime = thread_datas_[myID].get_time();
     int gid = 0;
     int dest;
@@ -76,7 +76,7 @@ void pool::send_events(int myID, G& generator, P& presyns){
 
 //PARALLEL FUNCTIONS
 template <typename G, typename P>
-void pool::fixed_step(G& generator, P& presyns){
+void pool::fixed_step(G& generator, const P& presyns){
     #pragma omp parallel for schedule(static,1)
     for(int i = 0; i < thread_datas_.size(); ++i){
         for(int j = 0; j < min_delay_; ++j){
@@ -97,7 +97,7 @@ void pool::fixed_step(G& generator, P& presyns){
 }
 
 template <typename P>
-void pool::filter(P& presyns){
+void pool::filter(const P& presyns){
     std::map<int, std::vector<int> >::iterator it;
     double tt;
     const environment::presyn* input = NULL;

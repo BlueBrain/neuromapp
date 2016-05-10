@@ -34,6 +34,8 @@
 #include "coreneuron_1.0/event_passing/queueing/queue.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
 
+
+#if MPI_VERSION >= 3
 /**
  * \fn create_dist_graph(P& presyns, int ncells)
  * \brief Creates a distributed graph topology in order to perform nearest
@@ -162,5 +164,35 @@ void distributed_spike(data& d, MPI_Datatype spike, MPI_Comm neighborhood){
     //next distribute items to every other process using allgatherv
     neighbor_allgatherv(d, spike, neighborhood);
 }
+#else
+/**
+ * If MPI version is less than 3, there will be
+ * compatibility issues, so use dummy functions.
+ */
+template <typename P>
+MPI_Comm create_dist_graph(P& presyns, int ncells){
+    std::cerr<<"MPI version is < 3. Cannot use distributed graph implementation"<<std::endl;
+    exit(EXIT_FAILURE);
+}
+
+template<typename data>
+void neighbor_allgather(data& d, MPI_Comm neighborhood){
+    std::cerr<<"MPI version is < 3. Cannot use distributed graph implementation"<<std::endl;
+    exit(EXIT_FAILURE);
+}
+
+template<typename data>
+void neighbor_allgatherv(data& d, MPI_Datatype spike, MPI_Comm neighborhood){
+    std::cerr<<"MPI version is < 3. Cannot use distributed graph implementation"<<std::endl;
+    exit(EXIT_FAILURE);
+}
+
+template<typename data>
+void distributed_spike(data& d, MPI_Datatype spike, MPI_Comm neighborhood){
+    std::cerr<<"MPI version is < 3. Cannot use distributed graph implementation"<<std::endl;
+    exit(EXIT_FAILURE);
+}
+
+#endif //MPI VERSION 3
 
 #endif

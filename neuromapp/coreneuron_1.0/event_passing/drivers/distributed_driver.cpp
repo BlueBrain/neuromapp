@@ -43,8 +43,8 @@
     #include <omp.h>
 #endif
 
-int main(int argc, char* argv[]) {
 
+int main(int argc, char* argv[]) {
     assert(argc == 8);
 
     MPI_Init(NULL, NULL);

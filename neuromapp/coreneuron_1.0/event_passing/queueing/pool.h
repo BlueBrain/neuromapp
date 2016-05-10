@@ -62,7 +62,7 @@ public:
     min_delay_(md), rank_(rank), spike_(s_interface), time_(0)
     {thread_datas_.resize(ngroups);}
 
-    /** \fn send_events(int myID, G& generator, P& presyns)
+    /** \fn send_events(const int myID, G& generator, const P& presyns)
      *  \brief sends event to it's destination
      *  \param myID the thread index
      *  \param generator the event generator from which events are taken
@@ -70,7 +70,7 @@ public:
      *  events to cellgroups on the same rank.
      */
     template <typename G, typename P>
-    void send_events(int myID, G& generator, P& presyns);
+    void send_events(const int myID, G& generator, const P& presyns);
 
     /** \fn void fixed_step(G& generator, P& presyns)
      *  \brief performs (min_delay_) iterations of a timestep in which:
@@ -85,9 +85,9 @@ public:
      *  \precond presyns has been initialized
      */
     template <typename G, typename P>
-    void fixed_step(G& generator, P& presyns);
+    void fixed_step(G& generator, const P& presyns);
 
-    /** \fn void filter(P& presyns)
+    /** \fn void filter(const P& presyns)
      *  \brief filters out relevent events(using the function matches()),
      *  and randomly selects a destination cellgroup, and delivers them
      *  using a no-lock inter_thread_send
@@ -95,7 +95,7 @@ public:
      *  is taken (used to distribute spike events between cell groups).
      */
     template <typename P>
-    void filter(P& presyns);
+    void filter(const P& presyns);
 
 
     /** \fn accumulate_stats()
