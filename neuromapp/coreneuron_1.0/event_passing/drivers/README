@@ -1,0 +1,17 @@
+Description of files:
+
+    - main.cpp: acts as the interface with the miniapp framework. To run this
+        simulation within the miniapp, call "event" followed by the desired
+        parameters. Main then runs an MPI application specified by the
+        parameters. These applications are described below.
+
+    - event.cpp: the default app modelled after CoreNeuron. It uses classes
+        found in the environment, queueing, and spike directories.
+        Utilizes the global, blocking Allgather implementation of spike
+        exchange.
+
+    - distributed_graph.cpp: Similar to event.cpp, however, the default spike
+        exchange implementation has been replaced with one that sets up a
+        process topology to create a distributed adjacency graph. This means
+        that messages are not sent to the entire global scope, but instead
+        only to the nearest neighbor process.

@@ -1,5 +1,5 @@
 /*
- * Neuromapp - event.cpp, Copyright (c), 2015,
+ * Neuromapp - distributed_driver.cpp, Copyright (c), 2015,
  * Kai Langen - Swiss Federal Institute of technology in Lausanne,
  * kai.langen@epfl.ch,
  * All rights reserved.
@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/event_passing/drivers/event.cpp
+ * @file neuromapp/event_passing/drivers/distributed_driver.cpp
  * runs the spike exchange simulation
  */
 #include <mpi.h>
@@ -36,15 +36,15 @@
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
-#include "coreneuron_1.0/event_passing/drivers/drivers.h"
+#include "coreneuron_1.0/event_passing/spike/distributed.hpp"
 #include "utils/storage/neuromapp_data.h"
 
 #ifdef _OPENMP
     #include <omp.h>
 #endif
 
-int main(int argc, char* argv[]) {
 
+int main(int argc, char* argv[]) {
     assert(argc == 8);
 
     MPI_Init(NULL, NULL);
@@ -63,18 +63,21 @@ int main(int argc, char* argv[]) {
 
     struct timeval start, end;
 
+    int cellsper = ncells / size;
+
     //create environment
     environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
     environment::presyn_maker presyns(ncells, fanin);
     presyns(size, ngroups, rank);
     spike::spike_interface s_interface(size);
+
     //run simulation
+    MPI_Comm neighborhood = create_dist_graph(presyns, cellsper);
     queueing::pool pl(algebra, ngroups, mindelay, rank, s_interface);
     gettimeofday(&start, NULL);
-    int cntr = 0;
     while(pl.get_time() <= simtime){
         pl.fixed_step(generator, presyns);
-        blocking_spike(s_interface, mpi_spike);
+        distributed_spike(s_interface, mpi_spike, neighborhood);
         pl.filter(presyns);
     }
     gettimeofday(&end, NULL);
@@ -82,12 +85,14 @@ int main(int argc, char* argv[]) {
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec))
         + ((end.tv_usec - start.tv_usec) / 1000);
 
-    if(rank == 0)
+    if(rank == 0){
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+    }
 
     pl.accumulate_stats();
     accumulate_stats(s_interface);
 
+    MPI_Comm_free(&neighborhood);
     MPI_Type_free(&mpi_spike);
     MPI_Finalize();
     return 0;

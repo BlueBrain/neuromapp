@@ -23,7 +23,7 @@ find_package(Boost 1.44 REQUIRED chrono program_options unit_test_framework syst
 find_package(SLURM)
 find_package(MPI)
 
-## MPI link flags need to be overwritten on BG/Q 
+## MPI link flags need to be overwritten on BG/Q
 include(BlueGenePortability)
 
 
