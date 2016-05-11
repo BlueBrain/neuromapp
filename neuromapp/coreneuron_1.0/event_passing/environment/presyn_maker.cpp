@@ -21,26 +21,31 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     boost::random::uniform_int_distribution<> uni_d(0, n_cells_);
 
     int cells_per = n_cells_ / nprocs;
-    int first_cell = cells_per * rank;
+    int start = cells_per * rank;
+
+    //for last rank, add the leftover neurons
+    if(rank == nprocs){
+        cells_per = ngroups - start;   
+    }
     int cur;
 
     //create local presyns with empty vectors
     for(int i = 0; i < cells_per; ++i){
-        outputs_[first_cell + i].reserve(fan_in_);
+        outputs_[start + i];
     }
     //foreach gid, select srcs
     for(int i = 0; i < cells_per; ++i){
         for(int j = 0; j < fan_in_; ++j){
             cur = uni_d(rng);
             //local GID
-            if(cur >= first_cell && cur < (first_cell + cells_per)){
+            if(cur >= start && cur < (start + cells_per)){
                 //add self to src gid
-                outputs_[cur].push_back(first_cell + i);
+                outputs_[cur].push_back(start + i);
             }
             //remote GID
             else{
                 //add self to input presyn for gid
-                inputs_[cur].push_back(first_cell + i);
+                inputs_[cur].push_back(start + i);
             }
         }
     }

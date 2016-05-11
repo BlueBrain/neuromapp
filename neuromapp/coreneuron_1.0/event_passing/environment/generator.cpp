@@ -25,6 +25,11 @@ int ngroups, int rank, int nprocs, int ncells){
 
     assert(nSpikes > 0);
     int cells_per = ncells / nprocs;
+    int start = rank * cells_per;
+
+    //for the last rank, add the remaining cellgroups
+    if(rank == nprocs)
+        cells_per = ngroups - start;
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
@@ -38,7 +43,6 @@ int ngroups, int rank, int nprocs, int ncells){
      */
     boost::mt19937 rng(rank + time(NULL));
     boost::random::exponential_distribution<double> time_d(lambda);
-    int start = rank * cells_per;
     boost::random::uniform_int_distribution<> gid_d(start, (start + cells_per - 1));
     boost::random::uniform_int_distribution<> cellgroup_d(0, (ngroups-1));
 
