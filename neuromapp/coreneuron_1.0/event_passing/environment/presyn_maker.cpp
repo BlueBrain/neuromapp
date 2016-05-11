@@ -24,9 +24,9 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     int start = cells_per * rank;
 
     //for last rank, add the leftover neurons
-    if(rank == nprocs){
-        cells_per = ngroups - start;   
-    }
+    if(rank == (nprocs - 1))
+        cells_per = ngroups - start;
+
     int cur;
 
     //create local presyns with empty vectors
