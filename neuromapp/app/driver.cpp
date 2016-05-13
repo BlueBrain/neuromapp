@@ -25,23 +25,26 @@
  * \brief Driver implementation
  */
 #include <string.h>
+#include <set>
+
 #include "app/driver.h"
 #include "coreneuron_1.0/common/data/helper.h"
 
 namespace mapp{
 
     void usage(){
-//        std::string intro(
         std::cout << "Usage: < >  means optional \n";
         std::cout << "   miniapp --help provides the help of your miniapp \n \n";
         std::cout << "   The list of the following miniapps are available: \n";
-        std::cout << "       hello <arg> \n";
-        std::cout << "       queueing <arg> \n";
-        std::cout << "       spike <arg> \n";
-        std::cout << "       kernel <arg> \n";
-        std::cout << "       solver <arg> \n";
-        std::cout << "       cstep <arg> \n";
-        std::cout << "       keyvalue <arg> \n";
+        std::set<std::string> s; // print in alphabetical order
+        s.insert("       hello <arg> \n");
+        s.insert("       queueing <arg> \n");
+        s.insert("       spike <arg> \n");
+        s.insert("       kernel <arg> \n");
+        s.insert("       solver <arg> \n");
+        s.insert("       cstep <arg> \n");
+        s.insert("       keyvalue <arg> \n");
+        std::copy(s.begin(),s.end(),std::ostream_iterator<std::string>(std::cout," "));
         std::cout << "   quit to exit \n";
         std::cout << "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
         std::cout << "\n";
