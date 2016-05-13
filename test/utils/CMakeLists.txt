@@ -9,5 +9,5 @@ foreach(name store argv_data)
 endforeach()
 
 add_executable(timer timer.cpp)
-target_link_libraries(timer ${Boost_LIBRARIES})
+target_link_libraries(timer ${Boost_LIBRARIES} ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES})
 add_mpi_test(timer)

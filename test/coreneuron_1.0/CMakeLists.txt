@@ -9,6 +9,9 @@ foreach(i ${tests})
                                coreneuron10_queueing
                                coreneuron10_kernel
                                coreneuron10_solver
-                               storage ${Boost_LIBRARIES})
+                               storage
+                               ${Boost_UNIT_TEST_FRAMEWORK_LIBRARIES}
+                               ${Boost_SYSTEM_LIBRARIES}
+                               ${Boost_FILESYSTEM_LIBRARIES})
     add_serial_test(${i})
 endforeach()

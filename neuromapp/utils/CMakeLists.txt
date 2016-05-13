@@ -8,3 +8,4 @@ configure_file("${PROJECT_SOURCE_DIR}/neuromapp/utils/mpi/mpi_helper.h.in"
 add_library (storage
              storage/neuromapp_data.cpp
              storage/storage.cpp )
+                        

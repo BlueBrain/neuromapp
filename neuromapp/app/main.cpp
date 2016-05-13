@@ -83,7 +83,7 @@ int main(int argc, char * const argv[]){
      // interactive run
      while(1) {
 #ifdef NEUROMAPP_CURSOR
-         input = readline("");
+         char* input = readline("");
          add_history(input);
          std::string command(input);
 #else
