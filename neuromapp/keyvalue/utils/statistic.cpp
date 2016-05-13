@@ -35,22 +35,62 @@
 namespace keyvalue {
 
 void statistic::process(){
-    value_type accumulate_reciprocal(0.);
-    std::for_each(v.begin(), v.end(),std::bind1st(std::divides<value_type>(),1.)); // v[i] -> 1/v[i], for fun
-    accumulate_reciprocal = keyvalue::accumulate(v.begin(), v.end(), 0.); // MPI is inside
-    g_iops = accumulate_reciprocal*a.cg();
-    g_mbw = accumulate_reciprocal*a.voltages_size() * sizeof(value_type)/(1024.*1024.);
+    // Check the type of computation: task dependency or loop
+    if (a.taskdeps()) {
+        // Base time without I/O (v[0])
+        value_type tbase = v[0];
+        // Regular time with I/O (v[1])
+        value_type tio = v[1];
+
+        // IOPS and BW are computed in the following way:
+        // 1. Compute IOPS and BW per rank
+        double time = tio - tbase;
+        double r_iops = (it_ops) / time;
+        double r_mbw = (op_size * it_ops) / time;
+        // 2. Compute the mean IOPS and BW for all ranks
+        g_iops = keyvalue::reduce(r_iops);
+        g_mbw = keyvalue::reduce(r_mbw);
+    } else {
+        // IOPS and BW are computed in the following way:
+        // 1. Accumulate the time of all iterations per rank
+        double time = std::accumulate(v.begin(), v.end(), 0.);
+        // 2. Compute IOPS and BW per rank
+        double r_iops = (it_ops) / time;
+        double r_mbw = (op_size * it_ops) / time;
+        // 3. Compute the mean IOPS and BW for all ranks
+        g_iops = keyvalue::reduce(r_iops);
+        g_mbw = keyvalue::reduce(r_mbw);
+    }
 }
 
 void statistic::print(std::ostream& os) const{
-    std::vector<value_type>::const_iterator it = v.begin();
-    while(it != v.end()){
-    std::cout << "  Time: " << *it << "[s] \n"
-              << "  I/O: "  << a.cg()/(*it) << " IOPS \n"
-              << "  BW: "   << a.voltages_size()* sizeof(double)/((*it)*1024.*1024.) << " MB/s \n";
-                ++it;
-    }
-    os << " g_iops " << g_iops << " [IOPS], " << " g_mbw "  << g_mbw << " [MB/s] \n";
+    os << "Mini-app configuration:" << std::endl;
+    a.print(os);
+
+    if (a.taskdeps()) {
+        os << "Computation time reference without I/O: " << v[0] << " s." << std::endl
+                << "Computation time with I/O: " << v[1] << " s." << std::endl;
+    } //else {
+        //unsigned int iter = 0;
+        //std::vector<value_type>::const_iterator it = v.begin();
+        //while(it != v.end()){
+            //os << "[iter " << iter << "]\t" << *it << " s,\t" << a.cg()/(*it) << " IOPS,\t"
+            //        << a.voltages_size()* sizeof(double)/((*it)*1024.*1024.) << " MB/s" << std::endl;
+            //++it;
+            //iter++;
+        //}
+    //}
+    os << "I/O: " << g_iops << " IOPS" << std::endl
+            << "BW: "  << g_mbw << " MB/s" << std::endl;
+
+    // CSV output data format:
+    // miniapp_name, num_procs, num_threads/proc, implementation,
+    // usecase, simtime (ms), mindelay (ms), dt (ms), cell_groups,
+    // backend, sync/async, flash/disk, iops (kIOP/S), bw (GB/s)
+    os << "KVMAPP," << a.procs() << "," << a.threads() << "," << ( a.taskdeps() ? "deps" : "loop" ) << ","
+            << a.usecase() << "," << a.st() << "," << a.md() << "," << a.dt() << "," << a.cg() << ","
+            << a.backend() << "," << ( a.async() ? "async" : "sync" ) << ","
+            << ( a.flash() ? "flash" : "disk" ) << "," << std::fixed << g_iops << "," << g_mbw << std::endl;
 }
 
 }

@@ -26,6 +26,7 @@
  */
 #include <string.h>
 #include <set>
+#include <iterator>
 
 #include "app/driver.h"
 #include "coreneuron_1.0/common/data/helper.h"
@@ -38,12 +39,13 @@ namespace mapp{
         std::cout << "   The list of the following miniapps are available: \n";
         std::set<std::string> s; // print in alphabetical order
         s.insert("       hello <arg> \n");
-        s.insert("       queueing <arg> \n");
-        s.insert("       spike <arg> \n");
+        s.insert("       synapse <arg> \n");
+        s.insert("       event <arg> \n");
         s.insert("       kernel <arg> \n");
         s.insert("       solver <arg> \n");
         s.insert("       cstep <arg> \n");
         s.insert("       keyvalue <arg> \n");
+        s.insert("       replib <arg> \n");
         std::copy(s.begin(),s.end(),std::ostream_iterator<std::string>(std::cout," "));
         std::cout << "   quit to exit \n";
         std::cout << "   The miniapp: kernel, solver, cstep can use the provided data set: \n";

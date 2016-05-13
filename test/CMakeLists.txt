@@ -10,7 +10,7 @@ endif()
 
 add_subdirectory (coreneuron_1.0)
 add_subdirectory (hello)
-add_subdirectory (spike)
+add_subdirectory (nest)
 add_subdirectory (utils)
 add_subdirectory (app)
 add_subdirectory (keyvalue)

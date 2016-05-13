@@ -1,0 +1,28 @@
+Subdirectories and brief descriptions:
+
+Environment:
+    - Has two classes used to set up the simulation environment.
+    These create presyns and events, respectively.
+
+    Presyns: Contain state information about the interconnects
+    between cells. These are used to distribute events.
+
+    Events: Contain a time field and a gid used to reference the
+    event's source.
+
+Queueing:
+    - Processes events every time step and performs calculations.
+    When a new event spikes, the sender may forward the event to
+    cells in the same cell group, other cell groups, or both,
+    depending on the associated presyn. Finally, all events are sent to
+    the spike interface for inter-process communication.
+
+Spike:
+    - Handles event exchange between processes. Communicates with
+    queueing via the spike interface.
+
+Drivers:
+    - Contains the application drivers to execute the program
+    within the miniapp framework. May contain multiple drivers for different
+    event passing application (for example, currently contains a basic
+    "event" app as well as a "distributed graph" app).

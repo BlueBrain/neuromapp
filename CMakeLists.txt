@@ -19,11 +19,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 include(BlueGenePortability)
 
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
-find_package(Boost 1.44 REQUIRED program_options unit_test_framework system filesystem atomic random)
+find_package(Boost 1.44 REQUIRED chrono program_options unit_test_framework system filesystem atomic random)
 find_package(SLURM)
 find_package(MPI)
 
-## MPI link flags need to be overwritten on BG/Q 
+## MPI link flags need to be overwritten on BG/Q
 include(BlueGenePortability)
 
 

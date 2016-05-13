@@ -36,6 +36,7 @@ In the next table is summarised the list of the miniapps.
  <TR>
  <TH>                  </TH>
  <TH> hello      </TH>
+ <TH> synapse      </TH>
  <TH> solver     </TH>
  <TH> kernel     </TH>
  <TH> cstep      </TH>
@@ -44,6 +45,7 @@ In the next table is summarised the list of the miniapps.
  <TR>
  <TH> topic  </TH>
  <TD  align="center">  Hello world  </TD>
+ <TD  align="center">  NEST synapses  </TD>
  <TD  align="center">  Hines solver </TD>
  <TD  align="center">  computation kernel </TD>
  <TD  align="center">  pseudo step time   </TD>

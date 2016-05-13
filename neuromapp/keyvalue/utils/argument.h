@@ -34,30 +34,35 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
+#include <omp.h>
+
+#include "utils/mpi/controler.h"
 
 namespace keyvalue {
 
 class argument {
 private:
-    int			procs_;
-    int			threads_;
-    std::string	backend_;
-    bool 		async_;
-    bool		flash_;
-    int			usecase_;
-    float		st_;
-    float		md_;
-    float		dt_;
-    int			cg_;
+    int         procs_;
+    int         threads_;
+    std::string backend_;
+    bool        async_;
+    bool        flash_;
+    int         usecase_;
+    bool        task_deps_;
+    float       st_;
+    float       md_;
+    float       dt_;
+    int         cg_;
     int         voltages_size_;
 
 public:
     /** \fn argument(int argc = 0 , char * argv[] = NULL)
         \brief parse the command from argv and argv, the functor indicate the return type, I could
             write template and trait class, to do */
-        explicit argument(int argc = 0 , char * const argv[] = NULL) :
-					procs_(1), threads_(1), backend_("map"), async_(false),
-					flash_(false), usecase_(1), st_(1.), md_(0.1), dt_(0.025), cg_(1){
+    explicit argument(int argc = 0 , char * const argv[] = NULL) :
+            procs_(1), threads_(1), backend_("map"), async_(false),
+            flash_(false), usecase_(1), task_deps_(false), st_(1.), md_(0.1),
+            dt_(0.025), cg_(1){
         if(argc != 0){
             std::vector<std::string> v(argv+1, argv+argc);
             argument_helper(v,"-b",backend(),to_string());
@@ -68,18 +73,26 @@ public:
             argument_helper(v,"-uc",usecase(),to_int());
             argument_helper(v,"-a",async(),to_true());
             argument_helper(v,"-f",flash(),to_true());
+            argument_helper(v,"-d",taskdeps(),to_true());
         }
-
+        // Get the number of processes from the MPI controller
+        procs_ = mapp::master.size();
+        // Get the number of threads from OpenMP
+        #pragma omp parallel
+        {
+            threads_ = omp_get_num_threads();
+        }
+        // Adjust voltages_size_ according to the use case
         voltages_size_ = usecase_*4096/2.5*350;
     }
 
     struct to_string{
-        /** \fn operator()
+            /** \fn operator()
          \brief functor that does nothing because argv is transformed into std::string
-         */
-        std::string operator()(std::string const& s){
-            return s;
-        }
+             */
+            std::string operator()(std::string const& s){
+                return s;
+            }
     };
 
     struct to_double{
@@ -110,21 +123,21 @@ public:
     };
 
     /** \fn argument_helper(std::vector<std::string> const& v, std::string const& s, F& function, BinaryOperation op)
-     \brief extract the different field of the command line and full up the data member, the function looks for the 
-     wanted argument (in a vector) and extrext the next element, using a binary operation associated to the write function
-     and a functor (type dependnant) */
+     \brief extract the different flags of the command line and fill up the data member, the function looks for the
+     wanted argument (in a vector) and extracts the next element, using a binary operation associated to the write function
+     and a functor (type dependent) */
     template<class F, class UnaryOperation>
     void argument_helper(std::vector<std::string> const& v, std::string const& s, F& function, UnaryOperation op){
         std::vector<std::string>::const_iterator it;
         it = find(v.begin(), v.end(), s);
         if (it != v.end())
             function = op(*(it+1));
-        else
-           	std::cout << "Ignoring invalid parameter: \n ";
+        //else
+        //    std::cout << "Ignoring invalid parameter: \n ";
     }
 
     /**
-     \brief return the volate size, read only
+     \brief return the voltage size, read only
     */
     inline int voltages_size() const{
         return voltages_size_;
@@ -152,7 +165,7 @@ public:
     }
 
     /**
-     \brief return asynchroneous mode or not, read only, read only
+     \brief return asynchronous mode or not, read only
      */
     inline bool async() const {
         return async_;
@@ -170,6 +183,13 @@ public:
      */
     inline int usecase() const{
         return usecase_;
+    }
+
+    /**
+     \brief using task dependency implementation or not, read only
+     */
+    inline bool taskdeps() const {
+        return task_deps_;
     }
 
     /**
@@ -229,7 +249,7 @@ public:
     }
 
     /**
-     \brief return asynchroneous mode or not, read only, write only
+     \brief return asynchronous mode or not, read only, write only
      */
     inline bool &async(){
         return async_;
@@ -247,6 +267,13 @@ public:
      */
     inline int &usecase(){
         return usecase_;
+    }
+
+    /**
+     \brief using task dependency implementation or not, write only
+     */
+    inline bool &taskdeps(){
+        return task_deps_;
     }
 
     /**
@@ -283,8 +310,10 @@ public:
             << " procs: " << procs() << " \n"
             << " threads_: " << threads() << " \n"
             << " backend_: " << backend() << " \n"
+            << " async_: " << async() << " \n"
             << " flash_: " << flash() << " \n"
             << " usecase_: " << usecase() << " \n"
+            << " OpenMP implementation: " << ((taskdeps() == true) ? "task dependency" : "for loop") << " \n"
             << " st_: " << st() << " \n"
             << " md_: " << md() << " \n"
             << " dt_: " << dt() << " \n"

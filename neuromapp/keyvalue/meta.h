@@ -47,7 +47,7 @@ public:
     /** \fn meta(std::string const& s, std::pair<double*,std::size_t> const& v_pair)
 	    \brief constructor of the meta information
 	    \param s the key encapsulate the key value and its size
-	    \param v_pair the value encapsulate the value pointer and the corresping size
+	    \param v_pair the value encapsulate the value pointer and the corresponding size
     */
     explicit meta(std::string const& s = std::string(),
                    value_pair const& p = std::make_pair((pointer)NULL,0)):k(s),vp(p){
@@ -116,7 +116,7 @@ public:
     }
 
 private:
-    /** tke key, the size of the key is a data memeber of the std::string */
+    /** the key, the size of the key is a data member of the std::string */
     std::string k;
     /** the value, the pointer of the memory and  the associated size is stored in std::pair */
     value_pair vp;
