@@ -1,7 +1,7 @@
 /*
- *  connector_base.h
- *
- *  This file is part of NEST.
+ * Neuromapp - connector_base.h, Copyright (c), 2015,
+ * Kai Langen - Swiss Federal Institute of technology in Lausanne,
+ * kai.langen@epfl.ch,
  *
  *  Copyright (C) 2004 The NEST Initiative
  *
@@ -25,19 +25,11 @@
 
 #include <cstdlib>
 #include <vector>
+#include <cassert>
 
-#include "node.h"
-#include "event.h"
-#include "network.h"
-#include "dictutils.h"
-#include "spikecounter.h"
-#include "nest_names.h"
-#include "connector_model.h"
-#include "connection_label.h"
-#include "nest_datums.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "nest/synapse/node.h"
+#include "nest/synapse/event.h"
+#include "nest/synapse/scheduler.h"
 
 // when to truncate the recursive instantiation
 #define K_CUTOFF 3
@@ -55,30 +47,24 @@ class ConnectorBase
 public:
   ConnectorBase();
 
-  virtual void send( Event& e, thread t, const std::vector< ConnectorModel* >& cm ) = 0;
-
-  virtual void trigger_update_weight( long_t vt_gid,
-    thread t,
-    const vector< spikecounter >& dopa_spikes,
-    double_t t_trig,
-    const std::vector< ConnectorModel* >& cm ) = 0;
+  virtual void send( event& e, thread t ) = 0;
 
   // destructor needed to delete connections
   virtual ~ConnectorBase(){};
 
-  double_t
+  double
   get_t_lastspike() const
   {
     return t_lastspike_;
   }
   void
-  set_t_lastspike( const double_t t_lastspike )
+  set_t_lastspike( const double t_lastspike )
   {
     t_lastspike_ = t_lastspike;
   }
 
 private:
-  double_t t_lastspike_;
+  double t_lastspike_;
 };
 
 //Removed intermediate subclass, vector_like, for simplcity
@@ -90,6 +76,9 @@ class Connector : public ConnectorBase
   ConnectionT C_[ K ];
 
 public:
+
+  Connector(){}
+
   Connector( const Connector< K - 1, ConnectionT >& Cm1, const ConnectionT& c )
   {
     for ( size_t i = 0; i < K - 1; i++ )
@@ -122,22 +111,25 @@ public:
     }
   }
 
+  void update_connections(std::vector<node*>& nodes){
+    for(int i = 0; i < K; ++i){
+        C_[ i ].set_target( nodes[i] );
+    }
+  }
+
   ~Connector()
   {
   }
 
   void
-  send( Event& e, thread t, const std::vector< ConnectorModel* >& cm )
+  send( event& e, thread t )
   {
-    synindex syn_id = C_[ 0 ].get_syn_id();
+    //synindex syn_id = C_[ 0 ].get_syn_id();
     for ( size_t i = 0; i < K; i++ )
     {
-      e.set_port( i );
+      //e.set_port( i );
       C_[ i ].send( e,
-        t,
-        ConnectorBase::get_t_lastspike(),
-        static_cast< GenericConnectorModel< ConnectionT >* >( cm[ syn_id ] )
-          ->get_common_properties() );
+        ConnectorBase::get_t_lastspike());
     }
     ConnectorBase::set_t_lastspike( e.get_stamp().get_ms() );
   }

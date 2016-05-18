@@ -1,7 +1,7 @@
 /*
  * Neuromapp - event.h, Copyright (c), 2015,
  * Till Schumann - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * till.schumann@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
