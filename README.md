@@ -31,6 +31,6 @@ Moreover the hello directory provides informations to create a new miniapp
 
 This directory provides an example of how could be design a miniapp (C++)
 
-## neuromapp/synapse
+## neuromapp/nest/synapse
 
 This directory contains a miniapp that simulates synapse models from NEST.
