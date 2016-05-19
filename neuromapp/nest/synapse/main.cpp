@@ -108,22 +108,22 @@ namespace nest
     {
         double dt = vm["dt"].as<double>();
         int iterations = vm["iterations"].as<int>();
-        const int num_detectors = 5;
+        const int num_detectors = 4;
 
         //will turn into ptr to base class if more synapse are implemented
-        boost::scoped_ptr<Connector<3, tsodyks2> > conn;
-        conn.reset(new Connector<3, tsodyks2>);
+        boost::scoped_ptr<Connector<num_detectors, tsodyks2> > conn;
+        conn.reset(new Connector<num_detectors, tsodyks2>);
 
         //preallocate vector for results
         std::vector<spikedetector> detectors(num_detectors);
-        std::vector<node*> node_ptrs(num_detectors, NULL);//Make the number of nodes configurable???
+        std::vector<node*> node_ptrs;
 
         for(int i =  0; i < num_detectors; ++i){
-            node_ptrs[i] = &(detectors[i]);
+            node_ptrs.push_back(&(detectors[i]));
         }
 
-        conn->update_connections(node_ptrs);
-        /* else if () .. further synapse models*/
+        scheduler sch;
+        scheduler::update_nodes_vec(node_ptrs);
 
         //create a few events
         std::vector< boost::shared_ptr<spikeevent> > events(iterations);
@@ -147,8 +147,11 @@ namespace nest
         std::cout << "Duration: " << delay << std::endl;
         std::cout << "Detectors size: " << detectors.size() << std::endl;
         for(int i = 0; i < num_detectors; ++i){
-            if(!detectors[i].spikes.empty())
-                std::cout<<"Detector "<<i<<" last weight "<<detectors[i].spikes.back()<<std::endl;
+            std::cout<<"Detector "<<i<<": ";
+            for(int j = 0; j < detectors[i].spikes.size(); ++j){
+                std::cout<<detectors[i].spikes[j]<<" ";
+            }
+            std::cout<<std::endl;
         }
     }
 

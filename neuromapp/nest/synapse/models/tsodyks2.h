@@ -1,7 +1,7 @@
 /*
  * Neuromapp - tsodyks2.h, Copyright (c), 2015,
  * Till Schumann - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * till.schumann@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 
 #include <boost/program_options.hpp>
 
+#include "nest/synapse/scheduler.h"
 #include "nest/synapse/event.h"
 
 namespace nest
@@ -38,7 +39,7 @@ typedef unsigned short targetindex;
 class connection
 {
 protected:
-    node* target_; //simplification of NEST
+    short target_; //simplification of NEST
     double delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
 
     virtual void send(event& e, double t_lastspike) = 0;
@@ -80,7 +81,7 @@ protected:
                  const double& x,
                  const double& tau_rec,
                  const double& tau_fac,
-                 node* target) :
+                 short target) :
             delay_(delay),
             weight_(weight),
             U_(U),
@@ -111,7 +112,22 @@ protected:
             u_(0.5),
             x_(1.0),
             tau_rec_(800.0),
-            tau_fac_(0.0){target_ = NULL;}
+            tau_fac_(0.0)
+            {target_ = 0;}
+
+
+        /**
+         * \fn tsodysk2(short target)
+           \brief constructor with target parameter */
+        tsodyks2(short target) :
+            delay_(1.0),
+            weight_(1.0),
+            U_(0.5),
+            u_(0.5),
+            x_(1.0),
+            tau_rec_(800.0),
+            tau_fac_(0.0)
+            {target_ = target;}
 
         /** \fn void send()
                 \brief Sends a spike event through the synapse as implemented in NEST software 2.10 (2016) official release
@@ -120,7 +136,7 @@ protected:
                     \param e spike event
                     \param t_lastspike time of last spike
                  */
-        void send(event& e, double t_lastspike)
+        inline void send(event& e, double t_lastspike)
         {
             double h = e.get_stamp().get_ms() - t_lastspike;
             double x_decay = std::exp(-h / tau_rec_); /// To be checked which implementation of exponential is being used
@@ -129,7 +145,8 @@ protected:
             /// no forward dependency between next 2 statements
             x_ = 1. + (x_ - x_ * u_ - 1.) * x_decay; // Eq. 5 from reference [3] ---> 2 Multiply + 3 adds + 1 assignment
             u_ = U_ + u_ * (1. - U_) * u_decay; // Eq. 4 from [3] --> 2 Muliply + 2 adds + 1 assignment
-            e.set_receiver( target_ ); //simplification
+            node* target_node = scheduler::get_target(target_);
+            e.set_receiver( target_node ); //simplification
             e.set_weight(x_ * u_ * weight_); // weight constant for the object after the synapase is created (can we use const?) --> 2 Multiply +  1 assignment
             //e.set_delay( delay_ ); //  1 assignment
             //e.set_rport( -1 );
@@ -235,8 +252,6 @@ protected:
         {
             return x_;
         }
-
-        inline void set_target(node* n){ target_ = n; }
 
     private:
         double delay_;  //!< synapse delay

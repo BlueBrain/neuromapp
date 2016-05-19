@@ -52,11 +52,13 @@ public:
   // destructor needed to delete connections
   virtual ~ConnectorBase(){};
 
+  inline
   double
   get_t_lastspike() const
   {
     return t_lastspike_;
   }
+  inline
   void
   set_t_lastspike( const double t_lastspike )
   {
@@ -77,7 +79,11 @@ class Connector : public ConnectorBase
 
 public:
 
-  Connector(){}
+  Connector(){
+    for (int i = 0; i < K; ++i){
+        C_[ i ] = ConnectionT(i); //constructor takes int param
+    }
+  }
 
   Connector( const Connector< K - 1, ConnectionT >& Cm1, const ConnectionT& c )
   {
