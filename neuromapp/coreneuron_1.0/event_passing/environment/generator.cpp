@@ -2,6 +2,7 @@
 #include <iostream>
 #include <time.h>
 #include <ctime>
+#include <cassert>
 #include <numeric>
 #include <boost/range/algorithm/random_shuffle.hpp>
 #include <boost/range/algorithm_ext/iota.hpp>
@@ -13,25 +14,25 @@
 
 namespace environment {
 
-event_generator::event_generator(int nSpike, int nIte, int nLocal){
-    sum_ = static_cast<double>(nSpike + nIte + nLocal);
-    //mean here the amount of time between spikes for entire sim
-    cumulative_percents_[SPIKE] = nSpike/sum_;
-    cumulative_percents_[ITE] = (nSpike + nIte)/sum_;
-
-}
-
-void event_generator::operator()(
-int simtime, int ngroups, int rank, const presyn_maker& presyns){
+event_generator::event_generator(int nSpikes, int simtime,
+int ngroups, int rank, int nprocs, int ncells){
     int dest = 0;
     double event_time = 0;
-    int int_tt = 0;
+    int src_gid = 0;
     double percent = 0;
-    event_type type;
-    queueing::event ev;
+    gen_event new_event;
+    presyn* output;
 
-    double mean = simtime / sum_;
-    double lambda = 1.0 / (mean * ngroups);
+    assert(nSpikes > 0);
+    int cells_per = ncells / nprocs;
+    int start = rank * cells_per;
+
+    //for the last rank, add the remaining cellgroups
+    if(rank == (nprocs - 1))
+        cells_per = ngroups - start;
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
     //create random number generator/distributions
     /*
@@ -42,54 +43,39 @@ int simtime, int ngroups, int rank, const presyn_maker& presyns){
      */
     boost::mt19937 rng(rank + time(NULL));
     boost::random::exponential_distribution<double> time_d(lambda);
-    boost::random::uniform_int_distribution<> gid_d(0, (presyns.get_nout() - 1));
+    boost::random::uniform_int_distribution<> gid_d(start, (start + cells_per - 1));
     boost::random::uniform_int_distribution<> cellgroup_d(0, (ngroups-1));
-    boost::random::uniform_real_distribution<> percent_d(0.0,1.0);
 
 
     event_pool_.resize(ngroups);
-    for(size_t i = 0; i < ngroups; ++i){
-        event_time = 0;
-        //create events up until simulation end
-        while(event_time < simtime){
-            double diff = time_d(rng);
-            event_time += diff;
-            if(event_time >= simtime){
-                break;
-            }
-            else{
-                percent = percent_d(rng);
+    event_time = 0;
+    //create events up until simulation end
+    while(event_time < simtime){
+        double diff = time_d(rng);
+        assert(diff > 0.0);
+        event_time += diff;
+        if(event_time >= simtime){
+            break;
+        }
+        else{
+            src_gid = gid_d(rng);
 
-                //SPIKE EVENT
-                if(percent < cumulative_percents_[SPIKE]){
-                    type = SPIKE;
-                    dest = presyns[gid_d(rng)];
-                }
-                //INTER THREAD EVENT
-                else if(percent < cumulative_percents_[ITE]){
-                    type = ITE;
-                    dest = cellgroup_d(rng);
-                    while(dest == i) //dest cannot equal i
-                        dest = cellgroup_d(rng);
-                }
-                //LOCAL EVENT
-                else{
-                    type = LOCAL;
-                    dest = i;//myID
-                }
-                int_tt = static_cast<int>(event_time);
-                ev.data_ = dest;
-                ev.t_ = static_cast<double>(int_tt);
-                gen_event g(ev, type);
-                event_pool_[i].push(g);
-            }
+            //cellgroups are determined by:
+            //group # = gid % number of groups
+            dest = src_gid % ngroups;
+
+            new_event.first = src_gid;
+            new_event.second = static_cast<int>(event_time);
+            event_pool_[dest].push(new_event);
         }
     }
 }
 
 bool event_generator::compare_top_lte(int id, double comparator) const{
-    assert(!event_pool_[id].empty());
-    return (event_pool_[id].front().first.t_ <= comparator);
+    if(this->empty(id))
+        return false;
+    else
+        return (event_pool_[id].front().second <= comparator);
 }
 
 gen_event event_generator::pop(int id){

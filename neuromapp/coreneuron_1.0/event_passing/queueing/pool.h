@@ -43,69 +43,81 @@ private:
     bool perform_algebra_;
     int min_delay_;
     int time_;
-    int relevant_;
-    int received_;
     int rank_;
     spike::spike_interface& spike_;
     std::vector<nrn_thread_data> thread_datas_;
 
 public:
 
-    /** \fn pool(bool algebra, int ngroups, int min_delay, int rank, spike_interface& s_interface)
+    /** \fn pool(bool algebra, int ngroups, int min_delay, int rank,
+     * spike_interface& s_interface)
      *  \brief initializes a pool with a thread_datas_ array of size ngroups.
      *  \param algebra determines whether to perform linear algebra calculations
      *  \param ngroups the number of cell groups per node
      *  \param s_interface the spike interface used to communicate
      *  with the spike exchange algos
      */
-    pool(bool algebra, int ngroups,int md, int rank, spike::spike_interface& s_interface):
-    perform_algebra_(algebra), min_delay_(md), rank_(rank), spike_(s_interface),
-    time_(0), received_(0), relevant_(0) {thread_datas_.resize(ngroups);}
+    pool(bool algebra, int ngroups, int md, int rank,
+    spike::spike_interface& s_interface): perform_algebra_(algebra),
+    min_delay_(md), rank_(rank), spike_(s_interface), time_(0)
+    {thread_datas_.resize(ngroups);}
 
-    /** \fn ~pool()
-     *  \brief before destroying the pool, accumulate statistics from the threadData
-     *  array and store them using impl::storage
-     */
-    ~pool();
-
-    /** \fn send_events(int myID, event_generator& generator)
+    /** \fn send_events(const int myID, G& generator, const P& presyns)
      *  \brief sends event to it's destination
      *  \param myID the thread index
-     *  \param generator the event generator from which events are received
-     *  \precond generator has been initialized
+     *  \param generator the event generator from which events are taken
+     *  \param presyns contains the presyn information used to distribute
+     *  events to cellgroups on the same rank.
      */
-    void send_events(int myID, environment::event_generator& generator);
+    template <typename G, typename P>
+    void send_events(const int myID, G& generator, const P& presyns);
 
-    /** \fn void filter(presyn_maker& presyns)
-     *  \brief filters out relevent events(using the function matches()),
-     *  and randomly selects a destination cellgroup, and delivers them
-     *  using a no-lock inter_thread_send
-     *  \param presyns the presyn maker from which input presyn information
-     *  is gathered (used to distribute spike events between cell groups).
-     */
-    void filter(environment::presyn_maker& presyns);
-
-    /** \fn void fixed_step(event_generator& generator)
+    /** \fn void fixed_step(G& generator, P& presyns)
      *  \brief performs (min_delay_) iterations of a timestep in which:
      *      - events are sent
      *      - events are enqueued
      *      - events are delivered
      *      - linear algebra is performed
-     *  \param generator the event generator from which events are received
+     *  \param generator the event generator from which events are taken
+     *  \precond generator has been initialized
+     *  \param presyns contains the presyn information used to distribute
+     *  events to cellgroups on the same rank.
+     *  \precond presyns has been initialized
      */
-    void fixed_step(environment::event_generator& generator);
+    template <typename G, typename P>
+    void fixed_step(G& generator, const P& presyns);
+
+    /** \fn void filter(const P& presyns)
+     *  \brief filters out relevent events(using the function matches()),
+     *  and randomly selects a destination cellgroup, and delivers them
+     *  using a no-lock inter_thread_send
+     *  \param presyns the presyn maker from which input presyn information
+     *  is taken (used to distribute spike events between cell groups).
+     */
+    template <typename P>
+    void filter(const P& presyns);
+
+
+    /** \fn accumulate_stats()
+     *  \brief accumulate statistics from the threadData array and store
+     *  them in spike_interface
+     */
+    void accumulate_stats();
 
 //GETTERS
     /** \fn get_ngroups()
      *  \return the number of cellgroups
      */
-    int get_ngroups() const { return thread_datas_.size(); }
+    inline int get_ngroups() const { return thread_datas_.size(); }
 
     /** \fn get_time()
      * \return the current time_ value for this pool
      */
-    int get_time() const { return time_; }
+    inline int get_time() const { return time_; }
 };
 
 } //end of namespace
+
+#include "coreneuron_1.0/event_passing/queueing/pool.ipp"
+
 #endif
