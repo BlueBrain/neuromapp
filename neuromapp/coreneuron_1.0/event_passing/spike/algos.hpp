@@ -23,8 +23,8 @@
  * contains algorithm definitions for spike exchange
  */
 
-#ifndef algos_h
-#define algos_h
+#ifndef MAPP_ALGOS_H
+#define MAPP_ALGOS_H
 
 #include <assert.h>
 #include <cstddef>
@@ -78,8 +78,8 @@ inline void barrier(){
  */
 template<typename data>
 void allgather(data& d){
-    int size = d.spikeout_.size();
-    MPI_Allgather(&size, 1, MPI_INT, &(d.nin_[0]), 1, MPI_INT, MPI_COMM_WORLD);
+    int send_size = d.spikeout_.size();
+    MPI_Allgather(&send_size, 1, MPI_INT, &(d.nin_[0]), 1, MPI_INT, MPI_COMM_WORLD);
 }
 
 /**
@@ -108,7 +108,36 @@ void set_displ(data& d){
         total += d.nin_[i];
     }
     d.spikein_.resize(total);
-    // std::cout<<"TOTAL: "<<total<<std::endl;
+}
+
+template<typename data>
+void accumulate_stats(data& d){
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    //Spike stats
+    if (rank == 0){
+        MPI_Reduce(MPI_IN_PLACE, &(d.spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(MPI_IN_PLACE, &(d.ite_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(MPI_IN_PLACE, &(d.local_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(MPI_IN_PLACE, &(d.post_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(MPI_IN_PLACE, &(d.received_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
+    else{
+        MPI_Reduce(&(d.spike_stats_), &(d.spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&(d.ite_stats_), &(d.ite_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&(d.local_stats_), &(d.local_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&(d.post_spike_stats_), &(d.post_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&(d.received_spike_stats_), &(d.received_spike_stats_), 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
+
+    if(rank == 0){
+        std::cout<<"Total Spikes: "<<d.spike_stats_<<std::endl;
+        std::cout<<"Total Inter-thread: "<<d.ite_stats_<<std::endl;
+        std::cout<<"Total Local: "<<d.local_stats_<<std::endl;
+        std::cout<<"Total Post-spike Events: "<<d.post_spike_stats_<<std::endl;
+        std::cout<<"Total Received spikes: "<<d.received_spike_stats_<<std::endl;
+    }
 }
 
 
