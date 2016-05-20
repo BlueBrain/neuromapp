@@ -37,7 +37,7 @@
 #include <iostream>
 #include <stdexcept>
 
-//! namespace spcific for the storage implementation only
+//! namespace specific for the storage implementation only
 namespace impl {
 
     template <typename T>

@@ -26,6 +26,7 @@
 #ifndef MAPP_SYNAPSE_EXECUTE_
 #define MAPP_SYNAPSE_EXECUTE_
 
+//! Namespace for all the nest miniapps
 namespace nest
 {
 	/** \fn nestconnection_execute(int argc, char *const argv[])
