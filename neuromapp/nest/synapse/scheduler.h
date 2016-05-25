@@ -46,6 +46,16 @@ class scheduler
      */
     inline static void update_nodes_vec(std::vector<node*>& nodes) { nodes_vec_ = nodes; }
 
+    /**
+     * \fn add_node(node*)
+     * \brief adds a new node to the node_vec_
+     */
+    inline static void add_node(node* n) { nodes_vec_.push_back(n); }
+
+    /**
+     * \fn get_target(short index)
+     * \brief getter to retrieve node from nodes_vec_
+     */
     inline static node* get_target(short index) { return nodes_vec_[index]; }
 };
 

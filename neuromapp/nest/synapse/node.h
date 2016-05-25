@@ -81,6 +81,9 @@ typedef void Subnet;
 	public:
 		virtual void handle( spikeevent& e ) = 0;
 
+                inline void set_lid(short lid) { lid_ = lid; }
+
+                inline short set_lid() const { return lid_; }
 	};
 
 	class spikedetector : public node

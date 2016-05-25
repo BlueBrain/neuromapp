@@ -19,8 +19,8 @@
  */
 
 /**
- * @file neuromapp/nest/synapse/main.cpp
- * \brief NEST synapse Miniapp
+ * @file neuromapp/nest/synapse/drivers/model_main.cpp
+ * \brief NEST synapse model Miniapp
  */
 
 #include <iostream>
@@ -31,8 +31,9 @@
 #include <boost/chrono.hpp>
 #include <boost/scoped_ptr.hpp>
 
-#include "nest/synapse/synapse.h"
+#include "nest/synapse/drivers/synapse.h"
 #include "nest/synapse/event.h"
+#include "nest/synapse/scheduler.h"
 #include "nest/synapse/models/tsodyks2.h"
 #include "utils/error.h"
 
@@ -48,7 +49,7 @@ namespace nest
 		\param vm encapsulate the command line
 		\return error message from mapp::mapp_error
 	 */
-	int synapse_help(int argc, char* const argv[], po::variables_map& vm)
+	int model_help(int argc, char* const argv[], po::variables_map& vm)
 	{
 		po::options_description desc("Allowed options");
 		desc.add_options()
@@ -86,8 +87,9 @@ namespace nest
 			const double tau_fac = vm["tau_fac"].as<double>();
 
 			try {
+                                short lid = 0; // only one node
 				spikedetector sd;
-				tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, &sd);
+				tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, lid);
 			}
 			catch (std::invalid_argument& e) {
 				std::cout << "Error in model parameters: " << e.what() << std::endl;
@@ -132,7 +134,7 @@ namespace nest
 		\brief Execute the NEST synapse Miniapp.
 		\param vm encapsulate the command line and all needed informations
 	 */
-	void synapse_content(po::variables_map const& vm)
+	void model_content(po::variables_map const& vm)
 	{
 		double dt = vm["dt"].as<double>();
 		int iterations = vm["iterations"].as<int>();
@@ -142,6 +144,8 @@ namespace nest
 
 		//preallocate vector for results
 		spikedetector sd;
+                scheduler sch; // must create scheduler so synapse can access target node
+                scheduler::add_node(&sd); // add node to scheduler nodes_vec_
 
 		if (vm["model"].as<std::string>() == "tsodyks2") {
 			const double delay = vm["delay"].as<double>();
@@ -153,7 +157,8 @@ namespace nest
 			const double tau_fac = vm["tau_fac"].as<double>();
 
 			try {
-				syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, &sd));
+                                short lid = 0; // only one node
+				syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, lid));
 			}
 			catch (std::invalid_argument& e) {
 				std::cout << "Error in model parameters: " << e.what() << std::endl;
@@ -189,12 +194,12 @@ namespace nest
 		std::cout << "Last weight " << sd.spikes.back() << std::endl;
 	}
 
-	int synapse_execute(int argc, char* const argv[])
+	int model_execute(int argc, char* const argv[])
 	{
 		try {
 			po::variables_map vm; // it contains everything
-			if(int error = synapse_help(argc, argv, vm)) return error;
-			synapse_content(vm); // execute the miniapp
+			if(int error = model_help(argc, argv, vm)) return error;
+			model_content(vm); // execute the miniapp
 		}
 		catch(std::exception& e){
 			std::cout << e.what() << "\n";
@@ -203,4 +208,4 @@ namespace nest
 		return mapp::MAPP_OK; // 0 ok, 1 not ok
 	}
 
-};
+}

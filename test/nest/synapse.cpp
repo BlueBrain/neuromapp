@@ -32,59 +32,59 @@
 
 #include "nest/synapse/models/tsodyks2.h"
 #include "nest/synapse/event.h"
-#include "nest/synapse/synapse.h"
+#include "nest/synapse/drivers/synapse.h"
 
 #include "coreneuron_1.0/common/data/helper.h" // common functionalities
 
-BOOST_AUTO_TEST_CASE(nest_synapse_test)
+BOOST_AUTO_TEST_CASE(nest_model_test)
 {
 	std::vector<std::string> command_v;
 	int error(mapp::MAPP_OK);
 
 	//no input
-	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
-	error = mapp::execute(command_v,nest::synapse_execute);
+	command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
+	error = mapp::execute(command_v,nest::model_execute);
 	BOOST_CHECK(error==mapp::MAPP_OK);
 
 	//trying out wrong model
 	command_v.clear();
-	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
 	command_v.push_back("--model");
 	command_v.push_back("synnotthere"); // model does not exist
-	error = mapp::execute(command_v,nest::synapse_execute);
+	error = mapp::execute(command_v,nest::model_execute);
 	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
 	//trying out wrong model parameters
 	command_v.clear();
-	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
 	command_v.push_back("--model");
 	command_v.push_back("tsodyks2");
 	command_v.push_back("--U");
 	command_v.push_back("2.0"); // model does not exist
-	error = mapp::execute(command_v,nest::synapse_execute);
+	error = mapp::execute(command_v,nest::model_execute);
 	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
 	//trying out invalid dt
 	command_v.clear();
-	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
 	command_v.push_back("--dt");
 	command_v.push_back("0"); // model does not exist
-	error = mapp::execute(command_v,nest::synapse_execute);
+	error = mapp::execute(command_v,nest::model_execute);
 	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
 	//trying out invalid iterations
 	command_v.clear();
-	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
 	command_v.push_back("--iterations");
 	command_v.push_back("0"); // model does not exist
-	error = mapp::execute(command_v,nest::synapse_execute);
+	error = mapp::execute(command_v,nest::model_execute);
 	BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
 	//asking for helper
 	command_v.clear();
-	command_v.push_back("synapse_execute"); // dummy argument to be compliant with getopt
+	command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
 	command_v.push_back("--help"); // help menu
-	error = mapp::execute(command_v,nest::synapse_execute);
+	error = mapp::execute(command_v,nest::model_execute);
 	BOOST_CHECK(error==mapp::MAPP_USAGE);
 }
 
