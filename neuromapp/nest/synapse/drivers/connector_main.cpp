@@ -125,8 +125,6 @@ namespace nest
 
             events[i].reset(new spikeevent);
             events[i]->set_stamp( t ); // in Network::send< SpikeEvent >
-            events[i]->set_sender( NULL ); // in Network::send< SpikeEvent >
-            //events[i]->set_sender_gid( sgid ); // Network::send_local
         }
 
         //grow the connector

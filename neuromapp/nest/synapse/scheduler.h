@@ -27,6 +27,8 @@
 #define SCHEDULER_H_
 
 #include <vector>
+#include <cassert>
+#include <iostream>
 #include "nest/synapse/node.h"
 
 namespace nest
@@ -50,13 +52,20 @@ class scheduler
      * \fn add_node(node*)
      * \brief adds a new node to the node_vec_
      */
-    inline static void add_node(node* n) { nodes_vec_.push_back(n); }
+    inline static short add_node(node* n) {
+        std::cout << "scheduler::add_node" << std::endl;
+        nodes_vec_.push_back(n);
+        return nodes_vec_.size()-1;
+    }
 
     /**
      * \fn get_target(short index)
      * \brief getter to retrieve node from nodes_vec_
      */
-    inline static node* get_target(short index) { return nodes_vec_[index]; }
+    inline static node* get_target(short index) { 
+        assert(index >= 0 && index < nodes_vec_.size());
+        return nodes_vec_[index]; 
+    }
 };
 
 } // namespace nest

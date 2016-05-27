@@ -29,9 +29,9 @@
 
 #include "utils/error.h"
 
-
 #include "nest/synapse/models/tsodyks2.h"
 #include "nest/synapse/event.h"
+#include "nest/synapse/scheduler.h"
 #include "nest/synapse/drivers/synapse.h"
 
 #include "coreneuron_1.0/common/data/helper.h" // common functionalities
@@ -88,50 +88,71 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
 	BOOST_CHECK(error==mapp::MAPP_USAGE);
 }
 
-/*
-BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_constructor_test)
+BOOST_AUTO_TEST_CASE(nest_synapse_event_test)
 {
-	std::vector<double> weights;
+        int iterations = 10;
+        nest::spikedetector detector;
+        std::vector<nest::spikeevent> events(iterations);
+        bool correct_event = true;
+        for(unsigned int i = 0; i < iterations; ++i){
+            nest::Time t(i*10.0);
 
-	const double t = 0.1;
-	const int sender = 1;
-	const int receiver = 2;
-	const double weight = 2.;
-	const double delay = 0.5;
+            events[i].set_stamp(t);
+            events[i].set_receiver(&detector);
+            events[i]();
 
-	nest::logevent event1(t, sender, receiver, weight, delay, weights);
-
-	BOOST_REQUIRE_EQUAL(event1.sender, sender);
-	BOOST_REQUIRE_EQUAL(event1.receiver, receiver);
-	BOOST_REQUIRE_CLOSE(event1.t, t, 0.001);
-	BOOST_REQUIRE_CLOSE(event1.weight, weight, 0.001);
-	BOOST_REQUIRE_CLOSE(event1.delay, delay, 0.001);
+            /**Check that the previous event was enqueued correctly*/
+            if(!detector.spikes.empty() &&
+                detector.spikes.back() != t.get_ms()){
+                correct_event = false;
+                break;
+            }
+        }
+        BOOST_CHECK(correct_event);
 }
 
 BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_test)
 {
 	std::vector<double> weights;
 
-	const int sender = -1;
-	const int receiver = -1;
 	const double weight = 1.;
 	const double delay = 0.1;
+	const double U = 0.5;
+	const double u = 0.5;
+	const double x = 1;
+	const double tau_rec = 800;
+	const double tau_fac = 0;
+	const double dt = 0.1;
+        int iterations = 10;
+        bool correct_event = true;
 
-	nest::logevent event1(1, sender, receiver, 0.1, delay, weights);
-	nest::logevent event2(2, sender, receiver, 0.2, delay, weights);
-	nest::logevent event3(3, sender, receiver, 0.3, delay, weights);
+        nest::spikedetector detector;
+        nest::scheduler sch;
+        int target = nest::scheduler::add_node(&detector);
+
+        std::cout << "target=" << target << std::endl;
+
+        nest::tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, target);
+        std::vector<nest::spikeevent> events(iterations);
 
 	//trigger events - push weights to vector
-	event1();
-	event2();
-	event3();
+        double t_last_spike = 0.0;
+        for(size_t i = 0; i < events.size(); ++i){
+            nest::Time t(i*10.0);
+            events[i].set_stamp(t);
+            syn.send(events[i], t_last_spike);
+            t_last_spike += dt;
 
-	BOOST_REQUIRE_EQUAL(weights.size(), 3);
-	BOOST_REQUIRE_CLOSE(weights[0], 0.1, 0.001);
-	BOOST_REQUIRE_CLOSE(weights[1], 0.2, 0.001);
-	BOOST_REQUIRE_CLOSE(weights[2], 0.3, 0.001);
+            if(!detector.spikes.empty() &&
+                detector.spikes.back() != t.get_ms()){
+                correct_event = false;
+                break;
+            }
+        }
+        BOOST_CHECK(correct_event);
 }
 
+/*
 BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_constructor_test)
 {
 	//parameters

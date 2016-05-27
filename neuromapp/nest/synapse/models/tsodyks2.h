@@ -101,10 +101,9 @@ protected:
                 throw std::invalid_argument( "tau_fac must be >= 0." );
         }
 
-
         /**
-         * \fn tsodysk2()
-           \brief default constructor */
+         * \fn tsodysk2(short target)
+           \brief constructor with target parameter */
         tsodyks2() :
             delay_(1.0),
             weight_(1.0),
@@ -113,8 +112,7 @@ protected:
             x_(1.0),
             tau_rec_(800.0),
             tau_fac_(0.0)
-            {target_ = 0;}
-
+            {target_ = -1;}
 
         /**
          * \fn tsodysk2(short target)
@@ -146,6 +144,7 @@ protected:
             x_ = 1. + (x_ - x_ * u_ - 1.) * x_decay; // Eq. 5 from reference [3] ---> 2 Multiply + 3 adds + 1 assignment
             u_ = U_ + u_ * (1. - U_) * u_decay; // Eq. 4 from [3] --> 2 Muliply + 2 adds + 1 assignment
             node* target_node = scheduler::get_target(target_);
+            assert(target_node != NULL);
             e.set_receiver( target_node ); //simplification
             e.set_weight(x_ * u_ * weight_); // weight constant for the object after the synapase is created (can we use const?) --> 2 Multiply +  1 assignment
             //e.set_delay( delay_ ); //  1 assignment

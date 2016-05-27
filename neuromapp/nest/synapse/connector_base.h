@@ -93,7 +93,7 @@ public:
 template < size_t K, typename ConnectionT >
 class Connector : public vector_like<ConnectionT>
 {
-  ConnectionT C_[ K ]
+  ConnectionT C_[ K ];
 
 public:
   Connector(){
