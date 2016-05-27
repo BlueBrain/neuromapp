@@ -33,7 +33,9 @@
 #include "nest/synapse/scheduler.h"
 
 // when to truncate the recursive instantiation
-#define K_CUTOFF 3
+#define K_CUTOFF 8
+
+/* Removed suicide_and_resurrect function */
 
 namespace nest
 {
@@ -45,6 +47,11 @@ namespace nest
 class ConnectorBase
 {
 
+/* Removed many functions that didnt relate to Connector build or send stage.
+ * Some functions include getters and setters for synapse status, connections,
+ * target gid's and homogeneous_model check.
+ * Assume all models are homogeneous.
+ */
 public:
   ConnectorBase();
 
@@ -73,18 +80,20 @@ private:
 
 template <typename ConnectionT>
 class vector_like : public ConnectorBase
+
+/* Removed functions: at() and send_secondary() */
 {
 public:
   virtual ConnectorBase& push_back (const ConnectionT& c) = 0;
+  virtual ConnectorBase& erase(size_t i) = 0;
   virtual size_t get_size () const = 0;
-    //virtual ConnectorBase& erase(size_t i) = 0;
 };
 
 // homogeneous connector containing K entries
 template < size_t K, typename ConnectionT >
 class Connector : public vector_like<ConnectionT>
 {
-  ConnectionT C_[ K ];
+  ConnectionT C_[ K ]
 
 public:
   Connector(){
@@ -93,6 +102,9 @@ public:
     }
   }
 
+  /**
+   * Creates a new connector of sizes K by adding a new connection to a connector of size K - 1
+   */
   Connector( const Connector< K - 1, ConnectionT >& Cm1, const ConnectionT& c )
   {
     for ( size_t i = 0; i < K - 1; i++ )
@@ -142,15 +154,42 @@ public:
     ConnectorBase::set_t_lastspike( e.get_stamp().get_ms() );
   }
 
+  /**
+   * Add a connection to the connector
+   * @param c the connection to add.
+   * @return A connector of size K+1
+   */
   ConnectorBase& push_back( const ConnectionT& c )
   {
+    /* Simplified push_back function by removing the call to suicide_and_ressurect,
+     * which used a special NEST-specific allocator */
+
     ConnectorBase* p = new Connector<K + 1,ConnectionT>(*this, c);
     delete this;
     return *p;
   }
 
+  /**
+   * Delete a single connection from the connector
+   * @param i the index of the connection to be erased
+   * @return A connector of size K-1
+   */
+  ConnectorBase& erase(size_t i){
+    /* Simplified erase function by removing the call to suicide_and_ressurect,
+     * which used a special NEST-specific allocator */
+    ConnectorBase* p = new Connector<K - 1,ConnectionT>(*this, i);
+    delete this;
+    return *p;
+  }
+
+  /**
+   * Getter for the size of C_
+   */
   size_t get_size() const{ return K; }
 
+  /**
+   * Getter for the connection container, C_
+   */
   const ConnectionT*
   get_C() const
   {
@@ -211,6 +250,11 @@ public:
     return *p;
   }
 
+  ConnectorBase& erase(size_t){
+    assert(false);
+    return *this;       //Dummy return value. Will never be returned.
+  }
+
   const ConnectionT*
   get_C() const
   {
@@ -238,31 +282,6 @@ public:
     C_[ K_CUTOFF - 1 ] = c;
   }
 
-  /**
-   * Creates a new connector and removes the ith connection. To do so, the contents
-   * of the original connector are copied into the new one. The copy is performed
-   * in two parts, first up to the specified index and then the rest of the
-   * connections after the specified index in order to
-   * exclude the ith connection from the copy. As a result, returns a connector
-   * with size K_CUTOFF-1 from a connector of size K_CUTOFF.
-   *
-   * @param Cm1 Original connector of size K_CUTOFF
-   * @param i The index of the connection to be deleted.
-   */
-  Connector( const Connector< K_CUTOFF, ConnectionT >& Cm1, size_t i ) //: syn_id_(Cm1.get_syn_id())
-  {
-    assert( i < Cm1.get_C().size() && i >= 0 );
-    for ( size_t k = 0; k < i; k++ )
-    {
-      C_[ k ] = Cm1.get_C()[ k ];
-    }
-
-    for ( size_t k = i + 1; k < K_CUTOFF; k++ )
-    {
-      C_[ k ] = Cm1.get_C()[ k + 1 ];
-    }
-  }
-
   ~Connector()
   {
   }
@@ -270,6 +289,16 @@ public:
   ConnectorBase& push_back( const ConnectionT& c )
   {
     C_.push_back( c );
+    return *this;
+  }
+
+  /**
+   * Remove element at i, but stay as dynamic container
+   */
+  ConnectorBase& erase( size_t i ){
+    typename std::vector< ConnectionT >::iterator it;
+    it = C_.begin() + i;
+    C_.erase( it );
     return *this;
   }
 
