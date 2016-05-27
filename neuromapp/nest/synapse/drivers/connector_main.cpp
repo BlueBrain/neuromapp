@@ -21,8 +21,8 @@
  */
 
 /**
- * @file neuromapp/nest/synapse/main.cpp
- * \brief NEST synapse Miniapp
+ * @file neuromapp/nest/synapse/drivers/connector_main.cpp
+ * \brief NEST controller Miniapp
  */
 
 #include <iostream>
@@ -33,12 +33,11 @@
 #include <boost/chrono.hpp>
 #include <boost/scoped_ptr.hpp>
 
-#include "nest/synapse/synapse.h"
+#include "nest/synapse/drivers/synapse.h"
 #include "nest/synapse/event.h"
 #include "nest/synapse/connector_base.h"
 #include "nest/synapse/scheduler.h"
 #include "nest/synapse/models/tsodyks2.h"
-#include "nest/synapse/scheduler.h"
 #include "utils/error.h"
 
 /** namespace alias for boost::program_options **/
@@ -53,7 +52,7 @@ namespace nest
         \param vm encapsulate the command line
         \return error message from mapp::mapp_error
      */
-    int synapse_help(int argc, char* const argv[], po::variables_map& vm)
+    int connector_help(int argc, char* const argv[], po::variables_map& vm)
     {
         po::options_description desc("Allowed options");
         desc.add_options()
@@ -104,26 +103,20 @@ namespace nest
         \brief Execute the NEST synapse Miniapp.
         \param vm encapsulate the command line and all needed informations
      */
-    void synapse_content(po::variables_map const& vm)
+    void connector_content(po::variables_map const& vm)
     {
         double dt = vm["dt"].as<double>();
         int iterations = vm["iterations"].as<int>();
         const int num_detectors = 4;
 
-        //will turn into ptr to base class if more synapse are implemented
-        boost::scoped_ptr<Connector<num_detectors, tsodyks2> > conn;
-        conn.reset(new Connector<num_detectors, tsodyks2>);
-
         //preallocate vector for results
         std::vector<spikedetector> detectors(num_detectors);
-        std::vector<node*> node_ptrs;
+        scheduler sch;
 
         for(int i =  0; i < num_detectors; ++i){
-            node_ptrs.push_back(&(detectors[i]));
+            detectors[i].set_lid(i);    //give nodes a local id
+            scheduler::add_node(&detectors[i]);  //add them to the scheduler
         }
-
-        scheduler sch;
-        scheduler::update_nodes_vec(node_ptrs);
 
         //create a few events
         std::vector< boost::shared_ptr<spikeevent> > events(iterations);
@@ -132,10 +125,13 @@ namespace nest
 
             events[i].reset(new spikeevent);
             events[i]->set_stamp( t ); // in Network::send< SpikeEvent >
-            events[i]->set_sender( NULL ); // in Network::send< SpikeEvent >
-            //events[i]->set_sender_gid( sgid ); // Network::send_local
         }
 
+        //grow the connector
+        ConnectorBase* conn = new Connector<1,tsodyks2>(tsodyks2(0));
+        for(unsigned int i = 1; i < num_detectors; ++i){
+            conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
+        }
         double t_lastspike = 0.0;
         boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
         for (unsigned int i=0; i<iterations; i++) {
@@ -153,14 +149,15 @@ namespace nest
             }
             std::cout<<std::endl;
         }
+
     }
 
-    int synapse_execute(int argc, char* const argv[])
+    int connector_execute(int argc, char* const argv[])
     {
         try {
             po::variables_map vm; // it contains everything
-            if(int error = synapse_help(argc, argv, vm)) return error;
-            synapse_content(vm); // execute the miniapp
+            if(int error = connector_help(argc, argv, vm)) return error;
+            connector_content(vm); // execute the miniapp
         }
         catch(std::exception& e){
             std::cout << e.what() << "\n";
@@ -169,4 +166,4 @@ namespace nest
         return mapp::MAPP_OK; // 0 ok, 1 not ok
     }
 
-};
+}

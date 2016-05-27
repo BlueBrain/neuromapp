@@ -19,7 +19,7 @@
  */
 
 /**
- * @file neuromapp/nest/synapse/synapse.h
+ * @file neuromapp/nest/synapse/drivers/synapse.h
  * \brief nest synapse Miniapp
  */
 
@@ -28,13 +28,22 @@
 
 namespace nest
 {
-	/** \fn nestconnection_execute(int argc, char *const argv[])
+	/** \fn model_execute(int argc, char *const argv[])
 		\brief nest synapse miniapp
 		\param argc number of argument from the command line
 		\param argv the command line from the driver or external call
 		\return error message from mapp::mapp_error
 	 */
-	int synapse_execute(int argc, char* const argv[]);
+	int model_execute(int argc, char* const argv[]);
+
+
+	/** \fn connector_execute(int argc, char *const argv[])
+		\brief nest synapse miniapp
+		\param argc number of argument from the command line
+		\param argv the command line from the driver or external call
+		\return error message from mapp::mapp_error
+	 */
+	int connector_execute(int argc, char* const argv[]);
 };
 
 #endif
