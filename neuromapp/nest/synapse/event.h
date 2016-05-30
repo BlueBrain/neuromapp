@@ -37,18 +37,17 @@ namespace nest
 	 */
 	struct event
 	{
-		double t;
-		int sender;
-		int receiver;
+	    double t;
+       	    int sender;
+	    int receiver;
+	    
+	    double weight;
+	    double delay;
 
-		double weight;
-		double delay;
-
-		/** \fn virtual void operator()()
-					\brief has to be implemented by inherited class
-				 */
-		virtual void operator()()
-		{}
+       /** \fn virtual void operator()() 
+        *\brief has to be implemented by inherited class
+       */
+            virtual void operator()(){}
 	};
 	/**
 	 * \class logevent
@@ -57,40 +56,38 @@ namespace nest
 	class logevent: public event
 	{
 	private:
-		std::vector<double>& weightlog;
+  	    std::vector<double>& weightlog;
 	public:
-		/** \fn logevent(const double& t, const int& sender, const int& receiver, const double& weight, const double& delay, std::vector<double>& weightlog)
-					\brief Constructor of the logevent class
-					\param t time of event
-					\param sender event sender
-					\param receiver event receiver
-					\param weight weight
-					\param delay delay
-					\param weightlog reference to the weight log vector
-
-				 */
-		logevent(const double& t,
-					const int& sender,
-					const int& receiver,
-					const double& weight,
-					const double& delay,
-					std::vector<double>& weightlog):
-						weightlog(weightlog)
-		{
-			   this->t = t;
-			   this->sender = sender;
-			   this->receiver = receiver;
-			   this->weight = weight;
-			   this->delay = delay;
-		}
-
-		/** \fn void operator()()
-				\brief Pushes the current weight to the log vector
-			 */
-		void operator()()
-		{
-			weightlog.push_back(weight);
-		}
-	};
-};
+	/** \fn logevent(const double& t, const int& sender, const int& receiver, 
+	                 const double& weight, const double& delay, std::vector<double>& weightlog)
+        \brief Constructor of the logevent class
+        \param t time of event
+	\param sender event sender
+	\param receiver event receiver
+	\param weight weight
+	\param delay delay
+	\param weightlog reference to the weight log vector
+	*/
+	    logevent(const double& t,
+	     	     const int& sender,
+	             const int& receiver,
+	             const double& weight,
+	             const double& delay,
+	             std::vector<double>& weightlog):
+	             weightlog(weightlog){
+	             	this->t = t;
+	             	this->sender = sender;
+	             	this->receiver = receiver;
+	             	this->weight = weight;
+	             	this->delay = delay;
+	             	
+	             }
+        /** \fn void operator()()
+        \brief Pushes the current weight to the log vector
+        */
+        void operator()(){
+        	    weightlog.push_back(weight);
+        }
+    };
+};// end namespace
 #endif /* EVENT_H_ */
