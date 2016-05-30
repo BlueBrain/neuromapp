@@ -54,7 +54,8 @@ public:
         init();
     }
 
-    benchmark() : a(keyvalue::argument()) {
+  //benchmark() : a(keyvalue::argument()) {
+    benchmark(){
         init();
     }
 
