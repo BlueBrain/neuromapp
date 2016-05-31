@@ -91,14 +91,18 @@ protected:
             tau_fac_(tau_fac)
         {
             target_ = target;
-            if ( U_ > 1.0 || U_ < 0.0 )
+            if ( U_ > 1.0 || U_ < 0.0 ) {
                 throw std::invalid_argument( "U must be in [0,1]." );
-              if ( u_ > 1.0 || u_ < 0.0 )
-                throw std::invalid_argument( "u must be in [0,1]." );
-              if ( tau_rec_ <= 0.0 )
+            }
+            if ( u_ > 1.0 || u_ < 0.0 ) {
+            	throw std::invalid_argument( "u must be in [0,1]." );
+            }
+            if ( tau_rec_ <= 0.0 ) {
                 throw std::invalid_argument( "tau_rec must be > 0." );
-              if ( tau_fac_ < 0.0 )
+            }
+            if ( tau_fac_ < 0.0 ) {
                 throw std::invalid_argument( "tau_fac must be >= 0." );
+            }
         }
 
         /**
@@ -112,7 +116,9 @@ protected:
             x_(1.0),
             tau_rec_(800.0),
             tau_fac_(0.0)
-            {target_ = -1;}
+            {
+                target_ = -1;
+            }
 
         /**
          * \fn tsodysk2(short target)
@@ -125,7 +131,9 @@ protected:
             x_(1.0),
             tau_rec_(800.0),
             tau_fac_(0.0)
-            {target_ = target;}
+            {
+                target_ = target;
+            }
 
         /** \fn void send()
                 \brief Sends a spike event through the synapse as implemented in NEST software 2.10 (2016) official release
@@ -245,8 +253,7 @@ protected:
         }
 
         /** \fn x()
-         *  \brief returns a reference to x
-                 */
+         *  \brief returns a reference to x */
         inline double& x()
         {
             return x_;

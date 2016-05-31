@@ -34,39 +34,44 @@
 namespace nest
 {
 
-class node; //forward declaration
+    class node; //forward declaration
 
-class scheduler
-{
+    class scheduler
+    {
     private:
-    static std::vector<node*> nodes_vec_;
+        static std::vector<node*> nodes_vec_;
 
     public:
-    /**
-     * \fn update_nodes_vec(std::vector<node*>& nodes)
-     * \brief loads nodes_vec with an existing vector
-     */
-    inline static void update_nodes_vec(std::vector<node*>& nodes) { nodes_vec_ = nodes; }
+        /**
+         * \fn update_nodes_vec(std::vector<node*>& nodes)
+         * \brief loads nodes_vec with an existing vector
+         */
+        inline static void update_nodes_vec(std::vector<node*>& nodes)
+        {
+            nodes_vec_ = nodes;
+        }
 
-    /**
-     * \fn add_node(node*)
-     * \brief adds a new node to the node_vec_
-     */
-    inline static short add_node(node* n) {
-        std::cout << "scheduler::add_node" << std::endl;
-        nodes_vec_.push_back(n);
-        return nodes_vec_.size()-1;
-    }
+        /**
+         * \fn add_node(node*)
+         * \brief adds a new node to the node_vec_
+         */
+        inline static short add_node(node* n)
+        {
+            std::cout << "scheduler::add_node" << std::endl;
+            nodes_vec_.push_back(n);
+            return nodes_vec_.size()-1;
+        }
 
-    /**
-     * \fn get_target(short index)
-     * \brief getter to retrieve node from nodes_vec_
-     */
-    inline static node* get_target(short index) { 
-        assert(index >= 0 && index < nodes_vec_.size());
-        return nodes_vec_[index]; 
-    }
-};
+        /**
+         * \fn get_target(short index)
+         * \brief getter to retrieve node from nodes_vec_
+         */
+        inline static node* get_target(short index)
+        {
+            assert(index >= 0 && index < nodes_vec_.size());
+            return nodes_vec_[index];
+        }
+    };
 
-} // namespace nest
+}; // namespace nest
 #endif

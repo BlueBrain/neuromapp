@@ -9,5 +9,5 @@
 
 void nest::spikeevent::operator()()
 {
-	  receiver_->handle( *this );
+      receiver_->handle( *this );
 }

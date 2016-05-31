@@ -25,9 +25,8 @@
 namespace nest
 {
 
-ConnectorBase::ConnectorBase()
-  : t_lastspike_( 0. )
-{
-}
+    ConnectorBase::ConnectorBase(): t_lastspike_( 0. )
+    {
+    }
 
-} // namespace nest
+}; // namespace nest

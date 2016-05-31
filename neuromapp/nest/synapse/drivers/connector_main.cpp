@@ -59,6 +59,7 @@ namespace nest
         ("help", "produce help message")
         ("models", "list available synapse models")
         ("model", po::value<std::string>()->default_value("tsodyks2"), "synapse model")
+        ("num_synapses", po::value<int>()->default_value(1), "number of synapses per connector");
 
         // simulation parameters
         ("dt", po::value<double>()->default_value(0.1), "time between spikes")
@@ -70,6 +71,12 @@ namespace nest
 
         //check for valid synapse model & parameters
         /* else if ( more models ) */
+
+        //check for valid synapse number
+        if (vm["num_synapses"].as<int>() < 1) {
+                std::cout << "Error: Number of synapses per connector has to be a greater than 0" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+        }
 
         //check for valid dt
         if (vm["dt"].as<double>() < 0.1) {
@@ -105,33 +112,37 @@ namespace nest
      */
     void connector_content(po::variables_map const& vm)
     {
-        double dt = vm["dt"].as<double>();
-        int iterations = vm["iterations"].as<int>();
-        const int num_detectors = 4;
+        const double dt = vm["dt"].as<double>();
+        const int iterations = vm["iterations"].as<int>();
+        const int num_detectors = vm["num_synapses"].as<int>();
 
         //preallocate vector for results
         std::vector<spikedetector> detectors(num_detectors);
         scheduler sch;
 
-        for(int i =  0; i < num_detectors; ++i){
+        // register spike detectors
+        for(int i =  0; i < num_detectors; ++i) {
             detectors[i].set_lid(i);    //give nodes a local id
             scheduler::add_node(&detectors[i]);  //add them to the scheduler
         }
 
-        //create a few events
+        //create a few spike events
         std::vector< boost::shared_ptr<spikeevent> > events(iterations);
         for (unsigned int i=0; i<iterations; i++) {
             Time t(i*10.0);
-
             events[i].reset(new spikeevent);
             events[i]->set_stamp( t ); // in Network::send< SpikeEvent >
         }
 
         //grow the connector
+        //for num_detectors > K_CUTOFF connector turns from static to dynamic
         ConnectorBase* conn = new Connector<1,tsodyks2>(tsodyks2(0));
-        for(unsigned int i = 1; i < num_detectors; ++i){
+        for(unsigned int i = 1; i < num_detectors; ++i) {
             conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
         }
+
+        //ref NEST ConnectionManager::send( thread t, index sgid, Event& e )
+        // simulated line: connections_[ t ].get( sgid )->send( e, t, prototypes_[ t ] );
         double t_lastspike = 0.0;
         boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
         for (unsigned int i=0; i<iterations; i++) {
@@ -142,10 +153,10 @@ namespace nest
 
         std::cout << "Duration: " << delay << std::endl;
         std::cout << "Detectors size: " << detectors.size() << std::endl;
-        for(int i = 0; i < num_detectors; ++i){
+        for(unsigned int i=0; i<num_detectors; ++i) {
             std::cout<<"Detector "<<i<<": ";
-            for(int j = 0; j < detectors[i].spikes.size(); ++j){
-                std::cout<<detectors[i].spikes[j]<<" ";
+            for(unsigned int j=0; j<detectors[i].spikes.size(); ++j) {
+                std::cout << detectors[i].spikes[j] << " ";
             }
             std::cout<<std::endl;
         }
