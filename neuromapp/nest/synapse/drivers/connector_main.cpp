@@ -59,7 +59,7 @@ namespace nest
         ("help", "produce help message")
         ("models", "list available synapse models")
         ("model", po::value<std::string>()->default_value("tsodyks2"), "synapse model")
-        ("num_synapses", po::value<int>()->default_value(1), "number of synapses per connector");
+        ("num_synapses", po::value<int>()->default_value(1), "number of synapses per connector")
 
         // simulation parameters
         ("dt", po::value<double>()->default_value(0.1), "time between spikes")
