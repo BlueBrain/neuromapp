@@ -41,8 +41,7 @@ class connection
 protected:
     short target_; //simplification of NEST
     double delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
-
-    virtual void send(event& e, double t_lastspike) = 0;
+    virtual void send(event& e, double t_lastspike) = 0; // please to check to nest
 };
 
 
@@ -123,7 +122,7 @@ protected:
         /**
          * \fn tsodysk2(short target)
            \brief constructor with target parameter */
-        tsodyks2(short target) :
+         tsodyks2(short target) :
             delay_(1.0),
             weight_(1.0),
             U_(0.5),
@@ -132,7 +131,7 @@ protected:
             tau_rec_(800.0),
             tau_fac_(0.0)
             {
-                target_ = target;
+                target_ = target; // be coherent ! 
             }
 
         /** \fn void send()

@@ -97,6 +97,7 @@ class Connector : public vector_like<ConnectionT>
 
 public:
   Connector(){
+	// BOOST_MPL_ASSERT on K lower than 255 .... to fix
     for (int i = 0; i < K; ++i){
         C_[ i ] = ConnectionT(i); //constructor takes int param
     }
@@ -105,13 +106,13 @@ public:
   /**
    * Creates a new connector of sizes K by adding a new connection to a connector of size K - 1
    */
-  Connector( const Connector< K - 1, ConnectionT >& Cm1, const ConnectionT& c )
+  Connector( const Connector<K-1, ConnectionT>& Cm1, const ConnectionT& c )
   {
     for ( size_t i = 0; i < K - 1; i++ )
-      C_[ i ] = Cm1.get_C()[ i ];
+        C_[ i ] = Cm1.get_C()[ i ];
     C_[ K - 1 ] = c;
   }
-
+ 
   /**
    * Creates a new connector and remove the ith connection. To do so, the contents
    * of the original connector are copied into the new one. The copy is performed
@@ -130,15 +131,11 @@ public:
     {
       C_[ k ] = Cm1.get_C()[ k ];
     }
-
+	//TODO what happens to the kth entry?
     for ( size_t k = i + 1; k < K + 1; k++ )
     {
       C_[ k - 1 ] = Cm1.get_C()[ k ];
     }
-  }
-
-  ~Connector()
-  {
   }
 
   void
@@ -197,7 +194,7 @@ public:
   }
 };
 
-
+//check ...
 // homogeneous connector containing 1 entry (specialization to define constructor)
 template < typename ConnectionT >
 class Connector< 1, ConnectionT > : public vector_like<ConnectionT>
