@@ -34,14 +34,13 @@
 namespace nest
 {
 
-typedef unsigned short targetindex;
+typedef double weight;
 
 class connection
 {
 protected:
-    short target_; //simplification of NEST
-    double delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
-    virtual void send(event& e, double t_lastspike) = 0; // please to check to nest
+    targetindex target_; //simplification of hpc synapses from NEST
+    long delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
 };
 
 
@@ -73,23 +72,24 @@ protected:
                 \param tau_rec tau_rec
                 \param tau_fac tau_fac
                 */
-        tsodyks2(const double& delay,
-                 const double& weight,
+        tsodyks2(const long& d,
+                 const double& w,
                  const double& U,
                  const double& u,
                  const double& x,
                  const double& tau_rec,
                  const double& tau_fac,
-                 short target) :
-            delay_(delay),
-            weight_(weight),
+                 const targetindex target=-1) :
+            weight_(w),
             U_(U),
             u_(u),
             x_(x),
             tau_rec_(tau_rec),
             tau_fac_(tau_fac)
         {
-            target_ = target;
+            delay_ = d;
+            target_=target;
+
             if ( U_ > 1.0 || U_ < 0.0 ) {
                 throw std::invalid_argument( "U must be in [0,1]." );
             }
@@ -104,35 +104,17 @@ protected:
             }
         }
 
-        /**
-         * \fn tsodysk2(short target)
-           \brief constructor with target parameter */
-        tsodyks2() :
-            delay_(1.0),
+        tsodyks2():
             weight_(1.0),
             U_(0.5),
             u_(0.5),
             x_(1.0),
             tau_rec_(800.0),
             tau_fac_(0.0)
-            {
-                target_ = -1;
-            }
-
-        /**
-         * \fn tsodysk2(short target)
-           \brief constructor with target parameter */
-         tsodyks2(short target) :
-            delay_(1.0),
-            weight_(1.0),
-            U_(0.5),
-            u_(0.5),
-            x_(1.0),
-            tau_rec_(800.0),
-            tau_fac_(0.0)
-            {
-                target_ = target; // be coherent ! 
-            }
+        {
+            delay_ = 2;
+            target_=-1; //invalid synapse
+        }
 
         /** \fn void send()
                 \brief Sends a spike event through the synapse as implemented in NEST software 2.10 (2016) official release
@@ -158,18 +140,16 @@ protected:
             //e.set_rport( -1 );
             e(); // append right now, in nest sending to post synaptic neuron
         }
-
-
         /** \fun delay() const
             \brief get delay, read only */
-        inline const double& delay() const
+        inline const long& delay() const
         {
             return delay_;
         }
 
         /** \fun delay()
             \brief returns a reference to delay */
-        inline double& delay()
+        inline long& delay()
         {
             return delay_;
         }
@@ -259,7 +239,6 @@ protected:
         }
 
     private:
-        double delay_;  //!< synapse delay
         double weight_; //!< synapse weight
         double U_; //!< unit increment of a facilitating synapse
         double u_; //!< dynamic value of probability of release

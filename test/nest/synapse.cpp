@@ -32,6 +32,7 @@
 #include "nest/synapse/models/tsodyks2.h"
 #include "nest/synapse/event.h"
 #include "nest/synapse/scheduler.h"
+#include "nest/synapse/node.h"
 #include "nest/synapse/drivers/synapse.h"
 
 #include "coreneuron_1.0/common/data/helper.h" // common functionalities
@@ -152,11 +153,10 @@ BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_test)
         BOOST_CHECK(correct_event);
 }
 
-/*
 BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_constructor_test)
 {
 	//parameters
-	const double delay = 0.2;
+	const long d = 2;
 	const double weight = 1.0;
 	const double U = 0.5;
 	const double u = 0.3;
@@ -164,12 +164,12 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_constructor_test)
 	const double tau_rec = 800.0;
 	const double tau_fac = 20.0;
 
-	nest::tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac);
+	nest::tsodyks2 synapse(d, weight, U, u, x, tau_rec, tau_fac, -1);
 
 	BOOST_REQUIRE_CLOSE(synapse.U(), U, 0.01);
 	BOOST_REQUIRE_CLOSE(synapse.u(), u, 0.01);
 	BOOST_REQUIRE_CLOSE(synapse.x(), x, 0.01);
-	BOOST_REQUIRE_CLOSE(synapse.delay(), delay, 0.01);
+	BOOST_REQUIRE_EQUAL(synapse.delay(), d);
 	BOOST_REQUIRE_CLOSE(synapse.weight(), weight, 0.01);
 	BOOST_REQUIRE_CLOSE(synapse.tau_rec(), tau_rec, 0.01);
 	BOOST_REQUIRE_CLOSE(synapse.tau_fac(), tau_fac, 0.01);
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_constructor_test)
 }
 
 BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
-{
+{   /*
 	*
 	 * tsodyks2 model documentation from NEST
 	 *
@@ -189,12 +189,12 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
      * information by activity-dependent synapses. Journal of neurophysiology, 87(1), 140-8.
 	 * [3] Maass, W., & Markram, H. (2002). Synapses as dynamic memory buffers. Neural networks, 15(2),
      * 155–61.synapse/args
-
+    */
 
 	std::vector<double> weights;
 
 	//parameters
-	const double delay = 0.2;
+	const long d = 2;
 	const double weight = 1.0;
 	const double U = 0.5;
 	const double u0 = 0.5;
@@ -203,15 +203,22 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
 	const double tau_fac = 20.0;
 	const double dt = 1;
 
-	nest::tsodyks2 synapse(delay, weight, U, u0, x0, tau_rec, tau_fac);
+	nest::spikedetector detector;
+	nest::targetindex target = nest::scheduler::add_node(&detector);
+
+	nest::tsodyks2 synapse(d, weight, U, u0, x0, tau_rec, tau_fac, target);
 	//state variables
 	double x = x0;
 	double u = u0;
 	for (int i=0; i<3; i++) {
 		//generate spike
-		nest::logevent spike(dt*(i+1), -1, -1, weight, delay, weights);
+	    nest::spikeevent se;
+	    se.set_stamp( dt*(i+1) ); // in Network::send< SpikeEvent >
+	    se.set_sender( NULL ); // in Network::send< SpikeEvent >
+	    se.set_weight(weight);
+	    se.set_delay(d);
 
-		synapse.send(spike, dt*i);
+		synapse.send(se, dt*i);
 
 		//solution from [3] equations (4) and (5):
 		x = 1 + (x - x*u-1)*std::exp(-(dt/tau_rec));
@@ -222,7 +229,7 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
 
 		//check if parameters stay constant
 		BOOST_REQUIRE_CLOSE(synapse.U(), U, 0.01);
-		BOOST_REQUIRE_CLOSE(synapse.delay(), delay, 0.01);
+		BOOST_REQUIRE_EQUAL(synapse.delay(), d);
 		BOOST_REQUIRE_CLOSE(synapse.weight(), weight, 0.01);
 		BOOST_REQUIRE_CLOSE(synapse.tau_rec(), tau_rec, 0.01);
 		BOOST_REQUIRE_CLOSE(synapse.tau_fac(), tau_fac, 0.01);
@@ -232,13 +239,12 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
 		BOOST_REQUIRE_CLOSE(synapse.u(), u, 0.01);
 
 		//check results
-		BOOST_REQUIRE_CLOSE(spike.weight, w, 1);
-		BOOST_REQUIRE_CLOSE(spike.delay, delay, 1);
+		BOOST_REQUIRE_CLOSE(se.get_weight(), w, 0.01);
+		BOOST_REQUIRE_EQUAL(se.get_delay(), d);
 
 		//check weight vector
-		BOOST_REQUIRE_EQUAL(weights.size(), i+1);
-		BOOST_REQUIRE_CLOSE(weights[i], w, 1);
+		BOOST_REQUIRE_EQUAL(detector.spikes.size(), i+1);
+		std::cout << " detector.spikes["<< i << "] = " << detector.spikes[i] << std::endl;
+		BOOST_REQUIRE_CLOSE(detector.spikes[i], w, 1);
 	}
 }
-
-*/

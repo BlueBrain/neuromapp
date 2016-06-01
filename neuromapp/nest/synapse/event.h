@@ -54,8 +54,6 @@ struct Time {
 typedef size_t index;
 typedef long port;
 typedef long rport;
-typedef long delay;
-typedef double weight;
 
 class node;
 
@@ -105,7 +103,7 @@ class node;
            * delivered at the receiver.
            * The delay must be at least 1.
            */
-          delay d_;
+          long d_;
 
           /**
            * Time stamp.
@@ -126,7 +124,7 @@ class node;
           /**
            * Weight of the connection.
            */
-          weight w_;
+          double w_;
 
           /**
          * Deliver the event to receiver.
@@ -136,7 +134,7 @@ class node;
          */
          virtual void operator()() = 0;
 
-         const weight get_weight() const
+         const double get_weight() const
          {
              return w_;
          }
@@ -160,9 +158,24 @@ class node;
              sender_ = node;
          }
 
-         void set_weight(weight w)
+         void set_weight(double w)
          {
              w_ = w;
+         }
+
+         void set_delay( long d )
+         {
+             d_ = d;
+         }
+
+         /**
+          * Return transmission delay of the event.
+          * The delay refers to the time until the event is
+          * expected to arrive at the receiver.
+          */
+         inline long get_delay() const
+         {
+             return d_;
          }
     };
     /**

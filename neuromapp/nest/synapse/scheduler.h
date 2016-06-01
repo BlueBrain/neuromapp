@@ -34,6 +34,8 @@
 namespace nest
 {
 
+    typedef unsigned short targetindex; //simplification of hpc synapses from NEST
+
     class node; //forward declaration
 
     class scheduler
@@ -55,7 +57,7 @@ namespace nest
          * \fn add_node(node*)
          * \brief adds a new node to the node_vec_
          */
-        inline static short add_node(node* n)
+        inline static targetindex add_node(node* n)
         {
             std::cout << "scheduler::add_node" << std::endl;
             nodes_vec_.push_back(n);
@@ -66,7 +68,7 @@ namespace nest
          * \fn get_target(short index)
          * \brief getter to retrieve node from nodes_vec_
          */
-        inline static node* get_target(short index)
+        inline static node* get_target(targetindex index)
         {
             assert(index >= 0 && index < nodes_vec_.size());
             return nodes_vec_[index];

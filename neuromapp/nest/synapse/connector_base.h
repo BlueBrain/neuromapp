@@ -85,7 +85,6 @@ class vector_like : public ConnectorBase
 {
 public:
   virtual ConnectorBase& push_back (const ConnectionT& c) = 0;
-  virtual ConnectorBase& erase(size_t i) = 0;
   virtual size_t get_size () const = 0;
 };
 
@@ -96,13 +95,6 @@ class Connector : public vector_like<ConnectionT>
   ConnectionT C_[ K ];
 
 public:
-  Connector(){
-	// BOOST_MPL_ASSERT on K lower than 255 .... to fix
-    for (int i = 0; i < K; ++i){
-        C_[ i ] = ConnectionT(i); //constructor takes int param
-    }
-  }
-
   /**
    * Creates a new connector of sizes K by adding a new connection to a connector of size K - 1
    */
@@ -111,31 +103,6 @@ public:
     for ( size_t i = 0; i < K - 1; i++ )
         C_[ i ] = Cm1.get_C()[ i ];
     C_[ K - 1 ] = c;
-  }
- 
-  /**
-   * Creates a new connector and remove the ith connection. To do so, the contents
-   * of the original connector are copied into the new one. The copy is performed
-   * in two parts, first up to the specified index and then the rest of the
-   * connections after the specified index in order to
-   * exclude the ith connection from the copy. As a result, returns a connector
-   * with size K from a connector of size K+1.
-   *
-   * @param Cm1 the original connector
-   * @param i the index of the connection to be deleted
-   */
-  Connector( const Connector< K + 1, ConnectionT >& Cm1, size_t i )
-  {
-    assert( i < K && i >= 0 );
-    for ( size_t k = 0; k < i; k++ )
-    {
-      C_[ k ] = Cm1.get_C()[ k ];
-    }
-	//TODO what happens to the kth entry?
-    for ( size_t k = i + 1; k < K + 1; k++ )
-    {
-      C_[ k - 1 ] = Cm1.get_C()[ k ];
-    }
   }
 
   void
@@ -162,19 +129,6 @@ public:
      * which used a special NEST-specific allocator */
 
     ConnectorBase* p = new Connector<K + 1,ConnectionT>(*this, c);
-    delete this;
-    return *p;
-  }
-
-  /**
-   * Delete a single connection from the connector
-   * @param i the index of the connection to be erased
-   * @return A connector of size K-1
-   */
-  ConnectorBase& erase(size_t i){
-    /* Simplified erase function by removing the call to suicide_and_ressurect,
-     * which used a special NEST-specific allocator */
-    ConnectorBase* p = new Connector<K - 1,ConnectionT>(*this, i);
     delete this;
     return *p;
   }
@@ -207,29 +161,6 @@ public:
     C_[ 0 ] = c;
   }
 
-  /**
-   * Returns a new Connector of size 1 after deleting one of the
-   * connections.
-   * @param Cm1 Original Connector of size 2
-   * @param i Index of the connection to be erased
-   */
-  Connector( const Connector< 2, ConnectionT >& Cm1, size_t i )
-  {
-    assert( i < 2 && i >= 0 );
-    if ( i == 0 )
-    {
-      C_[ 0 ] = Cm1.get_C()[ 1 ];
-    }
-    if ( i == 1 )
-    {
-      C_[ 0 ] = Cm1.get_C()[ 0 ];
-    }
-  }
-
-  ~Connector()
-  {
-  }
-
   /** Apparently these functions must be copy pasted into each template
    *  specialization so that they are not virtual classes... BAD
    */
@@ -247,11 +178,6 @@ public:
     return *p;
   }
 
-  ConnectorBase& erase(size_t){
-    assert(false);
-    return *this;       //Dummy return value. Will never be returned.
-  }
-
   const ConnectionT*
   get_C() const
   {
@@ -260,7 +186,6 @@ public:
 
   size_t get_size() const{ return 1; }
 };
-
 
 // homogeneous connector containing >=K_CUTOFF entries
 // specialization to define recursion termination for push_back
@@ -286,16 +211,6 @@ public:
   ConnectorBase& push_back( const ConnectionT& c )
   {
     C_.push_back( c );
-    return *this;
-  }
-
-  /**
-   * Remove element at i, but stay as dynamic container
-   */
-  ConnectorBase& erase( size_t i ){
-    typename std::vector< ConnectionT >::iterator it;
-    it = C_.begin() + i;
-    C_.erase( it );
     return *this;
   }
 

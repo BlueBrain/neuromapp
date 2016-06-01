@@ -59,6 +59,16 @@ namespace nest
         ("help", "produce help message")
         ("models", "list available synapse models")
         ("model", po::value<std::string>()->default_value("tsodyks2"), "synapse model")
+        // tsodyks2 parameters
+        // synapse parameters are not checked
+        ("delay", po::value<double>()->default_value(1.0), "delay")
+        ("weight", po::value<double>()->default_value(1.0), "weight")
+        ("U", po::value<double>()->default_value(0.5), "U")
+        ("u", po::value<double>()->default_value(0.5), "u")
+        ("x", po::value<double>()->default_value(1), "x")
+        ("tau_rec", po::value<double>()->default_value(800.0), "tau_rec")
+        ("tau_fac", po::value<double>()->default_value(0.0), "tau_fac")
+
         ("num_synapses", po::value<int>()->default_value(1), "number of synapses per connector")
 
         // simulation parameters
@@ -71,6 +81,25 @@ namespace nest
 
         //check for valid synapse model & parameters
         /* else if ( more models ) */
+        //check for valid synapse model & parameters
+        if (vm["model"].as<std::string>() == "tsodyks2") {
+            const double delay = vm["delay"].as<double>();
+            const double weight = vm["weight"].as<double>();
+            const double U = vm["U"].as<double>();
+            const double u = vm["u"].as<double>();
+            const double x = vm["x"].as<double>();
+            const double tau_rec = vm["tau_rec"].as<double>();
+            const double tau_fac = vm["tau_fac"].as<double>();
+
+            try {
+                short lid = -1;
+                tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, lid);
+            }
+            catch (std::invalid_argument& e) {
+                std::cout << "Error in model parameters: " << e.what() << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+        }
 
         //check for valid synapse number
         if (vm["num_synapses"].as<int>() < 1) {
@@ -118,12 +147,13 @@ namespace nest
 
         //preallocate vector for results
         std::vector<spikedetector> detectors(num_detectors);
+        std::vector<targetindex> detectors_targetindex(num_detectors);
         scheduler sch;
 
         // register spike detectors
         for(int i =  0; i < num_detectors; ++i) {
             detectors[i].set_lid(i);    //give nodes a local id
-            scheduler::add_node(&detectors[i]);  //add them to the scheduler
+            detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
         }
 
         //create a few spike events
@@ -136,9 +166,19 @@ namespace nest
 
         //grow the connector
         //for num_detectors > K_CUTOFF connector turns from static to dynamic
-        ConnectorBase* conn = new Connector<1,tsodyks2>(tsodyks2(0));
+
+        const double delay = vm["delay"].as<double>();
+        const double weight = vm["weight"].as<double>();
+        const double U = vm["U"].as<double>();
+        const double u = vm["u"].as<double>();
+        const double x = vm["x"].as<double>();
+        const double tau_rec = vm["tau_rec"].as<double>();
+        const double tau_fac = vm["tau_fac"].as<double>();
+        tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
+        ConnectorBase* conn = new Connector<1,tsodyks2>(synapse);
         for(unsigned int i = 1; i < num_detectors; ++i) {
-            conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
+            tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[i]);
+            conn = &((vector_like<tsodyks2>*)conn)->push_back(synapse);
         }
 
         //ref NEST ConnectionManager::send( thread t, index sgid, Event& e )
@@ -149,9 +189,9 @@ namespace nest
             //send spike
             conn->send(*(event*)events[i].get(), t_lastspike);
         }
-        boost::chrono::system_clock::duration delay = boost::chrono::system_clock::now() - start;
+        boost::chrono::system_clock::duration duration = boost::chrono::system_clock::now() - start;
 
-        std::cout << "Duration: " << delay << std::endl;
+        std::cout << "Duration: " << duration << std::endl;
         std::cout << "Detectors size: " << detectors.size() << std::endl;
         for(unsigned int i=0; i<num_detectors; ++i) {
             std::cout<<"Detector "<<i<<": ";
@@ -161,6 +201,7 @@ namespace nest
             std::cout<<std::endl;
         }
 
+        delete conn;
     }
 
     int connector_execute(int argc, char* const argv[])

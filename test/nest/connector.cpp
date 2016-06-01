@@ -46,7 +46,7 @@ using nest::tsodyks2;
 BOOST_AUTO_TEST_CASE(nest_static_connector_size1_test)
 {
     //create a connector with one tsodyks2 connection
-    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2(0));
+    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2());
     BOOST_CHECK(conn->get_size() == 1);
 }
 
@@ -54,10 +54,10 @@ BOOST_AUTO_TEST_CASE(nest_grow_static_connector_test)
 {
     unsigned int K = 2;
     //create a connector with one tsodyks2 connection
-    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2(0));
+    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2());
     bool correct_size = true;
     for(unsigned int i = 1; i < K; ++i){
-        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
+        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2());
         if((conn->get_size() - 1) != i){
             correct_size = false;
             std::cerr<<"size is "<<conn->get_size()<<". Should be: "<<i<<std::endl;
@@ -72,10 +72,10 @@ BOOST_AUTO_TEST_CASE(nest_grow_static_connector_test)
 BOOST_AUTO_TEST_CASE(nest_grow_dynamic_connector_test)
 {
     unsigned int K = 10;
-    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2(0));
+    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2());
     bool correct_size = true;
     for(unsigned int i = 1; i < K; ++i){
-        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
+        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2());
         if((conn->get_size() - 1) != i){
             correct_size = false;
             std::cerr<<"size is "<<conn->get_size()<<". Should be: "<<i<<std::endl;
@@ -84,47 +84,47 @@ BOOST_AUTO_TEST_CASE(nest_grow_dynamic_connector_test)
     BOOST_CHECK(correct_size);
 }
 
-BOOST_AUTO_TEST_CASE(nest_grow_and_shrink_dynamic_test)
-{
-    unsigned int K = 10;
-    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2(0));
-    /* Grow */
-    for(unsigned int i = 1; i < K; ++i){
-        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
-    }
-
-    /* Shrink */
-    bool correct_size = true;
-    for(unsigned int i = K - 1; i < 0; --i){
-        conn = &((vector_like<tsodyks2>*)conn)->erase(i);
-        if(conn->get_size() != i){
-            correct_size = false;
-            std::cerr<<"size is "<<conn->get_size()<<". Should be: "<<i<<std::endl;
-        }
-    }
-    BOOST_CHECK(correct_size);
-}
-
-BOOST_AUTO_TEST_CASE(nest_grow_and_shrink_static_test)
-{
-    unsigned int K = K_CUTOFF - 1;
-    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2(0));
-    /* Grow */
-    for(unsigned int i = 1; i < K; ++i){
-        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
-    }
-
-    /* Shrink */
-    bool correct_size = true;
-    for(unsigned int i = K - 1; i < 1; --i){
-        conn = &((vector_like<tsodyks2>*)conn)->erase(i);
-        if(conn->get_size() != i){
-            correct_size = false;
-            std::cerr<<"size is "<<conn->get_size()<<". Should be: "<<i<<std::endl;
-        }
-    }
-    BOOST_CHECK(correct_size);
-}
+// no need for erase functionality
+//BOOST_AUTO_TEST_CASE(nest_grow_and_shrink_dynamic_test)
+//{
+//    unsigned int K = 10;
+//    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2(0));
+//    /* Grow */
+//    for(unsigned int i = 1; i < K; ++i){
+//        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
+//    }
+//
+//    /* Shrink */
+//    bool correct_size = true;
+//    for(unsigned int i = K - 1; i < 0; --i){
+//        conn = &((vector_like<tsodyks2>*)conn)->erase(i);
+//        if(conn->get_size() != i){
+//            correct_size = false;
+//            std::cerr<<"size is "<<conn->get_size()<<". Should be: "<<i<<std::endl;
+//        }
+//    }
+//    BOOST_CHECK(correct_size);
+//}
+//BOOST_AUTO_TEST_CASE(nest_grow_and_shrink_static_test)
+//{
+//    unsigned int K = K_CUTOFF - 1;
+//    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2(0));
+//    /* Grow */
+//    for(unsigned int i = 1; i < K; ++i){
+//        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2(i));
+//    }
+//
+//    /* Shrink */
+//    bool correct_size = true;
+//    for(unsigned int i = K - 1; i < 1; --i){
+//        conn = &((vector_like<tsodyks2>*)conn)->erase(i);
+//        if(conn->get_size() != i){
+//            correct_size = false;
+//            std::cerr<<"size is "<<conn->get_size()<<". Should be: "<<i<<std::endl;
+//        }
+//    }
+//    BOOST_CHECK(correct_size);
+//}
 
 BOOST_AUTO_TEST_CASE(nest_connector_test){
     std::vector<std::string> command_v;
