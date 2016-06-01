@@ -59,7 +59,6 @@ namespace nest
          */
         inline static targetindex add_node(node* n)
         {
-            std::cout << "scheduler::add_node" << std::endl;
             nodes_vec_.push_back(n);
             return nodes_vec_.size()-1;
         }

@@ -146,13 +146,15 @@ namespace nest
         const int num_detectors = vm["num_synapses"].as<int>();
 
         //preallocate vector for results
-        std::vector<spikedetector> detectors(num_detectors);
+        spikedetector detectors[num_detectors];
         std::vector<targetindex> detectors_targetindex(num_detectors);
         scheduler sch;
 
         // register spike detectors
         for(int i =  0; i < num_detectors; ++i) {
             detectors[i].set_lid(i);    //give nodes a local id
+
+            //scheduler stores pointers to the spike detectors
             detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
         }
 
@@ -183,16 +185,15 @@ namespace nest
 
         //ref NEST ConnectionManager::send( thread t, index sgid, Event& e )
         // simulated line: connections_[ t ].get( sgid )->send( e, t, prototypes_[ t ] );
-        double t_lastspike = 0.0;
         boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
         for (unsigned int i=0; i<iterations; i++) {
             //send spike
-            conn->send(*(event*)events[i].get(), t_lastspike);
+            conn->send(*(event*)events[i].get());
         }
         boost::chrono::system_clock::duration duration = boost::chrono::system_clock::now() - start;
 
         std::cout << "Duration: " << duration << std::endl;
-        std::cout << "Detectors size: " << detectors.size() << std::endl;
+        std::cout << "Detectors size: " << num_detectors << std::endl;
         for(unsigned int i=0; i<num_detectors; ++i) {
             std::cout<<"Detector "<<i<<": ";
             for(unsigned int j=0; j<detectors[i].spikes.size(); ++j) {

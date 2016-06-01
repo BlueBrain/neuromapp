@@ -55,7 +55,7 @@ class ConnectorBase
 public:
   ConnectorBase();
 
-  virtual void send( event& e, thread t ) = 0;
+  virtual void send( event& e ) = 0;
 
   // destructor needed to delete connections
   virtual ~ConnectorBase(){};
@@ -106,7 +106,7 @@ public:
   }
 
   void
-  send( event& e, thread t )
+  send( event& e ) // , NEST: thread t  not necessary for MiniApp (see synapse)
   {
     //synindex syn_id = C_[ 0 ].get_syn_id();
     for ( size_t i = 0; i < K; i++ )
@@ -165,7 +165,7 @@ public:
    *  specialization so that they are not virtual classes... BAD
    */
   void
-  send( event& e, thread t )
+  send( event& e) // , NEST: thread t  not necessary for MiniApp (see synapse)
   {
     C_[ 0 ].send( e, ConnectorBase::get_t_lastspike());
     ConnectorBase::set_t_lastspike( e.get_stamp().get_ms() );
@@ -221,7 +221,7 @@ public:
   }
 
   void
-  send( event& e, thread t )
+  send( event& e ) // , NEST: thread t  not necessary for MiniApp (see synapse)
   {
     for ( size_t i = 0; i < C_.size(); i++ )
     {

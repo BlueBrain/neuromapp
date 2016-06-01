@@ -89,11 +89,12 @@ struct connection
             delay_ = delay;
             target_=target;
 
+            #ifdef _DEBUG //model parameters are only checked in debug mode
             if ( U_ > 1.0 || U_ < 0.0 ) {
                 throw std::invalid_argument( "U must be in [0,1]." );
             }
             if ( u_ > 1.0 || u_ < 0.0 ) {
-            	throw std::invalid_argument( "u must be in [0,1]." );
+                hrow std::invalid_argument( "u must be in [0,1]." );
             }
             if ( tau_rec_ <= 0.0 ) {
                 throw std::invalid_argument( "tau_rec must be > 0." );
@@ -101,6 +102,7 @@ struct connection
             if ( tau_fac_ < 0.0 ) {
                 throw std::invalid_argument( "tau_fac must be >= 0." );
             }
+            #endif //_DEBUG
         }
 
         /** \fn void send()

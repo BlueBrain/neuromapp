@@ -56,6 +56,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 
     //trying out wrong model parameters
+	#ifdef _DEBUG //model parameters are only checked in debug mode
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--model");
@@ -64,6 +65,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     command_v.push_back("2.0"); // model does not exist
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
+	#endif //_DEBUG
 
     //trying out invalid dt
     command_v.clear();
