@@ -102,7 +102,9 @@ BOOST_AUTO_TEST_CASE(nest_connector_send) {
             se.set_weight(weight);
             se.set_delay(delay);
 
+            BOOST_CHECK(true);
             conn->send(se, 0); //thread does not matter
+            BOOST_CHECK(true);
 
             //solution from [3] equations (4) and (5):
             x_i = 1 + (x_i - x_i*u_i-1)*std::exp(-(dt/tau_rec));
@@ -120,7 +122,7 @@ BOOST_AUTO_TEST_CASE(nest_connector_send) {
             detector[i].spikes.clear();
         }
         detector.push_back(nest::spikedetector());
-        nest::tsodyks2 new_synapse(delay, weight, U, u, x, tau_rec, tau_fac, nest::scheduler::add_node(&detector[k]));
+        nest::tsodyks2 new_synapse(delay, weight, U, u, x, tau_rec, tau_fac, nest::scheduler::add_node(&(detector.back())));
         conn = &((vector_like<tsodyks2>*)conn)->push_back(new_synapse);
     }
 }

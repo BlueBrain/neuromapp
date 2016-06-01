@@ -130,8 +130,8 @@ MPI_Comm create_dist_graph(P& presyns, int ncells){
     }
 
     MPI_Dist_graph_create_adjacent(MPI_COMM_WORLD, inNeighbors.size(),
-        &inNeighbors[0], MPI_UNWEIGHTED, outNeighbors.size(),
-        &outNeighbors[0], MPI_UNWEIGHTED, MPI_INFO_NULL,
+        &inNeighbors[0], (int*)MPI_UNWEIGHTED, outNeighbors.size(),
+        &outNeighbors[0], (int*)MPI_UNWEIGHTED, MPI_INFO_NULL,
         false, &neighborhood);
     return neighborhood;
 }
