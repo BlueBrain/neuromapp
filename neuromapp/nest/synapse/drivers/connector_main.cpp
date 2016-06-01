@@ -196,7 +196,7 @@ namespace nest
         for(unsigned int i=0; i<num_detectors; ++i) {
             std::cout<<"Detector "<<i<<": ";
             for(unsigned int j=0; j<detectors[i].spikes.size(); ++j) {
-                std::cout << detectors[i].spikes[j] << " ";
+                std::cout << detectors[i].spikes[j].get_weight() << " ";
             }
             std::cout<<std::endl;
         }

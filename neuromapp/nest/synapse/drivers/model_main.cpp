@@ -190,7 +190,7 @@ namespace nest
         boost::chrono::system_clock::duration delay = boost::chrono::system_clock::now() - start;
 
         std::cout << "Duration: " << delay << std::endl;
-        std::cout << "Last weight " << sd.spikes.back() << std::endl;
+        std::cout << "Last weight " << sd.spikes.back().get_weight() << std::endl;
     }
 
     int model_execute(int argc, char* const argv[])

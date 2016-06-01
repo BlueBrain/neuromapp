@@ -10,5 +10,5 @@
 
 void nest::spikedetector::handle( nest::spikeevent& e )
 {
-    spikes.push_back(e.get_stamp().get_ms());
+    spikes.push_back(e);
 }

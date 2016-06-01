@@ -68,10 +68,10 @@ namespace nest
          * \fn get_target(short index)
          * \brief getter to retrieve node from nodes_vec_
          */
-        inline static node* get_target(targetindex index)
+        inline static node* get_target(targetindex index) //corresponds to scheduler::thread_lid_to_node
         {
             assert(index >= 0 && index < nodes_vec_.size());
-            return nodes_vec_[index];
+            return nodes_vec_[index]; //in NEST the vector contains all reference for all threads.
         }
     };
 

@@ -36,9 +36,8 @@ namespace nest
 
 typedef double weight;
 
-class connection
+struct connection
 {
-protected:
     targetindex target_; //simplification of hpc synapses from NEST
     long delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
 };
@@ -72,13 +71,13 @@ protected:
                 \param tau_rec tau_rec
                 \param tau_fac tau_fac
                 */
-        tsodyks2(const long& d,
-                 const double& w,
-                 const double& U,
-                 const double& u,
-                 const double& x,
-                 const double& tau_rec,
-                 const double& tau_fac,
+        tsodyks2(const long& delay = 2,
+                 const double& w = 1.0,
+                 const double& U = 0.5,
+                 const double& u = 0.5,
+                 const double& x = 1.0,
+                 const double& tau_rec = 800.0,
+                 const double& tau_fac = 0.0,
                  const targetindex target=-1) :
             weight_(w),
             U_(U),
@@ -87,7 +86,7 @@ protected:
             tau_rec_(tau_rec),
             tau_fac_(tau_fac)
         {
-            delay_ = d;
+            delay_ = delay;
             target_=target;
 
             if ( U_ > 1.0 || U_ < 0.0 ) {
@@ -102,18 +101,6 @@ protected:
             if ( tau_fac_ < 0.0 ) {
                 throw std::invalid_argument( "tau_fac must be >= 0." );
             }
-        }
-
-        tsodyks2():
-            weight_(1.0),
-            U_(0.5),
-            u_(0.5),
-            x_(1.0),
-            tau_rec_(800.0),
-            tau_fac_(0.0)
-        {
-            delay_ = 2;
-            target_=-1; //invalid synapse
         }
 
         /** \fn void send()
@@ -132,7 +119,7 @@ protected:
             /// no forward dependency between next 2 statements
             x_ = 1. + (x_ - x_ * u_ - 1.) * x_decay; // Eq. 5 from reference [3] ---> 2 Multiply + 3 adds + 1 assignment
             u_ = U_ + u_ * (1. - U_) * u_decay; // Eq. 4 from [3] --> 2 Muliply + 2 adds + 1 assignment
-            node* target_node = scheduler::get_target(target_);
+            node* target_node = scheduler::get_target(target_); //reduced call tree in comparison to NEST. Further, thread number is passed to get_target
             assert(target_node != NULL);
             e.set_receiver( target_node ); //simplification
             e.set_weight(x_ * u_ * weight_); // weight constant for the object after the synapase is created (can we use const?) --> 2 Multiply +  1 assignment

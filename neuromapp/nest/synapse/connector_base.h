@@ -226,7 +226,7 @@ public:
     for ( size_t i = 0; i < C_.size(); i++ )
     {
       C_[ i ].send( e,
-        ConnectorBase::get_t_lastspike());
+        ConnectorBase::get_t_lastspike());  //simplified thread is passed in real NEST too
     }
     ConnectorBase::set_t_lastspike( e.get_stamp().get_ms() );
   }
