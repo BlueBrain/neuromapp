@@ -162,8 +162,8 @@ namespace nest
         ConnectorBase* conn = NULL;
 
         //preallocate vector for results
-        spikedetector detectors[num_connections];
-        targetindex detectors_targetindex[num_connections];
+        std::vector<spikedetector> detectors(num_connections);
+        std::vector<targetindex> detectors_targetindex(num_connections);
 
         scheduler sch; // must create scheduler so synapse can access target node
         // register spike detectors
