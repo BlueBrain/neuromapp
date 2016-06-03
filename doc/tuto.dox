@@ -167,11 +167,19 @@ The synapse miniapp has additional options to study the spike processing
 <CAPTION> Additional option of the miniapp synapse  </CAPTION>
  <TR>
  <TH> —models  </TH>
- <TD  align="center">  list of available synapse models </TD>
+ <TD  align="center">  list of available connection models </TD>
+ </TR>
+ <TR>
+ <TH> —connector  </TH>
+ <TD  align="center">  encapsulate connections in connector   </TD>
+ </TR>
+  <TR>
+ <TH> —num_connections  </TH>
+ <TD  align="center">  number of connections per connector (only available if connector is set)   </TD>
  </TR>
  <TR>
  <TH> —model  </TH>
- <TD  align="center">  select a synapse model   </TD>
+ <TD  align="center">  select a connection model   </TD>
  </TR>
  <TR>
  <TH> —delay  </TH>
