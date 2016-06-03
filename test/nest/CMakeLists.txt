@@ -1,5 +1,5 @@
 #list of tests
-set(nest_tests synapse connector)
+set(nest_tests synapse)
 
 #loop over nest test for creation
 foreach(i ${nest_tests})

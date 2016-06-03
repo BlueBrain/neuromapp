@@ -35,6 +35,7 @@
 #include "nest/synapse/event.h"
 #include "nest/synapse/scheduler.h"
 #include "nest/synapse/models/tsodyks2.h"
+#include "nest/synapse/connector_base.h"
 #include "utils/error.h"
 
 /** namespace alias for boost::program_options **/
@@ -54,8 +55,11 @@ namespace nest
         po::options_description desc("Allowed options");
         desc.add_options()
         ("help", "produce help message")
-        ("models", "list available synapse models")
-        ("model", po::value<std::string>()->default_value("tsodyks2"), "synapse model")
+        ("models", "list available connection models")
+        ("connector", "encapsulate connections in connector")
+        ("num_connections", po::value<int>()->default_value(1), "number of connections per connector")
+
+        ("model", po::value<std::string>()->default_value("tsodyks2"), "connection model")
 
         // tsodyks2 parameters
         // synapse parameters are not checked
@@ -74,6 +78,19 @@ namespace nest
 
         po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
+
+        if (vm.count("connector")) {
+            if (vm["num_connections"].as<int>() <= 0) {
+                std::cout << "Error: Number of connections per connector has to be greater than 0" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+        }
+        else {
+            if (vm["num_connections"].as<int>() != 1) {
+                std::cout << "Error: Encapsulate connections in connector to enable multiple connections" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+        }
 
         //check for valid synapse model & parameters
         if (vm["model"].as<std::string>() == "tsodyks2") {
@@ -97,25 +114,25 @@ namespace nest
         }
         /* else if ( more models ) */
         else {
-            std::cout << "Error: Selected synapse model is  unknown" << std::endl;
-                        return mapp::MAPP_BAD_DATA;
+            std::cout << "Error: Selected connection model is  unknown" << std::endl;
+            return mapp::MAPP_BAD_DATA;
         }
 
         //check for valid dt
         if (vm["dt"].as<double>() < 0.1) {
-                std::cout << "Error: Time between spikes has to be bigger than 0.1" << std::endl;
-                return mapp::MAPP_BAD_DATA;
+            std::cout << "Error: Time between spikes has to be bigger than 0.1" << std::endl;
+            return mapp::MAPP_BAD_DATA;
         }
 
         //check for valid iterations
         if (vm["iterations"].as<int>() < 1) {
-                std::cout << "Error: Number of iterations has to be a greater than 0" << std::endl;
-                return mapp::MAPP_BAD_DATA;
+            std::cout << "Error: Number of iterations has to be a greater than 0" << std::endl;
+            return mapp::MAPP_BAD_DATA;
         }
 
         //list available synapse models
         if (vm.count("models")){
-            std::cout << "   Following synapse models are available: \n";
+            std::cout << "   Following connection models are available: \n";
             std::cout << "       name           list of accepted parameters\n";
             std::cout << "       tsodyks2       delay, weight, U, u, x, tau_rec, tau_fac\n";
                 std::cout << "";
@@ -137,15 +154,24 @@ namespace nest
     {
         double dt = vm["dt"].as<double>();
         int iterations = vm["iterations"].as<int>();
+        const int num_connections = vm["num_connections"].as<int>();
+        bool without_connector = vm.count("connector") < 1;
 
         //will turn into ptr to base class if more synapse are implemented
         boost::scoped_ptr<tsodyks2> syn;
+        ConnectorBase* conn = NULL;
 
         //preallocate vector for results
-        spikedetector sd;
-        scheduler sch; // must create scheduler so synapse can access target node
-        scheduler::add_node(&sd); // add node to scheduler nodes_vec_
+        spikedetector detectors[num_connections];
+        targetindex detectors_targetindex[num_connections];
 
+        scheduler sch; // must create scheduler so synapse can access target node
+        // register spike detectors
+        for(int i =  0; i < num_connections; ++i) {
+            detectors[i].set_lid(i);    //give nodes a local id
+            //scheduler stores pointers to the spike detectors
+            detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
+        }
         if (vm["model"].as<std::string>() == "tsodyks2") {
             const double delay = vm["delay"].as<double>();
             const double weight = vm["weight"].as<double>();
@@ -156,19 +182,24 @@ namespace nest
             const double tau_fac = vm["tau_fac"].as<double>();
             // try synapse parameters
             // constructor throws exception if parameters are not valid
-            try {
+            if (without_connector) {
                 short lid = 0; // only one node
-                syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, lid));
+                syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]));
             }
-            catch (std::invalid_argument& e) {
-                std::cout << "Error in model parameters: " << e.what() << std::endl;
+            else {
+                tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
+                conn = new Connector<1,tsodyks2>(synapse);
+                for(unsigned int i = 1; i < num_connections; ++i) {
+                    //TODO permute parameters
+                    tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[i]);
+                    conn = &((vector_like<tsodyks2>*)conn)->push_back(synapse);
+                }
             }
         }
         /* else if () .. further synapse models*/
         else {
-            std::cout << "Error: Synapse model implementation missing" << std::endl;
+            throw std::invalid_argument("connection model implementation missing");
         }
-
         //create a few events
         std::vector< boost::shared_ptr<spikeevent> > events(iterations);
         for (unsigned int i=0; i<iterations; i++) {
@@ -179,18 +210,37 @@ namespace nest
             //events[i]->set_sender_gid( sgid ); // Network::send_local
         }
 
-        double t_lastspike = 0.0;
-        boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-        for (unsigned int i=0; i<iterations; i++) {
-            //send spike
-            syn->send(*(event*)events[i].get(), t_lastspike);
+        boost::chrono::system_clock::duration delay;
 
-            t_lastspike += dt;
+        if (without_connector) {
+            if (!syn) {
+                throw std::runtime_error("connection pointer is not valid");
+            }
+            double t_lastspike = 0.0;
+            boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
+            for (unsigned int i=0; i<iterations; i++) {
+                syn->send(*(event*)events[i].get(), t_lastspike); //send spike
+                t_lastspike += dt;
+            }
+            delay = boost::chrono::system_clock::now() - start;
+            std::cout << "Single connection simulated" << std::endl;
         }
-        boost::chrono::system_clock::duration delay = boost::chrono::system_clock::now() - start;
+        else {
+            if (conn==NULL) {
+                throw std::runtime_error("connector pointer is not valid");
+            }
+            boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
+            for (unsigned int i=0; i<iterations; i++) {
+                conn->send(*(event*)events[i].get()); //send spike
+            }
+            delay = boost::chrono::system_clock::now() - start;
+            delete conn; // ugly but necessary
+
+            std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
+        }
 
         std::cout << "Duration: " << delay << std::endl;
-        std::cout << "Last weight " << sd.spikes.back().get_weight() << std::endl;
+        std::cout << "Last weight " << detectors[0].spikes.back().get_weight() << std::endl;
     }
 
     int model_execute(int argc, char* const argv[])
