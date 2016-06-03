@@ -36,15 +36,6 @@ namespace nest
         \return error message from mapp::mapp_error
      */
     int model_execute(int argc, char* const argv[]);
-
-
-    /** \fn connector_execute(int argc, char *const argv[])
-        \brief nest synapse miniapp
-        \param argc number of argument from the command line
-        \param argv the command line from the driver or external call
-        \return error message from mapp::mapp_error
-     */
-    int connector_execute(int argc, char* const argv[]);
 };
 
 #endif

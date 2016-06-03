@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE(nest_connector_test){
     command_v.push_back("connector_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--iterations");
     command_v.push_back("3");
-    error = mapp::execute(command_v,nest::connector_execute);
+    error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_OK);
 }
 
