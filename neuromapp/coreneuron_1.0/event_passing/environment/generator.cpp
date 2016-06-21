@@ -29,7 +29,7 @@ int ngroups, int rank, int nprocs, int ncells){
 
     //for the last rank, add the remaining cellgroups
     if(rank == (nprocs - 1))
-        cells_per = ngroups - start;
+        cells_per = ncells - start;
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
