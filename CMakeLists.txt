@@ -8,7 +8,7 @@ set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 set(VERSION_ABI "1")
 
-option (NEUROMAPP_CURSOR "Allow the use of cursors during input" OFF)
+option (NEUROMAPP_CURSOR "Allow the use of cursors during input" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake)
 include(Compiler)
@@ -43,9 +43,9 @@ if(NEUROMAPP_CURSOR)
     MESSAGE(STATUS "Using Cursors")
     add_definitions(-DNEUROMAPP_CURSOR)
 
-	set(CURSES_NEED_NCURSES TRUE)
-	find_package(Curses REQUIRED)
-	find_package(Readline REQUIRED)
+    set(CURSES_NEED_NCURSES TRUE)
+    find_package(Curses REQUIRED)
+    find_package(Readline REQUIRED)
 
 endif(NEUROMAPP_CURSOR)
 

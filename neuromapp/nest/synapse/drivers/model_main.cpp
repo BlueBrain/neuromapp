@@ -57,7 +57,7 @@ namespace nest
         ("help", "produce help message")
         ("models", "list available connection models")
         ("connector", "encapsulate connections in connector")
-        ("num_connections", po::value<int>()->default_value(1), "number of connections per connector")
+        ("num_connections", po::value<int>()->default_value(100), "number of connections per connector")
 
         ("model", po::value<std::string>()->default_value("tsodyks2"), "connection model")
 
@@ -234,7 +234,7 @@ namespace nest
                 conn->send(*(event*)events[i].get()); //send spike
             }
             delay = boost::chrono::system_clock::now() - start;
-            delete conn; // ugly but necessary
+            //delete conn; // ugly but necessary
 
             std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
         }
