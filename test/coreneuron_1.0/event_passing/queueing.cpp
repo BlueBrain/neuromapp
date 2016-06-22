@@ -204,6 +204,27 @@ BOOST_AUTO_TEST_CASE(pool_constructor){
     BOOST_CHECK(pl.get_ngroups() == ngroups);
 }
 
+ /**
+  * Tests the constructor for the generator class
+  * Specific set of parameters to elicit failure
+  * in commit 86f12a902962d16a227009ff1a0bb8ebe42a2e3
+  */
+ BOOST_AUTO_TEST_CASE(generator_constructor){
+     int ncells = 4;
+     int fanin = 4;
+     int ngroups = 1;
+     int nspikes = 100;
+     int rank = 1;
+     int nprocs = 2;
+
+     int simtime = 1;
+
+     environment::event_generator generator(nspikes, simtime, ngroups,
+     rank, nprocs, ncells);
+ }
+
+
+
 /**
  * Tests fixed_step function of the pool classi for one mindelay
  */

@@ -25,7 +25,7 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
 
     //for last rank, add the leftover neurons
     if(rank == (nprocs - 1))
-        cells_per = ngroups - start;
+        cells_per = n_cells_ - start;
 
     int cur;
 
