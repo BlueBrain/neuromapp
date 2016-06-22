@@ -37,6 +37,7 @@
 #include "coreneuron_1.0/event_passing/queueing/pool.h"
 #include "coreneuron_1.0/event_passing/queueing/thread.h"
 #include "coreneuron_1.0/event_passing/environment/generator.h"
+#include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "utils/error.h"
@@ -210,18 +211,24 @@ BOOST_AUTO_TEST_CASE(pool_constructor){
   * in commit 86f12a902962d16a227009ff1a0bb8ebe42a2e3
   */
  BOOST_AUTO_TEST_CASE(generator_constructor){
-     int ncells = 4;
-     int fanin = 4;
-     int ngroups = 1;
-     int nspikes = 100;
-     int rank = 1;
-     int nprocs = 2;
+    int ncells = 4;
+    int fanin = 4;
+    int ngroups = 1;
+    int nspikes = 100;
+    int rank = 1;
+    int nprocs = 2;
 
-     int simtime = 1;
+    int simtime = 1;
 
-     environment::event_generator generator(nspikes, simtime, ngroups,
-     rank, nprocs, ncells);
- }
+    environment::event_generator generator(ngroups);
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+
+    environment::generate_events_kai(generator.begin(), generator.end(),
+                    simtime, ngroups, rank, nprocs, ncells, lambda);
+
+}
 
 
 
@@ -247,8 +254,14 @@ BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
 
     //generate
     presyns(nprocs, ngroups, rank);
-    environment::event_generator generator(nspikes, simtime, ngroups,
-    rank, nprocs, ncells);
+    environment::event_generator generator(ngroups);
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+
+    environment::generate_events_kai(generator.begin(), generator.end(),
+                    simtime, ngroups, rank, nprocs, ncells, lambda);
+
     int sum_events = 0;
     for(int i = 0; i < ngroups; ++i){
         sum_events += generator.get_size(i);
@@ -282,8 +295,13 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
 
     //generate
     presyns(nprocs, ngroups, rank);
-    environment::event_generator generator(nspikes, simtime,
-    ngroups, rank, nprocs, ncells);
+    environment::event_generator generator(ngroups);
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+
+    environment::generate_events_kai(generator.begin(), generator.end(),
+                    simtime, ngroups, rank, nprocs, ncells, lambda);
 
     int sum_events = 0;
     for(int i = 0; i < ngroups; ++i){

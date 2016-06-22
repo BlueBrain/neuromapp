@@ -32,6 +32,7 @@
 #include <ctime>
 
 #include "coreneuron_1.0/event_passing/environment/generator.h"
+#include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 
 /**
@@ -145,8 +146,14 @@ BOOST_AUTO_TEST_CASE(generator_constructor){
     //generate events
     environment::presyn_maker p(ncells, fanin);
     p(nprocs, ngroups, rank);
-    environment::event_generator generator(nspike, simtime, ngroups,
-    rank, nprocs, ncells);
+
+    environment::event_generator generator(ngroups);
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nspike);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+
+    environment::generate_events_kai(generator.begin(), generator.end(),
+                            simtime, ngroups, rank, nprocs, ncells, lambda);
 
     environment::gen_event ev;
     BOOST_CHECK(!generator.empty(0));
@@ -186,8 +193,13 @@ BOOST_AUTO_TEST_CASE(generator_compare_top_lte){
     int rank = 0;
 
     //generate events
-    environment::event_generator generator(nspike, simtime,
-    ngroups, rank, nprocs, ncells);
+    environment::event_generator generator(ngroups);
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nspike);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+
+    environment::generate_events_kai(generator.begin(), generator.end(),
+                             simtime, ngroups, rank, nprocs, ncells, lambda);
 
     bool greater_than_min = true;
     bool less_than_max = true;

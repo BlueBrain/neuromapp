@@ -33,6 +33,7 @@
 #include "coreneuron_1.0/event_passing/queueing/pool.h"
 #include "coreneuron_1.0/event_passing/queueing/thread.h"
 #include "coreneuron_1.0/event_passing/environment/generator.h"
+#include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
@@ -66,7 +67,14 @@ int main(int argc, char* argv[]) {
     int cellsper = ncells / size;
 
     //create environment
-    environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
+    environment::event_generator generator(ngroups);
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
+    double lambda = 1.0 / static_cast<double>(mean * size);
+
+    environment::generate_events_kai(generator.begin(), generator.end(),
+                              simtime, ngroups, rank, size, ncells, lambda);
+
     environment::presyn_maker presyns(ncells, fanin);
     presyns(size, ngroups, rank);
     spike::spike_interface s_interface(size);
