@@ -60,6 +60,11 @@ namespace nest{
         };
 
     public:
+        PoorMansAllocator(){
+            init();
+        }
+
+
         ~PoorMansAllocator(){
             destruct();
         }
@@ -79,7 +84,6 @@ namespace nest{
         void destruct(){
             for ( chunk* chunks = chunks_; chunks != 0; chunks = chunks->next_ )
                 free( chunks->mem_ );
-            init( chunk_size_ );
         }
 
         void* alloc( size_t obj_size ){

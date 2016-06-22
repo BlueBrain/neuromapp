@@ -44,30 +44,14 @@ namespace nest
 
     template < typename Tnew, typename Told, typename C >
     inline Tnew*
-    suicide_and_resurrect( Told* connector, C connection )
+    suicide_and_resurrect( Told connector, C connection )
     {
         Tnew* p = new ( poormansallocpool.alloc( sizeof( Tnew ) ) )
-        Tnew( *connector, connection );
-        connector->~Told();
+        Tnew(connector, connection );
+       // connector.~Told();
         return p;
     }
-//
-//    template < typename Tnew, typename Told >
-//    inline Tnew*
-//    suicide_and_resurrect( Told* connector, size_t i )
-//    {
-//        Tnew* p =
-//        new ( poormansallocpool.alloc( sizeof( Tnew ) ) ) Tnew( *connector, i );
-//        connector->~Told();
-//        return p;
-//    }
-//    
-//    template < typename Tnew, typename Told >
-//    inline void
-//    suicide( Told* connector )
-//    {
-//        connector->~Told();
-//    }
+
 
 // base class to provide interface to decide
 // - homogeneous connector (containing =1 synapse type)
@@ -155,7 +139,7 @@ public:
   ConnectorBase& push_back( const ConnectionT& c )
   {
       /** wierd NEST design for using the pool allocator */
-      return *suicide_and_resurrect< Connector< K + 1, ConnectionT > >( this, c );
+      return *suicide_and_resurrect< Connector< K + 1, ConnectionT > >( *this, c );
   }
 
   /**
@@ -198,7 +182,7 @@ public:
 
   ConnectorBase& push_back( const ConnectionT& c )
   {
-    return *suicide_and_resurrect< Connector< 2, ConnectionT > >( this, c );
+    return *suicide_and_resurrect< Connector< 2, ConnectionT > >( *this, c );
   }
 
   const ConnectionT*
