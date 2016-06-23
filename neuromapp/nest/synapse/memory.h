@@ -60,6 +60,9 @@ namespace nest{
         };
 
     public:
+        PoorMansAllocator(){
+            init();
+        }
 
         ~PoorMansAllocator(){
             destruct();

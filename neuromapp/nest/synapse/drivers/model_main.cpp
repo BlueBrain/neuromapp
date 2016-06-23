@@ -188,7 +188,6 @@ namespace nest
             }
             else {
                 tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
-                poormansallocpool.init(); // it is the wierd design of the memory pool
                 conn = new (poormansallocpool.alloc(sizeof(Connector<1,tsodyks2>)))Connector<1,tsodyks2>(synapse);
                 for(unsigned int i = 1; i < num_connections; ++i) {
                     //TODO permute parameters
