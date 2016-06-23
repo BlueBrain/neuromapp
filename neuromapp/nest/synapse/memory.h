@@ -60,10 +60,6 @@ namespace nest{
         };
 
     public:
-        PoorMansAllocator(){
-            init();
-        }
-
 
         ~PoorMansAllocator(){
             destruct();
@@ -74,11 +70,12 @@ namespace nest{
          * pool before declaring it thread-private by the compiler.
          * Therefore we have our own init() and destruct() functions.
          */
-        void init( size_t chunk_size = 1048576 ){
+        void init( size_t chunk_size = 1048576 /** 1 mega Byte */){ 
             capacity_ = 0;
             head_ = 0;
             chunks_ = 0;
             chunk_size_ = chunk_size;
+            total_capacity_ = 0;
         }
 
         void destruct(){
@@ -87,8 +84,16 @@ namespace nest{
         }
 
         void* alloc( size_t obj_size ){
-            if ( obj_size > capacity_ )
+            /** if the object allocated as larger size than a chu(n)ck
+             it will create a memory corruption */
+            if(obj_size > chunk_size_)
+                throw std::bad_alloc();
+
+            if ( obj_size > capacity_ ){
                 new_chunk();
+                total_capacity_ += chunk_size_;
+            }
+
             char* ptr = head_;
             head_ += obj_size; // Advance pointer to next free location.
             // This works, because sizeof(head*) == 1
@@ -96,7 +101,22 @@ namespace nest{
             return ptr;
         }
 
+        /** get function for the tests only*/
+        size_t capacity() const{
+            return capacity_;
+        }
+
+        size_t chunk_size() const{
+            return chunk_size_;
+        }
+
+        size_t total_capacity() const{
+            return total_capacity_;
+        }
+
+
     private:
+
         /**
          * Append a new chunk of memory to the list forming the memory
          * pool.
@@ -136,6 +156,12 @@ namespace nest{
          * Remaining capacity of the current chunk.
          */
         size_t capacity_;
+
+
+        /**
+         * Remaining capacity of the memory pool.
+         */
+        size_t total_capacity_;
     };
 
 }

@@ -48,7 +48,7 @@ namespace nest
     {
         Tnew* p = new ( poormansallocpool.alloc( sizeof( Tnew ) ) )
         Tnew(connector, connection );
-       // connector.~Told();
+        connector.~Told(); // THIS is useless NEST design ...
         return p;
     }
 

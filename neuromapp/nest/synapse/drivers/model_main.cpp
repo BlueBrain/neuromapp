@@ -57,7 +57,7 @@ namespace nest
         ("help", "produce help message")
         ("models", "list available connection models")
         ("connector", "encapsulate connections in connector")
-        ("num_connections", po::value<int>()->default_value(100), "number of connections per connector")
+        ("num_connections", po::value<int>()->default_value(1), "number of connections per connector")
 
         ("model", po::value<std::string>()->default_value("tsodyks2"), "connection model")
 
@@ -188,7 +188,7 @@ namespace nest
             }
             else {
                 tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
-                //conn = new Connector<1,tsodyks2>(synapse);
+                poormansallocpool.init(); // it is the wierd design of the memory pool
                 conn = new (poormansallocpool.alloc(sizeof(Connector<1,tsodyks2>)))Connector<1,tsodyks2>(synapse);
                 for(unsigned int i = 1; i < num_connections; ++i) {
                     //TODO permute parameters
