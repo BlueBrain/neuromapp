@@ -8,7 +8,7 @@ set(VERSION_MINOR "0")
 set(VERSION_PATCH "0")
 set(VERSION_ABI "1")
 
-option (NEUROMAPP_CURSOR "Allow the use of cursors during input" ON)
+option (NEUROMAPP_CURSOR "Allow the use of cursors during input" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake)
 include(Compiler)
