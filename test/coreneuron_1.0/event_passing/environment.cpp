@@ -130,9 +130,9 @@ BOOST_AUTO_TEST_CASE(presyns_find_test){
 }
 
 /**
- * Test constructor of event_generator class
+ * Test generation of events for kai_generator
  */
-BOOST_AUTO_TEST_CASE(generator_constructor){
+BOOST_AUTO_TEST_CASE(generator_kai){
     boost::mt19937 rng(time(NULL));
     boost::random::uniform_int_distribution<> uniform(50, 100);
     int nspike = uniform(rng);
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(generator_constructor){
     double mean = static_cast<double>(simtime) / static_cast<double>(nspike);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
-    environment::generate_events_kai(generator.begin(), generator.end(),
+    environment::generate_events_kai(generator.begin(),
                             simtime, ngroups, rank, nprocs, ncells, lambda);
 
     environment::gen_event ev;
@@ -181,6 +181,105 @@ BOOST_AUTO_TEST_CASE(generator_constructor){
     BOOST_CHECK(valid_gid);
 }
 
+BOOST_AUTO_TEST_CASE(generator_poisson){
+    boost::mt19937 rng(time(NULL));
+    boost::random::uniform_int_distribution<> uniform(50, 100);
+    int nspike = uniform(rng);
+    int ncells = 10;
+    int nprocs = 1;
+    int ngroups = 1;
+    int simtime = 100;
+    int rank = 0;
+    int fanin = ncells;
+
+    //generate events
+    environment::presyn_maker p(ncells, fanin);
+    p(nprocs, ngroups, rank);
+
+    environment::event_generator generator(ngroups);
+
+    double mean = static_cast<double>(simtime) / static_cast<double>(nspike);
+    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+
+    environment::generate_poisson_events(generator.begin(),
+                            simtime, ngroups, rank, nprocs, ncells, lambda);
+
+    environment::gen_event ev;
+    BOOST_CHECK(!generator.empty(0));
+
+    //check that all generated events have valid time and presyns
+    bool valid_time = true;
+    bool valid_gid = true;
+    int gid = 0;
+    while(!generator.empty(0)){
+        ev = generator.pop(0);
+        //time
+        if(ev.second > simtime || ev.second < 0){
+            valid_time = false;
+            std::cerr<<"Error: invalid time: "<<ev.second<<std::endl;
+            break;
+        }
+        gid = ev.first;
+        if(!p.find_output(gid)){
+            std::cerr<<"Error: gid not found: "<<gid<<std::endl;
+            valid_gid = false;
+            break;
+        }
+    }
+    BOOST_CHECK(valid_time);
+    BOOST_CHECK(valid_gid);
+}
+
+BOOST_AUTO_TEST_CASE(generator_uniform){
+    boost::mt19937 rng(time(NULL));
+    boost::random::uniform_int_distribution<> uniform(50, 100);
+    int nspike = uniform(rng);
+    int ncells = 10;
+    int nprocs = 1;
+    int ngroups = 1;
+    int simtime = 100;
+    int rank = 0;
+    int fanin = ncells;
+
+    //generate events
+    environment::presyn_maker p(ncells, fanin);
+    p(nprocs, ngroups, rank);
+
+    environment::event_generator generator(ngroups);
+
+    double firing_freq = static_cast<double>(nspike) / static_cast<double>(simtime*ncells);
+    double firing_interval = 1.0 / firing_freq;
+
+    environment::generate_poisson_events(generator.begin(),
+                            simtime, ngroups, rank, nprocs, ncells, firing_interval);
+
+    environment::gen_event ev;
+    BOOST_CHECK(!generator.empty(0));
+
+    //check that all generated events have valid time and presyns
+    bool valid_time = true;
+    bool valid_gid = true;
+    int gid = 0;
+    while(!generator.empty(0)){
+        ev = generator.pop(0);
+        //time
+        if(ev.second > simtime || ev.second < 0){
+            valid_time = false;
+            std::cerr<<"Error: invalid time: "<<ev.second<<std::endl;
+            break;
+        }
+        gid = ev.first;
+        if(!p.find_output(gid)){
+            std::cerr<<"Error: gid not found: "<<gid<<std::endl;
+            valid_gid = false;
+            break;
+        }
+    }
+    BOOST_CHECK(valid_time);
+    BOOST_CHECK(valid_gid);
+}
+
+
 /**
  * Test the compare less than/equals function of event_generator class
  */
@@ -198,7 +297,7 @@ BOOST_AUTO_TEST_CASE(generator_compare_top_lte){
     double mean = static_cast<double>(simtime) / static_cast<double>(nspike);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
-    environment::generate_events_kai(generator.begin(), generator.end(),
+    environment::generate_events_kai(generator.begin(),
                              simtime, ngroups, rank, nprocs, ncells, lambda);
 
     bool greater_than_min = true;

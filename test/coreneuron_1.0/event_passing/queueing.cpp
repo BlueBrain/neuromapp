@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(pool_constructor){
     double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
-    environment::generate_events_kai(generator.begin(), generator.end(),
+    environment::generate_events_kai(generator.begin(),
                     simtime, ngroups, rank, nprocs, ncells, lambda);
 
 }
@@ -259,7 +259,7 @@ BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
     double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
-    environment::generate_events_kai(generator.begin(), generator.end(),
+    environment::generate_events_kai(generator.begin(),
                     simtime, ngroups, rank, nprocs, ncells, lambda);
 
     int sum_events = 0;
@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
-    environment::generate_events_kai(generator.begin(), generator.end(),
+    environment::generate_events_kai(generator.begin(),
                     simtime, ngroups, rank, nprocs, ncells, lambda);
 
     int sum_events = 0;

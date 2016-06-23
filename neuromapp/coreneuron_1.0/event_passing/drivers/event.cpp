@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
     double lambda = 1.0 / static_cast<double>(mean * size);
 
-    environment::generate_events_kai(generator.begin(), generator.end(),
+    environment::generate_events_kai(generator.begin(),
                              simtime, ngroups, rank, size, ncells, lambda);
 
     environment::presyn_maker presyns(ncells, fanin);
