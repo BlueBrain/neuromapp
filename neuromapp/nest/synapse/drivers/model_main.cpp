@@ -188,7 +188,7 @@ namespace nest
             }
             else {
                 tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
-                conn = new Connector<1,tsodyks2>(synapse);
+                conn = new (poormansallocpool.alloc(sizeof(Connector<1,tsodyks2>)))Connector<1,tsodyks2>(synapse);
                 for(unsigned int i = 1; i < num_connections; ++i) {
                     //TODO permute parameters
                     tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[i]);
@@ -201,12 +201,11 @@ namespace nest
             throw std::invalid_argument("connection model implementation missing");
         }
         //create a few events
-        std::vector< boost::shared_ptr<spikeevent> > events(iterations);
+        std::vector< spikeevent > events(iterations);
         for (unsigned int i=0; i<iterations; i++) {
             Time t(i*10.0);
-            events[i].reset(new spikeevent);
-            events[i]->set_stamp( t ); // in Network::send< SpikeEvent >
-            events[i]->set_sender( NULL ); // in Network::send< SpikeEvent >
+            events[i].set_stamp( t ); // in Network::send< SpikeEvent >
+            events[i].set_sender( NULL ); // in Network::send< SpikeEvent >
             //events[i]->set_sender_gid( sgid ); // Network::send_local
         }
 
@@ -219,7 +218,7 @@ namespace nest
             double t_lastspike = 0.0;
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
             for (unsigned int i=0; i<iterations; i++) {
-                syn->send(*(event*)events[i].get(), t_lastspike); //send spike
+                syn->send(events[i], t_lastspike); //send spike
                 t_lastspike += dt;
             }
             delay = boost::chrono::system_clock::now() - start;
@@ -231,10 +230,10 @@ namespace nest
             }
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
             for (unsigned int i=0; i<iterations; i++) {
-                conn->send(*(event*)events[i].get()); //send spike
+                conn->send(events[i]); //send spike
             }
             delay = boost::chrono::system_clock::now() - start;
-            delete conn; // ugly but necessary
+            //delete conn; // ugly but necessary
 
             std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
         }
