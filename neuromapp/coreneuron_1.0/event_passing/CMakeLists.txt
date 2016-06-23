@@ -4,6 +4,8 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 #ENVIRONMENT LIBRARY
 add_library (coreneuron10_environment environment/generator.cpp
+				      environment/uniform_generator.cpp
+				      environment/poisson_generator.cpp
                                       environment/presyn_maker.cpp)
 
 install (TARGETS coreneuron10_environment DESTINATION lib)
