@@ -70,7 +70,7 @@ namespace environment {
     template< typename Iterator >
     void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, double lambda);
 
-    /** \fn void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, double firing_interval)
+    /** \fn void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, int firing_interval)
         \brief generates events based on a poisson distribution approximation.
 	\param beg iterator to the beginning of the vector of queues of events.
 	\param simtime total time of simulation (in number of timesteps)
