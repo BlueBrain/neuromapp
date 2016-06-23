@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(generator_kai){
     environment::event_generator generator(ngroups);
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nspike);
-    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+    double lambda = 1.0 / static_cast<double>(mean * ncells);
 
     environment::generate_events_kai(generator.begin(),
                             simtime, ngroups, rank, nprocs, ncells, lambda);
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(generator_poisson){
     environment::event_generator generator(ngroups);
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nspike);
-    double lambda = 1.0 / static_cast<double>(mean * nprocs);
+    double lambda = 1.0 / static_cast<double>(mean * ncells);
 
     environment::generate_poisson_events(generator.begin(),
                             simtime, ngroups, rank, nprocs, ncells, lambda);
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(generator_uniform){
     environment::event_generator generator(ngroups);
 
     double firing_freq = static_cast<double>(nspike) / static_cast<double>(simtime*ncells);
-    double firing_interval = 1.0 / firing_freq;
+    int firing_interval = static_cast<int>(1.0 / firing_freq);
 
     environment::generate_poisson_events(generator.begin(),
                             simtime, ngroups, rank, nprocs, ncells, firing_interval);

@@ -8,6 +8,7 @@
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include "coreneuron_1.0/event_passing/queueing/queue.h"
 
+//! namespace for handling spike event generation and distributions of cells/presyns across multiple ranks
 namespace environment {
 
 //create a pair out of time and presyn

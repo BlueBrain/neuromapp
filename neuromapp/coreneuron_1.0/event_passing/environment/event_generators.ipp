@@ -24,7 +24,7 @@ void generate_events_kai(Iterator beg, int simtime, int ngroups, int rank, int n
     */
 
     boost::mt19937 rng(rank + time(NULL));
-    boost::random::exponential_distribution<double> time_d(lambda);
+    boost::random::exponential_distribution<double> time_d(ncells*lambda/nprocs);
     boost::random::uniform_int_distribution<> gid_d(start, (start + cells_per - 1));
 
     event_time = 0;
@@ -77,7 +77,7 @@ void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, i
     */
 
     boost::mt19937 rng(rank + time(NULL));
-    boost::random::poisson_distribution<int> event_d(lambda);
+    boost::random::poisson_distribution<int> event_d(ncells*lambda/nprocs);
     boost::random::uniform_int_distribution<> gid_d(start, (start + cells_per - 1));
 
     event_time = 0;
@@ -107,7 +107,9 @@ void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, i
 
 
 template< typename Iterator >
-void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, double firing_interval) {
+void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, int firing_interval) {
+
+    assert(firing_interval > 0);
 
     int dest = 0;
     double event_time = 0;
@@ -123,7 +125,6 @@ void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, i
 
     event_time = 0;
     Iterator it;
-    int event_num;
     //create events up until simulation end
     while(event_time < simtime){
 	event_time += firing_interval;
@@ -137,7 +138,7 @@ void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, i
 	    dest = src_gid % ngroups;
 
 	    new_event.first = src_gid;
-	    new_event.second = static_cast<int>(event_time);
+	    new_event.second = event_time;
 
 	    it = beg;
             std::advance(it, dest);
