@@ -50,6 +50,7 @@ BOOST_AUTO_TEST_CASE(nest_pool_allocate)
 {
     {
         nest::PoorMansAllocator p;
+        p.states = true;
         p.init(128);
         double * d0 = new(p.alloc(sizeof(double[16])))(double[16]); // 16*8 = 128
         BOOST_CHECK_EQUAL(p.capacity(), 0); //

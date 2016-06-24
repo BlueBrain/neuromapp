@@ -40,17 +40,6 @@
 
 namespace nest
 {
-    static PoorMansAllocator poormansallocpool = PoorMansAllocator();
-
-    template < typename Tnew, typename Told, typename C >
-    inline Tnew*
-    suicide_and_resurrect( Told connector, C connection )
-    {
-        Tnew* p = new ( poormansallocpool.alloc( sizeof( Tnew ) ) )
-        Tnew(connector, connection );
-        connector.~Told(); // THIS is useless NEST design ...
-        return p;
-    }
 
 
 // base class to provide interface to decide

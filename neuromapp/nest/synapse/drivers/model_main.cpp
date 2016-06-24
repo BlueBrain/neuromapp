@@ -70,6 +70,8 @@ namespace nest
         ("x", po::value<double>()->default_value(1), "x")
         ("tau_rec", po::value<double>()->default_value(800.0), "tau_rec")
         ("tau_fac", po::value<double>()->default_value(0.0), "tau_fac")
+        //memory pool for hte connector
+        ("pool", po::value<bool>()->default_value(false), "pool memory manager")
 
         // simulation parameters
         ("dt", po::value<double>()->default_value(0.1), "time between spikes")
@@ -152,6 +154,7 @@ namespace nest
      */
     void model_content(po::variables_map const& vm)
     {
+        PoorMansAllocator poormansallocpool;
         double dt = vm["dt"].as<double>();
         int iterations = vm["iterations"].as<int>();
         const int num_connections = vm["num_connections"].as<int>();
@@ -165,7 +168,6 @@ namespace nest
         std::vector<spikedetector> detectors(num_connections);
         std::vector<targetindex> detectors_targetindex(num_connections);
 
-        scheduler sch; // must create scheduler so synapse can access target node
         // register spike detectors
         for(int i =  0; i < num_connections; ++i) {
             detectors[i].set_lid(i);    //give nodes a local id
@@ -180,10 +182,14 @@ namespace nest
             const double x = vm["x"].as<double>();
             const double tau_rec = vm["tau_rec"].as<double>();
             const double tau_fac = vm["tau_fac"].as<double>();
+            const bool pool = vm["pool"].as<bool>();
+            if(pool){
+                poormansallocpool.states = pool;
+            }
+
             // try synapse parameters
             // constructor throws exception if parameters are not valid
             if (without_connector) {
-                short lid = 0; // only one node
                 syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]));
             }
             else {
@@ -233,7 +239,6 @@ namespace nest
                 conn->send(events[i]); //send spike
             }
             delay = boost::chrono::system_clock::now() - start;
-            //delete conn; // ugly but necessary
 
             std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
         }

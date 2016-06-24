@@ -27,7 +27,18 @@
 #ifndef MEMORY_H_
 #define MEMORY_H_
 
+#include <algorithm>
+
 namespace nest{
+
+
+
+    struct cleaner{
+        void operator()(void *ptr){
+            free(ptr);
+        }
+    };
+
 
     /**
      * The poor man's allocator is a simple pool-based allocator, used to
@@ -62,10 +73,15 @@ namespace nest{
     public:
         PoorMansAllocator(){
             init();
+            states = false;
+            save_ptr.reserve(256);
         }
 
         ~PoorMansAllocator(){
-            destruct();
+            if(!states)
+                std::for_each(save_ptr.begin(),save_ptr.end(),cleaner());
+            else
+                destruct();
         }
 
         /**
@@ -87,20 +103,26 @@ namespace nest{
         }
 
         void* alloc( size_t obj_size ){
-            /** if the object allocated as larger size than a chu(n)ck
-             it will create a memory corruption */
-            if(obj_size > chunk_size_)
-                throw std::bad_alloc();
-
-            if ( obj_size > capacity_ ){
-                new_chunk();
-                total_capacity_ += chunk_size_;
-            }
-
             char* ptr = head_;
-            head_ += obj_size; // Advance pointer to next free location.
-            // This works, because sizeof(head*) == 1
-            capacity_ -= obj_size;
+
+            if(!states){
+                ptr = (char*)malloc(obj_size);
+                save_ptr.push_back((void*)ptr);
+            }else{
+                /** if the object allocated as larger size than a chu(n)ck
+                 it will create a memory corruption */
+                if(obj_size > chunk_size_)
+                    throw std::bad_alloc();
+
+                if ( obj_size > capacity_ ){
+                    new_chunk();
+                    total_capacity_ += chunk_size_;
+                }
+                ptr = head_;
+                head_ += obj_size; // Advance pointer to next free location.
+                // This works, because sizeof(head*) == 1
+                capacity_ -= obj_size;
+            }
             return ptr;
         }
 
@@ -117,9 +139,11 @@ namespace nest{
             return total_capacity_;
         }
 
-
+        /** states */
+        bool states;
     private:
-
+        /** I am not guilty od the NEST design */
+        std::vector<void*> save_ptr;
         /**
          * Append a new chunk of memory to the list forming the memory
          * pool.
@@ -166,6 +190,18 @@ namespace nest{
          */
         size_t total_capacity_;
     };
+
+    static PoorMansAllocator poormansallocpool = PoorMansAllocator();
+
+    template < typename Tnew, typename Told, typename C >
+    inline Tnew*
+    suicide_and_resurrect( Told connector, C connection )
+    {
+        Tnew* p = new ( poormansallocpool.alloc( sizeof( Tnew ) ) )
+        Tnew(connector, connection );
+        connector.~Told(); // THIS is useless NEST design ...
+        return p;
+    }
 
 }
 #endif /* MEMORY_H_ */
