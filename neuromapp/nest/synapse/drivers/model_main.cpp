@@ -29,7 +29,6 @@
 
 #include <boost/program_options.hpp>
 #include <boost/chrono.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include "nest/synapse/drivers/synapse.h"
 #include "nest/synapse/event.h"
@@ -161,7 +160,7 @@ namespace nest
         bool without_connector = vm.count("connector") < 1;
 
         //will turn into ptr to base class if more synapse are implemented
-        boost::scoped_ptr<tsodyks2> syn;
+        tsodyks2* syn;
         ConnectorBase* conn = NULL;
 
         //preallocate vector for results
@@ -190,7 +189,7 @@ namespace nest
             // try synapse parameters
             // constructor throws exception if parameters are not valid
             if (without_connector) {
-                syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]));
+                syn = new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
             }
             else {
                 tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
@@ -229,6 +228,7 @@ namespace nest
             }
             delay = boost::chrono::system_clock::now() - start;
             std::cout << "Single connection simulated" << std::endl;
+            delete syn;
         }
         else {
             if (conn==NULL) {
