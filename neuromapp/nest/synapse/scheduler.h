@@ -30,9 +30,13 @@
 #include <cassert>
 #include <iostream>
 #include "nest/synapse/node.h"
+#include "nest/synapse/connector_base.h"
+#include "nest/libnestutil/sparsetable.h"
 
 namespace nest
 {
+    class ConnectorBase; //forward declaration
+    class tsodyks2;
 
     typedef unsigned short targetindex; //simplification of hpc synapses from NEST
 
@@ -72,6 +76,7 @@ namespace nest
             assert(index >= 0 && index < nodes_vec_.size());
             return nodes_vec_[index]; //in NEST the vector contains all reference for all threads.
         }
+
     };
 
 }; // namespace nest

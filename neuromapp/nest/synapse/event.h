@@ -168,6 +168,12 @@ class node;
              d_ = d;
          }
 
+         inline void
+         set_sender_gid( index gid )
+         {
+           sender_gid_ = gid;
+         }
+
          /**
           * Return transmission delay of the event.
           * The delay refers to the time until the event is

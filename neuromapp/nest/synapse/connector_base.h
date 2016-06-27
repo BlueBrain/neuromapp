@@ -30,7 +30,6 @@
 
 #include "nest/synapse/node.h"
 #include "nest/synapse/event.h"
-#include "nest/synapse/scheduler.h"
 
 // when to truncate the recursive instantiation
 #define K_CUTOFF 8
@@ -235,6 +234,7 @@ public:
 };
 
 //removed template class specialization of connector class for simplicity
+
 
 } // of namespace nest
 

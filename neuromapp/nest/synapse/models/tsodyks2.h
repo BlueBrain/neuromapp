@@ -28,12 +28,14 @@
 
 #include <boost/program_options.hpp>
 
-#include "nest/synapse/scheduler.h"
 #include "nest/synapse/event.h"
+#include "nest/synapse/scheduler.h"
 
 namespace nest
 {
 
+class scheduler;
+typedef unsigned short targetindex; //simplification of hpc synapses from NEST
 typedef double weight;
 
 struct connection

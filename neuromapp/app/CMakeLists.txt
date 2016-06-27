@@ -4,12 +4,12 @@ include_directories(${PROJECT_SOURCE_DIR})
 add_executable (app driver.cpp main.cpp)
 target_link_libraries (app
                        hello
-                       synapse
                        keyvalue
                        coreneuron10_kernel
                        coreneuron10_solver
                        coreneuron10_cstep
                        coreneuron10_event
+                       synapse
                        replib
                        storage
                        ${Readline_LIBRARIES}
