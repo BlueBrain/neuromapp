@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     //trying out without connector
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--num_connections");
+    command_v.push_back("--nConnections");
     command_v.push_back("2");
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--connector");
-    command_v.push_back("--num_connections");
+    command_v.push_back("--nConnections");
     command_v.push_back("2");
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_OK);
@@ -268,10 +268,11 @@ BOOST_AUTO_TEST_CASE(nest_grow_static_connector_test)
 {
     unsigned int K = K_CUTOFF-1;
     //create a connector with one tsodyks2 connection
-    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2());
-    BOOST_CHECK_EQUAL(conn->get_size(), 1);
-    for(unsigned int i = 2; i < K+1; ++i){
-        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2());
+    ConnectorBase* conn = NULL;
+
+    for(unsigned int i = 1; i < K+1; ++i){
+        tsodyks2 syn;
+        conn = nest::add_connection< tsodyks2 >(conn, syn);
         BOOST_CHECK_EQUAL(conn->get_size(), i);
     }
 }
@@ -282,10 +283,10 @@ BOOST_AUTO_TEST_CASE(nest_grow_static_connector_test)
 BOOST_AUTO_TEST_CASE(nest_grow_dynamic_connector_test)
 {
     unsigned int K = K_CUTOFF+5;
-    ConnectorBase* conn = new Connector<1, tsodyks2>(tsodyks2());
-    BOOST_CHECK_EQUAL(conn->get_size(), 1);
-    for(unsigned int i = 2; i < K+1; ++i){
-        conn = &((vector_like<tsodyks2>*)conn)->push_back(tsodyks2());
+    ConnectorBase* conn = NULL;
+    for(unsigned int i = 1; i < K+1; ++i){
+        tsodyks2 syn;
+        conn = nest::add_connection<tsodyks2>(conn, syn);
         BOOST_CHECK_EQUAL(conn->get_size(), i);
     }
 }

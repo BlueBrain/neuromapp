@@ -23,7 +23,7 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     int cells_per = n_cells_ / nprocs;
     int start = cells_per * rank;
 
-    //for last rank, add the leftover neurons
+    //for last rank, add the leftover neurons <-- pretty bad load balancing
     if(rank == (nprocs - 1))
         cells_per = n_cells_ - start;
 
@@ -33,19 +33,39 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     for(int i = 0; i < cells_per; ++i){
         outputs_[start + i];
     }
-    //foreach gid, select srcs
-    for(int i = 0; i < cells_per; ++i){
-        for(int j = 0; j < fan_in_; ++j){
-            cur = uni_d(rng);
-            //local GID
-            if(cur >= start && cur < (start + cells_per)){
-                //add self to src gid
-                outputs_[cur].push_back(start + i);
+
+    if (degree_==fixedindegree) {
+        //foreach gid, select srcs
+        for(int i = 0; i < cells_per; ++i){
+            for(int j = 0; j < fan_; ++j){
+                cur = uni_d(rng);
+                //local GID
+                if(cur >= start && cur < (start + cells_per)){
+                    //add self to src gid
+                    outputs_[cur].push_back(start + i);
+                }
+                //remote GID
+                else{
+                    //add self to input presyn for gid
+                    inputs_[cur].push_back(start + i);
+                }
             }
-            //remote GID
-            else{
-                //add self to input presyn for gid
-                inputs_[cur].push_back(start + i);
+        }
+    }
+    else if (degree_==fixedoutdegree) {
+        for(int cur = 0; cur < cells_per; ++cur){
+            for(int j = 0; j < fan_; ++j){
+                int picked = uni_d(rng);
+                //local GID
+                if(cur >= start && cur < (start + cells_per)){
+                    //add self to src gid
+                    outputs_[cur].push_back(picked);
+                }
+                //remote GID
+                else{
+                    //add self to input presyn for gid
+                    inputs_[cur].push_back(picked);
+                }
             }
         }
     }
