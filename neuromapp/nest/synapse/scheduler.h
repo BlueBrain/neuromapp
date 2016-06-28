@@ -48,6 +48,16 @@ namespace nest
         static std::vector<node*> nodes_vec_;
 
     public:
+        scheduler()
+        {
+            nodes_vec_.clear();
+        }
+        
+        ~scheduler()
+        {
+            nodes_vec_.clear();
+        }
+        
         /**
          * \fn update_nodes_vec(std::vector<node*>& nodes)
          * \brief loads nodes_vec with an existing vector

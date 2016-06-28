@@ -31,6 +31,7 @@
 
 #include "nest/synapse/models/tsodyks2.h"
 #include "nest/synapse/connector_base.h"
+#include "nest/synapse/connectionmanager.h"
 #include "nest/synapse/event.h"
 #include "nest/synapse/scheduler.h"
 #include "nest/synapse/node.h"
@@ -146,6 +147,8 @@ BOOST_AUTO_TEST_CASE(nest_synapse_vectorevent_test)
     const double tau_fac = 0;
     const double dt = 0.1;
     int iterations = 10;
+    
+    nest::scheduler test_env;
 
     nest::spikedetector detector;
     nest::scheduler sch;
@@ -208,7 +211,9 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
     */
 
     std::vector<double> weights;
-
+    
+    nest::scheduler test_env;
+    
     //parameters
     const long delay = 2;
     const double weight = 1.0;
@@ -312,16 +317,17 @@ BOOST_AUTO_TEST_CASE(nest_connector_send) {
     const double dt = 0.1;
     int iterations = 10;
 
-    nest::PoorMansAllocator poormansallocpool = nest::PoorMansAllocator();
+    //nest::PoorMansAllocator poormansallocpool = nest::PoorMansAllocator();
 
     for (unsigned int k=1; k<K_CUTOFF+5; k++) {
+        nest::scheduler test_env;
+        
         std::vector<nest::spikedetector> detector(k);
-        nest::tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, nest::scheduler::add_node(&detector[0]));
-        ConnectorBase* conn = new (poormansallocpool.alloc(sizeof(Connector<1,tsodyks2>)))Connector<1,tsodyks2>(synapse);
+        ConnectorBase* conn = NULL;
 
-        for (unsigned int i=1; i<k; i++) {
+        for (unsigned int i=0; i<k; i++) {
             nest::tsodyks2 new_synapse(delay, weight, U, u, x, tau_rec, tau_fac, nest::scheduler::add_node(&(detector[i])));
-            conn = &((vector_like<tsodyks2>*)conn)->push_back(new_synapse);
+            conn = nest::add_connection< tsodyks2 >(conn, new_synapse);
         }
 
         double x_i = x;
@@ -349,3 +355,40 @@ BOOST_AUTO_TEST_CASE(nest_connector_send) {
         }
     }
 }
+
+BOOST_AUTO_TEST_CASE(nest_manager_) {
+
+    const int ncells = 2;
+
+    namespace po = boost::program_options;
+
+    po::variables_map vm;
+    vm.insert(std::make_pair("nNeurons", po::variable_value(ncells, false)));
+    vm.insert(std::make_pair("nGroups", po::variable_value(1, false)));
+
+    vm.insert(std::make_pair("model", po::variable_value(std::string("tsodyks2"), false)));
+    vm.insert(std::make_pair("delay", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("weight", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("U", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("u", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("x", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("tau_rec", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("tau_fac", po::variable_value(1.0, false)));
+    BOOST_CHECK(true);
+
+    nest::connectionmanager cm(vm);
+
+    const int t=0;
+    const int s_gid=1;
+
+    nest::spikedetector sd;
+    cm.connect(t, s_gid, nest::scheduler::add_node(&sd));
+    cm.connect(t, s_gid, nest::scheduler::add_node(&sd));
+
+    nest::spikeevent se;
+    cm.send(t, s_gid, se);
+
+    BOOST_REQUIRE_EQUAL(sd.spikes.size(), 2);
+
+}
+

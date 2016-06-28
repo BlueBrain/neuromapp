@@ -320,11 +320,11 @@ namespace nest
             //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
             environment::event_generator generator(ngroups);
 
-            double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
-            double lambda = 1.0 / static_cast<double>(mean * size);
+            //double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
+            //double lambda = 1.0 / static_cast<double>(mean * size);
 
-            environment::generate_events_kai(generator.begin(),
-                             simtime, ngroups, rank, size, ncells, lambda);
+            environment::generate_uniform_events(generator.begin(),
+                             simtime, ngroups, rank, size, ncells, 1);
 
             std::cout << "Real generated spikes: " << generator.get_size(t) << std::endl;
             int sim_time = 0;
@@ -333,7 +333,7 @@ namespace nest
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
             for (unsigned int i=0; i<iterations; i++) {
                 sim_time+=min_delay;
-                while(generator.compare_top_lte(t, sim_time)){
+                while(generator.compare_top_lte(t, sim_time)) {
                     environment::gen_event g = generator.pop(t);
                     index nid = g.first;
                     se.set_stamp( Time(g.second) ); // in Network::send< SpikeEvent >

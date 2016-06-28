@@ -207,11 +207,7 @@ namespace nest{
     inline T*
     allocate( C c )
     {
-    //#ifdef USE_PMA
       T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T( c );
-    //#else
-    //  T* p = new T( c );
-    //#endif
       return p;
     }
 
@@ -219,11 +215,7 @@ namespace nest{
     inline T*
     allocate()
     {
-    //#ifdef USE_PMA
       T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T();
-    //#else
-    //  T* p = new T();
-    //#endif
       return p;
     }
 
