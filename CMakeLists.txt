@@ -43,9 +43,9 @@ if(NEUROMAPP_CURSOR)
     MESSAGE(STATUS "Using Cursors")
     add_definitions(-DNEUROMAPP_CURSOR)
 
-	set(CURSES_NEED_NCURSES TRUE)
-	find_package(Curses REQUIRED)
-	find_package(Readline REQUIRED)
+    set(CURSES_NEED_NCURSES TRUE)
+    find_package(Curses REQUIRED)
+    find_package(Readline REQUIRED)
 
 endif(NEUROMAPP_CURSOR)
 

@@ -12,8 +12,8 @@ target_link_libraries (app
                        coreneuron10_event
                        replib
                        storage
-                       ${Readline_LIBRARIES}
-                       ${Curses_LIBRARIES}
+                       ${READLINE_LIBRARY}
+                       ${CURSES_CURSES_LIBRARY}
                        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
                        ${Boost_CHRONO_LIBRARIES}
                        ${Boost_SYSTEM_LIBRARIES}
