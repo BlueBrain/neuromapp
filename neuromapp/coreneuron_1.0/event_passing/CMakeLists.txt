@@ -8,6 +8,7 @@ add_library (coreneuron10_environment environment/generator.cpp
 
 install (TARGETS coreneuron10_environment DESTINATION lib)
 install (FILES environment/generator.h
+	       environment/event_generators.hpp
                environment/presyn_maker.h DESTINATION include)
 
 
