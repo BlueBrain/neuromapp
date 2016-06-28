@@ -271,16 +271,18 @@ namespace nest
             //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
             environment::event_generator generator(ngroups);
 
-            //double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
-            //double lambda = 1.0 / static_cast<double>(mean * size);
+            double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
+            double lambda = 1.0 / static_cast<double>(mean * size);
 
-            environment::generate_uniform_events(generator.begin(),
-                             simtime, ngroups, rank, size, ncells, 1);
+            environment::generate_poisson_events(generator.begin(),
+                             simtime, ngroups, rank, size, ncells, lambda);
 
-            std::cout << "Real generated spikes: " << generator.get_size(t) << std::endl;
+
             int sim_time = 0;
             spikeevent se;
 
+
+            const unsigned int stats_generated_spikes = generator.get_size(t);
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
             for (unsigned int i=0; i<iterations; i++) {
                 sim_time+=min_delay;
@@ -290,18 +292,17 @@ namespace nest
                     se.set_stamp( Time(g.second) ); // in Network::send< SpikeEvent >
                     se.set_sender_gid( nid ); // in Network::send< SpikeEvent >
 
-                    std::cout << "Event " << g.first << " " << g.second << std::endl;
                     cn->send(t, nid, se); //send spike
                 }
             }
             delay = boost::chrono::system_clock::now() - start;
             std::cout << "Connection manager simulated" << std::endl;
             std::cout << "Statistics:" << std::endl;
-            std::cout << "\tnumber of send spikes: " << nSpikes << std::endl;
+            std::cout << "\tgenerated spikes: " << stats_generated_spikes << std::endl;
             int recvSpikes=0;
             for (unsigned int i=0; i<detectors.size(); i++)
                 recvSpikes+=detectors[i].spikes.size();
-            std::cout << "\tnumber of recv spikes: " << recvSpikes << std::endl;
+            std::cout << "\trecv spikes: " << recvSpikes << std::endl;
 
             std::cout << "\tEvents left:" << std::endl;
             while (!generator.empty(t)) {
