@@ -6,6 +6,7 @@
  */
 
 #include "nest/synapse/connectionmanager.h"
+#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 
 namespace nest {
     connectionmanager::connectionmanager(po::variables_map const& vm):
@@ -63,6 +64,54 @@ namespace nest {
           s_gid ); // returns non-const reference to stored type, here ConnectorBase*
       else
         return 0; // if non-existing
+    }
+
+
+    /*
+     * \fn build_connections_from_neuron(std::vector<targetindex>& detectors_targetindex, connectionmanager& cn, po::variables_map const& vm)
+     * \brief build connections in connection manager using generator from coreneuron miniapp
+     * \param detectors_targetindex vector of targetindexes to target nodes
+     * \param cn reference to connection manager
+     * \param vm refrence to boost variables map
+     */
+    void build_connections_from_neuron(std::vector<targetindex>& detectors_targetindex, connectionmanager& cm, po::variables_map const& vm) {
+        const int size = vm["size"].as<int>(); //get all connections for all nodes
+        const int rank = vm["rank"].as<int>();
+        const int t = vm["thread"].as<int>(); // thread_num
+        const int ngroups = vm["nGroups"].as<int>(); //one thread available
+        const int fan = vm["nConnections"].as<int>();
+        const int ncells = vm["nNeurons"].as<int>();
+
+        //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
+        environment::presyn_maker presyns(ncells, fan, environment::fixedoutdegree);
+        presyns(size, ngroups, rank);
+
+        int n_local_connections = 0;
+        for (unsigned int s_gid=0; s_gid<ncells; s_gid++) {
+
+            const environment::presyn* local_synapses = presyns.find_output(s_gid);
+            if(local_synapses != NULL) {
+                for(int i = 0; i<local_synapses->size(); ++i){
+                   const unsigned int dest = (*local_synapses)[i] % ngroups;
+                   if(dest == t) {
+                       targetindex target = detectors_targetindex[n_local_connections%detectors_targetindex.size()];
+                       cm.connect(t, s_gid, target);
+                       n_local_connections++;
+                   }
+                }
+            }
+            const environment::presyn* global_synapses = presyns.find_input(s_gid);
+            if(global_synapses != NULL) {
+                for(int i = 0; i<global_synapses->size(); ++i){
+                    const unsigned int dest = (*global_synapses)[i] % ngroups;
+                   if(dest == t) {
+                       targetindex target = detectors_targetindex[n_local_connections%detectors_targetindex.size()];
+                       cm.connect(t, s_gid, target);
+                       n_local_connections++;
+                   }
+                }
+            }
+        }
     }
 };
 

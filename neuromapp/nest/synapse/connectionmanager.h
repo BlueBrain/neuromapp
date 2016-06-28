@@ -38,6 +38,8 @@ namespace nest
         void connect(thread t, index s_gid, targetindex target);
         void send( thread t, index sgid, event& e );
     };
+
+    void build_connections_from_neuron(std::vector<targetindex>& detectors_targetindex, connectionmanager& cm, po::variables_map const& vm);
 };
 
 

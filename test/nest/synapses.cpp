@@ -357,7 +357,6 @@ BOOST_AUTO_TEST_CASE(nest_connector_send) {
 }
 
 BOOST_AUTO_TEST_CASE(nest_manager_) {
-
     const int ncells = 2;
 
     namespace po = boost::program_options;
@@ -374,7 +373,6 @@ BOOST_AUTO_TEST_CASE(nest_manager_) {
     vm.insert(std::make_pair("x", po::variable_value(1.0, false)));
     vm.insert(std::make_pair("tau_rec", po::variable_value(1.0, false)));
     vm.insert(std::make_pair("tau_fac", po::variable_value(1.0, false)));
-    BOOST_CHECK(true);
 
     nest::connectionmanager cm(vm);
 
@@ -384,11 +382,64 @@ BOOST_AUTO_TEST_CASE(nest_manager_) {
     nest::spikedetector sd;
     cm.connect(t, s_gid, nest::scheduler::add_node(&sd));
     cm.connect(t, s_gid, nest::scheduler::add_node(&sd));
+    cm.connect(t, s_gid, nest::scheduler::add_node(&sd));
 
     nest::spikeevent se;
     cm.send(t, s_gid, se);
 
-    BOOST_REQUIRE_EQUAL(sd.spikes.size(), 2);
-
+    BOOST_REQUIRE_EQUAL(sd.spikes.size(), 3);
 }
+
+BOOST_AUTO_TEST_CASE(nest_manager_build_from_neuron) {
+    nest::scheduler test_env;
+
+    const int ncells = 50;
+    const int outgoing = 20;
+    namespace po = boost::program_options;
+
+    po::variables_map vm;
+    vm.insert(std::make_pair("nNeurons", po::variable_value(ncells, false)));
+    vm.insert(std::make_pair("nGroups", po::variable_value(1, false)));
+
+    vm.insert(std::make_pair("size", po::variable_value(1, false)));
+    vm.insert(std::make_pair("rank", po::variable_value(0, false)));
+    vm.insert(std::make_pair("thread", po::variable_value(0, false)));
+    vm.insert(std::make_pair("nConnections", po::variable_value(outgoing, false)));
+
+    vm.insert(std::make_pair("model", po::variable_value(std::string("tsodyks2"), false)));
+    vm.insert(std::make_pair("delay", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("weight", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("U", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("u", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("x", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("tau_rec", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("tau_fac", po::variable_value(1.0, false)));
+
+    //preallocate vector for results
+    std::vector<nest::spikedetector> detectors(1);
+    std::vector<nest::targetindex> detectors_targetindex(1);
+
+    // register spike detectors
+
+    for(unsigned int i=0; i < detectors.size(); ++i) {
+        //scheduler stores pointers to the spike detectors
+        detectors_targetindex[i] = nest::scheduler::add_node(&detectors[i]);  //add them to the scheduler
+    }
+
+    nest::connectionmanager cm(vm);
+    build_connections_from_neuron(detectors_targetindex, cm, vm);
+
+    BOOST_REQUIRE_EQUAL(cm.connections_[ 0 ].size(), ncells);
+
+    nest::spikeevent se;
+    for (int i=0; i<ncells; i++) {
+        //test number of outgoing connections
+        BOOST_REQUIRE_EQUAL(cm.connections_[ 0 ].get(i)->get_size(), outgoing);
+        //test event handling
+        cm.send(0, i, se);
+        BOOST_REQUIRE_EQUAL(detectors[0].spikes.size(), (i+1)*outgoing);
+    }
+}
+
+
 
