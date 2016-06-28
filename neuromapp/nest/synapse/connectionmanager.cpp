@@ -86,29 +86,28 @@ namespace nest {
         environment::presyn_maker presyns(ncells, fan, environment::fixedoutdegree);
         presyns(size, ngroups, rank);
 
-        int n_local_connections = 0;
         for (unsigned int s_gid=0; s_gid<ncells; s_gid++) {
 
             const environment::presyn* local_synapses = presyns.find_output(s_gid);
             if(local_synapses != NULL) {
                 for(int i = 0; i<local_synapses->size(); ++i){
-                   const unsigned int dest = (*local_synapses)[i] % ngroups;
+                   const unsigned int t_gid = (*local_synapses)[i];
+                   const unsigned int dest = t_gid % ngroups;
                    if(dest == t) {
-                       targetindex target = detectors_targetindex[n_local_connections%detectors_targetindex.size()];
+                       targetindex target = detectors_targetindex[t_gid%detectors_targetindex.size()];
                        cm.connect(t, s_gid, target);
-                       n_local_connections++;
                    }
                 }
             }
             const environment::presyn* global_synapses = presyns.find_input(s_gid);
             if(global_synapses != NULL) {
                 for(int i = 0; i<global_synapses->size(); ++i){
-                    const unsigned int dest = (*global_synapses)[i] % ngroups;
-                   if(dest == t) {
-                       targetindex target = detectors_targetindex[n_local_connections%detectors_targetindex.size()];
-                       cm.connect(t, s_gid, target);
-                       n_local_connections++;
-                   }
+                    const unsigned int t_gid = (*global_synapses)[i];
+                    const unsigned int dest = t_gid % ngroups;
+                    if(dest == t) {
+                        targetindex target = detectors_targetindex[t_gid%detectors_targetindex.size()];
+                        cm.connect(t, s_gid, target);
+                    }
                 }
             }
         }
