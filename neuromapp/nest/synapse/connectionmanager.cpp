@@ -51,7 +51,7 @@ namespace nest {
     ConnectorBase*
     connectionmanager::validate_source_entry( thread tid, index s_gid)
     {
-      assert(s_gid>ncells);
+      assert(s_gid<ncells);
       // resize sparsetable to full network size
       if ( connections_[ tid ].size() < ncells )
         connections_[ tid ].resize( ncells );
