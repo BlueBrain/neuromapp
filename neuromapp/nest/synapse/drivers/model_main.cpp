@@ -40,7 +40,7 @@
 
 #include "coreneuron_1.0/event_passing/environment/generator.h"
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
-
+#include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
 using namespace environment; 
@@ -317,7 +317,14 @@ namespace nest
             const int rank = vm["rank"].as<int>();
             const int size = vm["size"].as<int>();
             const int ncells = vm["nNeurons"].as<int>();
-            environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
+            //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
+            environment::event_generator generator(ngroups);
+
+            double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
+            double lambda = 1.0 / static_cast<double>(mean * size);
+
+            environment::generate_events_kai(generator.begin(),
+                             simtime, ngroups, rank, size, ncells, lambda);
 
             std::cout << "Real generated spikes: " << generator.get_size(t) << std::endl;
             int sim_time = 0;
