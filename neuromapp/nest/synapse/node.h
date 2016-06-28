@@ -89,6 +89,9 @@ typedef void Subnet;
     class spikedetector : public node
     {
     public:
+        spikedetector(){
+            spikes.reserve(1024);
+        }
         std::vector<spikeevent> spikes;
         void handle( spikeevent& e );
     };

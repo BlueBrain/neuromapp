@@ -46,7 +46,7 @@ namespace replib {
         return red_mpi;
     }
 
-    /** \fun max(T * in, T * out, int rank)
+    /** \fun max(const T in, T out, int rank)
     find the max value and its corresponding rank
     it should be generic blabla, not type safe only work with DOUBLE */
     template<class T>
@@ -54,7 +54,7 @@ namespace replib {
              MPI_Reduce(in, out, 1, MPI_DOUBLE_INT, MPI_MAXLOC, rank, MPI_COMM_WORLD);
     }
 
-    /** \fun min(T * in, T * out, int rank)
+    /** \fun min(const T in, T out, int rank)
     find the min value and its corresponding rank
     it should be generic blabla, not type safe only work with DOUBLE */
     template<class T>

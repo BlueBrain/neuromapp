@@ -31,6 +31,7 @@
 #include "nest/synapse/node.h"
 #include "nest/synapse/event.h"
 #include "nest/synapse/scheduler.h"
+#include "nest/synapse/memory.h"
 
 // when to truncate the recursive instantiation
 #define K_CUTOFF 8
@@ -39,6 +40,7 @@
 
 namespace nest
 {
+
 
 // base class to provide interface to decide
 // - homogeneous connector (containing =1 synapse type)
@@ -125,12 +127,8 @@ public:
    */
   ConnectorBase& push_back( const ConnectionT& c )
   {
-    /* Simplified push_back function by removing the call to suicide_and_ressurect,
-     * which used a special NEST-specific allocator */
-
-    ConnectorBase* p = new Connector<K + 1,ConnectionT>(*this, c);
-    delete this;
-    return *p;
+      /** wierd NEST design for using the pool allocator */
+      return *suicide_and_resurrect< Connector< K + 1, ConnectionT > >( *this, c );
   }
 
   /**
@@ -173,9 +171,7 @@ public:
 
   ConnectorBase& push_back( const ConnectionT& c )
   {
-    ConnectorBase* p = new Connector<2, ConnectionT>(*this, c);
-    delete this;
-    return *p;
+    return *suicide_and_resurrect< Connector< 2, ConnectionT > >( *this, c );
   }
 
   const ConnectionT*

@@ -29,7 +29,6 @@
 
 #include <boost/program_options.hpp>
 #include <boost/chrono.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include "nest/synapse/drivers/synapse.h"
 #include "nest/synapse/event.h"
@@ -70,6 +69,8 @@ namespace nest
         ("x", po::value<double>()->default_value(1), "x")
         ("tau_rec", po::value<double>()->default_value(800.0), "tau_rec")
         ("tau_fac", po::value<double>()->default_value(0.0), "tau_fac")
+        //memory pool for hte connector
+        ("pool", po::value<bool>()->default_value(false), "pool memory manager")
 
         // simulation parameters
         ("dt", po::value<double>()->default_value(0.1), "time between spikes")
@@ -152,20 +153,20 @@ namespace nest
      */
     void model_content(po::variables_map const& vm)
     {
+        PoorMansAllocator poormansallocpool;
         double dt = vm["dt"].as<double>();
         int iterations = vm["iterations"].as<int>();
         const int num_connections = vm["num_connections"].as<int>();
         bool without_connector = vm.count("connector") < 1;
 
         //will turn into ptr to base class if more synapse are implemented
-        boost::scoped_ptr<tsodyks2> syn;
+        tsodyks2* syn;
         ConnectorBase* conn = NULL;
 
         //preallocate vector for results
         std::vector<spikedetector> detectors(num_connections);
         std::vector<targetindex> detectors_targetindex(num_connections);
 
-        scheduler sch; // must create scheduler so synapse can access target node
         // register spike detectors
         for(int i =  0; i < num_connections; ++i) {
             detectors[i].set_lid(i);    //give nodes a local id
@@ -180,15 +181,19 @@ namespace nest
             const double x = vm["x"].as<double>();
             const double tau_rec = vm["tau_rec"].as<double>();
             const double tau_fac = vm["tau_fac"].as<double>();
+            const bool pool = vm["pool"].as<bool>();
+            if(pool){
+                poormansallocpool.states = pool;
+            }
+
             // try synapse parameters
             // constructor throws exception if parameters are not valid
             if (without_connector) {
-                short lid = 0; // only one node
-                syn.reset(new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]));
+                syn = new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
             }
             else {
                 tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
-                conn = new Connector<1,tsodyks2>(synapse);
+                conn = new (poormansallocpool.alloc(sizeof(Connector<1,tsodyks2>)))Connector<1,tsodyks2>(synapse);
                 for(unsigned int i = 1; i < num_connections; ++i) {
                     //TODO permute parameters
                     tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[i]);
@@ -201,12 +206,11 @@ namespace nest
             throw std::invalid_argument("connection model implementation missing");
         }
         //create a few events
-        std::vector< boost::shared_ptr<spikeevent> > events(iterations);
+        std::vector< spikeevent > events(iterations);
         for (unsigned int i=0; i<iterations; i++) {
             Time t(i*10.0);
-            events[i].reset(new spikeevent);
-            events[i]->set_stamp( t ); // in Network::send< SpikeEvent >
-            events[i]->set_sender( NULL ); // in Network::send< SpikeEvent >
+            events[i].set_stamp( t ); // in Network::send< SpikeEvent >
+            events[i].set_sender( NULL ); // in Network::send< SpikeEvent >
             //events[i]->set_sender_gid( sgid ); // Network::send_local
         }
 
@@ -219,11 +223,12 @@ namespace nest
             double t_lastspike = 0.0;
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
             for (unsigned int i=0; i<iterations; i++) {
-                syn->send(*(event*)events[i].get(), t_lastspike); //send spike
+                syn->send(events[i], t_lastspike); //send spike
                 t_lastspike += dt;
             }
             delay = boost::chrono::system_clock::now() - start;
             std::cout << "Single connection simulated" << std::endl;
+            delete syn;
         }
         else {
             if (conn==NULL) {
@@ -231,10 +236,9 @@ namespace nest
             }
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
             for (unsigned int i=0; i<iterations; i++) {
-                conn->send(*(event*)events[i].get()); //send spike
+                conn->send(events[i]); //send spike
             }
             delay = boost::chrono::system_clock::now() - start;
-            delete conn; // ugly but necessary
 
             std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
         }

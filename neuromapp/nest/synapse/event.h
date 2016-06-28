@@ -64,7 +64,7 @@ class node;
      */
     struct event
     {
-        index sender_gid_; //!< GID of sender or -1.
+          index sender_gid_; //!< GID of sender or -1.
                              /*
                               * The original formulation used references to Nodes as
                               * members, however, in order to avoid the reference of reference
