@@ -240,13 +240,14 @@ public:
 template < typename ConnectionT >
 ConnectorBase* add_connection( ConnectorBase* conn, ConnectionT& syn )
 {
-  if ( conn == 0 ){
-    conn = allocate< Connector< 1, ConnectionT > >( syn );
+  if ( conn == NULL ){
+      conn = allocate< Connector< 1, ConnectionT > >( syn );
   }
   else {
       vector_like< ConnectionT >* vc = static_cast< vector_like< ConnectionT >* >( conn );
       conn = &vc->push_back( syn );
   }
+  return conn;
 };
 
 //removed template class specialization of connector class for simplicity
