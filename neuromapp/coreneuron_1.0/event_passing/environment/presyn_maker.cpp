@@ -20,12 +20,14 @@ void presyn_maker::operator()(int nprocs, int ngroups, int rank){
     boost::mt19937 rng(time(NULL) + rank);
     boost::random::uniform_int_distribution<> uni_d(0, n_cells_);
 
-    int cells_per = n_cells_ / nprocs;
-    int start = cells_per * rank;
+    //neuron distribution
+    const int offset = n_cells_ % nprocs;
+    const bool hasonemore = offset > rank;
+    int cells_per = n_cells_ / nprocs + hasonemore;
 
-    //for last rank, add the leftover neurons
-    if(rank == (nprocs - 1))
-        cells_per = n_cells_ - start;
+    int start = rank * cells_per;
+    if (!hasonemore)
+        start += offset;
 
     int cur;
 

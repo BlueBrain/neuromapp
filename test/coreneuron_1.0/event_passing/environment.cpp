@@ -107,7 +107,10 @@ BOOST_AUTO_TEST_CASE(presyns_find_test){
     environment::presyn_maker p(ncells, fanin);
     p(nprocs, ngroups, rank);
 
-    int cellsper = ncells / nprocs;
+    const int offset = ncells % nprocs;
+    const bool hasonemore = offset > rank;
+    int cellsper = ncells / nprocs + hasonemore;
+
 
     bool valid_input = true;
     bool valid_output = true;
