@@ -270,19 +270,14 @@ namespace nest
             const int ncells = vm["nNeurons"].as<int>();
             //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
             environment::event_generator generator(ngroups);
-
             double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
             double lambda = 1.0 / static_cast<double>(mean * size);
-
             environment::generate_poisson_events(generator.begin(),
                              simtime, ngroups, rank, size, ncells, lambda);
 
-
+            const unsigned int stats_generated_spikes = generator.get_size(t);
             int sim_time = 0;
             spikeevent se;
-
-
-            const unsigned int stats_generated_spikes = generator.get_size(t);
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
             for (unsigned int i=0; i<iterations; i++) {
                 sim_time+=min_delay;
