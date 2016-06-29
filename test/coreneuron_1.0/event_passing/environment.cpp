@@ -132,6 +132,48 @@ BOOST_AUTO_TEST_CASE(presyns_find_test){
     BOOST_CHECK(valid_output);
 }
 
+BOOST_AUTO_TEST_CASE(presyns_check_neuron_dist){
+    boost::mt19937 rng(time(NULL));
+    boost::random::uniform_int_distribution<> uniform(50, 100);
+    int ncells = uniform(rng);
+    int nprocs = 5;
+    int ngroups = 3;
+    int fanin = ncells;
+
+    std::vector<int> stats_rankhascell(ncells,0);
+    std::vector<int> stats_cellsonrank(nprocs,0);
+
+
+    for (int rank=0; rank< nprocs; rank++){
+        environment::presyn_maker p(ncells, fanin);
+        p(nprocs, ngroups, rank);
+
+        for (int cell=0; cell<ncells; cell++) {
+            const environment::presyn* input_ptr = p.find_output(cell);
+            if (input_ptr!=NULL) { //neuron is local
+                stats_rankhascell[cell]++;
+                stats_cellsonrank[rank]++;
+            }
+        }
+    }
+
+
+    for (int cell=0; cell<ncells; cell++) {
+        //std::cout << stats_rankhascell[cell] << std::endl;
+        BOOST_REQUIRE_EQUAL(stats_rankhascell[cell], 1);
+    }
+
+    int sum_cellsonrank = std::accumulate(stats_cellsonrank.begin(), stats_cellsonrank.end(), 0);
+    BOOST_REQUIRE_EQUAL(sum_cellsonrank, ncells);
+
+    int max_cellsonrank = *std::max_element(stats_cellsonrank.begin(), stats_cellsonrank.end());
+    int min_cellsonrank = *std::min_element(stats_cellsonrank.begin(), stats_cellsonrank.end());
+
+    int diff = max_cellsonrank - min_cellsonrank;
+
+    BOOST_CHECK(diff == 0 || diff == 1);
+}
+
 /**
  * Test generation of events for kai_generator
  */
