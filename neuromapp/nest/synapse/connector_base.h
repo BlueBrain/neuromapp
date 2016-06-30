@@ -30,7 +30,6 @@
 
 #include "nest/synapse/node.h"
 #include "nest/synapse/event.h"
-#include "nest/synapse/scheduler.h"
 #include "nest/synapse/memory.h"
 
 // when to truncate the recursive instantiation
@@ -230,7 +229,29 @@ public:
   size_t get_size() const{ return C_.size(); }
 };
 
+
+/*
+ * \fn ConnectorBase* add_connection( ConnectorBase* conn, ConnectionT& syn )
+ * \brief add connection to connector (copied from connector_model_impl.h)
+ * \param conn pointer to ConnectorBase
+ * \param syn new synapse object
+ *
+ */
+template < typename ConnectionT >
+ConnectorBase* add_connection( ConnectorBase* conn, ConnectionT& syn )
+{
+  if ( conn == NULL ){
+      conn = allocate< Connector< 1, ConnectionT > >( syn );
+  }
+  else {
+      vector_like< ConnectionT >* vc = static_cast< vector_like< ConnectionT >* >( conn );
+      conn = &vc->push_back( syn );
+  }
+  return conn;
+};
+
 //removed template class specialization of connector class for simplicity
+
 
 } // of namespace nest
 
