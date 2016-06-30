@@ -13,7 +13,7 @@ target_link_libraries (app
                        replib
                        storage
                        ${READLINE_LIBRARY}
-		       ${Curses_LIBRARIES}
+		       ${CURSES_CURSES_LIBRARIES}
                        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
                        ${Boost_CHRONO_LIBRARIES}
                        ${Boost_SYSTEM_LIBRARIES}
