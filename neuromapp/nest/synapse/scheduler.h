@@ -30,9 +30,13 @@
 #include <cassert>
 #include <iostream>
 #include "nest/synapse/node.h"
+#include "nest/synapse/connector_base.h"
+#include "nest/libnestutil/sparsetable.h"
 
 namespace nest
 {
+    class ConnectorBase; //forward declaration
+    class tsodyks2;
 
     typedef unsigned short targetindex; //simplification of hpc synapses from NEST
 
@@ -44,6 +48,16 @@ namespace nest
         static std::vector<node*> nodes_vec_;
 
     public:
+        scheduler()
+        {
+            nodes_vec_.clear();
+        }
+        
+        ~scheduler()
+        {
+            nodes_vec_.clear();
+        }
+        
         /**
          * \fn update_nodes_vec(std::vector<node*>& nodes)
          * \brief loads nodes_vec with an existing vector
@@ -72,6 +86,7 @@ namespace nest
             assert(index >= 0 && index < nodes_vec_.size());
             return nodes_vec_[index]; //in NEST the vector contains all reference for all threads.
         }
+
     };
 
 }; // namespace nest

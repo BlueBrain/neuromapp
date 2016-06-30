@@ -8,6 +8,7 @@
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include "coreneuron_1.0/event_passing/queueing/queue.h"
 
+//! namespace for handling spike event generation and distributions of cells/presyns across multiple ranks
 namespace environment {
 
 //create a pair out of time and presyn
@@ -24,6 +25,16 @@ private:
 
 public:
 
+    typedef std::vector<std::queue<gen_event> >::iterator iterator;
+    typedef std::vector<std::queue<gen_event> >::const_iterator const_iterator;
+
+    iterator begin() {return event_pool_.begin();};
+    const_iterator begin() const {return event_pool_.begin();};
+
+    iterator end() {return event_pool_.end();};
+    const_iterator end() const {return event_pool_.end();};
+
+
     /** \fn event_generator(int nSpike, int simtime, int ngroups,
      *      int rank, int nprocs, int ncells)
      *  \brief the generator constructor. Creates all the events.
@@ -34,8 +45,7 @@ public:
      *  \param nprocs the number of processes in the simulation
      *  \param ncells the total number of cells
      */
-    event_generator(int nSpikes, int simtime, int ngroups,
-    int rank, int nprocs, int ncells);
+    event_generator(int ngroups);
 
     /** \fn gen_event pop()(int id)
      *  \brief retrieves the top most element from the specified queue

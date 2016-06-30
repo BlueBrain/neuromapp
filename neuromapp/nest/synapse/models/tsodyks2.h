@@ -28,16 +28,18 @@
 
 #include <boost/program_options.hpp>
 
-#include "nest/synapse/scheduler.h"
 #include "nest/synapse/event.h"
+#include "nest/synapse/scheduler.h"
 
 namespace nest
 {
 
+class scheduler;
+typedef unsigned short targetindex; //simplification of hpc synapses from NEST
 typedef double weight;
 
-struct connection
-{
+struct connection{
+    connection():target_(-1),delay_(2){}
     targetindex target_; //simplification of hpc synapses from NEST
     long delay_; //!< syn_id (char) and delay (24 bit) in timesteps of this connection - stored differently in NEST
 };

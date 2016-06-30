@@ -64,7 +64,7 @@ class node;
      */
     struct event
     {
-        index sender_gid_; //!< GID of sender or -1.
+          index sender_gid_; //!< GID of sender or -1.
                              /*
                               * The original formulation used references to Nodes as
                               * members, however, in order to avoid the reference of reference
@@ -166,6 +166,12 @@ class node;
          void set_delay( long d )
          {
              d_ = d;
+         }
+
+         inline void
+         set_sender_gid( index gid )
+         {
+           sender_gid_ = gid;
          }
 
          /**
