@@ -35,8 +35,11 @@
 #include "nest/synapse/scheduler.h"
 #include "nest/synapse/models/tsodyks2.h"
 #include "nest/synapse/connector_base.h"
+#include "nest/synapse/connectionmanager.h"
 #include "utils/error.h"
 
+#include "coreneuron_1.0/event_passing/environment/generator.h"
+#include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
 
@@ -56,7 +59,18 @@ namespace nest
         ("help", "produce help message")
         ("models", "list available connection models")
         ("connector", "encapsulate connections in connector")
-        ("num_connections", po::value<int>()->default_value(1), "number of connections per connector")
+        ("nConnections", po::value<int>()->default_value(1), "number of incoming(manager)/outgoing(connector) connections")
+        ("nDetectors", po::value<int>()->default_value(1), "number of spike detectors")
+
+
+        ("manager", "encapsulate connectors in connection manager")
+        ("nNeurons", po::value<int>()->default_value(1), "number of neurons")
+        ("min_delay", po::value<int>()->default_value(2), "min delay of simulation")
+        ("nSpikes", po::value<int>()->default_value(2), "total number of spikes")
+        ("nGroups", po::value<int>()->default_value(1), "theoretical number of threads")
+        ("size", po::value<int>()->default_value(1), "theoretical number of ranks")
+        ("rank", po::value<int>()->default_value(0), "theoretical rank id")
+        ("thread", po::value<int>()->default_value(0), "theoretical thread id")
 
         ("model", po::value<std::string>()->default_value("tsodyks2"), "connection model")
 
@@ -80,14 +94,36 @@ namespace nest
         po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
 
-        if (vm.count("connector")) {
-            if (vm["num_connections"].as<int>() <= 0) {
+        if (vm.count("manager")) {
+            if (vm["nGroups"].as<int>() <= vm["thread"].as<int>()) {
+                std::cout << "Error: thread has to be smaller than number of threads" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+            if (vm["size"].as<int>() <= vm["rank"].as<int>()) {
+                std::cout << "Error: rank has to be smaller than number of ranks" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+            if (vm["min_delay"].as<int>() <= 0) {
+                std::cout << "Error: min_delay has to be greater than 0" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+            if (vm["nSpikes"].as<int>() <= 0) {
+                std::cout << "Error: nSpikes has to be greater than 0" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+            if (vm["nNeurons"].as<int>() <= 0) {
+                std::cout << "Error: nNeurons has to be greater than 0" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+        }
+        else if (vm.count("connector")) {
+            if (vm["nConnections"].as<int>() <= 0) {
                 std::cout << "Error: Number of connections per connector has to be greater than 0" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
         }
         else {
-            if (vm["num_connections"].as<int>() != 1) {
+            if (vm["nConnections"].as<int>() != 1) {
                 std::cout << "Error: Encapsulate connections in connector to enable multiple connections" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
@@ -118,19 +154,16 @@ namespace nest
             std::cout << "Error: Selected connection model is  unknown" << std::endl;
             return mapp::MAPP_BAD_DATA;
         }
-
         //check for valid dt
         if (vm["dt"].as<double>() < 0.1) {
             std::cout << "Error: Time between spikes has to be bigger than 0.1" << std::endl;
             return mapp::MAPP_BAD_DATA;
         }
-
         //check for valid iterations
         if (vm["iterations"].as<int>() < 1) {
             std::cout << "Error: Number of iterations has to be a greater than 0" << std::endl;
             return mapp::MAPP_BAD_DATA;
         }
-
         //list available synapse models
         if (vm.count("models")){
             std::cout << "   Following connection models are available: \n";
@@ -156,23 +189,29 @@ namespace nest
         PoorMansAllocator poormansallocpool;
         double dt = vm["dt"].as<double>();
         int iterations = vm["iterations"].as<int>();
-        const int num_connections = vm["num_connections"].as<int>();
-        bool without_connector = vm.count("connector") < 1;
+        const int num_connections = vm["nConnections"].as<int>();
+        const int num_detectors = vm["nDetectors"].as<int>();
+        bool with_connector = vm.count("connector") > 0;
+        bool with_manager = vm.count("manager") > 0;
 
         //will turn into ptr to base class if more synapse are implemented
         tsodyks2* syn;
         ConnectorBase* conn = NULL;
 
         //preallocate vector for results
-        std::vector<spikedetector> detectors(num_connections);
-        std::vector<targetindex> detectors_targetindex(num_connections);
+        std::vector<spikedetector> detectors(num_detectors);
+        std::vector<targetindex> detectors_targetindex(num_detectors);
 
         // register spike detectors
-        for(int i =  0; i < num_connections; ++i) {
+
+        connectionmanager* cn = NULL;
+
+        for(unsigned int i=0; i < num_detectors; ++i) {
             detectors[i].set_lid(i);    //give nodes a local id
             //scheduler stores pointers to the spike detectors
             detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
         }
+
         if (vm["model"].as<std::string>() == "tsodyks2") {
             const double delay = vm["delay"].as<double>();
             const double weight = vm["weight"].as<double>();
@@ -185,20 +224,21 @@ namespace nest
             if(pool){
                 poormansallocpool.states = pool;
             }
-
-            // try synapse parameters
-            // constructor throws exception if parameters are not valid
-            if (without_connector) {
-                syn = new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
+            if ( with_manager ) {
+                //build connection manager
+                cn = new connectionmanager(vm);
+                build_connections_from_neuron(detectors_targetindex, *cn, vm);
+            }
+            else if ( with_connector ) {
+                //build connector
+                for(unsigned int i=0; i < num_connections; ++i) {
+                    //TODO permute parameters
+                    tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[i%num_detectors]);
+                    conn = add_connection(conn, synapse); //use static function from connectionmanager
+                }
             }
             else {
-                tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
-                conn = new (poormansallocpool.alloc(sizeof(Connector<1,tsodyks2>)))Connector<1,tsodyks2>(synapse);
-                for(unsigned int i = 1; i < num_connections; ++i) {
-                    //TODO permute parameters
-                    tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[i]);
-                    conn = &((vector_like<tsodyks2>*)conn)->push_back(synapse);
-                }
+                syn = new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
             }
         }
         /* else if () .. further synapse models*/
@@ -216,7 +256,70 @@ namespace nest
 
         boost::chrono::system_clock::duration delay;
 
-        if (without_connector) {
+        if ( with_manager ) {
+            if (cn==NULL) {
+                throw std::runtime_error("connectionmanager pointer is not valid");
+            }
+            const int t = vm["thread"].as<int>(); // thead_num
+            const int min_delay=vm["min_delay"].as<int>();
+            const int nSpikes = vm["nSpikes"].as<int>();
+            const int simtime = iterations * min_delay;
+            const int ngroups = vm["nGroups"].as<int>();
+            const int rank = vm["rank"].as<int>();
+            const int size = vm["size"].as<int>();
+            const int ncells = vm["nNeurons"].as<int>();
+            //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
+            environment::event_generator generator(ngroups);
+            double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
+            double lambda = 1.0 / static_cast<double>(mean * size);
+            environment::generate_poisson_events(generator.begin(),
+                             simtime, ngroups, rank, size, ncells, lambda);
+
+            const unsigned int stats_generated_spikes = generator.get_size(t);
+            int sim_time = 0;
+            spikeevent se;
+            boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
+            for (unsigned int i=0; i<iterations; i++) {
+                sim_time+=min_delay;
+                while(generator.compare_top_lte(t, sim_time)) {
+                    environment::gen_event g = generator.pop(t);
+                    index nid = g.first;
+                    se.set_stamp( Time(g.second) ); // in Network::send< SpikeEvent >
+                    se.set_sender_gid( nid ); // in Network::send< SpikeEvent >
+
+                    cn->send(t, nid, se); //send spike
+                }
+            }
+            delay = boost::chrono::system_clock::now() - start;
+            std::cout << "Connection manager simulated" << std::endl;
+            std::cout << "Statistics:" << std::endl;
+            std::cout << "\tgenerated spikes: " << stats_generated_spikes << std::endl;
+            int recvSpikes=0;
+            for (unsigned int i=0; i<detectors.size(); i++)
+                recvSpikes+=detectors[i].spikes.size();
+            std::cout << "\trecv spikes: " << recvSpikes << std::endl;
+
+            std::cout << "\tEvents left:" << std::endl;
+            while (!generator.empty(t)) {
+                environment::gen_event g = generator.pop(t);
+                std::cout << "Event " << g.first << " " << g.second << std::endl;
+            }
+
+            delete cn;
+        }
+        else if ( with_connector ) {
+            if (conn==NULL) {
+                throw std::runtime_error("connector pointer is not valid");
+            }
+            boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
+            for (unsigned int i=0; i<iterations; i++) {
+                conn->send(events[i]); //send spike
+            }
+            delay = boost::chrono::system_clock::now() - start;
+
+            std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
+        }
+        else {
             if (!syn) {
                 throw std::runtime_error("connection pointer is not valid");
             }
@@ -229,18 +332,6 @@ namespace nest
             delay = boost::chrono::system_clock::now() - start;
             std::cout << "Single connection simulated" << std::endl;
             delete syn;
-        }
-        else {
-            if (conn==NULL) {
-                throw std::runtime_error("connector pointer is not valid");
-            }
-            boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-            for (unsigned int i=0; i<iterations; i++) {
-                conn->send(events[i]); //send spike
-            }
-            delay = boost::chrono::system_clock::now() - start;
-
-            std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
         }
 
         std::cout << "Duration: " << delay << std::endl;

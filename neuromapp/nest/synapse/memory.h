@@ -203,5 +203,21 @@ namespace nest{
         return p;
     }
 
+    template < typename T, typename C >
+    inline T*
+    allocate( C c )
+    {
+      T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T( c );
+      return p;
+    }
+
+    template < typename T, typename C >
+    inline T*
+    allocate()
+    {
+      T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T();
+      return p;
+    }
+
 }
 #endif /* MEMORY_H_ */
