@@ -49,6 +49,8 @@ struct Time {
         }
         return 1/1000.0 * tics;
      }
+     Time(long t): tics(t)
+     {}
 };
 
 typedef size_t index;
@@ -172,6 +174,12 @@ class node;
          set_sender_gid( index gid )
          {
            sender_gid_ = gid;
+         }
+
+         inline index
+         get_sender_gid()
+         {
+             return sender_gid_;
          }
 
          /**

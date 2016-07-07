@@ -8,6 +8,11 @@
 #include "nest/synapse/connectionmanager.h"
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 
+
+#ifdef _OPENMP
+    #include <omp.h>
+#endif
+
 namespace nest {
     connectionmanager::connectionmanager(po::variables_map const& vm):
         vm(vm)
@@ -77,7 +82,7 @@ namespace nest {
     void build_connections_from_neuron(std::vector<targetindex>& detectors_targetindex, connectionmanager& cm, po::variables_map const& vm) {
         const int size = vm["size"].as<int>(); //get all connections for all nodes
         const int rank = vm["rank"].as<int>();
-        const int t = vm["thread"].as<int>(); // thread_num
+        //const int t = vm["thread"].as<int>(); // thread_num
         const int ngroups = vm["nGroups"].as<int>(); //one thread available
         const int fan = vm["nConnections"].as<int>();
         const int ncells = vm["nNeurons"].as<int>();
@@ -86,33 +91,47 @@ namespace nest {
         environment::presyn_maker presyns(ncells, fan, environment::fixedoutdegree);
         presyns(size, ngroups, rank);
 
-        for (unsigned int s_gid=0; s_gid<ncells; s_gid++) {
+        #pragma omp paralle
+        {
+            #ifdef _OPENMP
+            const int thrd = omp_get_thread_num();
+            #else
+            const int thrd = vm["thread"].as<int>();
+            #endif
+            for (unsigned int s_gid=0; s_gid<ncells; s_gid++) {
 
-            const environment::presyn* local_synapses = presyns.find_output(s_gid);
-            if(local_synapses != NULL) {
-                for(int i = 0; i<local_synapses->size(); ++i){
-                   const unsigned int t_gid = (*local_synapses)[i];
-                   //sort out locally stored connections
-                   const unsigned int dest = t_gid % (ngroups * size);
-                   if(dest == t) {
-                       //local id out of global id
-                       const unsigned int t_lid = t_gid / (ngroups * size);
-                       targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
-                       cm.connect(t, s_gid, target);
-                   }
+                const environment::presyn* local_synapses = presyns.find_output(s_gid);
+                if(local_synapses != NULL) {
+                    for(int i = 0; i<local_synapses->size(); ++i){
+                       const unsigned int t_gid = (*local_synapses)[i];
+                       //sort out locally stored connections
+                       const unsigned int dest = t_gid % size;
+                       if(dest == rank) {
+                           //local id out of global id
+                           const unsigned int t_lid = t_gid / (ngroups * size);
+                           targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
+                           cm.connect(thrd, s_gid, target);
+                       }
+                       else {
+                           //assert(false);
+                       }
+                    }
                 }
-            }
-            const environment::presyn* global_synapses = presyns.find_input(s_gid);
-            if(global_synapses != NULL) {
-                for(int i = 0; i<global_synapses->size(); ++i){
-                    const unsigned int t_gid = (*global_synapses)[i];
-                    //sort out locally stored connections
-                    const unsigned int dest = t_gid % (ngroups * size);
-                    if(dest == t) {
-                        //local id out of global id
-                        const unsigned int t_lid = t_gid / (ngroups * size);
-                        targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
-                        cm.connect(t, s_gid, target);
+                const environment::presyn* global_synapses = presyns.find_input(s_gid);
+                if(global_synapses != NULL) {
+                    for(int i = 0; i<global_synapses->size(); ++i){
+                        const unsigned int t_gid = (*global_synapses)[i];
+                        //sort out locally stored connections
+                        const unsigned int dest = t_gid % size;
+                        if(dest == rank) {
+                            //local id out of global id
+                            const unsigned int t_lid = t_gid / (ngroups * size);
+                            targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
+                            cm.connect(thrd, s_gid, target);
+                        }
+                        else {
+                            //assert(false);
+                       }
                     }
                 }
             }
