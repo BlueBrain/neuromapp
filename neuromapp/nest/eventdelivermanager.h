@@ -62,6 +62,8 @@ namespace nest
           connectionmanager& cn_;
 
           void collocate_buffers_();
+	  
+	  void configure_spike_buffers();
     public:
           eventdelivermanager(connectionmanager& cn_, const unsigned int num_ranks, const unsigned int num_threads, const unsigned int min_delay);
 

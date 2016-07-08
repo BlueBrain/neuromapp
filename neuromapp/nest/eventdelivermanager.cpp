@@ -23,6 +23,7 @@ eventdelivermanager::eventdelivermanager(connectionmanager& cn, const unsigned i
     spike_register_(num_threads, std::vector< std::vector< uint_t > >(min_delay)),
     cn_(cn)
 {
+  configure_spike_buffers();
 }
 
 void
@@ -127,8 +128,52 @@ eventdelivermanager::deliver_events( thread thrd, long t )
       }
       pos[ pid ] = pos_pid;
     }
-
     // skipped the secondary events
+}
 
+
+void
+eventdelivermanager::configure_spike_buffers()
+{
+  assert( min_delay_ != 0 );
+
+  spike_register_.clear();
+  // the following line does not compile with gcc <= 3.3.5
+  spike_register_.resize( num_threads_,
+    std::vector< std::vector< uint_t > >( min_delay_ ) );
+  for ( size_t j = 0; j < spike_register_.size(); ++j )
+    for ( size_t k = 0; k < spike_register_[ j ].size(); ++k )
+      spike_register_[ j ][ k ].clear();
+
+  // send_buffer must be >= 2 as the 'overflow' signal takes up 2 spaces
+  // plus the fiunal marker and the done flag for iterations
+  // + 1 for the final markers of each thread (invalid_synindex) of secondary
+  // events
+  // + 1 for the done flag (true) of each process
+  send_buffer_size_ = num_threads_ * min_delay_ + 2 > 4 ? num_threads_ * min_delay_ + 2 : 4;
+  recv_buffer_size_ = send_buffer_size_ * num_processes_;
+
+  // DEC cxx required 0U literal, HEP 2007-03-26
+  local_grid_spikes_.clear();
+  local_grid_spikes_.resize( send_buffer_size_, 0U );
+
+  global_grid_spikes_.clear();
+  global_grid_spikes_.resize( recv_buffer_size_, 0U );
+
+  //// insert the end marker for payload event (==invalid_synindex)
+  //// and insert the done flag (==true)
+  //// after min_delay 0's (== comm_marker)
+  //// use the template functions defined in event.h
+  //// this only needs to be done for one process, because displacements is set to
+  //// 0 so all processes initially read out the same positions in the global
+  //// spike buffer
+  //std::vector< uint_t >::iterator pos = global_grid_spikes_.begin()
+  //  + kernel().vp_manager.get_num_threads()
+  //    * kernel().connection_manager.get_min_delay();
+  //write_to_comm_buffer( invalid_synindex, pos );
+  //write_to_comm_buffer( true, pos );
+
+  displacements_.clear();
+  displacements_.resize( num_processes_, 0 );
 }
 
