@@ -8,12 +8,14 @@ void generate_events_kai(Iterator beg, int simtime, int ngroups, int rank, int n
     int src_gid = 0;
     gen_event new_event;
 
-    int cells_per = ncells / nprocs;
-    int start = rank * cells_per;
+    //neuron distribution
+    const int offset = ncells % nprocs;
+    const bool hasonemore = offset > rank;
+    int cells_per = ncells / nprocs + hasonemore;
 
-    //for the last rank, add the remaining cellgroups
-    if(rank == (nprocs - 1))
-	cells_per = ncells - start;
+    int start = rank * cells_per;
+    if (!hasonemore)
+        start += offset;
 
     //create random number generator/distributions
     /*
@@ -61,12 +63,14 @@ void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, i
     int src_gid = 0;
     gen_event new_event;
 
-    int cells_per = ncells / nprocs;
-    int start = rank * cells_per;
+    //neuron distribution
+    const int offset = ncells % nprocs;
+    const bool hasonemore = offset > rank;
+    int cells_per = ncells / nprocs + hasonemore;
 
-    //for the last rank, add the remaining cellgroups
-    if(rank == (nprocs - 1))
-	cells_per = ncells - start;
+    int start = rank * cells_per;
+    if (!hasonemore)
+        start += offset;
 
     //create random number generator/distributions
     /*
@@ -116,12 +120,14 @@ void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, i
     int src_gid = 0;
     gen_event new_event;
 
-    int cells_per = ncells / nprocs;
-    int start = rank * cells_per;
+    //neuron distribution
+    const int offset = ncells % nprocs;
+    const bool hasonemore = offset > rank;
+    int cells_per = ncells / nprocs + hasonemore;
 
-    //for the last rank, add the remaining cellgroups
-    if(rank == (nprocs - 1))
-	cells_per = ncells - start;
+    int start = rank * cells_per;
+    if (!hasonemore)
+        start += offset;
 
     event_time = 0;
     Iterator it;
