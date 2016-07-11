@@ -8,7 +8,7 @@
 #ifndef EVENTDELIVERYMANAGER_H_
 #define EVENTDELIVERYMANAGER_H_
 
-typedef unsigned int uint_t;
+#include "nest/mpi_manager.h"
 
 #include "nest/synapse/connectionmanager.h"
 

@@ -27,21 +27,11 @@ simulationmanager::update(const int thrd, const int t, long from_step, long to_s
         const int curTime=t+lag;
         while(generator_.compare_top_lte(thrd, curTime)) {
             environment::gen_event g = generator_.pop(thrd);
+            spikeevent se;
+            se.set_sender_gid(g.first);
+            se.set_stamp(g.second);
 
-            //events is local
-            const int myvp = (num_threads_ * rank_) + thrd;
-            //assert();
-            if (g.first%(num_threads_*num_processes_)==myvp) {
-                spikeevent se;
-                se.set_sender_gid(g.first);
-                se.set_stamp(g.second);
-
-                edm_.send_remote(thrd, se, lag);
-            }
-            else {
-                //assert(false);
-            }
-
+            edm_.send_remote(thrd, se, lag);
         }
     }
 }

@@ -104,9 +104,12 @@ namespace nest {
                 if(local_synapses != NULL) {
                     for(int i = 0; i<local_synapses->size(); ++i){
                        const unsigned int t_gid = (*local_synapses)[i];
+
+                       const unsigned int t_lid = ()
+
                        //sort out locally stored connections
                        const unsigned int dest = t_gid % size;
-                       if(dest == rank) {
+                       //if(dest == rank) {
                            //local id out of global id
                            const unsigned int t_lid = t_gid / (ngroups * size);
                            targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
@@ -123,12 +126,12 @@ namespace nest {
                         const unsigned int t_gid = (*global_synapses)[i];
                         //sort out locally stored connections
                         const unsigned int dest = t_gid % size;
-                        if(dest == rank) {
+                        //if(dest == rank) {
                             //local id out of global id
                             const unsigned int t_lid = t_gid / (ngroups * size);
                             targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
                             cm.connect(thrd, s_gid, target);
-                        }
+                        //}
                         else {
                             //assert(false);
                        }
