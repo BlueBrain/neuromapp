@@ -73,7 +73,7 @@ public:
     void insert(double t, int data);
 
 private:
-    std::priority_queue<event, std::vector<event>, is_more> pq_que;
+    std::priority_queue<event, is_more> pq_que;
 };
 
 } //end of namespace
