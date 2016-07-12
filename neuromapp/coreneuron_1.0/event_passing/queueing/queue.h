@@ -38,6 +38,7 @@
 namespace queueing {
 
 struct event {
+    explicit event(int d = 0, double t = 0.):data_(d),t_(t){};
     int data_;
     double t_;
     //        /** \fn operator <
