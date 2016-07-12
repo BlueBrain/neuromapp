@@ -34,7 +34,7 @@
 namespace queueing {
 
 void queue::insert(double tt, int d) {
-    event e(tt,d);
+    event e(d,tt);
     pq_que.push(e);
 }
 
