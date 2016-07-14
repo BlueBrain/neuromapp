@@ -25,11 +25,14 @@ simulationmanager::update(const int thrd, const int t, long from_step, long to_s
     //iterate over steps
     for (long lag=from_step; lag<to_step; lag++) {
         const int curTime=t+lag;
-        while(generator_.compare_top_lte(thrd, curTime)) {
+        while(generator_.compare_top_lte(thrd, curTime)) {\
+
             environment::gen_event g = generator_.pop(thrd);
             spikeevent se;
-            se.set_sender_gid(g.first);
-            se.set_stamp(g.second);
+            se.set_sender_gid(g.first); // nest standard offset of 1
+            se.set_stamp(Time(g.second));
+
+            //std::cout << "pop event at " << curTime << " from " << g.first <<" remaining " << generator_.get_size(thrd) <<  std::endl;
 
             edm_.send_remote(thrd, se, lag);
         }

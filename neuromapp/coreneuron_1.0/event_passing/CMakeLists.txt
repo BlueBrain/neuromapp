@@ -4,12 +4,14 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 #ENVIRONMENT LIBRARY
 add_library (coreneuron10_environment environment/generator.cpp
-                                      environment/presyn_maker.cpp)
+                                      environment/presyn_maker.cpp
+                                      environment/neurondistribution.cpp)
 
 install (TARGETS coreneuron10_environment DESTINATION lib)
 install (FILES environment/generator.h
 	       environment/event_generators.hpp
-               environment/presyn_maker.h DESTINATION include)
+               environment/presyn_maker.h
+               environment/neurondistribution.h DESTINATION include)
 
 
 #QUEUEING LIBRARY

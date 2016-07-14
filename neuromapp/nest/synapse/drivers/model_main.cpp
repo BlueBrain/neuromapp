@@ -226,8 +226,15 @@ namespace nest
             }
             if ( with_manager ) {
                 //build connection manager
+
+                const int ncells = vm["nNeurons"].as<int>();
+
                 cn = new connectionmanager(vm);
-                build_connections_from_neuron(detectors_targetindex, *cn, vm);
+                environment::continousdistribution neuro_dist(1, 0, ncells);
+                environment::presyn_maker presyns(num_connections, environment::fixedoutdegree);
+                presyns(0, &neuro_dist);
+
+                build_connections_from_neuron(presyns, neuro_dist, detectors_targetindex, vm, *cn);
             }
             else if ( with_connector ) {
                 //build connector
@@ -272,8 +279,11 @@ namespace nest
             environment::event_generator generator(ngroups);
             double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
             double lambda = 1.0 / static_cast<double>(mean * size);
+
+            environment::continousdistribution neuro_dist(size, rank, ncells);
+
             environment::generate_poisson_events(generator.begin(),
-                             simtime, ngroups, rank, size, ncells, lambda);
+                             simtime, ngroups, rank, size, lambda, &neuro_dist);
 
             const unsigned int stats_generated_spikes = generator.get_size(t);
             int sim_time = 0;

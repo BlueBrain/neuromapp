@@ -49,8 +49,6 @@ struct Time {
         }
         return 1/1000.0 * tics;
      }
-     Time(long t): tics(t)
-     {}
 };
 
 typedef size_t index;

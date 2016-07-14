@@ -197,9 +197,13 @@ namespace nest{
     inline Tnew*
     suicide_and_resurrect( Told connector, C connection )
     {
-        Tnew* p = new ( poormansallocpool.alloc( sizeof( Tnew ) ) )
+        Tnew* p = NULL;
+        #pragma omp critical // not thread safe!!
+        {
+        p = new ( poormansallocpool.alloc( sizeof( Tnew ) ) )
         Tnew(connector, connection );
         connector.~Told(); // THIS is useless NEST design ...
+        }
         return p;
     }
 
@@ -207,7 +211,11 @@ namespace nest{
     inline T*
     allocate( C c )
     {
-      T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T( c );
+        T* p = NULL;
+#pragma omp critical // not thread safe!!
+        {
+        p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T( c );
+        }
       return p;
     }
 
@@ -215,7 +223,11 @@ namespace nest{
     inline T*
     allocate()
     {
-      T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T();
+        T* p = NULL;
+#pragma omp critical // not thread safe!!
+        {
+        p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T();
+        }
       return p;
     }
 

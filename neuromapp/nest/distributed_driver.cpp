@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    int ngroups = atoi(argv[1]);
+    int nthreads = atoi(argv[1]);
     int simtime = atoi(argv[2]);
     int ncells = atoi(argv[3]);
     int fan = atoi(argv[4]);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     namespace po = boost::program_options;
     po::variables_map vm;
     vm.insert(std::make_pair("nNeurons", po::variable_value(ncells, false)));
-    vm.insert(std::make_pair("nGroups", po::variable_value(ngroups, false)));
+    vm.insert(std::make_pair("nGroups", po::variable_value(nthreads, false)));
     vm.insert(std::make_pair("size", po::variable_value(size, false)));
     vm.insert(std::make_pair("rank", po::variable_value(rank, false)));
     vm.insert(std::make_pair("thread", po::variable_value(0, false)));
@@ -73,13 +73,15 @@ int main(int argc, char* argv[]) {
     vm.insert(std::make_pair("tau_fac", po::variable_value(1.0, false)));
 
     //create environment
-    environment::event_generator generator(ngroups);
+    environment::event_generator generator(nthreads);
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
     double lambda = 1.0 / static_cast<double>(mean * size);
 
+    environment::continousdistribution neuro_dist(size, rank, ncells);
+
     environment::generate_events_kai(generator.begin(),
-                              simtime, ngroups, rank, size, ncells, lambda);
+                              simtime, nthreads, rank, size, lambda, &neuro_dist);
 
     //preallocate vector for results
     int num_detectors = ncells;
@@ -92,11 +94,14 @@ int main(int argc, char* argv[]) {
         detectors_targetindex[i] = nest::scheduler::add_node(&detectors[i]);  //add them to the scheduler
     }
 
-    nest::connectionmanager cn(vm);
-    nest::build_connections_from_neuron(detectors_targetindex, cn, vm);
+    environment::presyn_maker presyns(fan, environment::fixedoutdegree);
+    presyns(rank, &neuro_dist);
 
-    nest::eventdelivermanager edm(cn, size, ngroups, mindelay);
-    nest::simulationmanager sm(edm, generator, rank, size, ngroups);
+    nest::connectionmanager cn(vm);
+    nest::build_connections_from_neuron(presyns, neuro_dist, detectors_targetindex, vm, cn);
+
+    nest::eventdelivermanager edm(cn, size, nthreads, mindelay);
+    nest::simulationmanager sm(edm, generator, rank, size, nthreads);
 
 
     struct timeval start, end;
@@ -108,7 +113,7 @@ int main(int argc, char* argv[]) {
     long to_step = mindelay;
     long Tstop = simtime;
 
-    omp_set_num_threads(ngroups);
+    omp_set_num_threads(nthreads);
 
     #pragma omp parallel
     {

@@ -376,6 +376,7 @@ BOOST_AUTO_TEST_CASE(nest_manager_) {
 
     nest::connectionmanager cm(vm);
 
+
     const int t=0;
     const int s_gid=1;
 
@@ -392,6 +393,8 @@ BOOST_AUTO_TEST_CASE(nest_manager_) {
 
 BOOST_AUTO_TEST_CASE(nest_manager_build_from_neuron) {
     nest::scheduler test_env;
+
+    std::cout << "nest_manager_build_from_neuron" << std::endl;
 
     const int ncells = 50;
     const int outgoing = 20;
@@ -426,9 +429,12 @@ BOOST_AUTO_TEST_CASE(nest_manager_build_from_neuron) {
         detectors_targetindex[i] = nest::scheduler::add_node(&detectors[i]);  //add them to the scheduler
     }
 
-    nest::connectionmanager cm(vm);
-    build_connections_from_neuron(detectors_targetindex, cm, vm);
+    environment::continousdistribution neuro_dist(1, 0, ncells);
+    environment::presyn_maker presyns(outgoing, environment::fixedoutdegree);
+    presyns(0, &neuro_dist);
 
+    nest::connectionmanager cm(vm);
+    build_connections_from_neuron(presyns, neuro_dist, detectors_targetindex, vm, cm);
     BOOST_REQUIRE_EQUAL(cm.connections_[ 0 ].size(), ncells);
 
     nest::spikeevent se;

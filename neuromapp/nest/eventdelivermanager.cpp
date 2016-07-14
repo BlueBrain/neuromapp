@@ -14,7 +14,7 @@ using namespace nest;
 
 eventdelivermanager::eventdelivermanager(connectionmanager& cn, const unsigned int num_ranks, const unsigned int num_threads, const unsigned int min_delay):
     min_delay_(min_delay),
-    comm_marker_(0),
+    comm_marker_(-2), // in nest 0 is used as maker, in the miniapp neuron with gid 0 can exists, therefore the marker is changed
     send_buffer_size_( 1 ),
     recv_buffer_size_( 1 ),
     num_threads_(num_threads),
@@ -118,6 +118,7 @@ eventdelivermanager::deliver_events( thread thrd, long t )
           // tell all local nodes about spikes on remote machines.
           se.set_stamp( prepared_timestamps[ lag ] );
           se.set_sender_gid( nid );
+          std::cout <<"send " << thrd << " " << nid << " " << se.stamp_.get_ms() << std::endl;
           cn_.send( thrd, nid, se );
         }
         else
