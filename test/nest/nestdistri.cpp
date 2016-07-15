@@ -218,31 +218,39 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
     if (rank == 0)
         BOOST_CHECK_EQUAL(all_spikes, all_events*outgoing);
 
+
+    int kept = 0;
     while(generator_compare.compare_top_lte(0, mindelay)) {
         environment::gen_event g = generator_compare.pop(0);
         std::vector<int> targets = getTargets(presyns, g.first);
 
         for(unsigned int i=0; i < targets.size(); ++i) {
             unsigned int di = targets[i]%detectors.size();
-
+	
+            kept++;
             for (std::vector<nest::spikeevent>::iterator it = detectors[di].spikes.begin(); it!=detectors[di].spikes.end();  it++) {
                 const int sender = it->get_sender_gid();
                 const nest::Time t = it->get_stamp();
 
                 nest::Time g_t(g.second);
                 std::cout << "compare " << sender << "==" << g.first << std::endl;
-                std::cout << "t " << g_t.get_ms() << "==" <<  t.get_ms() << std::endl;
+                std::cout << "t " << t.get_ms()  << "==" << g_t.get_ms()  << std::endl;
 
 
                 if (sender == g.first && std::abs(g_t.get_ms() - t.get_ms()) < 0.000001) { //take delay into account
                     BOOST_CHECK(true);
                     detectors[di].spikes.erase(it);
                     std::cout << "REMOVE" << std::endl;
+		    kept--;
                     break;
                 }
             }
         }
     }
+    BOOST_CHECK_EQUAL(kept, 0);
+    for (int i=0; i <detectors.size(); i++) {
+    	BOOST_CHECK_EQUAL(detectors[i].spikes.size(), 0);
+    } 
 }
 
 

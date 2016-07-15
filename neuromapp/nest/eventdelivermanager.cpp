@@ -100,7 +100,7 @@ eventdelivermanager::deliver_events( thread thrd, long t )
     {
       assert(t>=lag);
       const long curTime = t - lag;
-      prepared_timestamps[ lag ] = curTime;
+      prepared_timestamps[ lag ] = curTime - 1;
     }
 
     for ( size_t vp = 0;
