@@ -75,19 +75,11 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 	#endif //_DEBUG
 
-    //trying out without connector
-    command_v.clear();
-    command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--nConnections");
-    command_v.push_back("2");
-    error = mapp::execute(command_v,nest::model_execute);
-    BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
-
     //trying out connector
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
     command_v.push_back("--connector");
-    command_v.push_back("--nConnections");
+    command_v.push_back("--fanout");
     command_v.push_back("2");
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_OK);
@@ -95,15 +87,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     //trying out invalid dt
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--dt");
-    command_v.push_back("0"); // model does not exist
-    error = mapp::execute(command_v,nest::model_execute);
-    BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
-
-    //trying out invalid iterations
-    command_v.clear();
-    command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--iterations");
+    command_v.push_back("--nSpikes");
     command_v.push_back("0"); // model does not exist
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
@@ -300,7 +284,7 @@ BOOST_AUTO_TEST_CASE(nest_connector_test){
     std::vector<std::string> command_v;
     int error(mapp::MAPP_OK);
     command_v.push_back("connector_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--iterations");
+    command_v.push_back("--nNeurons");
     command_v.push_back("3");
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_OK);
@@ -360,10 +344,9 @@ BOOST_AUTO_TEST_CASE(nest_manager_) {
     const int ncells = 2;
 
     namespace po = boost::program_options;
-
     po::variables_map vm;
     vm.insert(std::make_pair("nNeurons", po::variable_value(ncells, false)));
-    vm.insert(std::make_pair("nGroups", po::variable_value(1, false)));
+    vm.insert(std::make_pair("nThreads", po::variable_value(1, false)));
 
     vm.insert(std::make_pair("model", po::variable_value(std::string("tsodyks2"), false)));
     vm.insert(std::make_pair("delay", po::variable_value(1.0, false)));
@@ -375,7 +358,6 @@ BOOST_AUTO_TEST_CASE(nest_manager_) {
     vm.insert(std::make_pair("tau_fac", po::variable_value(1.0, false)));
 
     nest::connectionmanager cm(vm);
-
 
     const int t=0;
     const int s_gid=1;
@@ -402,12 +384,7 @@ BOOST_AUTO_TEST_CASE(nest_manager_build_from_neuron) {
 
     po::variables_map vm;
     vm.insert(std::make_pair("nNeurons", po::variable_value(ncells, false)));
-    vm.insert(std::make_pair("nGroups", po::variable_value(1, false)));
-
-    vm.insert(std::make_pair("size", po::variable_value(1, false)));
-    vm.insert(std::make_pair("rank", po::variable_value(0, false)));
-    vm.insert(std::make_pair("thread", po::variable_value(0, false)));
-    vm.insert(std::make_pair("nConnections", po::variable_value(outgoing, false)));
+    vm.insert(std::make_pair("nThreads", po::variable_value(1, false)));
 
     vm.insert(std::make_pair("model", po::variable_value(std::string("tsodyks2"), false)));
     vm.insert(std::make_pair("delay", po::variable_value(1.0, false)));
@@ -434,7 +411,7 @@ BOOST_AUTO_TEST_CASE(nest_manager_build_from_neuron) {
     presyns(0, &neuro_dist);
 
     nest::connectionmanager cm(vm);
-    build_connections_from_neuron(presyns, neuro_dist, detectors_targetindex, vm, cm);
+    build_connections_from_neuron(0, neuro_dist, presyns, detectors_targetindex, cm);
     BOOST_REQUIRE_EQUAL(cm.connections_[ 0 ].size(), ncells);
 
     nest::spikeevent se;

@@ -41,10 +41,10 @@ namespace nest
         void send( thread t, index sgid, event& e );
     };
 
-    void build_connections_from_neuron(environment::presyn_maker& presyns,
-                                       environment::continousdistribution& neuro_rank_dist,
-                                       std::vector<targetindex>& detectors_targetindex,
-                                       po::variables_map const& vm,
+    void build_connections_from_neuron(const thread& thrd,
+                                       const environment::continousdistribution& neuro_vp_dist,
+                                       const environment::presyn_maker& presyns,
+                                       const std::vector<targetindex>& detectors_targetindex,
                                        connectionmanager& cm);
 };
 

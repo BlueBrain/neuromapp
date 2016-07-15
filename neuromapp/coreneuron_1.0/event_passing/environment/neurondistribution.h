@@ -20,24 +20,24 @@ namespace environment
         /**
          *  Get number of local cells
          */
-        virtual size_t getlocalcells() = 0;
+        virtual size_t getlocalcells() const = 0;
         /**
          *  Get number of global cells
          */
-        virtual size_t getglobalcells() = 0;
+        virtual size_t getglobalcells() const = 0;
 
         /**
          *  Return true if gid is stored locally
          */
-        virtual bool isLocal(size_t id) = 0;
+        virtual bool isLocal(size_t id) const = 0;
         /**
          *  Maps global ids to local ids
          */
-        virtual size_t global2local(size_t glo) = 0;
+        virtual size_t global2local(size_t glo) const = 0;
         /**
          *  Maps local ids to global ids
          */
-        virtual size_t local2global(size_t loc) = 0;
+        virtual size_t local2global(size_t loc) const = 0;
     };
 
     class continousdistribution : public neurondistribution {
@@ -53,28 +53,28 @@ namespace environment
 
         ~continousdistribution() {};
 
-        inline size_t getlocalcells()
+        inline size_t getlocalcells() const
         {
             return local_number;
         }
-        inline size_t getglobalcells()
+        inline size_t getglobalcells() const
         {
             return global_number;
         }
-        inline bool isLocal(size_t id)
+        inline bool isLocal(size_t id) const
         {
             assert(id < global_number);
 
             return id>=start && id<start+local_number;
         }
-        inline size_t global2local(size_t glo)
+        inline size_t global2local(size_t glo) const
         {
             assert(glo>=start);
             assert(glo<start+local_number);
 
             return  glo - start;
         }
-        inline size_t local2global(size_t loc)
+        inline size_t local2global(size_t loc) const
         {
             assert(loc < local_number);
 

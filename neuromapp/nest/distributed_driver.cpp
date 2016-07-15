@@ -40,7 +40,7 @@
 
 
 int main(int argc, char* argv[]) {
-    assert(argc == 8);
+    assert(argc == 16);
 
     MPI_Init(NULL, NULL);
     int rank, size;
@@ -53,24 +53,34 @@ int main(int argc, char* argv[]) {
     int fan = atoi(argv[4]);
     int nSpikes = atoi(argv[5]);
     int mindelay = atoi(argv[6]);
-    bool algebra = atoi(argv[7]);
+
+    std::string model(argv[7]);
+    double syn_delay = boost::lexical_cast<double>(argv[8]);
+    double syn_weight = boost::lexical_cast<double>(argv[9]);
+    double syn_U = boost::lexical_cast<double>(argv[10]);
+    double syn_u = boost::lexical_cast<double>(argv[11]);
+    double syn_x = boost::lexical_cast<double>(argv[12]);
+    double syn_tau_rec = boost::lexical_cast<double>(argv[13]);
+    double syn_tau_fac = boost::lexical_cast<double>(argv[14]);
+    bool pool = boost::lexical_cast<bool>(argv[15]);
 
     namespace po = boost::program_options;
     po::variables_map vm;
     vm.insert(std::make_pair("nNeurons", po::variable_value(ncells, false)));
-    vm.insert(std::make_pair("nGroups", po::variable_value(nthreads, false)));
-    vm.insert(std::make_pair("size", po::variable_value(size, false)));
-    vm.insert(std::make_pair("rank", po::variable_value(rank, false)));
-    vm.insert(std::make_pair("thread", po::variable_value(0, false)));
-    vm.insert(std::make_pair("nConnections", po::variable_value(fan, false)));
+    vm.insert(std::make_pair("nThreads", po::variable_value(nthreads, false)));
     vm.insert(std::make_pair("model", po::variable_value(std::string("tsodyks2"), false)));
-    vm.insert(std::make_pair("delay", po::variable_value(1.0, false)));
-    vm.insert(std::make_pair("weight", po::variable_value(1.0, false)));
-    vm.insert(std::make_pair("U", po::variable_value(1.0, false)));
-    vm.insert(std::make_pair("u", po::variable_value(1.0, false)));
-    vm.insert(std::make_pair("x", po::variable_value(1.0, false)));
-    vm.insert(std::make_pair("tau_rec", po::variable_value(1.0, false)));
-    vm.insert(std::make_pair("tau_fac", po::variable_value(1.0, false)));
+    vm.insert(std::make_pair("delay", po::variable_value(syn_delay, false)));
+    vm.insert(std::make_pair("weight", po::variable_value(syn_weight, false)));
+    vm.insert(std::make_pair("U", po::variable_value(syn_U, false)));
+    vm.insert(std::make_pair("u", po::variable_value(syn_u, false)));
+    vm.insert(std::make_pair("x", po::variable_value(syn_x, false)));
+    vm.insert(std::make_pair("tau_rec", po::variable_value(syn_tau_rec, false)));
+    vm.insert(std::make_pair("tau_fac", po::variable_value(syn_tau_fac, false)));
+
+
+    nest::PoorMansAllocator poormansallocpool;
+    if (pool)
+        poormansallocpool.states = pool;
 
     //create environment
     environment::event_generator generator(nthreads);
@@ -98,7 +108,24 @@ int main(int argc, char* argv[]) {
     presyns(rank, &neuro_dist);
 
     nest::connectionmanager cn(vm);
-    nest::build_connections_from_neuron(presyns, neuro_dist, detectors_targetindex, vm, cn);
+
+    #ifdef _OPENMP
+    omp_set_num_threads(nthreads);
+    #endif
+    #pragma omp parallel
+    {
+        #ifdef _OPENMP
+        const int thrd = omp_get_thread_num();
+        const int num_threads = omp_get_num_threads();
+        #else
+        const int thrd = 0;
+        const int num_threads = 1;
+        #endif
+
+        //neuron distribution on thread based on rank distribution
+        environment::continousdistribution neuro_vp_dist(num_threads, thrd, &neuro_dist);
+        nest::build_connections_from_neuron(thrd, neuro_vp_dist, presyns, detectors_targetindex, cn);
+    }
 
     nest::eventdelivermanager edm(cn, size, nthreads, mindelay);
     nest::simulationmanager sm(edm, generator, rank, size, nthreads);
@@ -113,11 +140,14 @@ int main(int argc, char* argv[]) {
     long to_step = mindelay;
     long Tstop = simtime;
 
-    omp_set_num_threads(nthreads);
-
     #pragma omp parallel
     {
+        #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
+        #else
+        const int thrd = 0;
+        #endif
+
         while(t < Tstop){
             #pragma omp barrier
 

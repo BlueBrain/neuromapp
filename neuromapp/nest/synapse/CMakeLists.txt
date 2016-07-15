@@ -1,3 +1,6 @@
+include_directories(${PROJECT_BINARY_DIR})
+include_directories(${PROJECT_SOURCE_DIR})
+
 add_library (synapse connectionmanager.cpp connector_base.cpp event.cpp node.cpp scheduler.cpp drivers/model_main.cpp)
 target_link_libraries(synapse coreneuron10_environment)
 

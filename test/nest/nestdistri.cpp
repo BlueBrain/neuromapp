@@ -120,12 +120,12 @@ std::vector<int> getTargets(environment::presyn_maker& presyns, const int& s_gid
 
 BOOST_AUTO_TEST_CASE(nest_distri_event)
 {
-    int ncells = 2;
+    int ncells = 20;
     int mindelay = 5;
-    int nthreads = 1;
-    int outgoing = 1;
-    int simtime = mindelay;
-    int nSpikes = 2;
+    int nthreads = 4;
+    int outgoing = 8;
+    int simtime = 2*mindelay;
+    int nSpikes = 100;
 
     double delay = 1.0;
 
@@ -138,12 +138,7 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
     namespace po = boost::program_options;
     po::variables_map vm;
     vm.insert(std::make_pair("nNeurons", po::variable_value(ncells, false)));
-    vm.insert(std::make_pair("nGroups", po::variable_value(nthreads, false)));
-
-    vm.insert(std::make_pair("size", po::variable_value(num_processes, false)));
-    vm.insert(std::make_pair("rank", po::variable_value(rank, false)));
-    //vm.insert(std::make_pair("thread", po::variable_value(0, false)));
-    vm.insert(std::make_pair("nConnections", po::variable_value(outgoing, false)));
+    vm.insert(std::make_pair("nThreads", po::variable_value(nthreads, false)));
 
     vm.insert(std::make_pair("model", po::variable_value(std::string("tsodyks2"), false)));
     vm.insert(std::make_pair("delay", po::variable_value(delay, false)));
@@ -170,10 +165,13 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
 
     //generate nest data structure out of it
     nest::connectionmanager cn(vm);
-    nest::build_connections_from_neuron(presyns, neuro_dist, detectors_targetindex, vm, cn);
+
+    for (unsigned int thrd=0; thrd<nthreads; thrd++) {
+        environment::continousdistribution neuro_vp_dist(nthreads, thrd, &neuro_dist);
+        nest::build_connections_from_neuron(thrd, neuro_vp_dist, presyns, detectors_targetindex, cn);
+    }
+
     nest::eventdelivermanager edm(cn, num_processes, nthreads, mindelay);
-
-
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
     double lambda = 1.0 / static_cast<double>(mean * num_processes);
@@ -182,10 +180,10 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
     environment::event_generator generator(nthreads);
     environment::event_generator generator_compare(1);
 
+    //create squential distribution: to get all events on all ranks
     environment::continousdistribution neuro_dist_compare(1, 0, ncells);
 
-    //environment::generate_events_kai(generator.begin(), simtime, nthreads, rank, num_processes, lambda, &neuro_dist);
-
+    //uniform distribution does not include a random generator: generate twice the same events
     environment::generate_uniform_events(generator.begin(), simtime, nthreads, 2, &neuro_dist);
     environment::generate_uniform_events(generator_compare.begin(), simtime, 1, 2, &neuro_dist_compare);
 
@@ -210,46 +208,50 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
     for(unsigned int i=0; i < detectors.size(); ++i)
         spikes += detectors[i].spikes.size();
 
+
+    //check number of events over all ranks: receiving vs sending
     int all_spikes;
     MPI_Reduce(&spikes,&all_spikes,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
-
     int all_events;
     MPI_Reduce(&events,&all_events,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
     if (rank == 0)
         BOOST_CHECK_EQUAL(all_spikes, all_events*outgoing);
 
-
+    //check if events were send properly
     int kept = 0;
+    //generate on all nodes all spike events
     while(generator_compare.compare_top_lte(0, mindelay)) {
         environment::gen_event g = generator_compare.pop(0);
+        //use local connections
         std::vector<int> targets = getTargets(presyns, g.first);
-
+        //trace all connections
         for(unsigned int i=0; i < targets.size(); ++i) {
             unsigned int di = targets[i]%detectors.size();
-	
             kept++;
+            //try to find spike event in spike detectors
             for (std::vector<nest::spikeevent>::iterator it = detectors[di].spikes.begin(); it!=detectors[di].spikes.end();  it++) {
                 const int sender = it->get_sender_gid();
                 const nest::Time t = it->get_stamp();
 
+                //compare all spike events
                 nest::Time g_t(g.second);
                 std::cout << "compare " << sender << "==" << g.first << std::endl;
                 std::cout << "t " << t.get_ms()  << "==" << g_t.get_ms()  << std::endl;
-
-
-                if (sender == g.first && std::abs(g_t.get_ms() - t.get_ms()) < 0.000001) { //take delay into account
-                    BOOST_CHECK(true);
+                if (sender == g.first && std::abs(g_t.get_ms() - t.get_ms()) < 0.000001) {
+                    //remove all matches from the spike detectors
                     detectors[di].spikes.erase(it);
                     std::cout << "REMOVE" << std::endl;
-		    kept--;
+                    kept--;
                     break;
                 }
             }
         }
     }
+
+    //all spikes should be removed from the spike detectors
     BOOST_CHECK_EQUAL(kept, 0);
     for (int i=0; i <detectors.size(); i++) {
-    	BOOST_CHECK_EQUAL(detectors[i].spikes.size(), 0);
+        BOOST_CHECK_EQUAL(detectors[i].spikes.size(), 0);
     } 
 }
 
