@@ -95,6 +95,16 @@ typedef void Subnet;
         std::vector<spikeevent> spikes;
         void handle( spikeevent& e );
     };
+
+    class spikecounter : public node
+    {
+    public:
+        int num;
+        double sumtime;
+        spikecounter(): num(0), sumtime(0){
+        }
+        void handle( spikeevent& e );
+    };
 };
 
 #endif

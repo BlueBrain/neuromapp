@@ -77,10 +77,7 @@ int main(int argc, char* argv[]) {
     vm.insert(std::make_pair("tau_rec", po::variable_value(syn_tau_rec, false)));
     vm.insert(std::make_pair("tau_fac", po::variable_value(syn_tau_fac, false)));
 
-
-    nest::PoorMansAllocator poormansallocpool;
-    if (pool)
-        poormansallocpool.states = pool;
+    nest::pool_env penv(nthreads);
 
     //create environment
     environment::event_generator generator(nthreads);
@@ -95,7 +92,7 @@ int main(int argc, char* argv[]) {
 
     //preallocate vector for results
     int num_detectors = ncells;
-    std::vector<nest::spikedetector> detectors(num_detectors);
+    std::vector<nest::spikecounter> detectors(num_detectors);
     std::vector<nest::targetindex> detectors_targetindex(num_detectors);
 
     for(unsigned int i=0; i < num_detectors; ++i) {
@@ -163,7 +160,8 @@ int main(int argc, char* argv[]) {
             
             #pragma master
             {
-                t++;
+                t+=mindelay;
+                //std::cout << "NEXT TIMESTEP: " << t << std::endl;
                 if (t+to_step>Tstop)
                     to_step = Tstop-t;
             }
@@ -178,8 +176,21 @@ int main(int argc, char* argv[]) {
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec))
         + ((end.tv_usec - start.tv_usec) / 1000);
 
+
+    int l_num = 0;
+    double  l_sumtime = 0;
+    for(unsigned int i=0; i < num_detectors; ++i) {
+        l_num += detectors[i].num;
+        l_sumtime += detectors[i].sumtime;
+    }
+    int g_num;
+    MPI_Reduce( &l_num, &g_num, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD );
+    double g_sumtime;
+    MPI_Reduce( &l_sumtime, &g_sumtime, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+
     if(rank == 0){
         std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
+        std::cout<<"statistics: num_recv="<< g_num << " acc_spike_times=" << g_sumtime << std::endl;
     }
 
     //pl.accumulate_stats();

@@ -58,13 +58,11 @@ namespace nest
         \param vm encapsulate the command line
         \return error message from mapp::mapp_error
      */
-    int model_help(int argc, char* const argv[], po::variables_map& vm)
+    int model_help(int argc, char* const argv[], po::variables_map& vm, subpragram& subprog)
     {
         std::string subprog_str;
         if (argc>1)
             subprog_str = argv[1];
-
-        subpragram subprog;
 
         bool use_mpi = false;
         bool use_manager = false;
@@ -116,11 +114,15 @@ namespace nest
 
         if (use_manager || use_mpi)
             desc.add_options()
-            ("nNeurons", po::value<int>()->default_value(10), "number of neurons")
             ("min_delay", po::value<int>()->default_value(2), "min delay of simulation")
             ("nThreads", po::value<int>()->default_value(1), "number of threads")
             ("nProcesses", po::value<int>()->default_value(1), "number of ranks")
-            ("simtime", po::value<int>()->default_value(1), "simulation time");
+            ("simtime", po::value<int>()->default_value(4), "simulation time")
+            ("nNeurons", po::value<int>()->default_value(10), "number of neurons");
+
+        if (use_mpi)
+            desc.add_options()
+            ("run", po::value<std::string>()->default_value("/usr/bin/mpiexec"), "mpi run command");
 
         if (use_manager)
             desc.add_options()
@@ -164,7 +166,7 @@ namespace nest
                 std::cout << "Error: min_delay has to be greater than 0" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
-            if (vm["simtime"].as<int>() > 0 && (vm["simtime"].as<int>() % vm["min_delay"].as<int>()) == 0) {
+            if (vm["simtime"].as<int>() <= 0 || (vm["simtime"].as<int>() % vm["min_delay"].as<int>()) != 0) {
                 std::cout << "Error: simtime has to be a multiple of min_delay" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
@@ -231,37 +233,42 @@ namespace nest
             return mapp::MAPP_USAGE;
         }
 
-        return mapp::MAPP_OK;
+        if (use_manager || use_mpi || use_connector || use_connection){
+            return mapp::MAPP_OK;
+        }
+        else{
+            return mapp::MAPP_USAGE;
+        }
     }
 
     /** \fn content(po::variables_map const& vm)
         \brief Execute the NEST synapse Miniapp.
         \param vm encapsulate the command line and all needed informations
      */
-    void model_content(po::variables_map const& vm)
+    void model_content(po::variables_map const& vm, subpragram& subprog)
     {
         const int nSpikes = vm["nSpikes"].as<int>();
-        const int ncells = vm["nNeurons"].as<int>();
 
-        bool use_connector = vm.count("connector") > 0;
-        bool use_manager = vm.count("manager") > 0;
-        bool use_mpi = vm.count("distributed") > 0;
+        bool use_connection = subprog == connection;
+        bool use_connector = subprog == connector;
+        bool use_manager = subprog == manager;
+        bool use_mpi = subprog == distributed;
 
         if (use_mpi) {
             std::stringstream command;
+
             std::string path = helper_build_path::mpi_bin_path();
 
-            size_t nthread = vm["nThreads"].as<size_t>();
+            size_t nthread = vm["nThreads"].as<int>();
             std::string mpi_run = vm["run"].as<std::string>();
-            size_t nproc = vm["nProcesses"].as<size_t>();
+            size_t nproc = vm["nProcesses"].as<int>();
 
             //command line args
 
-            size_t ncells = vm["nNeurons"].as<size_t>();
-            size_t fan = vm["fanout"].as<size_t>();
-            size_t mindelay = vm["min_delay"].as<size_t>();
-
-            size_t simtime = vm["simtime"].as<size_t>();
+            size_t ncells = vm["nNeurons"].as<int>();
+            size_t fan = vm["fanout"].as<int>();
+            size_t mindelay = vm["min_delay"].as<int>();
+            size_t simtime = vm["simtime"].as<int>();
 
             std::string syn_model = vm["model"].as<std::string>();
             double syn_delay = vm["delay"].as<double>();
@@ -273,11 +280,11 @@ namespace nest
             double syn_tau_fac = vm["tau_fac"].as<double>();
             bool pool = vm["pool"].as<bool>();
 
-            std::string exec ="nest_exec";
+            std::string exec ="nest_dist_exec";
 
             command << "OMP_NUM_THREADS=" << nthread << " " <<
                 mpi_run <<" -n "<< nproc << " " << path << exec <<
-                nthread << " " << simtime << " " <<
+                " " << nthread << " " << simtime << " " <<
                 ncells << " " << fan << " " <<
                 nSpikes << " " << mindelay << " " <<
                 syn_model << " " << syn_delay << " " <<
@@ -306,9 +313,7 @@ namespace nest
             const int fanout = vm["fanout"].as<int>();
 
             //setup allocator
-            PoorMansAllocator poormansallocpool;
-            if(pool)
-                poormansallocpool.states = pool;
+            nest::pool_env penv(nthreads, pool);
 
             //build connection manager
             connectionmanager cm(vm);
@@ -366,8 +371,9 @@ namespace nest
             std::cout << "\trecv spikes: " << recvSpikes << std::endl;
 
             std::cout << "\tEvents left:" << std::endl;
-            while (!generator.empty(t)) {
-                environment::gen_event g = generator.pop(t);
+
+            while (!generator.empty(0)) {  // thread 0
+                environment::gen_event g = generator.pop(0); // thread 0
                 std::cout << "Event " << g.first << " " << g.second << std::endl;
             }
         }
@@ -384,9 +390,7 @@ namespace nest
             const int fanout = vm["fanout"].as<int>();
 
             //setup allocator
-            PoorMansAllocator poormansallocpool;
-            if(pool)
-                poormansallocpool.states = pool;
+            nest::pool_env penv(1, pool); // use one thread
 
             //preallocate vector for results
             std::vector<spikedetector> detectors(fanout);
@@ -420,8 +424,6 @@ namespace nest
             for (unsigned int i=0; i<nSpikes; i++) {
                 conn->send(events[i]); //send spike
             }
-
-            delete conn;
 
             delay = boost::chrono::system_clock::now() - start;
             std::cout << "Connector simulated with " << fanout << " connections" << std::endl;
@@ -469,8 +471,9 @@ namespace nest
     {
         try {
             po::variables_map vm; // it contains everything
-            if(int error = model_help(argc, argv, vm)) return error;
-            model_content(vm); // execute the miniapp
+            subpragram subprog;
+            if(int error = model_help(argc, argv, vm, subprog)) return error;
+            model_content(vm, subprog); // execute the miniapp
         }
         catch(std::exception& e){
             std::cout << e.what() << "\n";

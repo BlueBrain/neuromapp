@@ -100,7 +100,7 @@ eventdelivermanager::deliver_events( thread thrd, long t )
     {
       assert(t>=lag);
       const long curTime = t - lag;
-      prepared_timestamps[ lag ] = curTime - 1;
+      prepared_timestamps[ lag ] = curTime -1;
     }
 
     for ( size_t vp = 0;
@@ -118,7 +118,6 @@ eventdelivermanager::deliver_events( thread thrd, long t )
           // tell all local nodes about spikes on remote machines.
           se.set_stamp( prepared_timestamps[ lag ] );
           se.set_sender_gid( nid );
-          std::cout <<"send " << thrd << " " << nid << " " << se.stamp_.get_ms() << std::endl;
           cn_.send( thrd, nid, se );
         }
         else

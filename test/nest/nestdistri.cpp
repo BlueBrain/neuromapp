@@ -120,12 +120,12 @@ std::vector<int> getTargets(environment::presyn_maker& presyns, const int& s_gid
 
 BOOST_AUTO_TEST_CASE(nest_distri_event)
 {
-    int ncells = 20;
-    int mindelay = 5;
-    int nthreads = 4;
-    int outgoing = 8;
-    int simtime = 2*mindelay;
-    int nSpikes = 100;
+    int ncells = 2;
+    int mindelay = 10;
+    int nthreads = 1;
+    int outgoing = 2;
+    int simtime = 5*mindelay;
+    //int nSpikes = 200;
 
     double delay = 1.0;
 
@@ -148,6 +148,8 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
     vm.insert(std::make_pair("x", po::variable_value(1.0, false)));
     vm.insert(std::make_pair("tau_rec", po::variable_value(1.0, false)));
     vm.insert(std::make_pair("tau_fac", po::variable_value(1.0, false)));
+
+    nest::pool_env penv(nthreads);
 
     //preallocate vector for results
     std::vector<nest::spikedetector> detectors(ncells);
@@ -173,9 +175,6 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
 
     nest::eventdelivermanager edm(cn, num_processes, nthreads, mindelay);
 
-    double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
-    double lambda = 1.0 / static_cast<double>(mean * num_processes);
-
     //create environment
     environment::event_generator generator(nthreads);
     environment::event_generator generator_compare(1);
@@ -184,8 +183,8 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
     environment::continousdistribution neuro_dist_compare(1, 0, ncells);
 
     //uniform distribution does not include a random generator: generate twice the same events
-    environment::generate_uniform_events(generator.begin(), simtime, nthreads, 2, &neuro_dist);
-    environment::generate_uniform_events(generator_compare.begin(), simtime, 1, 2, &neuro_dist_compare);
+    environment::generate_uniform_events(generator.begin(), simtime, nthreads, 1, &neuro_dist);
+    environment::generate_uniform_events(generator_compare.begin(), simtime, 1, 1, &neuro_dist_compare);
 
     nest::simulationmanager sm(edm, generator, rank, num_processes, nthreads);
 
@@ -220,14 +219,16 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
     //check if events were send properly
     int kept = 0;
     //generate on all nodes all spike events
-    while(generator_compare.compare_top_lte(0, mindelay)) {
+    // get events from interval [0, mindelay)
+    while(generator_compare.compare_top_lte(0, mindelay-1)) {
         environment::gen_event g = generator_compare.pop(0);
         //use local connections
         std::vector<int> targets = getTargets(presyns, g.first);
         //trace all connections
         for(unsigned int i=0; i < targets.size(); ++i) {
             unsigned int di = targets[i]%detectors.size();
-            kept++;
+            bool found=false;
+
             //try to find spike event in spike detectors
             for (std::vector<nest::spikeevent>::iterator it = detectors[di].spikes.begin(); it!=detectors[di].spikes.end();  it++) {
                 const int sender = it->get_sender_gid();
@@ -235,16 +236,16 @@ BOOST_AUTO_TEST_CASE(nest_distri_event)
 
                 //compare all spike events
                 nest::Time g_t(g.second);
-                std::cout << "compare " << sender << "==" << g.first << std::endl;
-                std::cout << "t " << t.get_ms()  << "==" << g_t.get_ms()  << std::endl;
                 if (sender == g.first && std::abs(g_t.get_ms() - t.get_ms()) < 0.000001) {
                     //remove all matches from the spike detectors
                     detectors[di].spikes.erase(it);
-                    std::cout << "REMOVE" << std::endl;
-                    kept--;
+                    found = true;
                     break;
                 }
             }
+            kept+=!found;
+            if (!found)
+                std::cout << "not found: sender=" << g.first << " t=" << g.second << std::endl;
         }
     }
 

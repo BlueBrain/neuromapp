@@ -28,4 +28,7 @@ namespace nest
     ConnectorBase::ConnectorBase(): t_lastspike_( 0. )
     {}
 
+    //poormansallocpool should be available globally
+    std::vector<PoorMansAllocator> poormansallocpool;
+
 }; // namespace nest

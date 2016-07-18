@@ -52,12 +52,14 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
 
     //no input
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("connection"); // dummy argument to be compliant with getopt
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_OK);
 
     //trying out wrong model
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("connection"); // dummy argument to be compliant with getopt
     command_v.push_back("--model");
     command_v.push_back("synnotthere"); // model does not exist
     error = mapp::execute(command_v,nest::model_execute);
@@ -67,6 +69,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
 	#ifdef _DEBUG //model parameters are only checked in debug mode
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("connection"); // dummy argument to be compliant with getopt
     command_v.push_back("--model");
     command_v.push_back("tsodyks2");
     command_v.push_back("--U");
@@ -78,7 +81,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     //trying out connector
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--connector");
+    command_v.push_back("connector"); // dummy argument to be compliant with getopt
     command_v.push_back("--fanout");
     command_v.push_back("2");
     error = mapp::execute(command_v,nest::model_execute);
@@ -87,6 +90,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     //trying out invalid dt
     command_v.clear();
     command_v.push_back("model_execute"); // dummy argument to be compliant with getopt
+    command_v.push_back("connection"); // dummy argument to be compliant with getopt
     command_v.push_back("--nSpikes");
     command_v.push_back("0"); // model does not exist
     error = mapp::execute(command_v,nest::model_execute);
@@ -255,6 +259,8 @@ BOOST_AUTO_TEST_CASE(nest_synapse_tsodyks2_test)
 
 BOOST_AUTO_TEST_CASE(nest_grow_static_connector_test)
 {
+    nest::pool_env pevn;
+
     unsigned int K = K_CUTOFF-1;
     //create a connector with one tsodyks2 connection
     ConnectorBase* conn = NULL;
@@ -271,6 +277,8 @@ BOOST_AUTO_TEST_CASE(nest_grow_static_connector_test)
  */
 BOOST_AUTO_TEST_CASE(nest_grow_dynamic_connector_test)
 {
+    nest::pool_env pevn;
+
     unsigned int K = K_CUTOFF+5;
     ConnectorBase* conn = NULL;
     for(unsigned int i = 1; i < K+1; ++i){
@@ -284,13 +292,16 @@ BOOST_AUTO_TEST_CASE(nest_connector_test){
     std::vector<std::string> command_v;
     int error(mapp::MAPP_OK);
     command_v.push_back("connector_execute"); // dummy argument to be compliant with getopt
-    command_v.push_back("--nNeurons");
+    command_v.push_back("connector"); // dummy argument to be compliant with getopt
+    command_v.push_back("--nSpikes");
     command_v.push_back("3");
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_OK);
 }
 
 BOOST_AUTO_TEST_CASE(nest_connector_send) {
+    nest::pool_env pevn;
+
     const double weight = 1.;
     const double delay = 0.1;
     const double U = 0.5;
@@ -341,6 +352,8 @@ BOOST_AUTO_TEST_CASE(nest_connector_send) {
 }
 
 BOOST_AUTO_TEST_CASE(nest_manager_) {
+    nest::pool_env pevn;
+
     const int ncells = 2;
 
     namespace po = boost::program_options;
@@ -375,6 +388,8 @@ BOOST_AUTO_TEST_CASE(nest_manager_) {
 
 BOOST_AUTO_TEST_CASE(nest_manager_build_from_neuron) {
     nest::scheduler test_env;
+
+    nest::pool_env pevn;
 
     std::cout << "nest_manager_build_from_neuron" << std::endl;
 
