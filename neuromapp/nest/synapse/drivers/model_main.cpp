@@ -122,7 +122,8 @@ namespace nest
 
         if (use_mpi)
             desc.add_options()
-            ("run", po::value<std::string>()->default_value("/usr/bin/mpiexec"), "mpi run command");
+            ("run", po::value<std::string>()->default_value("/usr/bin/mpiexec"), "mpi run command")
+            ("rate", po::value<double>()->default_value(-1), "firing rate per neuron");
 
         if (use_manager)
             desc.add_options()
@@ -140,7 +141,7 @@ namespace nest
 
         //check for all
         if (use_mpi || use_manager || use_connector || use_connection)
-        if (vm["nSpikes"].as<int>() <= 0) {
+        if (vm["nSpikes"].as<int>() <= 0 ) {
             std::cout << "Error: nSpikes has to be greater than 0" << std::endl;
             return mapp::MAPP_BAD_DATA;
         }
@@ -247,7 +248,7 @@ namespace nest
      */
     void model_content(po::variables_map const& vm, subpragram& subprog)
     {
-        const int nSpikes = vm["nSpikes"].as<int>();
+        int nSpikes = vm["nSpikes"].as<int>();
 
         bool use_connection = subprog == connection;
         bool use_connector = subprog == connector;
@@ -269,7 +270,12 @@ namespace nest
             size_t fan = vm["fanout"].as<int>();
             size_t mindelay = vm["min_delay"].as<int>();
             size_t simtime = vm["simtime"].as<int>();
-
+            
+            double rate = vm["rate"].as<double>();
+            if (rate>=0) {
+                nSpikes = rate * ncells * simtime;
+                std::cout << "WARNING: nSpikes is overwritten by rate. new value of nSpikes=" << nSpikes << std::endl; 
+            }
             std::string syn_model = vm["model"].as<std::string>();
             double syn_delay = vm["delay"].as<double>();
             double syn_weight = vm["weight"].as<double>();
