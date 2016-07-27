@@ -132,7 +132,6 @@ template< typename Iterator >
 void generate_poisson_events_neuron(Iterator beg, const int& seed,  const int& simtime, const double& neuron_firing_rate, const neurondistribution& neuron_dist) { 
     gen_event new_event;
 
-<<<<<<< HEAD
     //assert(neuron_firing_rate<1.0000001);
 
     //create random number generator/distributions
