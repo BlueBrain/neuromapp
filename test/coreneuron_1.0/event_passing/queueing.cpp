@@ -222,11 +222,13 @@ BOOST_AUTO_TEST_CASE(pool_constructor){
 
     environment::event_generator generator(ngroups);
 
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
+
     double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
     environment::generate_events_kai(generator.begin(),
-                    simtime, ngroups, rank, nprocs, ncells, lambda);
+                    simtime, ngroups, rank, nprocs, lambda, &neuro_dist);
 
 }
 
@@ -249,18 +251,20 @@ BOOST_AUTO_TEST_CASE(pool_fixed_step_1mindelay){
     int simtime = mindelay;
 
     //create the test environment
-    environment::presyn_maker presyns(ncells, fanin);
+    environment::presyn_maker presyns(fanin);
     spike::spike_interface spike(nprocs);
 
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
+
     //generate
-    presyns(nprocs, ngroups, rank);
+    presyns(rank, &neuro_dist);
     environment::event_generator generator(ngroups);
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
     environment::generate_events_kai(generator.begin(),
-                    simtime, ngroups, rank, nprocs, ncells, lambda);
+                    simtime, ngroups, rank, nprocs, lambda, &neuro_dist);
 
     int sum_events = 0;
     for(int i = 0; i < ngroups; ++i){
@@ -289,19 +293,21 @@ BOOST_AUTO_TEST_CASE(pool_send_ite){
     int simtime = 100;
     int rank = 0;
 
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
+
     //create the test environment
-    environment::presyn_maker presyns(ncells, fanin);
+    environment::presyn_maker presyns(fanin);
     spike::spike_interface spike(nprocs);
 
     //generate
-    presyns(nprocs, ngroups, rank);
+    presyns(rank, &neuro_dist);
     environment::event_generator generator(ngroups);
 
     double mean = static_cast<double>(simtime) / static_cast<double>(nspikes);
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
     environment::generate_events_kai(generator.begin(),
-                    simtime, ngroups, rank, nprocs, ncells, lambda);
+                    simtime, ngroups, rank, nprocs, lambda, &neuro_dist);
 
     int sum_events = 0;
     for(int i = 0; i < ngroups; ++i){

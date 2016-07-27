@@ -40,11 +40,17 @@
 
 #include "coreneuron_1.0/event_passing/environment/generator.h"
 #include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
+
+#include "neuromapp/utils/mpi/mpi_helper.h"
+
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
 
 namespace nest
 {
+
+    enum subpragram {connection, connector, manager, distributed};
+
     /** \fn help(int argc, char *const argv[], po::variables_map& vm)
         \brief Helper using boost program option to facilitate the command line manipulation
         \param argc number of argument from the command line
@@ -52,30 +58,46 @@ namespace nest
         \param vm encapsulate the command line
         \return error message from mapp::mapp_error
      */
-    int model_help(int argc, char* const argv[], po::variables_map& vm)
+    int model_help(int argc, char* const argv[], po::variables_map& vm, subpragram& subprog)
     {
+        std::string subprog_str;
+        if (argc>1)
+            subprog_str = argv[1];
+
+        bool use_mpi = false;
+        bool use_manager = false;
+        bool use_connector = false;
+        bool use_connection = false;
+
+        if (argc >= 2 && subprog_str == "connection") {
+            subprog = connection;
+            use_connection = true;
+        }
+        else if (argc >= 2 && subprog_str == "connector") {
+            subprog = connector;
+            use_connector = true;
+        }
+        else if (argc >= 2 && subprog_str == "manager") {
+            subprog = manager;
+            use_manager = true;
+        }
+        else if (argc >= 2 && subprog_str == "distributed") {
+            subprog = distributed;
+            use_mpi = true;
+        }
+        else {
+            std::cout << "subprogram could not be detected. Use --help for information" << std::endl;
+        }
         po::options_description desc("Allowed options");
+
         desc.add_options()
-        ("help", "produce help message")
+        ("help", "produce help message");
+
+        if (use_manager || use_mpi || use_connector || use_connection)
+        desc.add_options()
         ("models", "list available connection models")
-        ("connector", "encapsulate connections in connector")
-        ("nConnections", po::value<int>()->default_value(1), "number of incoming(manager)/outgoing(connector) connections")
-        ("nDetectors", po::value<int>()->default_value(1), "number of spike detectors")
-
-
-        ("manager", "encapsulate connectors in connection manager")
-        ("nNeurons", po::value<int>()->default_value(1), "number of neurons")
-        ("min_delay", po::value<int>()->default_value(2), "min delay of simulation")
-        ("nSpikes", po::value<int>()->default_value(2), "total number of spikes")
-        ("nGroups", po::value<int>()->default_value(1), "theoretical number of threads")
-        ("size", po::value<int>()->default_value(1), "theoretical number of ranks")
-        ("rank", po::value<int>()->default_value(0), "theoretical rank id")
-        ("thread", po::value<int>()->default_value(0), "theoretical thread id")
-
         ("model", po::value<std::string>()->default_value("tsodyks2"), "connection model")
-
         // tsodyks2 parameters
-        // synapse parameters are not checked
         ("delay", po::value<double>()->default_value(1.0), "delay")
         ("weight", po::value<double>()->default_value(1.0), "weight")
         ("U", po::value<double>()->default_value(0.5), "U")
@@ -83,32 +105,70 @@ namespace nest
         ("x", po::value<double>()->default_value(1), "x")
         ("tau_rec", po::value<double>()->default_value(800.0), "tau_rec")
         ("tau_fac", po::value<double>()->default_value(0.0), "tau_fac")
-        //memory pool for hte connector
-        ("pool", po::value<bool>()->default_value(false), "pool memory manager")
+        ("nSpikes", po::value<int>()->default_value(2), "total number of spikes");
 
-        // simulation parameters
-        ("dt", po::value<double>()->default_value(0.1), "time between spikes")
-        ("iterations", po::value<int>()->default_value(1), "number of iterations (spikes)");
+        if (use_manager || use_mpi || use_connector)
+            desc.add_options()
+            ("pool", po::value<bool>()->default_value(false), "pool memory manager") //memory pool for hte connector
+            ("fanout", po::value<int>()->default_value(1), "number of incoming(manager)/outgoing(connector) connections");
 
+        if (use_manager || use_mpi)
+            desc.add_options()
+            ("min_delay", po::value<int>()->default_value(2), "min delay of simulation")
+            ("nThreads", po::value<int>()->default_value(1), "number of threads")
+            ("nProcesses", po::value<int>()->default_value(1), "number of ranks")
+            ("simtime", po::value<int>()->default_value(4), "simulation time")
+            ("nNeurons", po::value<int>()->default_value(10), "number of neurons");
+
+        if (use_mpi)
+            desc.add_options()
+            ("run", po::value<std::string>()->default_value("/usr/bin/mpiexec"), "mpi run command")
+            ("rate", po::value<double>()->default_value(-1), "firing rate per neuron");
+
+        if (use_manager)
+            desc.add_options()
+            ("manager", "encapsulate connectors in connection manager")
+            ("rank", po::value<int>()->default_value(0), "fake rank id")
+            ("thread", po::value<int>()->default_value(0), "fake thread id");
+
+        if (use_connector)
+            desc.add_options()
+            ("connector", "encapsulate connections in connector");
 
         po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
 
-        if (vm.count("manager")) {
-            if (vm["nGroups"].as<int>() <= vm["thread"].as<int>()) {
-                std::cout << "Error: thread has to be smaller than number of threads" << std::endl;
+
+        //check for all
+        if (use_mpi || use_manager || use_connector || use_connection)
+        if (vm["nSpikes"].as<int>() <= 0 ) {
+            std::cout << "Error: nSpikes has to be greater than 0" << std::endl;
+            return mapp::MAPP_BAD_DATA;
+        }
+        //check for multiple
+        if (use_mpi || use_manager || use_connector) {
+            if (vm["fanout"].as<int>() <= 0) {
+                std::cout << "Error: Number of connections has to be greater than 0" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
-            if (vm["size"].as<int>() <= vm["rank"].as<int>()) {
-                std::cout << "Error: rank has to be smaller than number of ranks" << std::endl;
+        }
+
+        //check for multiple
+        if (use_mpi || use_manager) {
+            if (vm["nThreads"].as<int>() <= 0) {
+                std::cout << "Error: nThreads has to be greater than 0" << std::endl;
+                return mapp::MAPP_BAD_DATA;
+            }
+            if (vm["nProcesses"].as<int>() <= 0) {
+                std::cout << "Error: nProcesses has to be greater than 0" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
             if (vm["min_delay"].as<int>() <= 0) {
                 std::cout << "Error: min_delay has to be greater than 0" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
-            if (vm["nSpikes"].as<int>() <= 0) {
-                std::cout << "Error: nSpikes has to be greater than 0" << std::endl;
+            if (vm["simtime"].as<int>() <= 0 || (vm["simtime"].as<int>() % vm["min_delay"].as<int>()) != 0) {
+                std::cout << "Error: simtime has to be a multiple of min_delay" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
             if (vm["nNeurons"].as<int>() <= 0) {
@@ -116,20 +176,20 @@ namespace nest
                 return mapp::MAPP_BAD_DATA;
             }
         }
-        else if (vm.count("connector")) {
-            if (vm["nConnections"].as<int>() <= 0) {
-                std::cout << "Error: Number of connections per connector has to be greater than 0" << std::endl;
+
+        if (use_manager) {
+            if (vm["nProcesses"].as<int>() <= vm["rank"].as<int>()) {
+                std::cout << "Error: rank has to be smaller than nProcesses" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
-        }
-        else {
-            if (vm["nConnections"].as<int>() != 1) {
-                std::cout << "Error: Encapsulate connections in connector to enable multiple connections" << std::endl;
+            if (vm["nThreads"].as<int>() <= vm["thread"].as<int>()) {
+                std::cout << "Error: thread has to be smaller than nThreads" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
         }
 
         //check for valid synapse model & parameters
+        if (use_mpi || use_manager || use_connector || use_connection)
         if (vm["model"].as<std::string>() == "tsodyks2") {
             const double delay = vm["delay"].as<double>();
             const double weight = vm["weight"].as<double>();
@@ -154,17 +214,10 @@ namespace nest
             std::cout << "Error: Selected connection model is  unknown" << std::endl;
             return mapp::MAPP_BAD_DATA;
         }
-        //check for valid dt
-        if (vm["dt"].as<double>() < 0.1) {
-            std::cout << "Error: Time between spikes has to be bigger than 0.1" << std::endl;
-            return mapp::MAPP_BAD_DATA;
-        }
-        //check for valid iterations
-        if (vm["iterations"].as<int>() < 1) {
-            std::cout << "Error: Number of iterations has to be a greater than 0" << std::endl;
-            return mapp::MAPP_BAD_DATA;
-        }
+
+
         //list available synapse models
+        if (use_mpi || use_manager || use_connector || use_connection)
         if (vm.count("models")){
             std::cout << "   Following connection models are available: \n";
             std::cout << "       name           list of accepted parameters\n";
@@ -174,120 +227,144 @@ namespace nest
             }
 
         if (vm.count("help")){
-            std::cout << desc;
+            if (use_manager || use_mpi || use_connector || use_connection)
+                std::cout << desc;
+            else
+                std::cout << "chose subprogram: connection, connector, manager or distributed" << std::endl;
             return mapp::MAPP_USAGE;
         }
-        return mapp::MAPP_OK;
+
+        if (use_manager || use_mpi || use_connector || use_connection){
+            return mapp::MAPP_OK;
+        }
+        else{
+            return mapp::MAPP_USAGE;
+        }
     }
 
     /** \fn content(po::variables_map const& vm)
         \brief Execute the NEST synapse Miniapp.
         \param vm encapsulate the command line and all needed informations
      */
-    void model_content(po::variables_map const& vm)
+    void model_content(po::variables_map const& vm, subpragram& subprog)
     {
-        PoorMansAllocator poormansallocpool;
-        double dt = vm["dt"].as<double>();
-        int iterations = vm["iterations"].as<int>();
-        const int num_connections = vm["nConnections"].as<int>();
-        const int num_detectors = vm["nDetectors"].as<int>();
-        bool with_connector = vm.count("connector") > 0;
-        bool with_manager = vm.count("manager") > 0;
+        int nSpikes = vm["nSpikes"].as<int>();
 
-        //will turn into ptr to base class if more synapse are implemented
-        tsodyks2* syn;
-        ConnectorBase* conn = NULL;
+        bool use_connection = subprog == connection;
+        bool use_connector = subprog == connector;
+        bool use_manager = subprog == manager;
+        bool use_mpi = subprog == distributed;
 
-        //preallocate vector for results
-        std::vector<spikedetector> detectors(num_detectors);
-        std::vector<targetindex> detectors_targetindex(num_detectors);
+        if (use_mpi) {
+            std::stringstream command;
 
-        // register spike detectors
+            std::string path = helper_build_path::mpi_bin_path();
 
-        connectionmanager* cn = NULL;
+            size_t nthread = vm["nThreads"].as<int>();
+            std::string mpi_run = vm["run"].as<std::string>();
+            size_t nproc = vm["nProcesses"].as<int>();
 
-        for(unsigned int i=0; i < num_detectors; ++i) {
-            detectors[i].set_lid(i);    //give nodes a local id
-            //scheduler stores pointers to the spike detectors
-            detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
-        }
+            //command line args
 
-        if (vm["model"].as<std::string>() == "tsodyks2") {
-            const double delay = vm["delay"].as<double>();
-            const double weight = vm["weight"].as<double>();
-            const double U = vm["U"].as<double>();
-            const double u = vm["u"].as<double>();
-            const double x = vm["x"].as<double>();
-            const double tau_rec = vm["tau_rec"].as<double>();
-            const double tau_fac = vm["tau_fac"].as<double>();
-            const bool pool = vm["pool"].as<bool>();
-            if(pool){
-                poormansallocpool.states = pool;
+            size_t ncells = vm["nNeurons"].as<int>();
+            size_t fan = vm["fanout"].as<int>();
+            size_t mindelay = vm["min_delay"].as<int>();
+            size_t simtime = vm["simtime"].as<int>();
+            
+            double rate = vm["rate"].as<double>();
+            if (rate>=0) {
+                nSpikes = rate * ncells * simtime;
+                std::cout << "WARNING: nSpikes is overwritten by rate. new value of nSpikes=" << nSpikes << std::endl; 
             }
-            if ( with_manager ) {
-                //build connection manager
-                cn = new connectionmanager(vm);
-                build_connections_from_neuron(detectors_targetindex, *cn, vm);
-            }
-            else if ( with_connector ) {
-                //build connector
-                for(unsigned int i=0; i < num_connections; ++i) {
-                    //TODO permute parameters
-                    tsodyks2 synapse(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[i%num_detectors]);
-                    conn = add_connection(conn, synapse); //use static function from connectionmanager
-                }
-            }
-            else {
-                syn = new tsodyks2(delay, weight, U, u, x, tau_rec, tau_fac, detectors_targetindex[0]);
-            }
-        }
-        /* else if () .. further synapse models*/
-        else {
-            throw std::invalid_argument("connection model implementation missing");
-        }
-        //create a few events
-        std::vector< spikeevent > events(iterations);
-        for (unsigned int i=0; i<iterations; i++) {
-            Time t(i*10.0);
-            events[i].set_stamp( t ); // in Network::send< SpikeEvent >
-            events[i].set_sender( NULL ); // in Network::send< SpikeEvent >
-            //events[i]->set_sender_gid( sgid ); // Network::send_local
+            std::string syn_model = vm["model"].as<std::string>();
+            double syn_delay = vm["delay"].as<double>();
+            double syn_weight = vm["weight"].as<double>();
+            double syn_U = vm["U"].as<double>();
+            double syn_u = vm["u"].as<double>();
+            double syn_x = vm["x"].as<double>();
+            double syn_tau_rec = vm["tau_rec"].as<double>();
+            double syn_tau_fac = vm["tau_fac"].as<double>();
+            bool pool = vm["pool"].as<bool>();
+
+            std::string exec ="nest_dist_exec";
+
+            command << "OMP_NUM_THREADS=" << nthread << " " <<
+                mpi_run <<" -n "<< nproc << " " << path << exec <<
+                " " << nthread << " " << simtime << " " <<
+                ncells << " " << fan << " " <<
+                nSpikes << " " << mindelay << " " <<
+                syn_model << " " << syn_delay << " " <<
+                syn_weight << " " << syn_U << " " <<
+                syn_u << " " << syn_x << " " <<
+                syn_tau_rec << " " << syn_tau_fac << " " << pool;
+
+            std::cout<< "Running command " << command.str() <<std::endl;
+            system(command.str().c_str());
+
+            return;
         }
 
         boost::chrono::system_clock::duration delay;
 
-        if ( with_manager ) {
-            if (cn==NULL) {
-                throw std::runtime_error("connectionmanager pointer is not valid");
-            }
-            const int t = vm["thread"].as<int>(); // thead_num
+
+        if ( use_manager ) {
+            const bool pool = vm["pool"].as<bool>();
+            const int thrd = vm["thread"].as<int>(); // thead_num
             const int min_delay=vm["min_delay"].as<int>();
-            const int nSpikes = vm["nSpikes"].as<int>();
-            const int simtime = iterations * min_delay;
-            const int ngroups = vm["nGroups"].as<int>();
+            const int simtime = vm["simtime"].as<int>();
+            const int nthreads = vm["nThreads"].as<int>();
             const int rank = vm["rank"].as<int>();
-            const int size = vm["size"].as<int>();
+            const int size = vm["nProcesses"].as<int>();
             const int ncells = vm["nNeurons"].as<int>();
-            //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
-            environment::event_generator generator(ngroups);
+            const int fanout = vm["fanout"].as<int>();
+
+            //setup allocator
+            nest::pool_env penv(nthreads, pool);
+
+            //build connection manager
+            connectionmanager cm(vm);
+            environment::continousdistribution neuro_dist(size, rank, ncells);
+            environment::presyn_maker presyns(fanout, environment::fixedoutdegree);
+            presyns(thrd, &neuro_dist);
+
+            //preallocate vector for results
+            std::vector<spikedetector> detectors(ncells);
+            std::vector<targetindex> detectors_targetindex(ncells);
+
+            // register spike detectors
+            for(unsigned int i=0; i < ncells; ++i) {
+                detectors[i].set_lid(i);    //give nodes a local id
+                //scheduler stores pointers to the spike detectors
+                detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
+            }
+
+            environment::continousdistribution neuro_vp_dist(nthreads, thrd, &neuro_dist);
+            build_connections_from_neuron(thrd, neuro_vp_dist, presyns, detectors_targetindex, cm);
+
+            // generate all events for one thread
+            environment::event_generator generator(1);
             double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
             double lambda = 1.0 / static_cast<double>(mean * size);
-            environment::generate_poisson_events(generator.begin(),
-                             simtime, ngroups, rank, size, ncells, lambda);
 
-            const unsigned int stats_generated_spikes = generator.get_size(t);
-            int sim_time = 0;
+            //all events available
+            environment::continousdistribution event_dist(1, 0, ncells);
+
+            environment::generate_poisson_events(generator.begin(),
+                             simtime, nthreads, rank, size, lambda, &event_dist);
+
+            const unsigned int stats_generated_spikes = generator.get_size(0);
+            int t = 0;
             spikeevent se;
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-            for (unsigned int i=0; i<iterations; i++) {
-                sim_time+=min_delay;
-                while(generator.compare_top_lte(t, sim_time)) {
-                    environment::gen_event g = generator.pop(t);
+            while (t<simtime) {
+                t+=min_delay;
+                // get events from all threads
+                while(generator.compare_top_lte(0, t)) {
+                    environment::gen_event g = generator.pop(0);
                     index nid = g.first;
                     se.set_stamp( Time(g.second) ); // in Network::send< SpikeEvent >
                     se.set_sender_gid( nid ); // in Network::send< SpikeEvent >
-
-                    cn->send(t, nid, se); //send spike
+                    cm.send(thrd, nid, se); //send spike
                 }
             }
             delay = boost::chrono::system_clock::now() - start;
@@ -300,50 +377,109 @@ namespace nest
             std::cout << "\trecv spikes: " << recvSpikes << std::endl;
 
             std::cout << "\tEvents left:" << std::endl;
-            while (!generator.empty(t)) {
-                environment::gen_event g = generator.pop(t);
+
+            while (!generator.empty(0)) {  // thread 0
+                environment::gen_event g = generator.pop(0); // thread 0
                 std::cout << "Event " << g.first << " " << g.second << std::endl;
             }
-
-            delete cn;
         }
-        else if ( with_connector ) {
-            if (conn==NULL) {
-                throw std::runtime_error("connector pointer is not valid");
+        else if ( use_connector ) {
+            const bool pool = vm["pool"].as<bool>();
+            const double syn_delay = vm["delay"].as<double>();
+            const double syn_weight = vm["weight"].as<double>();
+            const double syn_U = vm["U"].as<double>();
+            const double syn_u = vm["u"].as<double>();
+            const double syn_x = vm["x"].as<double>();
+            const double syn_tau_rec = vm["tau_rec"].as<double>();
+            const double syn_tau_fac = vm["tau_fac"].as<double>();
+
+            const int fanout = vm["fanout"].as<int>();
+
+            //setup allocator
+            nest::pool_env penv(1, pool); // use one thread
+
+            //preallocate vector for results
+            std::vector<spikedetector> detectors(fanout);
+            std::vector<targetindex> detectors_targetindex(fanout);
+            for(unsigned int i=0; i < fanout; ++i) {
+                detectors[i].set_lid(i);    //give nodes a local id
+                //scheduler stores pointers to the spike detectors
+                detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
             }
+
+            //create connector ptr
+            //has to be set to NULL (check add_connection(..))
+            ConnectorBase* conn = NULL;
+
+            //build connector
+            for(unsigned int i=0; i < fanout; ++i) {
+                //TODO permute parameters
+                tsodyks2 synapse(syn_delay, syn_weight, syn_U, syn_u, syn_x, syn_tau_rec, syn_tau_fac, detectors_targetindex[i%fanout]);
+                conn = add_connection(conn, synapse); //use static function from connectionmanager
+            }
+
+            //create a few events
+            std::vector< spikeevent > events(nSpikes);
+            for (unsigned int i=0; i<nSpikes; i++) {
+                Time t(i*10.0);
+                events[i].set_stamp( t ); // in Network::send< SpikeEvent >
+                events[i].set_sender( NULL ); // in Network::send< SpikeEvent >
+            }
+
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-            for (unsigned int i=0; i<iterations; i++) {
+            for (unsigned int i=0; i<nSpikes; i++) {
                 conn->send(events[i]); //send spike
             }
-            delay = boost::chrono::system_clock::now() - start;
 
-            std::cout << "Connector simulated with " << num_connections << " connections" << std::endl;
+            delay = boost::chrono::system_clock::now() - start;
+            std::cout << "Connector simulated with " << fanout << " connections" << std::endl;
         }
         else {
-            if (!syn) {
-                throw std::runtime_error("connection pointer is not valid");
+            const double syn_delay = vm["delay"].as<double>();
+            const double syn_weight = vm["weight"].as<double>();
+            const double syn_U = vm["U"].as<double>();
+            const double syn_u = vm["u"].as<double>();
+            const double syn_x = vm["x"].as<double>();
+            const double syn_tau_rec = vm["tau_rec"].as<double>();
+            const double syn_tau_fac = vm["tau_fac"].as<double>();
+
+            //preallocate vector for results
+            spikedetector detector;
+            // register spike detectors
+            targetindex detector_targetindex = scheduler::add_node(&detector);  //add them to the scheduler
+
+            tsodyks2 syn(syn_delay, syn_weight, syn_U, syn_u, syn_x, syn_tau_rec, syn_tau_fac, detector_targetindex);
+
+            //create a few events
+            std::vector< spikeevent > events(nSpikes);
+            for (unsigned int i=0; i<nSpikes; i++) {
+                Time t(i*10.0);
+                events[i].set_stamp( t ); // in Network::send< SpikeEvent >
+                events[i].set_sender( NULL ); // in Network::send< SpikeEvent >
             }
+
             double t_lastspike = 0.0;
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-            for (unsigned int i=0; i<iterations; i++) {
-                syn->send(events[i], t_lastspike); //send spike
-                t_lastspike += dt;
+            for (unsigned int i=0; i<nSpikes; i++) {
+                syn.send(events[i], t_lastspike); //send spike
+                t_lastspike += 0.2; // dt - time between spiks
             }
             delay = boost::chrono::system_clock::now() - start;
             std::cout << "Single connection simulated" << std::endl;
-            delete syn;
+            std::cout << "Last weight " << detector.spikes.back().get_weight() << std::endl;
         }
 
         std::cout << "Duration: " << delay << std::endl;
-        std::cout << "Last weight " << detectors[0].spikes.back().get_weight() << std::endl;
+
     }
 
     int model_execute(int argc, char* const argv[])
     {
         try {
             po::variables_map vm; // it contains everything
-            if(int error = model_help(argc, argv, vm)) return error;
-            model_content(vm); // execute the miniapp
+            subpragram subprog;
+            if(int error = model_help(argc, argv, vm, subprog)) return error;
+            model_content(vm, subprog); // execute the miniapp
         }
         catch(std::exception& e){
             std::cout << e.what() << "\n";

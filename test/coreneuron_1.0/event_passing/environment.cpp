@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(presyns_constructor){
     int ncells = uniform(rng);
     int fanin = ncells / 2 + 1;
     int netcons = uniform(rng);
-    environment::presyn_maker p2(ncells, fanin);
+    environment::presyn_maker p2(fanin);
     //previously had tests here
 }
 
@@ -60,12 +60,15 @@ BOOST_AUTO_TEST_CASE(presyns_functor_test){
     //passed into the find function, but not used
     int ncells = uniform(rng);
     int fanin = ncells;
-    environment::presyn_maker p(ncells, fanin);
+    environment::presyn_maker p(fanin);
     int nprocs = 3;
     int ngroups = 3;
     int rank = 0;
+
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
+
     //create presyns
-    p(nprocs, ngroups, rank);
+    p(rank, &neuro_dist);
 
     int cellsper = ncells / nprocs;
 
@@ -104,8 +107,11 @@ BOOST_AUTO_TEST_CASE(presyns_find_test){
     int ngroups = 3;
     int rank = 0;
     int fanin = ncells;
-    environment::presyn_maker p(ncells, fanin);
-    p(nprocs, ngroups, rank);
+
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
+
+    environment::presyn_maker p(fanin);
+    p(rank, &neuro_dist);
 
     const int offset = ncells % nprocs;
     const bool hasonemore = offset > rank;
@@ -145,8 +151,10 @@ BOOST_AUTO_TEST_CASE(presyns_check_neuron_dist){
 
 
     for (int rank=0; rank< nprocs; rank++){
-        environment::presyn_maker p(ncells, fanin);
-        p(nprocs, ngroups, rank);
+
+        environment::continousdistribution neuro_dist(nprocs, rank, ncells);
+        environment::presyn_maker p(fanin);
+        p(rank, &neuro_dist);
 
         for (int cell=0; cell<ncells; cell++) {
             const environment::presyn* input_ptr = p.find_output(cell);
@@ -188,9 +196,11 @@ BOOST_AUTO_TEST_CASE(generator_kai){
     int rank = 0;
     int fanin = ncells;
 
+
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
     //generate events
-    environment::presyn_maker p(ncells, fanin);
-    p(nprocs, ngroups, rank);
+    environment::presyn_maker p(fanin);
+    p(rank, &neuro_dist);
 
     environment::event_generator generator(ngroups);
 
@@ -198,7 +208,7 @@ BOOST_AUTO_TEST_CASE(generator_kai){
     double lambda = 1.0 / static_cast<double>(mean * ncells);
 
     environment::generate_events_kai(generator.begin(),
-                            simtime, ngroups, rank, nprocs, ncells, lambda);
+                            simtime, ngroups, rank, nprocs, lambda, &neuro_dist);
 
     environment::gen_event ev;
     BOOST_CHECK(!generator.empty(0));
@@ -237,9 +247,10 @@ BOOST_AUTO_TEST_CASE(generator_poisson){
     int rank = 0;
     int fanin = ncells;
 
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
     //generate events
-    environment::presyn_maker p(ncells, fanin);
-    p(nprocs, ngroups, rank);
+    environment::presyn_maker p(fanin);
+    p(rank, &neuro_dist);
 
     environment::event_generator generator(ngroups);
 
@@ -247,7 +258,7 @@ BOOST_AUTO_TEST_CASE(generator_poisson){
     double lambda = 1.0 / static_cast<double>(mean * ncells);
 
     environment::generate_poisson_events(generator.begin(),
-                            simtime, ngroups, rank, nprocs, ncells, lambda);
+                            simtime, ngroups, rank, nprocs, lambda, &neuro_dist);
 
     environment::gen_event ev;
     BOOST_CHECK(!generator.empty(0));
@@ -286,9 +297,11 @@ BOOST_AUTO_TEST_CASE(generator_uniform){
     int rank = 0;
     int fanin = ncells;
 
+
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
     //generate events
-    environment::presyn_maker p(ncells, fanin);
-    p(nprocs, ngroups, rank);
+    environment::presyn_maker p(fanin);
+    p(rank, &neuro_dist);
 
     environment::event_generator generator(ngroups);
 
@@ -296,7 +309,7 @@ BOOST_AUTO_TEST_CASE(generator_uniform){
     int firing_interval = static_cast<int>(1.0 / firing_freq);
 
     environment::generate_poisson_events(generator.begin(),
-                            simtime, ngroups, rank, nprocs, ncells, firing_interval);
+                            simtime, ngroups, rank, nprocs, firing_interval, &neuro_dist);
 
     environment::gen_event ev;
     BOOST_CHECK(!generator.empty(0));
@@ -336,6 +349,8 @@ BOOST_AUTO_TEST_CASE(generator_compare_top_lte){
     int simtime = 100;
     int rank = 0;
 
+    environment::continousdistribution neuro_dist(nprocs, rank, ncells);
+
     //generate events
     environment::event_generator generator(ngroups);
 
@@ -343,7 +358,7 @@ BOOST_AUTO_TEST_CASE(generator_compare_top_lte){
     double lambda = 1.0 / static_cast<double>(mean * nprocs);
 
     environment::generate_events_kai(generator.begin(),
-                             simtime, ngroups, rank, nprocs, ncells, lambda);
+                             simtime, ngroups, rank, nprocs, lambda, &neuro_dist);
 
     bool greater_than_min = true;
     bool less_than_max = true;

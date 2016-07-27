@@ -72,11 +72,13 @@ int main(int argc, char* argv[]) {
     double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
     double lambda = 1.0 / static_cast<double>(mean * size);
 
-    environment::generate_events_kai(generator.begin(),
-                              simtime, ngroups, rank, size, ncells, lambda);
+    environment::continousdistribution neuro_dist(size, rank, ncells);
 
-    environment::presyn_maker presyns(ncells, fanin);
-    presyns(size, ngroups, rank);
+    environment::generate_events_kai(generator.begin(),
+                              simtime, ngroups, rank, size, lambda, &neuro_dist);
+
+    environment::presyn_maker presyns(fanin);
+    presyns(rank, &neuro_dist);
     spike::spike_interface s_interface(size);
 
     //run simulation

@@ -28,10 +28,9 @@
 #define MEMORY_H_
 
 #include <algorithm>
+#include <omp.h>
 
 namespace nest{
-
-
 
     struct cleaner{
         void operator()(void *ptr){
@@ -71,17 +70,10 @@ namespace nest{
         };
 
     public:
-        PoorMansAllocator(){
-            init();
-            states = false;
-            save_ptr.reserve(256);
+        PoorMansAllocator(): states(false){
         }
 
         ~PoorMansAllocator(){
-            if(!states)
-                std::for_each(save_ptr.begin(),save_ptr.end(),cleaner());
-            else
-                destruct();
         }
 
         /**
@@ -90,6 +82,9 @@ namespace nest{
          * Therefore we have our own init() and destruct() functions.
          */
         void init( size_t chunk_size = 1048576 /** 1 mega Byte */){ 
+            if (!states)
+                save_ptr.reserve(256);
+
             capacity_ = 0;
             head_ = 0;
             chunks_ = 0;
@@ -98,8 +93,16 @@ namespace nest{
         }
 
         void destruct(){
-            for ( chunk* chunks = chunks_; chunks != 0; chunks = chunks->next_ )
-                free( chunks->mem_ );
+
+            if(!states) {
+                if (save_ptr.size() > 0)
+                    std::for_each(save_ptr.begin(),save_ptr.end(),cleaner());
+                save_ptr.clear();
+            }
+            else {
+                for ( chunk* chunks = chunks_; chunks != 0; chunks = chunks->next_ )
+                    free( chunks->mem_ );
+            }
         }
 
         void* alloc( size_t obj_size ){
@@ -191,15 +194,50 @@ namespace nest{
         size_t total_capacity_;
     };
 
-    static PoorMansAllocator poormansallocpool = PoorMansAllocator();
+    //static std::vector<PoorMansAllocator> * poormansallocpool; = std::vector<PoorMansAllocator>(0);
+    extern std::vector<PoorMansAllocator> poormansallocpool;
+
+    class pool_env{
+        const int num_threads_;
+    public:
+        pool_env(const int& num_threads=1, bool pool=false): num_threads_(num_threads)
+        {
+            poormansallocpool.resize(num_threads_);
+
+            #pragma omp parallel for schedule(static, 1)
+             for (int thrd=0; thrd<num_threads_; thrd++) {
+                poormansallocpool[thrd].states = pool;
+                poormansallocpool[thrd].init();
+            }
+        }
+        ~pool_env(){
+             #pragma omp parallel for schedule(static, 1)
+             for (int thrd=0; thrd<num_threads_; thrd++) {
+                poormansallocpool[thrd].destruct();
+             }
+        }
+    };
 
     template < typename Tnew, typename Told, typename C >
     inline Tnew*
-    suicide_and_resurrect( Told connector, C connection )
+    suicide_and_resurrect( Told* connector, C connection )
     {
-        Tnew* p = new ( poormansallocpool.alloc( sizeof( Tnew ) ) )
-        Tnew(connector, connection );
-        connector.~Told(); // THIS is useless NEST design ...
+        #ifdef _OPENMP
+        const int thrd = omp_get_thread_num();
+        #else
+        const int thrd = 0;
+        #endif
+
+        Tnew* p = NULL;
+        #pragma omp critical // not thread safe!!
+        {
+        p = new ( poormansallocpool[thrd].alloc( sizeof( Tnew ) ) )
+        Tnew(*connector, connection );
+        connector->~Told(); // Needed otherwise destructor is not called of object
+                            // memory and object handling is separated due to memory pool
+        //now object is destructed but memory is still allocated
+        //deallocation with current pool not possible
+        }
         return p;
     }
 
@@ -207,7 +245,17 @@ namespace nest{
     inline T*
     allocate( C c )
     {
-      T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T( c );
+        #ifdef _OPENMP
+        const int thrd = omp_get_thread_num();
+        #else
+        const int thrd = 0;
+        #endif
+
+        T* p = NULL;
+#pragma omp critical // not thread safe!!
+        {
+        p = new ( poormansallocpool[thrd].alloc( sizeof( T ) ) ) T( c );
+        }
       return p;
     }
 
@@ -215,7 +263,17 @@ namespace nest{
     inline T*
     allocate()
     {
-      T* p = new ( poormansallocpool.alloc( sizeof( T ) ) ) T();
+        #ifdef _OPENMP
+        const int thrd = omp_get_thread_num();
+        #else
+        const int thrd = 0;
+        #endif
+
+        T* p = NULL;
+#pragma omp critical // not thread safe!!
+        {
+        p = new ( poormansallocpool[thrd].alloc( sizeof( T ) ) ) T();
+        }
       return p;
     }
 

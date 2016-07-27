@@ -105,6 +105,8 @@ public:
         C_[ i ] = Cm1.get_C()[ i ];
     C_[ K - 1 ] = c;
   }
+  ~Connector()
+    {}
 
   void
   send( event& e ) // , NEST: thread t  not necessary for MiniApp (see synapse)
@@ -127,7 +129,7 @@ public:
   ConnectorBase& push_back( const ConnectionT& c )
   {
       /** wierd NEST design for using the pool allocator */
-      return *suicide_and_resurrect< Connector< K + 1, ConnectionT > >( *this, c );
+      return *suicide_and_resurrect< Connector< K + 1, ConnectionT > >( this, c );
   }
 
   /**
@@ -158,6 +160,9 @@ public:
     C_[ 0 ] = c;
   }
 
+  ~Connector()
+    {}
+
   /** Apparently these functions must be copy pasted into each template
    *  specialization so that they are not virtual classes... BAD
    */
@@ -170,7 +175,7 @@ public:
 
   ConnectorBase& push_back( const ConnectionT& c )
   {
-    return *suicide_and_resurrect< Connector< 2, ConnectionT > >( *this, c );
+    return *suicide_and_resurrect< Connector< 2, ConnectionT > >( this, c );
   }
 
   const ConnectionT*
@@ -200,8 +205,7 @@ public:
   }
 
   ~Connector()
-  {
-  }
+  {}
 
   ConnectorBase& push_back( const ConnectionT& c )
   {

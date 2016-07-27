@@ -174,6 +174,12 @@ class node;
            sender_gid_ = gid;
          }
 
+         inline index
+         get_sender_gid()
+         {
+             return sender_gid_;
+         }
+
          /**
           * Return transmission delay of the event.
           * The delay refers to the time until the event is

@@ -6,14 +6,18 @@
  */
 
 #include "nest/synapse/connectionmanager.h"
-#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
+
+
+#ifdef _OPENMP
+    #include <omp.h>
+#endif
 
 namespace nest {
     connectionmanager::connectionmanager(po::variables_map const& vm):
         vm(vm)
     {
         ncells = vm["nNeurons"].as<int>();
-        const int num_threads = vm["nGroups"].as<int>();
+        const int num_threads = vm["nThreads"].as<int>();
         tVSConnector tmp( num_threads, tSConnector() );
         connections_.swap( tmp );
     }
@@ -68,37 +72,29 @@ namespace nest {
 
 
     /*
-     * \fn build_connections_from_neuron(std::vector<targetindex>& detectors_targetindex, connectionmanager& cn, po::variables_map const& vm)
+     * \fn build_connections_from_neuron(const thread& thrd, const environment::continousdistribution& neuron_dist,const environment::presyn_maker& presyns,const std::vector<targetindex>& detectors_targetindex,connectionmanager& cm)
      * \brief build connections in connection manager using generator from coreneuron miniapp
+     * \param neuro_vp_dist used neuron distribution
+     * \param presyns network object from coreneuron
      * \param detectors_targetindex vector of targetindexes to target nodes
-     * \param cn reference to connection manager
-     * \param vm refrence to boost variables map
+     * \param cm reference to connection manager
      */
-    void build_connections_from_neuron(std::vector<targetindex>& detectors_targetindex, connectionmanager& cm, po::variables_map const& vm) {
-        const int size = vm["size"].as<int>(); //get all connections for all nodes
-        const int rank = vm["rank"].as<int>();
-        const int t = vm["thread"].as<int>(); // thread_num
-        const int ngroups = vm["nGroups"].as<int>(); //one thread available
-        const int fan = vm["nConnections"].as<int>();
-        const int ncells = vm["nNeurons"].as<int>();
-
-        //environment::event_generator generator(nSpikes, simtime, ngroups, rank, size, ncells);
-        environment::presyn_maker presyns(ncells, fan, environment::fixedoutdegree);
-        presyns(size, ngroups, rank);
-
-        for (unsigned int s_gid=0; s_gid<ncells; s_gid++) {
-
+    void build_connections_from_neuron(const thread& thrd,
+                                       const environment::continousdistribution& neuron_dist,
+                                       const environment::presyn_maker& presyns,
+                                       const std::vector<targetindex>& detectors_targetindex,
+                                       connectionmanager& cm)
+    {
+        for (unsigned int s_gid=0; s_gid<neuron_dist.getglobalcells(); s_gid++) {
             const environment::presyn* local_synapses = presyns.find_output(s_gid);
             if(local_synapses != NULL) {
                 for(int i = 0; i<local_synapses->size(); ++i){
                    const unsigned int t_gid = (*local_synapses)[i];
                    //sort out locally stored connections
-                   const unsigned int dest = t_gid % (ngroups * size);
-                   if(dest == t) {
-                       //local id out of global id
-                       const unsigned int t_lid = t_gid / (ngroups * size);
-                       targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
-                       cm.connect(t, s_gid, target);
+                   if (neuron_dist.isLocal(t_gid)) {
+                       //connect to spikedetector (use mod function to avoid overflow)
+                       targetindex target = detectors_targetindex[t_gid%detectors_targetindex.size()];
+                       cm.connect(thrd, s_gid, target);
                    }
                 }
             }
@@ -106,13 +102,10 @@ namespace nest {
             if(global_synapses != NULL) {
                 for(int i = 0; i<global_synapses->size(); ++i){
                     const unsigned int t_gid = (*global_synapses)[i];
-                    //sort out locally stored connections
-                    const unsigned int dest = t_gid % (ngroups * size);
-                    if(dest == t) {
-                        //local id out of global id
-                        const unsigned int t_lid = t_gid / (ngroups * size);
-                        targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
-                        cm.connect(t, s_gid, target);
+                    if (neuron_dist.isLocal(t_gid)) {
+                        //connect to spikedetector (use mod function to avoid overflow)
+                        targetindex target = detectors_targetindex[t_gid%detectors_targetindex.size()];
+                        cm.connect(thrd, s_gid, target);
                     }
                 }
             }

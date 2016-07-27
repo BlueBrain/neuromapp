@@ -15,6 +15,8 @@
 #include "nest/synapse/event.h"
 #include "nest/synapse/memory.h"
 
+#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
+
 namespace po = boost::program_options;
 
 namespace nest
@@ -39,7 +41,11 @@ namespace nest
         void send( thread t, index sgid, event& e );
     };
 
-    void build_connections_from_neuron(std::vector<targetindex>& detectors_targetindex, connectionmanager& cm, po::variables_map const& vm);
+    void build_connections_from_neuron(const thread& thrd,
+                                       const environment::continousdistribution& neuro_vp_dist,
+                                       const environment::presyn_maker& presyns,
+                                       const std::vector<targetindex>& detectors_targetindex,
+                                       connectionmanager& cm);
 };
 
 

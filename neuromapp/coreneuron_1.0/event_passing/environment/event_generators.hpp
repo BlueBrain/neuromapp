@@ -53,7 +53,7 @@ namespace environment {
 	\warning this implementation lacks a biological implementation, since no two events can happen at the same time. This would imply that, in the whole network, only one cell fired at a time .
     */
     template< typename Iterator >
-    void generate_events_kai(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, double lambda);
+    void generate_events_kai(Iterator beg, int simtime, int ngroups, int rank, int nprocs, double lambda, neurondistribution* neuron_dist);
 
     /** \fn void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, double lambda)
         \brief generates events based on a poisson distribution approximation.
@@ -68,7 +68,13 @@ namespace environment {
 	This implementation draws, at each timestep, a number of events from a Poisson distribution (see e.g. <a href="https://en.wikipedia.org/wiki/Poisson_distribution"> the Wikipedia page</a>). It distributes these events randomly among cells, without keeping memory of the history of each cell. There is no refractory period.
 */
     template< typename Iterator >
-    void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, double lambda);
+    void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, double lambda, neurondistribution* neuron_dist);
+
+    template< typename Iterator >
+    void generate_poisson_events_net(Iterator beg, const int& seed,  const int& simtime, const double& net_firing_rate, const neurondistribution& neuron_dist);
+
+    template< typename Iterator >
+    void generate_poisson_events_neuron(Iterator beg, const int& seed,  const int& simtime, const double& neuron_firing_rate, const neurondistribution& neuron_dist);
 
     /** \fn void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, int firing_interval)
         \brief generates events based on a poisson distribution approximation.
@@ -84,7 +90,7 @@ namespace environment {
 	\warning firing_interval must be strictly positive. In debug mode, this is asserted.
 */
     template< typename Iterator >
-    void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, int firing_interval);
+    void generate_uniform_events(Iterator beg, int simtime, int ngroups, int firing_interval, neurondistribution* neuron_dist);
 
 }
 
