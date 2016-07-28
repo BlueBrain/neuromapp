@@ -105,6 +105,10 @@ struct connection{
                 throw std::invalid_argument( "tau_fac must be >= 0." );
             }
             #endif //_DEBUG
+            if (target!=-1) {
+	      node* target_node = scheduler::get_target(target_);
+	      target_node->ping();
+	    }
         }
 
         /** \fn void send()
