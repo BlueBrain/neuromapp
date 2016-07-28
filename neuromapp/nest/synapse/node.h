@@ -80,10 +80,10 @@ typedef void Subnet;
         static Network* net_; //!< Pointer to global network driver.
     public:
         virtual void handle( spikeevent& e ) = 0;
-
-                inline void set_lid(short lid) { lid_ = lid; }
-
-                inline short set_lid() const { return lid_; }
+	inline void set_lid(short lid) { lid_ = lid; }
+	inline short set_lid() const { return lid_; }
+	
+	virtual void ping() {};
     };
 
     class spikedetector : public node
@@ -101,9 +101,13 @@ typedef void Subnet;
     public:
         int num;
         double sumtime;
-        spikecounter(): num(0), sumtime(0){
+	int fanin;
+        spikecounter(): num(0), sumtime(0), fanin(0){
         }
         void handle( spikeevent& e );
+	void ping() {
+	  fanin++;
+	}
     };
 };
 

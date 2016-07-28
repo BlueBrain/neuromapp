@@ -123,7 +123,7 @@ namespace nest
         if (use_mpi)
             desc.add_options()
             ("run", po::value<std::string>()->default_value("/usr/bin/mpiexec"), "mpi run command")
-            ("rate", po::value<double>()->default_value(-1), "firing rate per neuron");
+            ("rate2", po::value<int>()->default_value(0), "firing rate per neuron");
 
         if (use_manager)
             desc.add_options()
@@ -200,9 +200,9 @@ namespace nest
             const double tau_fac = vm["tau_fac"].as<double>();
 
             try {
-                short lid = 0; // only one node
-                spikedetector sd;
-                tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, lid);
+                //short lid = 0; // only one node
+                //spikedetector sd;
+                tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac/*, lid*/);
             }
             catch (std::invalid_argument& e) {
                 std::cout << "Error in model parameters: " << e.what() << std::endl;
@@ -271,9 +271,10 @@ namespace nest
             size_t mindelay = vm["min_delay"].as<int>();
             size_t simtime = vm["simtime"].as<int>();
             
-            double rate = vm["rate"].as<double>();
-            if (rate>=0) {
-                nSpikes = rate * ncells * simtime;
+            int rate = vm["rate2"].as<int>();
+            if (rate>0) {
+                std::cout << "after" << std::endl;
+                nSpikes = (ncells * simtime)/rate;
                 std::cout << "WARNING: nSpikes is overwritten by rate. new value of nSpikes=" << nSpikes << std::endl; 
             }
             std::string syn_model = vm["model"].as<std::string>();
