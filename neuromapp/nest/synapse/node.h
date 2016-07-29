@@ -82,6 +82,8 @@ typedef void Subnet;
         virtual void handle( spikeevent& e ) = 0;
 	inline void set_lid(short lid) { lid_ = lid; }
 	inline short set_lid() const { return lid_; }
+	inline void set_gid(short gid) { gid_ = gid; }
+	inline short set_gid() const { return gid_; }
 	
 	virtual void ping() {};
     };
@@ -89,11 +91,15 @@ typedef void Subnet;
     class spikedetector : public node
     {
     public:
-        spikedetector(){
+        int fanin;
+        spikedetector(): fanin(0){
             spikes.reserve(1024);
         }
         std::vector<spikeevent> spikes;
         void handle( spikeevent& e );
+	void ping() {
+	  fanin++;
+	}
     };
 
     class spikecounter : public node

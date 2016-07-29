@@ -85,6 +85,8 @@ namespace nest {
                                        const std::vector<targetindex>& detectors_targetindex,
                                        connectionmanager& cm)
     {
+      
+        int stat_conn = 0;
         for (unsigned int s_gid=0; s_gid<neuron_dist.getglobalcells(); s_gid++) {
             const environment::presyn* local_synapses = presyns.find_output(s_gid);
             if(local_synapses != NULL) {
@@ -93,8 +95,11 @@ namespace nest {
                    //sort out locally stored connections
                    if (neuron_dist.isLocal(t_gid)) {
                        //connect to spikedetector (use mod function to avoid overflow)
-                       targetindex target = detectors_targetindex[t_gid%detectors_targetindex.size()];
+		     
+		       const unsigned int t_lid = neuron_dist.global2local(t_gid);
+                       targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
                        cm.connect(thrd, s_gid, target);
+		       stat_conn++;
                    }
                 }
             }
@@ -104,12 +109,21 @@ namespace nest {
                     const unsigned int t_gid = (*global_synapses)[i];
                     if (neuron_dist.isLocal(t_gid)) {
                         //connect to spikedetector (use mod function to avoid overflow)
-                        targetindex target = detectors_targetindex[t_gid%detectors_targetindex.size()];
+		      
+		        const unsigned int t_lid = neuron_dist.global2local(t_gid);
+                        targetindex target = detectors_targetindex[t_lid%detectors_targetindex.size()];
                         cm.connect(thrd, s_gid, target);
+			stat_conn++;
                     }
                 }
             }
         }
+        
+        /*std::cout << " thrd=" << thrd
+	          << " neuron_dist:="<< neuron_dist.getlocalcells() << "/" << neuron_dist.getglobalcells()
+		  << " detectors=" << detectors_targetindex.size()
+		  << " stat_conn=" << stat_conn
+		  << std::endl;*/
     }
 };
 

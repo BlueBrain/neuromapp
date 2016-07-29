@@ -35,10 +35,13 @@
 
 namespace nest
 {
+  
+#define TICS_PER_MS 1000
+  
 struct Time {
     long tics;
     Time(): tics(0) {}
-    Time(const double& t): tics(t*1000.0) {}
+    Time(const double& t): tics(t*TICS_PER_MS) {}
      double get_ms() const
      {
         if ( tics == LONG_MAX / (long)8. + 1 ) {
@@ -47,9 +50,52 @@ struct Time {
         if ( tics == -LONG_MAX / (long)8 + 1 ) {
           return -std::numeric_limits<double>::max();
         }
-        return 1/1000.0 * tics;
+        return 1/TICS_PER_MS * tics;
+     }
+     
+     Time& operator+=(const Time& rhs)
+     {
+       tics+=rhs.tics;
+       return *this;
+     }
+     Time& operator-=(const Time& rhs)
+     {
+       tics-=rhs.tics;
+       return *this;
+     }
+     Time& operator+=(const long& rhs)
+     {
+       tics+=rhs;
+       return *this;
+     }
+     Time& operator-=(const long& rhs)
+     {
+       tics-=rhs;
+       return *this;
      }
 };
+
+inline bool operator<(const Time& lhs, const Time& rhs)
+{
+  return lhs.tics < rhs.tics;
+}
+inline bool operator>(const Time& lhs, const Time& rhs)
+{
+  return rhs < lhs;
+}
+
+inline Time operator-(Time lhs, const long& rhs)
+{
+  lhs -= rhs;
+  return lhs;
+}
+
+inline Time operator+(Time lhs, const long& rhs)
+{
+  lhs += rhs;
+  return lhs;
+}
+
 
 typedef size_t index;
 typedef long port;

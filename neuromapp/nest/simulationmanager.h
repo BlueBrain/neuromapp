@@ -22,7 +22,7 @@ namespace nest {
     public:
         simulationmanager(eventdelivermanager& edm, environment::event_generator& generator, const int, const int, const int);
 
-        void update(const int thrd, const int t, long from_step, long to_step);
+        void update(const int thrd, Time clock, long from_step, long to_step);
     };
 };
 

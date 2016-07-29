@@ -35,7 +35,7 @@ namespace nest
 {
 
 class scheduler;
-typedef unsigned short targetindex; //simplification of hpc synapses from NEST
+typedef unsigned int targetindex; //simplification of hpc synapses from NEST
 typedef double weight;
 
 struct connection{
@@ -105,7 +105,7 @@ struct connection{
                 throw std::invalid_argument( "tau_fac must be >= 0." );
             }
             #endif //_DEBUG
-            if (target!=-1) {
+            if (target!=static_cast<targetindex>(-1)) {
 	      node* target_node = scheduler::get_target(target_);
 	      target_node->ping();
 	    }
