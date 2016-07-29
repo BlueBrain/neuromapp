@@ -20,12 +20,12 @@ simulationmanager::simulationmanager(eventdelivermanager& edm, environment::even
 }
 
 void
-simulationmanager::update(const int thrd, const int t, long from_step, long to_step)
+simulationmanager::update(const int thrd, Time clock, long from_step, long to_step)
 {
     //iterate over steps
     for (long lag=from_step; lag<to_step; lag++) {
-        const int curTime=t+lag;
-        while(generator_.compare_top_lte(thrd, curTime)) {\
+        clock+=lag;
+        while(generator_.compare_top_lte(thrd, clock.get_ms())) {
             environment::gen_event g = generator_.pop(thrd);
             spikeevent se;
             se.set_sender_gid(g.first); // nest standard offset of 1

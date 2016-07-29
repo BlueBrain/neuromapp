@@ -37,6 +37,7 @@
 
 #include "nest/synapse/connectionmanager.h"
 #include "nest/simulationmanager.h"
+#include "nest/synapse/event.h"
 
 
 int main(int argc, char* argv[]) {
@@ -87,17 +88,18 @@ int main(int argc, char* argv[]) {
     environment::continousdistribution neuro_dist(size, rank, ncells);
 
     //preallocate vector for results
-    int num_detectors = ncells;
+    int num_detectors = neuro_dist.getlocalcells();
     std::vector<nest::spikecounter> detectors(num_detectors);
     std::vector<nest::targetindex> detectors_targetindex(num_detectors);
 
     for(unsigned int i=0; i < num_detectors; ++i) {
         detectors[i].set_lid(i);    //give nodes a local id
+	detectors[i].set_gid(neuro_dist.local2global(i));
         //scheduler stores pointers to the spike detectors
         detectors_targetindex[i] = nest::scheduler::add_node(&detectors[i]);  //add them to the scheduler
     }
 
-    environment::presyn_maker presyns(fan, environment::fixedindegree);
+    environment::presyn_maker presyns(fan, environment::fixedoutdegree);
     presyns(rank, &neuro_dist);
     nest::connectionmanager cn(vm);
 
@@ -118,8 +120,10 @@ int main(int argc, char* argv[]) {
         environment::continousdistribution neuron_vp_dist(num_threads, thrd, &neuro_dist);
         //generate events for each thread
         environment::event_generator::iterator it_gen_vp = generator.begin();
+	
+	//generate for current thread
         std::advance(it_gen_vp, thrd);
-        generate_poisson_events_neuron(it_gen_vp, 1234, simtime, firing_rate/static_cast<double>(neuron_vp_dist.getglobalcells()), neuron_vp_dist);
+        generate_poisson_events_net(it_gen_vp, 1234, simtime, firing_rate, neuron_vp_dist);
         //build up network
         nest::build_connections_from_neuron(thrd, neuron_vp_dist, presyns, detectors_targetindex, cn);
     }
@@ -132,10 +136,11 @@ int main(int argc, char* argv[]) {
     //run simulation
     gettimeofday(&start, NULL);
 
-    int t = 0;
+    nest::Time clock;
+    nest::Time step(static_cast<double>(mindelay));
     long from_step = 0;
-    long to_step = mindelay;
-    long Tstop = simtime;
+    long to_step = step.tics;
+    nest::Time Tstop(static_cast<double>(simtime));
 
     #pragma omp parallel
     {
@@ -145,13 +150,13 @@ int main(int argc, char* argv[]) {
         const int thrd = 0;
         #endif
 
-        while(t < Tstop){
+        while(clock < Tstop){
             #pragma omp barrier
 
             // deliver only from second time step on
-            if (t>0)
-                edm.deliver_events(thrd, t);
-            sm.update(thrd, t, from_step, to_step);
+            if (clock.tics>0)
+                edm.deliver_events(thrd, clock);
+            sm.update(thrd, clock, from_step, to_step);
             #pragma omp barrier
             #pragma omp master
             {
@@ -160,10 +165,10 @@ int main(int argc, char* argv[]) {
             
             #pragma omp master
             {
-                t+=mindelay;
+                clock+=step;
                 //std::cout << "NEXT TIMESTEP: " << t << std::endl;
-                if (t+to_step>Tstop)
-                    to_step = Tstop-t;
+                if (clock.tics+to_step>Tstop.tics)
+                    to_step = Tstop.tics-clock.tics;
             }
             #pragma omp barrier
         }
@@ -183,13 +188,11 @@ int main(int argc, char* argv[]) {
     environment::continousdistribution neuro_vp_dist(nthreads, thrd, &neuro_dist);
     int vp_num = 0;
     int vp_fanin = 0;
-    for(unsigned int i=0; i < num_detectors; ++i) {	
-        if (neuro_vp_dist.isLocal(i)) {
+    for(unsigned int i=0; i < num_detectors; ++i) {
         vp_num += detectors[i].num;
         l_num += detectors[i].num;
         l_sumtime += detectors[i].sumtime;
 	vp_fanin += detectors[i].fanin;
-        }
     }
     std::cout << "rank=" << rank << " thrd=" << thrd << " vp_num="<< vp_num << " vp_fanin=" << vp_fanin << std::endl;
     }

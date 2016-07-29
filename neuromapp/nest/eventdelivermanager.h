@@ -46,7 +46,7 @@ namespace nest
           std::vector< int > displacements_;
 
 
-          int min_delay_;
+          long tics_in_mindelay;
 
           /**
            * Marker Value to be put between the data fields from different time
@@ -65,10 +65,10 @@ namespace nest
 	  
 	  void configure_spike_buffers();
     public:
-          eventdelivermanager(connectionmanager& cn_, const unsigned int num_ranks, const unsigned int num_threads, const unsigned int min_delay);
+          eventdelivermanager(connectionmanager& cn_, const unsigned int num_ranks, const unsigned int num_threads, const Time& min_delay);
 
         void gather_events();
-        void deliver_events( thread thrd, long t );
+        void deliver_events( thread thrd, Time clock );
 
         inline void
         send_remote( thread t, spikeevent& e, const long lag )
