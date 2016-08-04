@@ -1,5 +1,5 @@
 add_subdirectory (synapse)
-
+add_subdirectory (H5Synapses)
 
 add_library (nest_dist eventdelivermanager.cpp simulationmanager.cpp simulationmanager.cpp mpi_manager.cpp)
 
