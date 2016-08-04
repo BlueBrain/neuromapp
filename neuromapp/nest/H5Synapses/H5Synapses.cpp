@@ -217,7 +217,7 @@ H5Synapses::CommunicateSynapses()
  *
  */
 H5Synapses::H5Synapses( )
-  : stride_( 1 ), num_syanpses_per_process_(5)
+  : stride_( 1 ), num_syanpses_per_process_(524288)
 {
   // init lock token
   omp_init_lock( &tokenLock_ );
@@ -293,18 +293,23 @@ H5Synapses::sort()
       node_id_tmp,
       synapses_.num_params_,
       &pool_tmp[0] );
-    // swap elements based on rank ids
-    // x -> y
-    int last = 0;
-    const int ix = v_idx[ 0 ].first;
-    buf = synapses_[ ix ];
 
-    for ( int i = 1; i < v_idx.size(); i++ )
-    {
-      const int ix = v_idx[ last ].first;
-      synapses_[ ix ].swap( buf );
-      last = ix;
-    }
+        //apply reordering based on v_idx[:].first
+        size_t i, j, k;
+        for(i = 0; i < synapses_.size(); i++){
+            if(i != v_idx[ i ].first){
+                buf = synapses_[i];
+                k = i;
+                while(i != (j = v_idx[ k ].first)){
+                // every move places a value in it's final location
+                    synapses_[k] = synapses_[j];
+                    v_idx[ k ].first = k;
+                    k = j;
+                }
+                synapses_[k] = buf;
+                v_idx[ k ].first = k;
+            }
+        }
   }
 }
 
