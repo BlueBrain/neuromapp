@@ -38,10 +38,12 @@
 #include "nest/H5Synapses/nest_kernel.h"
 #include "nest/H5Synapses/H5Synapses.h"
 
+
 int main(int argc, char* argv[]) {
     assert(argc == 3);
 
     MPI_Init(NULL, NULL);
+
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -67,7 +69,9 @@ int main(int argc, char* argv[]) {
 
     struct timeval start, end;
         //run simulation
+
     gettimeofday(&start, NULL);
+
 
     H5Synapses h5synapses;
     h5synapses.set_filename(syn_file);
@@ -89,7 +93,7 @@ int main(int argc, char* argv[]) {
 
     std::cout<<"run time: "<<diff_ms<<" ms"<<std::endl;
 
-    int num_connections=0;
+    long num_connections=0;
     for (int thrd=0; thrd<nthreads; thrd++) {
         num_connections += nest::kernel().connection_manager.num_connections[thrd];
     }

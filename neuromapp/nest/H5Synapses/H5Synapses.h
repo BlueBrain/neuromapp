@@ -40,7 +40,7 @@ private:
 
   size_t synmodel_id_;
 
-    std::string filename_;
+  std::string filename_;
 
   long num_syanpses_per_process_;
   long last_total_synapse_;

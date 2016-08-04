@@ -216,7 +216,7 @@ H5Synapses::CommunicateSynapses()
 /**
  *
  */
-H5Synapses::H5Synapses( )
+H5Synapses::H5Synapses()
   : stride_( 1 ), num_syanpses_per_process_(524288)
 {
   // init lock token
@@ -254,54 +254,42 @@ H5Synapses::integrateMapping()
 
 typedef std::pair< int, int > intpair;
 bool first_less( const intpair& l, const intpair& r ) { return l.first < r.first; }
-bool second_less( const intpair& l, const intpair& r ) { return l.second < r.second; }
 
 void
 H5Synapses::sort()
 {
 #ifdef SCOREP_COMPILE
-  SCOREP_USER_REGION( "sort", SCOREP_USER_REGION_TYPE_FUNCTION )
+    SCOREP_USER_REGION( "sort", SCOREP_USER_REGION_TYPE_FUNCTION )
 #endif
 
-  // only needed if there are at least two elements
-  if ( synapses_.size() > 1 )
-  {
-    // arg sort
-
-    std::vector< intpair > v_idx( synapses_.size() );
-    for ( int i = 0; i < v_idx.size(); i++ )
+      // only needed if there are at least two elements
+    if ( synapses_.size() > 1 )
     {
-      v_idx[ i ].first = synapses_.node_id_[ i ];
-      v_idx[ i ].second = i;
-    }
+        // arg sort
+        std::vector< intpair > v_idx( synapses_.size() );
+        for ( int i = 0; i < v_idx.size(); i++ )
+        {
+            v_idx[ i ].first = synapses_.node_id_[ i ];
+            v_idx[ i ].second = i;
+        }
+        std::sort( v_idx.begin(), v_idx.end(), first_less);
 
-    std::sort( v_idx.begin(), v_idx.end(), first_less);
+        // create buf object
+        uint32_t source_neuron_tmp;
+        uint32_t node_id_tmp;
+        std::vector< char > pool_tmp( synapses_.sizeof_entry() );
+        NESTSynapseRef buf( source_neuron_tmp,
+                node_id_tmp,
+                synapses_.num_params_,
+                &pool_tmp[0] );
 
-    /*for ( int i = 0; i < v_idx.size(); i++ )
-    {
-        v_idx[ i ].first = i;
-    }
-
-    // sort again for fast forward swapping of elements
-    std::sort( v_idx.begin(), v_idx.end(), second_less);*/
-
-    // create buf object
-    uint32_t source_neuron_tmp;
-    uint32_t node_id_tmp;
-    std::vector< char > pool_tmp( synapses_.sizeof_entry() );
-    NESTSynapseRef buf( source_neuron_tmp,
-      node_id_tmp,
-      synapses_.num_params_,
-      &pool_tmp[0] );
-
-        //apply reordering based on v_idx[:].first
+        //apply reordering based on v_idx[:].second
         size_t i, j, k;
         for(i = 0; i < synapses_.size(); i++){
             if(i != v_idx[ i ].second){
                 buf = synapses_[i];
                 k = i;
                 while(i != (j = v_idx[ k ].second)){
-                // every move places a value in it's final location
                     synapses_[k] = synapses_[j];
                     v_idx[ k ].second = k;
                     k = j;
@@ -310,7 +298,7 @@ H5Synapses::sort()
                 v_idx[ k ].second = k;
             }
         }
-  }
+    }
 }
 
 void

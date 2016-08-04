@@ -5,7 +5,6 @@
 #ifndef NESTKERNEL_CLASS
 #define NESTKERNEL_CLASS
 
-
 namespace nest
 {
     typedef size_t index;
