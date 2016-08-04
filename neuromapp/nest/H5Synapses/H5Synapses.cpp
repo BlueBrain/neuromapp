@@ -277,13 +277,13 @@ H5Synapses::sort()
 
     std::sort( v_idx.begin(), v_idx.end(), first_less);
 
-    for ( int i = 0; i < v_idx.size(); i++ )
+    /*for ( int i = 0; i < v_idx.size(); i++ )
     {
         v_idx[ i ].first = i;
     }
 
     // sort again for fast forward swapping of elements
-    std::sort( v_idx.begin(), v_idx.end(), second_less);
+    std::sort( v_idx.begin(), v_idx.end(), second_less);*/
 
     // create buf object
     uint32_t source_neuron_tmp;
@@ -297,17 +297,17 @@ H5Synapses::sort()
         //apply reordering based on v_idx[:].first
         size_t i, j, k;
         for(i = 0; i < synapses_.size(); i++){
-            if(i != v_idx[ i ].first){
+            if(i != v_idx[ i ].second){
                 buf = synapses_[i];
                 k = i;
-                while(i != (j = v_idx[ k ].first)){
+                while(i != (j = v_idx[ k ].second)){
                 // every move places a value in it's final location
                     synapses_[k] = synapses_[j];
-                    v_idx[ k ].first = k;
+                    v_idx[ k ].second = k;
                     k = j;
                 }
                 synapses_[k] = buf;
-                v_idx[ k ].first = k;
+                v_idx[ k ].second = k;
             }
         }
   }
