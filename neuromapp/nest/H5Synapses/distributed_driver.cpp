@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     h5synapses.set_properties(props);
 
     std::vector<long> gids;
-    for (int i=0; i<750000; i++)
+    for (int i=0; i<ncells; i++)
         gids.push_back(i+1);
     h5synapses.set_mapping(gids);
     h5synapses.import();
