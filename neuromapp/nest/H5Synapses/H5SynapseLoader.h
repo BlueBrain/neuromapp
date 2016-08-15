@@ -323,17 +323,6 @@ public:
      */
     void iterateOverSynapsesFromFiles( NESTSynapseList & synapses )
     {
-      /*std::vector<uint64_t> global_num_syns(NUM_PROCESSES);
-      uint64_t private_num_syns = num_syns;
-
-      MPI_Allgather(&private_num_syns, 1, MPI_UNSIGNED_LONG_LONG,
-      &global_num_syns[0], 1, MPI_UNSIGNED_LONG_LONG, MPI_COMM_WORLD);
-      uint64_t private_offset = std::accumulate(global_num_syns.begin(),
-      global_num_syns.begin()+RANK, global_offset_);
-      global_offset_ = std::accumulate(global_num_syns.begin()+RANK,
-      global_num_syns.end(), private_offset); // for next iteration
-      */
-
       uint64_t private_offset = fixed_num_syns_ * RANK + global_offset_;
       global_offset_ += fixed_num_syns_ * NUM_PROCESSES;
 

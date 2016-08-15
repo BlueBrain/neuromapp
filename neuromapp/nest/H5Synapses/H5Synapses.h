@@ -7,7 +7,7 @@
 #include <omp.h>
 
 //#include "H5SynMEMPedictor.h"
-#include "H5SynapseLoader.h"
+#include "H5SynapseLoader_columns.h"
 #include "kernels.h"
 
 #ifndef H5Synapses_CLASS
