@@ -8,7 +8,8 @@
 #include <errno.h>
 #include <sstream>
 #include <sys/types.h>
-
+#include <ctime>
+#include <sys/time.h>
 #include <stdio.h>
 
 #ifdef IS_BLUEGENE_Q
@@ -64,7 +65,7 @@ H5Synapses::threadConnectNeurons( uint64_t& n_conSynapses )
   // get statistics
   uint64_t n_conSynapses_sum = 0;
 
-  std::stringstream ss;
+  /*std::stringstream ss;
   ss << "threadConnectNeurons\tnew_cons=" << synapses_.size() << "\t"
      << "rank=" << nest::kernel().mpi_manager.get_rank() << "\t"
 #if defined IS_BLUEGENE_P || defined IS_BLUEGENE_Q
@@ -73,7 +74,7 @@ H5Synapses::threadConnectNeurons( uint64_t& n_conSynapses )
 #endif
      << "\n";
 
-  LOG( nest::M_INFO, "H5Synapses::threadConnectNeurons", ss.str() );
+  LOG( nest::M_INFO, "H5Synapses::threadConnectNeurons", ss.str() );*/
 
 #pragma omp parallel default( shared ) reduction( + : n_conSynapses_sum )
   {
@@ -246,7 +247,7 @@ H5Synapses::integrateMapping()
   SCOREP_USER_REGION( "det", SCOREP_USER_REGION_TYPE_FUNCTION )
 #endif
 // integrate mapping from gidcollection
-#pragma omp paralalel for
+#pragma omp parallel for
   for ( int i = 0; i < synapses_.size(); i++ )
     synapses_[ i ].integrateMapping( mapping_ );
 }
@@ -322,20 +323,25 @@ H5Synapses::import()
     num_syanpses_per_process_,
     last_total_synapse_ );
 
+  struct timeval start_all, end_all, start_load, end_load;
+
   // load datasets from files
   // until end of file
   while ( !synloader.eof() )
   {
+     gettimeofday(&start_all, NULL);
     {
 #ifdef SCOREP_COMPILE
       SCOREP_USER_REGION_BEGIN( "load", SCOREP_USER_REGION_TYPE_FUNCTION )
 #endif
+      gettimeofday(&start_load, NULL);
       synloader.iterateOverSynapsesFromFiles( synapses_ );
+      gettimeofday(&end_load, NULL);
     }
 
     integrateMapping();
     sort();
-    com_status = CommunicateSynapses();
+    //com_status = CommunicateSynapses();
 
     // update stats
     n_memSynapses += synapses_.size();
@@ -343,6 +349,14 @@ H5Synapses::import()
     threadConnectNeurons( n_conSynapses );
 
     freeSynapses();
+
+    gettimeofday(&end_all, NULL);
+    
+    long long t_all = (1000 * (end_all.tv_sec - start_all.tv_sec))
+        + ((end_all.tv_usec - start_all.tv_usec) / 1000);
+    long long t_load = (1000 * (end_load.tv_sec - start_load.tv_sec))
+        + ((end_load.tv_usec - start_load.tv_usec) / 1000);
+    std::cout << "rank=" << nest::kernel().mpi_manager.get_rank() << "\tmem_cons=" << n_memSynapses << "\tt_all=" << t_all << "ms\tt_load=" << t_load << "ms" << std::endl;
   }
 
   // recieve datasets from other nodes

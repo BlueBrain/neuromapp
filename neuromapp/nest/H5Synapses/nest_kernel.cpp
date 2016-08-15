@@ -33,7 +33,7 @@ bool nest::kernel_manager::node_manager::is_local_gid(const int& gid)
 
 void nest::kernel_manager::connection_manager::connect(const int& s_gid, const int& t_gid, std::vector<double>& v)
 {
-    assert(kernel().neuro_vp_dist[kernel().vp_manager.get_thread_id()]->isLocal(t_gid));
+    //assert(kernel().neuro_vp_dist[kernel().vp_manager.get_thread_id()]->isLocal(t_gid));
 
     const int thrd = kernel().vp_manager.get_thread_id();
     if (num_connections.size()<=thrd)
