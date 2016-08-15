@@ -10,8 +10,25 @@ typedef int int32_t;
 typedef long int int64_t;
 typedef unsigned int uint32_t;
 typedef unsigned long int uint64_t;
-typedef std::vector<long> GIDCollection;
-typedef std::vector<long> GIDCollectionDatum;
+
+struct GIDCollection
+{
+    size_t offset;
+    size_t size;
+
+    GIDCollection(const size_t& offset = 0, const size_t& size = -1):
+        offset(offset),
+        size(size)
+    {}
+
+    inline size_t operator[](const size_t& idx) const
+    {
+        assert(idx<size);
+        return idx+offset;
+    }
+};
+
+typedef GIDCollection GIDCollectionDatum;
 
 template <typename T>
 struct mpi_buffer

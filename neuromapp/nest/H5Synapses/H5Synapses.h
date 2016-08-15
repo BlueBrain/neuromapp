@@ -45,7 +45,7 @@ private:
   long num_syanpses_per_process_;
   long last_total_synapse_;
 
-  void singleConnect( NESTSynapseRef synapse,
+  void singleConnect( const int& thrd, NESTSynapseRef synapse,
           const nest::index t_gid,
     uint64_t& n_conSynapses );
 
@@ -68,7 +68,7 @@ public:
   //void set_status( const DictionaryDatum& din );
   void set_filename(const std::string& path);
   void set_properties(const std::vector<std::string>& prop_names);
-  void set_mapping(const std::vector<long> gids);
+  void set_mapping(const GIDCollection& gids);
 };
 
 #endif

@@ -40,7 +40,7 @@
 
 
 int main(int argc, char* argv[]) {
-    assert(argc == 3);
+    assert(argc == 4);
 
     MPI_Init(NULL, NULL);
 
@@ -48,10 +48,10 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    int nthreads = atoi(argv[1]);
-    std::string syn_file(argv[2]);
+    const int nthreads = atoi(argv[1]);
+    const int ncells = atoi(argv[2]);
+    std::string syn_file(argv[3]);
 
-    const int ncells = 75000000;
 
     //load kernel environment
     nest::kernel_env kenv;
@@ -80,9 +80,7 @@ int main(int argc, char* argv[]) {
     props.push_back("weight");
     h5synapses.set_properties(props);
 
-    std::vector<long> gids;
-    for (int i=0; i<750000; i++)
-        gids.push_back(i+1);
+    GIDCollection gids;
     h5synapses.set_mapping(gids);
     h5synapses.import();
 

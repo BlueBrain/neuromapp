@@ -59,6 +59,14 @@ namespace nest
                 return 0;
                 #endif
             }
+            inline index get_max_threads()
+            {
+                #ifdef _OPENMP
+                return omp_get_max_threads();
+                #else
+                return 1;
+                #endif
+            }
         } vp_manager;
 
         inline void set_mpi_dist(environment::nestdistribution* mpi_dist)

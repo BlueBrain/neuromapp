@@ -30,7 +30,7 @@
     << " " << __LINE__ << std::endl
 
 void
-H5Synapses::singleConnect( NESTSynapseRef synapse,
+H5Synapses::singleConnect( const int& thrd, NESTSynapseRef synapse,
         const nest::index t_gid,
   uint64_t& n_conSynapses )
 {
@@ -38,9 +38,8 @@ H5Synapses::singleConnect( NESTSynapseRef synapse,
 
 
     // apply kernels to vaues from h5 file
-    std::vector< double > values(
-      synapse.params_.begin(), synapse.params_.end() );
-    values = kernel_( values );
+
+    std::vector<double>& values = kernel_( thrd, synapse.params_.begin(), synapse.params_.end() );
 
     assert( values.size() >= 2 );
 
@@ -114,7 +113,7 @@ H5Synapses::threadConnectNeurons( uint64_t& n_conSynapses )
           stride_c++;
           // only connect each stride ones
           if ( stride_c == 1 )
-            singleConnect( synapses_[ i ], target, n_conSynapses_tmp );
+            singleConnect( thrd, synapses_[ i ], target, n_conSynapses_tmp );
           if ( stride_c >= stride_ )
             stride_c = 0;
         }
@@ -217,7 +216,7 @@ H5Synapses::CommunicateSynapses()
  *
  */
 H5Synapses::H5Synapses()
-  : stride_( 1 ), num_syanpses_per_process_(524288)
+  : stride_( 1 ), num_syanpses_per_process_(524288), kernel_(nest::kernel().vp_manager.get_max_threads())
 {
   // init lock token
   omp_init_lock( &tokenLock_ );
@@ -372,7 +371,7 @@ void H5Synapses::set_properties(const std::vector<std::string>& prop_names)
 {
     synapses_.set_properties(prop_names);
 }
-void H5Synapses::set_mapping(const std::vector<long> gids)
+void H5Synapses::set_mapping(const GIDCollection& gids)
 {
     mapping_ = gids;
 }
