@@ -188,11 +188,11 @@ H5Synapses::CommunicateSynapses()
   MPI_Alltoallv( send_buffer.begin(),
     sendcounts,
     sdispls,
-    MPI_UNSIGNED,
+    MPI_INT,
     recvbuf.begin(),
     recvcounts,
     rdispls,
-    MPI_UNSIGNED,
+    MPI_INT,
     MPI_COMM_WORLD );
 
   // fill entries in synapse list
