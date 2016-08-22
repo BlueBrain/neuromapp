@@ -56,6 +56,7 @@ int main(int argc, char * const argv[]){
      d.insert("cstep",coreneuron10_cstep_execute);
      d.insert("keyvalue",keyvalue_execute);
      d.insert("replib",replib_execute);
+     d.insert("queue",queue_execute);
 
      //direct run
      if(argv[1] != NULL){

@@ -22,7 +22,7 @@ namespace tool {
         typedef std::size_t size_type;
 
         inline explicit bin_queue(double dt = 0.025, value_type t0 = 0.):size_(0),qpt_(0),dt_(dt),tt_(t0)
-                                                                             ,bins_(1024,NULL){}
+                                                                             ,bins_(1024){}
 
         ~bin_queue();
 
@@ -77,5 +77,5 @@ namespace tool {
 
 
 #include "bin_queue.ipp"
-    
+
 #endif

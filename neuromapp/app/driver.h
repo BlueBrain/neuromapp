@@ -69,6 +69,9 @@ namespace mapp{
          */
         void execute(int argc, char * const argv[]);
 
+        /**  \brief Print the usage of the driver.
+         */
+        void usage();
         private:
         /** Map containing functor of miniapp assocaited to key */
         std::map<std::string, int(*)(int,char * const *) > m;

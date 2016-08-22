@@ -229,7 +229,7 @@ namespace nest{
         #endif
 
         Tnew* p = NULL;
-        #pragma omp critical // not thread safe!!
+    //  #pragma omp critical // not thread safe!!
         {
         p = new ( poormansallocpool[thrd].alloc( sizeof( Tnew ) ) )
         Tnew(*connector, connection );
@@ -252,7 +252,7 @@ namespace nest{
         #endif
 
         T* p = NULL;
-#pragma omp critical // not thread safe!!
+//agma omp critical // not thread safe!!
         {
         p = new ( poormansallocpool[thrd].alloc( sizeof( T ) ) ) T( c );
         }

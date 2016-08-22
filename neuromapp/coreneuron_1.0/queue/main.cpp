@@ -34,7 +34,6 @@
 #include "coreneuron_1.0/queue/trait.h"
 #include "coreneuron_1.0/queue/serial_benchmark.h"
 
-
 /** namespace alias for boost::program_options **/
 namespace po = boost::program_options;
 
@@ -45,11 +44,11 @@ namespace po = boost::program_options;
  \param vm encapsulate the command line
  \return error message from mapp::mapp_error
  */
-int queueing_help(int argc, char* const argv[], po::variables_map& vm){
+int queue_help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "produce help message")
-    ("benchmark", po::value<std::string>()->default_value("world"), "push, pop, push_one, mh_bench or all")
+    ("benchmark", po::value<std::string>()->default_value("push"), "push, pop, push_one, mh_bench or all")
     ("size", po::value<int>()->default_value(10), "bench = 2^size")
     ("io", po::value<bool>()->default_value(false), "save $benchmark results IO i.e. pop.csv");
 
@@ -77,17 +76,17 @@ void benchmark(int iteration, bool io){
         bench += boost::lexical_cast<std::string>(T::template benchmark<helper_type<bin_queue> >(size)) + ",";
         bench += boost::lexical_cast<std::string>(T::template benchmark<helper_type<binomial_heap> >(size)) + ",";
         bench += boost::lexical_cast<std::string>(T::template benchmark<helper_type<fibonacci_heap> >(size)) + ",";
-        bench += boost::lexical_cast<std::string>(T::template benchmark<helper_type<skew_heap> >(size)) + "\n";
+        bench += boost::lexical_cast<std::string>(T::template benchmark<helper_type<skew_heap> >(size)) + ",";
         bench += boost::lexical_cast<std::string>(T::template benchmark<helper_type<d_ary_heap> >(size)) + "\n";
         res.push_back(bench);
         size<<=1; // 1,2,4,8 ....
     }
-    
+
     std::fstream out;
     std::string name_file = boost::lexical_cast<std::string>(T::name) + ".csv";
-    out.open(name_file,std::fstream::out);
+    out.open(name_file.c_str(),std::fstream::out);
     std::copy(res.begin(),res.end(), std::ostream_iterator<std::string>(std::cout, " ")); //screen
-    if(io)
+    if(!io)
         std::copy(res.begin(),res.end(), std::ostream_iterator<std::string>(out)); //io
 }
 
@@ -142,7 +141,7 @@ int queue_content(po::variables_map const& vm){
 int queue_execute(int argc, char* const argv[]){
     try {
         po::variables_map vm; // it contains everything
-        if(int error = queueing_help(argc, argv, vm)) return error;
+        if(int error = queue_help(argc, argv, vm)) return error;
         queue_content(vm); // execute the miniapp
     }
     catch(std::exception& e){

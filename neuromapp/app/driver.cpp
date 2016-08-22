@@ -33,20 +33,14 @@
 
 namespace mapp{
 
-    void usage(){
+    void driver::usage(){
         std::string text = "Usage: < >  means optional \n";
         text += "   miniapp --help provides the help of your miniapp \n \n";
-        text += "   The list of the following miniapps are available: \n";
+        text += "   The list of the following miniapps are available:\n";
         std::cout << text;
         std::set<std::string> s; // print in alphabetical order
-        s.insert("       hello <arg> \n");
-        s.insert("       synapse <arg> \n");
-        s.insert("       event <arg> \n");
-        s.insert("       kernel <arg> \n");
-        s.insert("       solver <arg> \n");
-        s.insert("       cstep <arg> \n");
-        s.insert("       keyvalue <arg> \n");
-        s.insert("       replib <arg> \n");
+        for(std::map<std::string,int(*)(int,char * const *)>::iterator it = m.begin(); it != m.end(); ++it)
+            s.insert("      "+ it->first + "<arg> \n");
         std::copy(s.begin(),s.end(),std::ostream_iterator<std::string>(std::cout," "));
         text = "   quit to exit \n";
         text += "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
