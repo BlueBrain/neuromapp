@@ -33,12 +33,12 @@
 
 namespace mapp{
 
-    void driver::usage(){
+    void driver::usage() const{
         std::string text = "Usage: < >  means optional \n";
         text += "   miniapp --help provides the help of your miniapp \n \n";
         text += "   The list of the following miniapps are available:\n";
-        for(std::map<std::string,int(*)(int,char * const *)>::iterator it = m.begin(); it != m.end(); ++it)
-           text += ("      "+ it->first + "<arg> \n"); //extract all kernel in the driver, naturaly sort
+        for(std::map<std::string,int(*)(int,char * const *)>::const_iterator it = m.begin(); it != m.end(); ++it)
+           text += ("      "+ it->first + " <arg> \n"); //extract all kernel in the driver, naturaly sort
         text += "   quit to exit \n";
         text += "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
         text +=  "\n";
@@ -49,7 +49,7 @@ namespace mapp{
         m.insert(make_pair(name,f));
     }
 
-    void driver::execute(int argc, char * const argv[]){
+    void driver::execute(int argc, char * const argv[]) const{
         if(argc == 1)
             usage();
         else{

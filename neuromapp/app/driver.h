@@ -67,11 +67,11 @@ namespace mapp{
              \param argc number of argument in the command line
              \param argv the commane line
          */
-        void execute(int argc, char * const argv[]);
+        void execute(int argc, char * const argv[]) const;
 
         /**  \brief Print the usage of the driver.
          */
-        void usage();
+        void usage() const;
         private:
         /** Map containing functor of miniapp assocaited to key */
         std::map<std::string, int(*)(int,char * const *) > m;
