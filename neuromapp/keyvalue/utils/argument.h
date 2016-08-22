@@ -34,7 +34,11 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
-#include <omp.h>
+#ifdef _OPENMP
+   #include <omp.h>
+#else
+   #define omp_get_num_threads() 1
+#endif
 
 #include "utils/mpi/controler.h"
 

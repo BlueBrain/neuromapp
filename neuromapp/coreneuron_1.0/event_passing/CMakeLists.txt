@@ -4,20 +4,23 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 #ENVIRONMENT LIBRARY
 add_library (coreneuron10_environment environment/generator.cpp
-                                      environment/presyn_maker.cpp)
+                                      environment/presyn_maker.cpp
+                                      environment/neurondistribution.cpp)
 
 install (TARGETS coreneuron10_environment DESTINATION lib)
 install (FILES environment/generator.h
-               environment/presyn_maker.h DESTINATION include)
+	       environment/event_generators.hpp
+               environment/presyn_maker.h
+               environment/neurondistribution.h DESTINATION include)
 
 
 #QUEUEING LIBRARY
-add_library (coreneuron10_queueing queueing/pool.cpp
-                                   queueing/thread.cpp
+add_library (coreneuron10_queueing queueing/thread.cpp
                                    queueing/queue.cpp)
 
 install (TARGETS coreneuron10_queueing DESTINATION lib)
 install (FILES queueing/pool.h
+               queueing/pool.ipp
                queueing/thread.h
                queueing/queue.h DESTINATION include)
 target_link_libraries (coreneuron10_queueing
@@ -42,4 +45,11 @@ target_link_libraries (event_exec
                        ${MPI_CXX_LIBRARIES}
                        ${MPI_C_LIBRARIES})
 
-install (TARGETS event_exec DESTINATION bin)
+add_executable(dist_exec drivers/distributed_driver.cpp)
+target_link_libraries (dist_exec
+                       coreneuron10_queueing
+                       coreneuron10_environment
+                       ${MPI_CXX_LIBRARIES}
+                       ${MPI_C_LIBRARIES})
+
+install (TARGETS event_exec dist_exec DESTINATION bin)

@@ -49,29 +49,23 @@ int event_help(int argc, char* const argv[], po::variables_map& vm){
     ("numprocs", po::value<size_t>()->default_value(8),
     "the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8),
-    "the number of OMP threads")
+    "the number of OMP threads per process")
     ("run", po::value<std::string>()->default_value(launcher_helper::mpi_launcher()),
     "the command to run parallel jobs")
-    ("numgroups", po::value<size_t>()->default_value(64),
-    "the number of cell groups")
+    ("numgroups", po::value<size_t>()->default_value(8),
+    "the number of cell groups per process")
     ("simtime", po::value<size_t>()->default_value(100),
-    "The number of timesteps in the simulation")
-    ("numout", po::value<size_t>()->default_value(4),
-    "number of output presyns (gids) per process")
-    ("numin", po::value<size_t>()->default_value(12),
-    "the number of input presyns per process")
-    ("ncper", po::value<size_t>()->default_value(5),
-    "average number of netcons per input presyn")
+    "the number of timesteps in the simulation")
+    ("numcells", po::value<size_t>()->default_value(64),
+    "total number of presynaptic cells (gids) in the simulation")
+    ("fanin", po::value<size_t>()->default_value(12),
+    "the number of synapses per neuron")
     ("numspikes", po::value<size_t>()->default_value(30),
-    "the number of spikes generated per process")
-    ("numites", po::value<size_t>()->default_value(30),
-    "the number of inter-thread generated per process")
-    ("numlocals", po::value<size_t>()->default_value(30),
-    "the number of spikes generated per process")
+    "Total number of spikes produced by the simulation")
     ("mindelay", po::value<size_t>()->default_value(3),
     "the number of timesteps per fixed step function")
-    ("algebra",
-    "If set, perform linear algebra");
+    ("distributed", "if set, use distributed graph implementation")
+    ("algebra","If set, perform linear algebra");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -91,17 +85,11 @@ int event_help(int argc, char* const argv[], po::variables_map& vm){
 	return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["numout"].as<size_t>() < 1){
+    if(vm["numcells"].as<size_t>() < vm["numprocs"].as<size_t>()){
 	std::cout<<"must have at least 1 gid per process"<<std::endl;
 	return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["numin"].as<size_t>() >
-       ((vm["numprocs"].as<size_t>() - 1) * vm["numout"].as<size_t>())){
-	std::cout<<"numin must be less than or equal to the number of\
-available gids ((numprocs -1) * numout)"<<std::endl;
-	return mapp::MAPP_BAD_ARG;
-    }
     return mapp::MAPP_OK;
 }
 
@@ -120,21 +108,26 @@ void event_content(po::variables_map const& vm){
     //command line args
     size_t ngroup = vm["numgroups"].as<size_t>();
     size_t simtime = vm["simtime"].as<size_t>();
-    size_t nout = vm["numout"].as<size_t>();
-    size_t nin = vm["numin"].as<size_t>();
-    size_t ncper = vm["ncper"].as<size_t>();
+    size_t ncells = vm["numcells"].as<size_t>();
+    size_t fanin = vm["fanin"].as<size_t>();
     size_t nspike = vm["numspikes"].as<size_t>();
-    size_t nite = vm["numites"].as<size_t>();
-    size_t nlocal = vm["numlocals"].as<size_t>();
     size_t mindelay = vm["mindelay"].as<size_t>();
     size_t algebra = vm.count("algebra");
+    bool distributed = vm.count("distributed");
+
+    std::string exec;
+    if(distributed){
+        exec="dist_exec ";
+    }
+    else{
+        exec="event_exec ";
+    }
 
     command << "OMP_NUM_THREADS=" << nthread << " " <<
-        mpi_run <<" -n "<< nproc << " " << path << "event_exec " <<
+        mpi_run <<" -n "<< nproc << " " << path << exec <<
         ngroup << " " << simtime << " " <<
-        nout << " " << nin << " " << ncper << " " <<
-        nspike << " " << nite << " " << nlocal << " " <<
-        mindelay << " " << algebra;
+        ncells << " " << fanin << " " <<
+        nspike << " " << mindelay << " " << algebra;
 
     std::cout<< "Running command " << command.str() <<std::endl;
 	system(command.str().c_str());

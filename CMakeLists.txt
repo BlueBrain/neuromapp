@@ -1,6 +1,26 @@
 cmake_minimum_required (VERSION 2.8.10)
 project (neuromapp)
 
+
+option(NEUROMAPP_BUILD_RPATH "Export RPATH " OFF)
+
+#hack untill the end of xlc bg/q
+if(NEUROMAPP_BUILD_RPATH)
+# rpath for nix
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif(NEUROMAPP_BUILD_RPATH)
+
 # The version number.
 set(LAST_RELEASE 1.0.0)
 set(VERSION_MAJOR "1")
@@ -19,11 +39,11 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 include(BlueGenePortability)
 
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
-find_package(Boost 1.44 REQUIRED program_options unit_test_framework system filesystem atomic random)
+find_package(Boost 1.44 REQUIRED chrono program_options unit_test_framework system filesystem atomic random)
 find_package(SLURM)
 find_package(MPI)
 
-## MPI link flags need to be overwritten on BG/Q 
+## MPI link flags need to be overwritten on BG/Q
 include(BlueGenePortability)
 
 
@@ -43,9 +63,9 @@ if(NEUROMAPP_CURSOR)
     MESSAGE(STATUS "Using Cursors")
     add_definitions(-DNEUROMAPP_CURSOR)
 
-	set(CURSES_NEED_NCURSES TRUE)
-	find_package(Curses REQUIRED)
-	find_package(Readline REQUIRED)
+    set(CURSES_NEED_NCURSES TRUE)
+    find_package(Curses REQUIRED)
+    find_package(Readline REQUIRED)
 
 endif(NEUROMAPP_CURSOR)
 
