@@ -104,7 +104,7 @@ public:
      *  \param til the current time. compared against event times
      *  \return true if event delivered, else false
      */
-    bool deliver(int id);
+    bool deliver();
 
     /** \fn void l_algebra()
      *  \brief performs the mechanism calculations/updates for linear algebra

@@ -54,10 +54,6 @@ public:
         init();
     }
 
-    benchmark() : a(keyvalue::argument()) {
-        init();
-    }
-
     /** \fun get_group() const
         \brief get the group i.e. the memory */
     keyvalue::group<meta_type> const& get_group() const{
