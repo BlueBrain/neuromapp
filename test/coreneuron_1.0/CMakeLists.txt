@@ -1,5 +1,5 @@
 #list of tests
-set(tests kernel solver cstep)
+set(tests kernel solver cstep queue)
 
 #loop over tests for creation
 foreach(i ${tests})

@@ -40,7 +40,7 @@ namespace mapp{
         std::cout << text;
         std::set<std::string> s; // print in alphabetical order
         for(std::map<std::string,int(*)(int,char * const *)>::iterator it = m.begin(); it != m.end(); ++it)
-            s.insert("      "+ it->first + "<arg> \n");
+            s.insert("      "+ it->first + "<arg> \n"); //extract all kernel in the driver
         std::copy(s.begin(),s.end(),std::ostream_iterator<std::string>(std::cout," "));
         text = "   quit to exit \n";
         text += "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
