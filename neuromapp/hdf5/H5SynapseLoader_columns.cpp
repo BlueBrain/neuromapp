@@ -97,7 +97,7 @@ void H5SynapsesLoader::iterateOverSynapsesFromFiles( std::vector<int> & buffer )
   buffer.resize( dataspace_view.count[ 0 ] * syn_datasets.size() );
 
   for (int i=0; i<syn_datasets.size(); i++) {
-      H5View memspace_view( count, i, syn_datasets.size() );
+      H5View memspace_view( count, i, syn_datasets.size());
 
       hid_t dataspace_id = H5Dget_space( syn_datasets[i]->getId() );
       hid_t memspace_id;
@@ -130,7 +130,7 @@ void H5SynapsesLoader::iterateOverSynapsesFromFiles( std::vector<int> & buffer )
 
       // setup collective read operation
       hid_t dxpl_id_ = H5Pcreate( H5P_DATASET_XFER );
-      // H5Pset_dxpl_mpio(dxpl_id_, H5FD_MPIO_COLLECTIVE);
+      //H5Pset_dxpl_mpio(dxpl_id_, H5FD_MPIO_COLLECTIVE);
       //H5Pset_dxpl_mpio( dxpl_id_, H5FD_MPIO_INDEPENDENT );
 
       hid_t mem_type_id;

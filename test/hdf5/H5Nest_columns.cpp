@@ -28,12 +28,13 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include <algorithms>
+
 #include <mpi.h>
 
 #include "utils/error.h"
 
 #include "test/tools/mpi_helper.h"
-
 
 BOOST_AUTO_TEST_CASE(open_file)
 {
@@ -46,7 +47,7 @@ BOOST_AUTO_TEST_CASE(open_file)
     uint64_t n_SynapsesInDatasets=0;
     uint64_t fixed_num_syns=524288;
  
-    std::vector< std::string > dataset;
+    std::vector< std::string > datasets;
     datasets.push_back("target");     
     H5SynapsesLoader loader(H5NEST_COLUMN_TESTFILE, datasets,
       n_readSynapses,
@@ -79,14 +80,32 @@ BOOST_AUTO_TEST_CASE(open_num_syns)
       n_SynapsesInDatasets,
       fixed_num_syns);
 
-    std::vector< int > buffer;
-
-    int i=0;
+    uint64_t old_n_readSynapses = n_readSynapses;
+    int i=1;
     while( !loader.eof() ) {
-       loader.iterateOverSynapsesFromFiles( buffer );       
-       BOOST_CHECK_EQUAL(n_readSynapses, std::min(fixed_num_syns*i,128));
-       i++;
+       std::vector< int > buffer(2*fixed_num_syns*datasets.size(), std::numeric_limits<int>::min());
+       loader.iterateOverSynapsesFromFiles( buffer );
+
+       BOOST_CHECK_EQUAL((n_readSynapses-old_n_readSynapses)*datasets.size(), buffer.size()));
+       for (int j=0; j<buffer.size()/datasets.size(); j++) {
+           BOOST_CHECK( 0 <= buffer[j] && buffer[j] <= 75000000 ); // valid target range
+           BOOST_CHECK( 0.2 <= reinterpret_cast<float>(buffer[j+1]) && reinterpret_cast<float>(buffer[j+1]) <= 50. ); // valid weight range
+       }
+       old_n_readSynapses = n_readSynapses;
     }
+
+    uint64_t all_n_readSynapses;
+    MPI_Allreduce(&n_readSynapses,
+        &all_n_readSynapses,
+        1,
+        MPI_UNSIGNED_LONG_LONG,
+        MPI_SUM,
+        MPI_COMM_WORLD);
+
+    BOOST_CHECK_EQUAL(128, n_SynapsesInDatasets);
+
+    if (rank==0)
+        BOOST_CHECK_EQUAL(all_n_readSynapses, n_SynapsesInDatasets);
 }
 
 
