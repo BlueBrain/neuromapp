@@ -59,7 +59,7 @@ namespace keyvalue {
     template<class InputIt, class T>
     inline T accumulate(InputIt first, InputIt last, T init){
         reduce<InputIt, T>(first, last);
-        T tmp  = std::accumulate(first, last, init);
+        T tmp = std::accumulate(first, last, init);
         return tmp;
     }
 

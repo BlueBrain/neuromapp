@@ -41,6 +41,6 @@ namespace keyvalue {
         typedef meta meta_type;
         typedef keyvalue_map keyvalue_type;
     };
-}
+} //end namespace keyvalue
 
 #endif
