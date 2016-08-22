@@ -12,70 +12,82 @@
 
 namespace environment {
 
-void presyn_maker::operator()(int nprocs, int ngroups, int rank){
-    //assign input and output gid's
-    std::vector<int> available_inputs;
-    std::vector<int> cellgroups;
-    assert(nprocs >= 1);
-
-    if(nprocs == 1){
-        for(int i = 0; i < n_out_; ++i){
-            outputs_.push_back(i);
-        }
-        assert(inputs_.empty());
+void presyn_maker::operator()(int rank, neurondistribution* neuron_dist){
+    //create local presyns with empty vectors
+    for(int i = 0; i < neuron_dist->getlocalcells(); ++i){
+        const int gid = neuron_dist->local2global(i);
+        outputs_[gid];
     }
-    else{
-        //create a list of outputs (rank, rank + n_out)
-        for(int i = 0; i < (nprocs * n_out_); ++i){
-            if(i >= (rank * n_out_) && i < ((rank * n_out_) + n_out_)){
-                outputs_.push_back(i);
-            }
-            else{
-                available_inputs.push_back(i);
+
+    if (degree_==fixedindegree) {
+        //used for random presyn and netcon selection
+        boost::mt19937 rng(time(NULL) + rank);
+        boost::random::uniform_int_distribution<> uni_d(0, neuron_dist->getglobalcells()-1);
+
+        //foreach gid, select srcs
+        for(int i = 0; i < neuron_dist->getlocalcells(); ++i){
+            for(int j = 0; j < fan_; ++j){
+                const int cur = uni_d(rng);
+                //local GID
+                if(neuron_dist->isLocal(cur)){
+                    //add self to src gid
+                    const int g_i = neuron_dist->local2global(i);
+                    outputs_[cur].push_back(g_i);
+                }
+                //remote GID
+                else{
+                    //add self to input presyn for gid
+                    const int g_i = neuron_dist->local2global(i);
+                    inputs_[cur].push_back(g_i);
+                }
             }
         }
-        assert(available_inputs.size() >= n_in_);
+    }
+    else if (degree_==fixedoutdegree) {
+        //used for random presyn and netcon selection
+        //seed has to be fixed across the ranks to generate proper fixed out degree
+        boost::mt19937 rng(15623);
+        boost::random::uniform_int_distribution<> uni_d(0, neuron_dist->getglobalcells()-1);
 
-        if(n_in_ > 0 && nets_per_ > 0){
-            //used for random presyn and netcon selection
-            boost::mt19937 generator(time(NULL) + rank);
-            boost::uniform_int<> uni_dist;
-            boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
-                randomNumber(generator, uni_dist);
-            boost::random_shuffle(available_inputs, randomNumber);
-
-            //create a random map of inputs presyns
-            available_inputs.resize(n_in_);
-            cellgroups.resize(ngroups);
-            boost::iota(cellgroups, 0);
-
-            //for each input presyn,
-            //select N unique net connections to cell groups
-            boost::random_shuffle(cellgroups, randomNumber);
-            for(int i = 0; i < n_in_; ++i){
-                int presyn = available_inputs[i];
-                for(int j = 0; j < nets_per_; ++j){
-                    inputs_[presyn].push_back(cellgroups[j]);
+        for(int cur = 0; cur < neuron_dist->getglobalcells(); ++cur){
+            for(int j = 0; j < fan_; ++j){
+                int picked = uni_d(rng);
+                //connect if target neuron is local
+                //only one rank stores the connection
+                if(neuron_dist->isLocal(picked)) {
+                    if(neuron_dist->isLocal(cur)){
+                        //add self to src gid
+                        outputs_[cur].push_back(picked);
+                    }
+                    //remote GID
+                    else{
+                        //add self to input presyn for gid
+                        inputs_[cur].push_back(picked);
+                    }
                 }
             }
         }
     }
 }
 
-bool presyn_maker::find_input(int key, input_presyn& presyn) const{
+const presyn* presyn_maker::find_input(int key) const{
     std::map<int, std::vector<int> >::const_iterator it = inputs_.begin();
+    const presyn* input_ptr = NULL;
     it = inputs_.find(key);
-    if(it == inputs_.end())
-        return false;
-    else{
-        presyn = *it;
-        return true;
+    if(it != inputs_.end()){
+        input_ptr = &(it->second);
     }
+    return input_ptr;
 }
 
-int presyn_maker::operator[](int index) const {
-    assert(!outputs_.empty());
-    return outputs_[index];
+const presyn* presyn_maker::find_output(int key) const{
+    std::map<int, std::vector<int> >::const_iterator it = outputs_.begin();
+    const presyn* output_ptr = NULL;
+    it = outputs_.find(key);
+    if(it != outputs_.end()){
+        output_ptr = &(it->second);
+    }
+    return output_ptr;
 }
 
 } //end of namespace

@@ -31,6 +31,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <numeric>
+#include <iostream>
 
 #include "coreneuron_1.0/common/data/helper.h"
 #include "coreneuron_1.0/event_passing/spike/algos.hpp"
@@ -41,16 +42,18 @@ namespace bfs = ::boost::filesystem;
 //Performs MPI init/finalize
 #include "test/tools/mpi_helper.h"
 
+
+
 /**
  * tests the create_spike_type() function.
  * checks that this data type can be freed using
  * MPI_Type_free
  */
 BOOST_AUTO_TEST_CASE(create_spike_type_test){
+    std::cerr << "create_spike_type_test" << std::endl;
     MPI_Datatype spike = create_spike_type();
     MPI_Type_free(&spike);
 }
-
 
 /**
  * test that the set displ function works
@@ -68,13 +71,16 @@ BOOST_AUTO_TEST_CASE(displ_test){
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    spike::spike_interface interface(size);
 
+    std::cerr << "displ_test" << std::endl;
+    spike::spike_interface interface(size);
     for(int i = 0; i < size; ++i){
         interface.nin_[i] = rand()%5;
     }
 
+    std::cerr << "displ_test2" << std::endl;
     set_displ(interface);
+    std::cerr << "displ_test3" << std::endl;
     int sum = 0;
     for(int i = 0; i < size; ++i){
         BOOST_CHECK(interface.displ_[i] == sum);

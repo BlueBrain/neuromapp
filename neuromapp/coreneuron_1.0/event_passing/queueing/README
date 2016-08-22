@@ -19,15 +19,15 @@ Description of the simulation:
     4. Each thread performs linear algebra calculations, modelling the computation
     of CoreNeuron.
 
-Description of the different files:
+Description of the files:
 
-    - pool contains the pool class which spawns threads and to perform a fixed_step task.
-      also filters events produced by spike exchange.
+    - pool.ipp: contains the pool class which spawns threads and to perform
+        a fixed_step task. also filters events produced by spike exchange.
 
-    - thread contains the thread class. Every time step, they generate, send,
-        enqueue and deliver events
+    - thread.cpp: contains the thread class. Every time step, they generate,
+        send, enqueue and deliver events.
 
-    - queue the priority queue class used by thread to order events in a heap with
-        the least-most time at the front
+    - queue.cpp: the priority queue class used by thread to order events in a
+        heap with the least-most time at the front
 
 

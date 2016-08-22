@@ -9,11 +9,13 @@ target_link_libraries (app
                        coreneuron10_solver
                        coreneuron10_cstep
                        coreneuron10_event
+                       synapse
                        replib
                        storage
-                       ${Readline_LIBRARIES}
-                       ${Curses_LIBRARIES}
+                       ${READLINE_LIBRARY}
+                       ${CURSES_CURSES_LIBRARY}
                        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
+                       ${Boost_CHRONO_LIBRARIES}
                        ${Boost_SYSTEM_LIBRARIES}
                        ${Boost_ATOMIC_LIBRARIES})
 install (TARGETS app DESTINATION bin)
