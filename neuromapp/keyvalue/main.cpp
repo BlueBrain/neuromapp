@@ -52,7 +52,7 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
     ("numthread,t", po::value<int>()->default_value(1), "[int]    Number of OpenMP threads")
 
     ("backend,b", po::value<std::string>()->default_value("map"), "[string] keyvalue store backend to use. \
-                  Supported backends: map (STL map), skv (IBM SKV), ldb (LevelDB)")
+                  Supported backends: map (STL map), skv (IBM SKV), ceph (Ceph - Rados)")
     ("async,a", "If available, use the asynchronous API of the keyvalue backend")
     ("flash,f", "If available, use flash memory as storage")
     ("usecase,u", po::value<int>()->default_value(1), "[int] Use case to simulate. Creates a data set size of: \
@@ -79,7 +79,7 @@ int keyvalue_help(int argc, char* const argv[], po::variables_map& vm){
 
     if((vm["backend"].as<std::string>() != "map")
             && (vm["backend"].as<std::string>() != "skv")
-            && (vm["backend"].as<std::string>() != "ldb")){
+            && (vm["backend"].as<std::string>() != "ceph")){
         std::cout << "Error: backend " << vm["backend"].as<std::string>()
                 << " not supported." << std::endl;
         return mapp::MAPP_BAD_ARG;

@@ -70,8 +70,8 @@ keyvalue::statistic task(benchmark<S> const& b){
                     #pragma omp single nowait
                     {
                         for (int cg = 0; cg < a.cg(); cg++) {
-                            const double * dep1 = g.meta_at(cg).value(); //adress of the first element
-                            const double * dep2 = (g.meta_at(cg).value()+1);  //adress of the second element
+                            const double * dep1 = g.meta_at(cg).value(); //address of the first element
+                            const double * dep2 = (g.meta_at(cg).value()+1);  //address of the second element
 
                             sleep_time += (int) ((0.45 * comp_time_us) / a.threads()) + adjust;
                             #pragma omp task depend(inout:dep1)
@@ -118,8 +118,8 @@ keyvalue::statistic task(benchmark<S> const& b){
                     {
                         for (int cg = 0; cg < a.cg(); cg++) { // correct cell group
 
-                            const double * dep1 = g.meta_at(cg).value(); //adress of the first element
-                            const double * dep2 = (g.meta_at(cg).value()+1);  //adress of the second element
+                            const double * dep1 = g.meta_at(cg).value(); //address of the first element
+                            const double * dep2 = (g.meta_at(cg).value()+1);  //address of the second element
 
                             #pragma omp task depend(inout:dep1)
                             {
