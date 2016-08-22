@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8.10)
 project (neuromapp)
 
 
-option(NEUROMAPP_BUILD_RPATH "Export RPATH " ON)
+option(NEUROMAPP_BUILD_RPATH "Export RPATH " OFF)
 
 #hack untill the end of xlc bg/q
 if(NEUROMAPP_BUILD_RPATH)
