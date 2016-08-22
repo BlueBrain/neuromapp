@@ -38,9 +38,9 @@ namespace nest
     class ConnectorBase; //forward declaration
     class tsodyks2;
 
-    typedef unsigned short targetindex; //simplification of hpc synapses from NEST
-
     class node; //forward declaration
+    
+    typedef unsigned int targetindex;
 
     class scheduler
     {
@@ -74,7 +74,11 @@ namespace nest
         inline static targetindex add_node(node* n)
         {
             nodes_vec_.push_back(n);
-            return nodes_vec_.size()-1;
+	    
+	    //
+    	    assert(nodes_vec_.size() < std::numeric_limits<targetindex>::max() );
+	    
+            return static_cast<targetindex>(nodes_vec_.size()-1);
         }
 
         /**

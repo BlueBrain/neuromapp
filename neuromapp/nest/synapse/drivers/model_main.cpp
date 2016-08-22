@@ -123,7 +123,7 @@ namespace nest
         if (use_mpi)
             desc.add_options()
             ("run", po::value<std::string>()->default_value("/usr/bin/mpiexec"), "mpi run command")
-            ("rate", po::value<double>()->default_value(-1), "firing rate per neuron");
+            ("rate", po::value<double>()->default_value(-1.0), "firing rate per neuron");
 
         if (use_manager)
             desc.add_options()
@@ -200,9 +200,9 @@ namespace nest
             const double tau_fac = vm["tau_fac"].as<double>();
 
             try {
-                short lid = 0; // only one node
-                spikedetector sd;
-                tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, lid);
+                //short lid = 0; // only one node
+                //spikedetector sd;
+                tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac/*, lid*/);
             }
             catch (std::invalid_argument& e) {
                 std::cout << "Error in model parameters: " << e.what() << std::endl;
@@ -272,8 +272,9 @@ namespace nest
             size_t simtime = vm["simtime"].as<int>();
             
             double rate = vm["rate"].as<double>();
-            if (rate>=0) {
-                nSpikes = rate * ncells * simtime;
+            if (rate>0) {
+                std::cout << "after" << std::endl;
+                nSpikes = int(ncells * simtime*rate);
                 std::cout << "WARNING: nSpikes is overwritten by rate. new value of nSpikes=" << nSpikes << std::endl; 
             }
             std::string syn_model = vm["model"].as<std::string>();
@@ -328,12 +329,13 @@ namespace nest
             presyns(thrd, &neuro_dist);
 
             //preallocate vector for results
-            std::vector<spikedetector> detectors(ncells);
-            std::vector<targetindex> detectors_targetindex(ncells);
+            std::vector<spikedetector> detectors(neuro_dist.getlocalcells());
+            std::vector<targetindex> detectors_targetindex(detectors.size());
 
             // register spike detectors
-            for(unsigned int i=0; i < ncells; ++i) {
+            for(unsigned int i=0; i < neuro_dist.getlocalcells(); ++i) {
                 detectors[i].set_lid(i);    //give nodes a local id
+		detectors[i].set_gid(neuro_dist.local2global(i));
                 //scheduler stores pointers to the spike detectors
                 detectors_targetindex[i] = scheduler::add_node(&detectors[i]);  //add them to the scheduler
             }
@@ -343,23 +345,27 @@ namespace nest
 
             // generate all events for one thread
             environment::event_generator generator(1);
-            double mean = static_cast<double>(simtime) / static_cast<double>(nSpikes);
-            double lambda = 1.0 / static_cast<double>(mean * size);
-
-            //all events available
-            environment::continousdistribution event_dist(1, 0, ncells);
-
-            environment::generate_poisson_events(generator.begin(),
-                             simtime, nthreads, rank, size, lambda, &event_dist);
+            	    
+	    // all events on local thread
+	    environment::continousdistribution neuron_vp_dist(1, 0, ncells); 
+	    //generate events for each thread
+	    environment::event_generator::iterator it_gen_vp = generator.begin();
+	    const double firing_rate = static_cast<double>(nSpikes) / static_cast<double>(simtime);
+	    generate_poisson_events_net(it_gen_vp, 1234, simtime, firing_rate, neuron_vp_dist);
+	    
 
             const unsigned int stats_generated_spikes = generator.get_size(0);
-            int t = 0;
+	    
+            Time clock;
+	    Time step(static_cast<double>(min_delay));
             spikeevent se;
+	    Time Tstop(static_cast<double>(simtime));
+	    
             boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-            while (t<simtime) {
-                t+=min_delay;
+            while (clock<Tstop) {
+                clock+=step;
                 // get events from all threads
-                while(generator.compare_top_lte(0, t)) {
+                while(generator.compare_top_lte(0, clock.tics-1)) {
                     environment::gen_event g = generator.pop(0);
                     index nid = g.first;
                     se.set_stamp( Time(g.second) ); // in Network::send< SpikeEvent >
@@ -372,9 +378,13 @@ namespace nest
             std::cout << "Statistics:" << std::endl;
             std::cout << "\tgenerated spikes: " << stats_generated_spikes << std::endl;
             int recvSpikes=0;
-            for (unsigned int i=0; i<detectors.size(); i++)
+	    int fanin=0;
+            for (unsigned int i=0; i<detectors.size(); i++) {
                 recvSpikes+=detectors[i].spikes.size();
+		fanin+=detectors[i].fanin;
+	    }
             std::cout << "\trecv spikes: " << recvSpikes << std::endl;
+	    std::cout << "\tfanin: " << fanin << std::endl;
 
             std::cout << "\tEvents left:" << std::endl;
 
