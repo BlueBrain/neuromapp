@@ -24,6 +24,7 @@ Usage: < >  means optional
 
    The list of the following miniapps are available:
        hello <arg>
+       synapse <arg>
        kernel <arg>
        solver <arg>
        cstep <arg>
@@ -62,6 +63,7 @@ Table
  <TR>
  <TH>                  </TH>
  <TH> hello      </TH>
+ <TH> synapse      </TH>
  <TH> solver     </TH>
  <TH> kernel     </TH>
  <TH> cstep     </TH>
@@ -74,9 +76,11 @@ Table
  <TD  align="center">  Print helper   </TD>
  <TD  align="center">  Print helper   </TD>
  <TD  align="center">  Print helper   </TD>
+ <TD  align="center">  Print helper   </TD>
  </TR>
  <TR>
  <TH> —data  </TH>
+ <TD  align="center">  -  </TD>
  <TD  align="center">  -  </TD>
  <TD  align="center">  input file   </TD>
  <TD  align="center">  input file   </TD>
@@ -87,6 +91,7 @@ Table
  <TR>
  <TH> —name  </TH>
  <TD  align="center">  world </TD>
+ <TD  align="center">  -   </TD>
  <TD  align="center">  storage key   </TD>
  <TD  align="center">  storage key   </TD>
  <TD  align="center">  storage key   </TD>
@@ -95,6 +100,7 @@ Table
  <TR>
  <TH> —numthread  </TH>
  <TD  align="center">  number OMP thread  </TD>
+ <TD  align="center">  -   </TD>
  <TD  align="center">  -   </TD>
  <TD  align="center">  number OMP thread   </TD>
  <TD  align="center">  -   </TD>
@@ -152,6 +158,60 @@ The queueing miniapp has additional options to study the queueing
  <TR>
  <TH> —verbose  </TH>
  <TD  align="center">  provides additional outputs during execution   </TD>
+ </TR>
+</TABLE>
+
+The synapse miniapp has additional options to study the spike processing
+
+<TABLE BORDER="1">
+<CAPTION> Additional option of the miniapp synapse  </CAPTION>
+ <TR>
+ <TH> —models  </TH>
+ <TD  align="center">  list of available connection models </TD>
+ </TR>
+ <TR>
+ <TH> —connector  </TH>
+ <TD  align="center">  encapsulate connections in connector   </TD>
+ </TR>
+  <TR>
+ <TH> —num_connections  </TH>
+ <TD  align="center">  number of connections per connector (only available if connector is set)   </TD>
+ </TR>
+ <TR>
+ <TH> —model  </TH>
+ <TD  align="center">  select a connection model   </TD>
+ </TR>
+ <TR>
+ <TH> —delay  </TH>
+ <TD  align="center">  synapse model property   </TD>
+ </TR>
+ <TR>
+ <TH> —weight   </TH>
+ <TD  align="center">  synapse model property   </TD>
+ </TR>
+ <TR>
+ <TH> —U  </TH>
+ <TD  align="center">  synapse model property   </TD>
+ </TR>
+ <TR>
+ <TH> —u  </TH>
+ <TD  align="center">  synapse model property   </TD>
+ </TR>
+ <TR>
+ <TH> —tau_rec  </TH>
+ <TD  align="center">  synapse model property   </TD>
+ </TR>
+ <TR>
+ <TH> —tau_fac  </TH>
+ <TD  align="center">  synapse model property   </TD>
+ </TR>
+ <TR>
+ <TH> —dt  </TH>
+ <TD  align="center">  timestep of simulation    </TD>
+ </TR>
+  <TR>
+ <TH> —iterations  </TH>
+ <TD  align="center">  number of iterations   </TD>
  </TR>
 </TABLE>
 
