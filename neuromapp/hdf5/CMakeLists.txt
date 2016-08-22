@@ -1,4 +1,4 @@
-add_executable(hdf5_distri_columns distributed_driver.cpp H5SynapseLoader_columns.cpp )
+add_executable(hdf5_distri_columns distributed_driver.cpp H5SynapseLoader.cpp )
 
 target_link_libraries (hdf5_distri_columns
                        ${MPI_CXX_LIBRARIES}

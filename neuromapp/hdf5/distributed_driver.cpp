@@ -37,7 +37,7 @@
 
 #include <mpix.h>
 
-#include "hdf5/H5SynapseLoader_columns.h"
+#include "hdf5/H5SynapseLoader.h"
 
 
 int main(int argc, char* argv[]) {
