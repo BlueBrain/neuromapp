@@ -71,6 +71,8 @@ int main(int argc, char* argv[]) {
 
     std::vector<int> buffer;
 
+    uint64_t loaded_bytes = 0;
+    double sum_diff_ms = 0.;
     struct timeval it_start, it_end;
     while( !loader.eof() ) {
         gettimeofday(&it_start, NULL);
@@ -78,8 +80,9 @@ int main(int argc, char* argv[]) {
         gettimeofday(&it_end, NULL);
         long long diff_ms = (1000 * (it_end.tv_sec - it_start.tv_sec))
                 + ((it_end.tv_usec - it_start.tv_usec) / 1000);
-
-        std::cout << "rank=" << rank << " time=" << diff_ms << "ms" << "\n";
+	loaded_bytes += buffer.size() * sizeof(int);
+        sum_diff_ms += diff_ms;
+        //std::cout << "rank=" << rank << " time=" << diff_ms << "ms" << ""<<"\n";
     }
 
     gettimeofday(&end, NULL);
@@ -87,7 +90,7 @@ int main(int argc, char* argv[]) {
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec))
         + ((end.tv_usec - start.tv_usec) / 1000);
 
-    std::cout<<"rank="<<rank<<" run time="<<diff_ms<<"ms"<<std::endl;
+    std::cout<<"rank="<<rank<<" loaded bytes="<< loaded_bytes <<" sum diff time="<< diff_ms << "ms run time="<<diff_ms<<"ms"<<std::endl;
 
     //pl.accumulate_stats();
     //accumulate_stats(s_interface);

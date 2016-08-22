@@ -84,7 +84,6 @@ bool H5SynapsesLoader::eof()
 
 void H5SynapsesLoader::iterateOverSynapsesFromFiles( std::vector<int> & buffer )
 {
-  //
   uint64_t local_offset = fixed_num_syns_ * RANK + global_offset_;
   global_offset_ += fixed_num_syns_ * NUM_PROCESSES;
 
@@ -94,10 +93,17 @@ void H5SynapsesLoader::iterateOverSynapsesFromFiles( std::vector<int> & buffer )
     count = 0;
   H5View dataspace_view( count, local_offset );
 
+  // make sure main buffer is big enough
+  // actually only resized in first iteration
   buffer.resize( dataspace_view.count[ 0 ] * syn_datasets.size() );
+  
+  // use additional buffer to overcome hyperslab bottleneck
+  // size of one dataset
+  std::vector< int > h5buffer( dataspace_view.count[ 0 ] );
 
   for (int i=0; i<syn_datasets.size(); i++) {
-      H5View memspace_view( count, i, syn_datasets.size() );
+      // H5View memspace_view( count, i, syn_datasets.size() );
+      H5View memspace_view( count );
 
       hid_t dataspace_id = H5Dget_space( syn_datasets[i]->getId() );
       hid_t memspace_id;
@@ -130,6 +136,10 @@ void H5SynapsesLoader::iterateOverSynapsesFromFiles( std::vector<int> & buffer )
 
       // setup collective read operation
       hid_t dxpl_id_ = H5Pcreate( H5P_DATASET_XFER );
+      //H5Pset_hyper_vector_size( dxpl_id_, 2* dataspace_view.count[0] );
+      //std::vector< char > tconv( 1024*1024*8 );
+      //std::vector< char > bgk( 1024*1024*8 );
+      //H5Pset_buffer(dxpl_id_, 1024*1024*8, &tconv[0], &bgk[0]);
       // H5Pset_dxpl_mpio(dxpl_id_, H5FD_MPIO_COLLECTIVE);
       //H5Pset_dxpl_mpio( dxpl_id_, H5FD_MPIO_INDEPENDENT );
 
@@ -138,16 +148,21 @@ void H5SynapsesLoader::iterateOverSynapsesFromFiles( std::vector<int> & buffer )
           mem_type_id = H5T_NATIVE_INT;
       else
           mem_type_id = H5T_NATIVE_FLOAT;
-
+      
+      // read from file and copy in additionally buffer
       H5Dread( syn_datasets[i]->getId(),
         mem_type_id,
         memspace_id,
         dataspace_id,
         dxpl_id_,
-        &buffer[0] );
+        &h5buffer[0] );
 
+      // copy buffer back to main buffer
+      // apply stride
+      for (int j=0; j<count; j++)
+	buffer[ j*syn_datasets.size() + i] = h5buffer[j];  
+      
       H5Pclose( dxpl_id_ );
-
       H5Sclose( memspace_id );
       H5Sclose( dataspace_id );
   }
