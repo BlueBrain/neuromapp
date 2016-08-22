@@ -3,11 +3,10 @@
 #include <boost/mpl/list.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/array.hpp>
-#include <boost/algorithm/cxx11/iota.hpp>
 
 #include <numeric>
-#include <random>
 #include <iostream>
+#include <algorithm>
 
 #include "coreneuron_1.0/queue/tool/priority_queue.hpp"
 
@@ -42,8 +41,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(push_pop,T,full_test_types) {
 BOOST_AUTO_TEST_CASE(push_pop_random_less) {
     tool::sptq_queue<int> q; // std::less by default
     boost::array<int,10> a;
-    boost::algorithm::iota(a.begin(),a.end(),0);
-    std::random_shuffle(std::begin(a), std::end(a));
+    for(int i=0 ; i < 10; i++) // std::iota ...
+	a[i] = i;
+    std::random_shuffle(a.begin(), a.end());
     boost::array<int,10>::iterator it;
     it = a.begin();
     // fill the queue and sort
@@ -66,8 +66,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(push_pop_random_greater,T,full_test_types) {
 
     value_type queue;
     boost::array<nested_value_type,10> a;
-    boost::algorithm::iota(a.begin(),a.end(),0);
-    std::random_shuffle(std::begin(a), std::end(a));
+    for(int i=0 ; i < 10; i++)
+	a[i] = i;
+    std::random_shuffle(a.begin(), a.end());
     typename boost::array<nested_value_type,10>::iterator it;
     it = a.begin();
     // fill the queue and sort
@@ -82,5 +83,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(push_pop_random_greater,T,full_test_types) {
         queue.pop();
         BOOST_CHECK_EQUAL( top, total++);
     }
+
 }
 
