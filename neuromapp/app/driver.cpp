@@ -46,6 +46,7 @@ namespace mapp{
         s.insert("       cstep <arg> \n");
         s.insert("       keyvalue <arg> \n");
         s.insert("       replib <arg> \n");
+        s.insert("       iobench <arg> \n");
         std::copy(s.begin(),s.end(),std::ostream_iterator<std::string>(std::cout," "));
         std::cout << "   quit to exit \n";
         std::cout << "   The miniapp: kernel, solver, cstep can use the provided data set: \n";

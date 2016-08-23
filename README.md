@@ -25,11 +25,22 @@ of coreneuron, 3 miniapps are available: kernel and solver
 
 This directory provides an example of how could be design a miniapp (C++)
 
+## neuromapp/iobench
+
+This directory contains a miniapp that creates a fake report in a key/value fashion and 
+stores and reads it from a key/value backend. Several parameters can be tuned, like the 
+size of keys and values, the amount of k/v pairs, parallelism (MPI/OMP), randomness of 
+reads and writes, etc. This miniapp is similar to the keyvalue miniapp, but in this case 
+the parameter configuration is more flexible.
+
+For more information, run the mini-app with the --help argument.
+
 ## neuromapp/keyvalue
 
 This directory contains a miniapp that mimics CoreNeuron simulation loop but outputs 
-the results in a key/value fashion. Three different use cases are defined in order 
-to fill 25%, 50% or 75% of the main memory of a BG/Q node.
+the results in a key/value fashion. This miniapp is similar to the iobench miniapp, but 
+in this case the options are more restrict to a BG/Q environment: three different use 
+cases are defined in order to fill 25%, 50% or 75% of the main memory of a BG/Q node.
 
 For more information, run the mini-app with the --help argument.
 
