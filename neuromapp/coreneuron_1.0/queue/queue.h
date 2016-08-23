@@ -33,6 +33,6 @@
  \param argv the command line from the driver or external call
  \return error message from mapp::mapp_error
  */
-int queue_execute(int argc, char* const argv[]);
+int coreneuron10_queue_execute(int argc, char* const argv[]);
 
 #endif

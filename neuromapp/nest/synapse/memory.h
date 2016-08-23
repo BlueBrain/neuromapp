@@ -28,7 +28,9 @@
 #define MEMORY_H_
 
 #include <algorithm>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 namespace nest{
 

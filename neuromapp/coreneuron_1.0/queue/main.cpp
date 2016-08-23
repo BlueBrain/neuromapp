@@ -82,12 +82,12 @@ void benchmark(int iteration, bool io){
         size<<=1; // 1,2,4,8 ....
     }
 
-    std::fstream out;
-    std::string name_file = boost::lexical_cast<std::string>(T::name) + ".csv";
-    out.open(name_file.c_str(),std::fstream::out);
-    std::copy(res.begin(),res.end(), std::ostream_iterator<std::string>(std::cout, " ")); //screen
-    if(!io)
-        std::copy(res.begin(),res.end(), std::ostream_iterator<std::string>(out)); //io
+    if(io){
+        std::fstream out;
+        std::string name_file = boost::lexical_cast<std::string>(T::name) + ".csv";
+        out.open(name_file.c_str(),std::fstream::out);
+        std::copy(res.begin(),res.end(), std::ostream_iterator<std::string>(std::cout, " ")); //screen
+    }
 }
 
 
@@ -107,10 +107,10 @@ int queue_content(po::variables_map const& vm){
 
     std::map<std::string,queue::benchs> m;
     m.insert(std::make_pair("push",queue::push));
-    m.insert(std::make_pair("pop",queue::push));
-    m.insert(std::make_pair("push_one",queue::push));
-    m.insert(std::make_pair("mh_bench",queue::push));
-    m.insert(std::make_pair("all",queue::push));
+    m.insert(std::make_pair("pop",queue::pop));
+    m.insert(std::make_pair("push_one",queue::push_one));
+    m.insert(std::make_pair("mh_bench",queue::mh_bench));
+    m.insert(std::make_pair("all",queue::all));
 
     switch(m[bench]){
         case queue::push :
@@ -138,15 +138,16 @@ int queue_content(po::variables_map const& vm){
 }
 
 
-int queue_execute(int argc, char* const argv[]){
+int coreneuron10_queue_execute(int argc, char* const argv[]){
+    int state = mapp::MAPP_OK;
     try {
         po::variables_map vm; // it contains everything
         if(int error = queue_help(argc, argv, vm)) return error;
-        queue_content(vm); // execute the miniapp
+        state = queue_content(vm); // execute the miniapp
     }
     catch(std::exception& e){
         std::cout << e.what() << "\n";
         return mapp::MAPP_UNKNOWN_ERROR;
     }
-    return mapp::MAPP_OK; // 0 ok, 1 not ok
+    return state; // 0 ok, 1 not ok
 }

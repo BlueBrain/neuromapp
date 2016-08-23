@@ -17,7 +17,7 @@
 
 namespace queue{
 
-    enum benchs {push=0,pop,push_one,mh_bench,all}; // for the main and switch
+    enum benchs {push=1,pop,push_one,mh_bench,all}; // for the main and switch
 
     struct push_helper{
         template<class T>
