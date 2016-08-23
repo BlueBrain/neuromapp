@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
+#include <string>
 
 #ifndef H5SYNAPSESLOADER_CLASS
 #define H5SYNAPSESLOADER_CLASS
@@ -34,12 +35,6 @@ public:
       {
         return offset[ 0 ] + ( v_idx / block[ 0 ] ) * ( stride[ 0 ] - 1 ) + v_idx;
       }
-
-      static bool
-      MinSynPtr( const NeuronLink& a, const NeuronLink& b )
-      {
-        return a.syn_ptr < b.syn_ptr;
-      };
     };
 
     struct H5Dataset

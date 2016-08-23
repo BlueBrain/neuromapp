@@ -3,12 +3,9 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
+#include <cassert>
 
 #include "hdf5/H5SynapseLoader.h"
-
-#ifndef H5SYNAPSESLOADER_CLASS
-#define H5SYNAPSESLOADER_CLASS
-
 
   size_t
   H5SynapsesLoader::getNumberOfSynapses( H5Dataset& dataset )
@@ -157,7 +154,7 @@
         memspace_id,
         dataspace_id,
         dxpl_id_,
-        &buffer.property_pool_[0] );
+        &buffer[0] );
 
       H5Pclose( dxpl_id_ );
 
@@ -167,6 +164,4 @@
       // observer variable
       n_readSynapses += dataspace_view.count[ 0 ];
     }
-};
 
-#endif
