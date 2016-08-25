@@ -17,11 +17,6 @@ nest::mpi_manager::communicate_Allgather( std::vector< uint_t >& send_buffer,
 
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Comm_size(comm, &num_processes);
-#ifdef _OPENMP
-    int num_threads = omp_get_num_threads();
-#else
-    int num_threads = 1;
-#endif
 
   std::vector< int > recv_counts( num_processes, send_buffer_size );
 
@@ -96,11 +91,6 @@ nest::mpi_manager::communicate( std::vector< uint_t >& send_buffer,
 {
     int num_processes;
     MPI_Comm_size(MPI_COMM_WORLD, &num_processes);
-#ifdef _OPENMP
-    int num_threads = omp_get_num_threads();
-#else
-    int num_threads = 1;
-#endif
 
     displacements.resize( num_processes, 0 );
     if ( num_processes == 1 ) {
