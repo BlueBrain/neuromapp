@@ -227,11 +227,11 @@ namespace nest{
         #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
         #else
-        const int thrd = 0;
+        const int thrd = 1;
         #endif
 
         Tnew* p = NULL;
-    //  #pragma omp critical // not thread safe!!
+       #pragma omp critical // not thread safe!!
         {
         p = new ( poormansallocpool[thrd].alloc( sizeof( Tnew ) ) )
         Tnew(*connector, connection );
@@ -250,11 +250,11 @@ namespace nest{
         #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
         #else
-        const int thrd = 0;
+        const int thrd = 1;
         #endif
 
         T* p = NULL;
-//agma omp critical // not thread safe!!
+       #pragma omp critical // not thread safe!!
         {
         p = new ( poormansallocpool[thrd].alloc( sizeof( T ) ) ) T( c );
         }
