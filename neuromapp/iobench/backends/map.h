@@ -28,6 +28,9 @@
 #define MAPP_IOBENCH_MAP_
 
 #include <omp.h>
+#include <map>
+#include <vector>
+#include <cstring>
 
 #include "basic.h"
 

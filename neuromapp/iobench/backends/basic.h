@@ -28,6 +28,7 @@
 #define MAPP_IOBENCH_BASIC_
 
 #include <string>
+#include <vector>
 
 
 class KVStatus {

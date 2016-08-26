@@ -77,18 +77,23 @@ int iobench_help(int argc, char* const argv[], po::variables_map& vm){
         return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["keySize"].as<unsigned int>() < 1){
+    if(vm["keySize"].as<size_t>() < 1){
         std::cout << "Error: keySize must be at least 1." << std::endl;
         return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["valSize"].as<unsigned int>() < 1){
+    if(vm["valSize"].as<size_t>() < 1){
         std::cout << "Error: valSize must be at least 1." << std::endl;
         return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["read"].as<unsigned int>() == 0 && vm["write"].as<int>() == 0){
+    if(vm["read"].as<unsigned int>() == 0 && vm["write"].as<unsigned int>() == 0){
         std::cout << "Error: please specify at least one operation: read or write." << std::endl;
+        return mapp::MAPP_BAD_ARG;
+    }
+
+    if(vm["read"].as<unsigned int>() == 1 && vm["write"].as<unsigned int>() == 0 && vm["backend"].as<std::string>() == "map"){
+        std::cout << "Error: cannot read from non-persistent storage without writing first." << std::endl;
         return mapp::MAPP_BAD_ARG;
     }
 
@@ -114,8 +119,8 @@ void iobench_content(po::variables_map const& vm){
     unsigned int s = vm["skip"].as<unsigned int>();
     unsigned int p = vm["numproc"].as<unsigned int>();
     unsigned int t = vm["threads"].as<unsigned int>();
-    unsigned int k = vm["keySize"].as<unsigned int>();
-    unsigned int v = vm["valSize"].as<unsigned int>();
+    unsigned int k = vm["keySize"].as<size_t>();
+    unsigned int v = vm["valSize"].as<size_t>();
     unsigned int c = vm["compress"].as<unsigned int>();
     unsigned int r = vm["read"].as<unsigned int>();
     unsigned int w = vm["write"].as<unsigned int>();
@@ -130,7 +135,7 @@ void iobench_content(po::variables_map const& vm){
                 << "MPI_Exec_io";
     } else {
         // Launch simple OMP app
-        command << path << "iobench";
+        command << path << "iobench-omp";
     }
 
     command << " -b " << b << " -n " << n << " -i " << i << " -s " << s << " -k " << k
