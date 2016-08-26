@@ -9,6 +9,7 @@ foreach(i ${event_tests})
                                storage
                                coreneuron10_solver
                                coreneuron10_cstep
+                               coreneuron10_queue
                                ${Boost_UNIT_TEST_FRAMEWORK_LIBRARIES}
                                ${Boost_SYSTEM_LIBRARIES}
                                ${Boost_FILESYSTEM_LIBRARIES}

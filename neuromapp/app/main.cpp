@@ -43,6 +43,17 @@
 #include "utils/argv_data.h"
 
 
+int compute(const mapp::driver& d, int argc, char * const argv[]){
+    try {
+        d.execute(argc,argv);
+    } catch(mapp::driver_exception & e) {
+        if(e.error_code != mapp::MAPP_USAGE)
+            std::cerr << "caught exception: " << e.what() << "\n";
+    } catch(std::exception & e) {
+            std::cerr << "caught exception: " << e.what() << "\n";
+    }
+    return 0;
+}
 
 /** \brief the main program interacting with the user. The program is command line interactive. */
 int main(int argc, char * const argv[]){
@@ -57,19 +68,11 @@ int main(int argc, char * const argv[]){
      d.insert("keyvalue",keyvalue_execute);
      d.insert("replib",replib_execute);
      d.insert("iobench",iobench_execute);
+     d.insert("queue",coreneuron10_queue_execute);
 
      //direct run
-     if(argv[1] != NULL){
-         try {
-             d.execute(argc,argv);
-         } catch(mapp::driver_exception & e) {
-             if(e.error_code != mapp::MAPP_USAGE)
-                 std::cerr << "caught exception: " << e.what() << "\n";
-         } catch(std::exception & e) {
-                 std::cerr << "caught exception: " << e.what() << "\n";
-         }
-         return 0;
-     }
+     if(argv[1] != NULL)
+         return compute(d,argc,argv);
 
      std::cout << "Welcome to NeuroMapp! Please enter "
                << "the name of the miniapp you wish to execute "
@@ -103,18 +106,9 @@ int main(int argc, char * const argv[]){
 
          mapp::argv_data A(command_v.begin(),command_v.end());
 
-         try {
-             d.execute(A.argc(),A.argv());
-         } catch(mapp::driver_exception & e) {
-             if(e.error_code != mapp::MAPP_USAGE)
-                 std::cerr << "caught exception: " << e.what() << "\n";
-         } catch(std::exception & e) {
-             std::cerr << "caught exception: " << e.what() << "\n";
-         }
+         compute(d,A.argc(),A.argv());
+
          std::cout << std::endl << ">? ";
      }
-
      return 0;
 }
-
-
