@@ -85,11 +85,11 @@ public:
             argument_helper(v, "-k", keysize(),to_uint());
             argument_helper(v, "-v", valuesize(),to_uint());
             //argument_helper(v, "-a", async(),to_int());
-            argument_helper(v, "-c", compress(),to_int());
-            argument_helper(v, "-r", read(),to_int());
-            argument_helper(v, "-w", write(),to_int());
-            argument_helper(v, "-rrd", rnd_rd(),to_int());
-            argument_helper(v, "-rwr", rnd_wr(),to_int());
+            argument_helper(v, "-c", compress(),to_bool());
+            argument_helper(v, "-r", read(),to_bool());
+            argument_helper(v, "-w", write(),to_bool());
+            argument_helper(v, "--rrd", rnd_rd(),to_bool());
+            argument_helper(v, "--rwr", rnd_wr(),to_bool());
 
             niter_ += skip_;
 
@@ -141,6 +141,15 @@ public:
          */
         int operator()(std::string const& s){
             return (unsigned int) std::atoi(s.c_str());
+        }
+    };
+
+    struct to_bool{
+        /** \fn operator()
+         \brief functor that transform the argument to unsigned integer
+         */
+        bool operator()(std::string const& s){
+            return std::atoi(s.c_str()) != 0;
         }
     };
 
@@ -253,7 +262,7 @@ public:
      \brief random writing, read only
      */
     inline bool rnd_wr() const {
-        return rnd_rd_;
+        return rnd_wr_;
     }
 
     /**
@@ -360,7 +369,7 @@ public:
      \brief random writing, write only
      */
     inline bool &rnd_wr() {
-        return rnd_rd_;
+        return rnd_wr_;
     }
 
     /**

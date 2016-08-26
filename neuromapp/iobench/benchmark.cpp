@@ -38,7 +38,7 @@
 
 using namespace iobench;
 
-void iobench::benchmark::init(int argc, char* argv[]) {
+void iobench::benchmark::init(int argc, char* const argv[]) {
 #ifdef IO_MPI
     // MPI_Init() called when creating args
     //MPI_Init(&argc, &argv);
@@ -238,6 +238,7 @@ void iobench::benchmark::write(stats & stats) {
                 printf("Iteration time: %g\n", sec);
 #endif
         }
+        errors_ += error;
     }
     std::cout << "K/V write data: OK!" << std::endl;
 
@@ -314,6 +315,7 @@ void iobench::benchmark::read(stats & stats) {
             stats.record(sec);
             rd_viter++;
         }
+        errors_ += error;
     }
     std::cout << "K/V read data: OK!" << std::endl;
 
@@ -334,6 +336,7 @@ void iobench::benchmark::read(stats & stats) {
                 }
             }
         }
+        errors_ += errval;
         if (errval != 0)
             std::cout << "Found " << errval << " errors!" << std::endl;
         else

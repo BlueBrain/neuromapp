@@ -31,6 +31,9 @@
 #include <numeric>
 #include <cmath>
 
+#ifdef IO_MPI
+#include <mpi.h>
+#endif
 
 namespace iobench {
 
@@ -52,7 +55,7 @@ class stats {
 
     public:
 
-        stats() : bw_(), iops_(0), mb_(0.0), ops_(0), time_(0.0), avgBW_(0.0), stddevBW_(0.0),
+        stats() : bw_(), iops_(), mb_(0.0), ops_(0), time_(0.0), avgBW_(0.0), stddevBW_(0.0),
         stderrBW_(0.0), avgIOPS_(0.0), stddevIOPS_(0.0), stderrIOPS_(0.0) {}
 
 

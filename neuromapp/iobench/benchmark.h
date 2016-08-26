@@ -50,12 +50,15 @@ class benchmark {
         std::vector<char *> values_;
         std::vector<char *> reads_;
 
+        // Used by unit tests to check for correctness
+        unsigned int errors_;
+
 public:
     /** \fun benchmark(int argc, char* argv[])
         \brief create the benchmark and initialize it according to the
         given parameters
      */
-    benchmark(int argc, char* argv[]) : a_(argc, argv), wrst_(), rdst_() {
+    benchmark(int argc, char* const argv[]) : a_(argc, argv), wrst_(), rdst_(), errors_(0) {
         init(argc, argv);
         initDB();
     }
@@ -130,11 +133,17 @@ public:
 #endif
     }
 
+    /** \fun success()
+        \brief check whether any error occurred while the benchmark was running
+     */    bool success() {
+        return errors_ == 0;
+    }
+
 private:
     /** \fun init(int argc, char* argv[])
         \brief if MPI enabled, initialize MPI
      */
-    void init(int argc, char* argv[]);
+    void init(int argc, char* const argv[]);
 
     /** \fun finalize()
         \brief if MPI enabled, finalize MPI

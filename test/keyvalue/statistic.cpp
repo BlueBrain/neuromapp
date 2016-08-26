@@ -22,7 +22,7 @@
 
 /**
  * @file neuromapp/test/keyvalue/statistic.cpp
- *  Test on the key/value store miniapp arguments
+ *  Test on the key/value store miniapp statistics
  */
 
 #define BOOST_TEST_MODULE KeyValueTestMPI
