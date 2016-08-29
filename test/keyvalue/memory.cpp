@@ -19,8 +19,8 @@
  */
 
 /**
- * @file neuromapp/test/keyvalue/args.cpp
- *  Test on the key/value store miniapp arguments
+ * @file neuromapp/test/keyvalue/memory.cpp
+ *  Test on the key/value store miniapp memory
  */
 
 #define BOOST_TEST_MODULE KeyValueTest

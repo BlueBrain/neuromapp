@@ -112,7 +112,7 @@ public:
         /** \fn operator()
          \brief functor that transform the argument to integer
          */
-        double operator()(std::string const& s){
+        int operator()(std::string const& s){
             return std::atoi(s.c_str());
         }
     };
