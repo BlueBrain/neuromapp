@@ -20,17 +20,34 @@ of coreneuron, 3 miniapps are available: kernel and solver
 * solver: This miniapp extracts the linear algbra solver of CoreNeuron, the Hines solver 
 	         (similar to Thomas Solver for 3 bands matrix)
 * cstep: It combines the kernel and the solver to mimic a step time of neuron simulator
-	 
+ 
+##hello
+
+This directory provides an example of how could be design a miniapp (C++)
+
+## neuromapp/keyvalue
+
+This directory contains a miniapp that mimics CoreNeuron simulation loop but outputs 
+the results in a key/value fashion. Three different use cases are defined in order 
+to fill 25%, 50% or 75% of the main memory of a BG/Q node.
+
+For more information, run the mini-app with the --help argument.
+
 ## neuromapp/queuing
 	 
 This directory contains a miniapp that simulates the queueing system of CoreNeuron.
 
 Moreover the hello directory provides informations to create a new miniapp
 
-##hello
+## neuromapp/replib
 
-This directory provides an example of how could be design a miniapp (C++)
+This directory contains a miniapp that mimics the behavior of Neuron's ReportingLib. 
+It uses MPI I/O collective calls to write a fake report to a shared file. The miniapp 
+provides several options to distribute data across ranks in different ways.
+
+For more information, run the mini-app with the --help argument.
 
 ## neuromapp/nest/synapse
 
 This directory contains a miniapp that simulates synapse models from NEST.
+
