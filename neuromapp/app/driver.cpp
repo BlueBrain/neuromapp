@@ -33,32 +33,23 @@
 
 namespace mapp{
 
-    void usage(){
+    void driver::usage() const{
         std::string text = "Usage: < >  means optional \n";
         text += "   miniapp --help provides the help of your miniapp \n \n";
-        text += "   The list of the following miniapps are available: \n";
-        std::cout << text;
-        std::set<std::string> s; // print in alphabetical order
-        s.insert("       hello <arg> \n");
-        s.insert("       synapse <arg> \n");
-        s.insert("       event <arg> \n");
-        s.insert("       kernel <arg> \n");
-        s.insert("       solver <arg> \n");
-        s.insert("       cstep <arg> \n");
-        s.insert("       keyvalue <arg> \n");
-        s.insert("       replib <arg> \n");
-        std::copy(s.begin(),s.end(),std::ostream_iterator<std::string>(std::cout," "));
-        text = "   quit to exit \n";
+        text += "   The list of the following miniapps are available:\n";
+        for(std::map<std::string,int(*)(int,char * const *)>::const_iterator it = m.begin(); it != m.end(); ++it)
+           text += ("      "+ it->first + " <arg> \n"); //extract all kernel in the driver, naturaly sort
+        text += "   quit to exit \n";
         text += "   The miniapp: kernel, solver, cstep can use the provided data set: \n";
         text +=  "\n";
         std::cout << text + "       "+mapp::data_test()+" \n";
     }
 
-    void driver::insert(const std::string name, int(*f)(int,char *const *) ){
-        m.insert(std::pair<std::string, int(*)(int,char *const *)>(name,f));
+    void driver::insert(const std::string& name, int(*f)(int,char *const *) ){
+        m.insert(make_pair(name,f));
     }
 
-    void driver::execute(int argc, char * const argv[]){
+    void driver::execute(int argc, char * const argv[]) const{
         if(argc == 1)
             usage();
         else{
@@ -74,4 +65,3 @@ namespace mapp{
         }
     }
 }// end namespace
-

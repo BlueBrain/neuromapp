@@ -1,7 +1,7 @@
 /*
- * Neuromapp - queue.h, Copyright (c), 2015,
- * Tim Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Neuromapp - iobench.cpp, Copyright (c), 2015,
+ * Judit Planas - Swiss Federal Institute of technology in Lausanne,
+ * judit.planas@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,20 +19,21 @@
  * License along with this library.
  */
 
-/**
- * @file neuromapp/queue/queue.h
- * keyvalue Miniapp
+
+#include <iostream>
+
+#include "iobench/benchmark.h"
+
+
+/** \fun main
+    \brief main program of the miniapp, run by MPI+OMP or just OMP
+    Measure R/W performance of different K/V stores
  */
+int main(int argc, char* argv[]) {
+    iobench::benchmark b(argc, argv);
+    b.createData();
+    b.run();
+    b.print_stats(std::cout);
 
-#ifndef MAPP_QUEUE_EXECUTE_
-#define MAPP_QUEUE_EXECUTE_
-
-/** \fn keyvalue_execute(int argc, char *const argv[])
- \brief keyvalue Miniapp
- \param argc number of argument from the command line
- \param argv the command line from the driver or external call
- \return error message from mapp::mapp_error
- */
-int coreneuron10_queue_execute(int argc, char* const argv[]);
-
-#endif
+    return 0;
+}

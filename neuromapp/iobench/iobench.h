@@ -1,7 +1,7 @@
 /*
- * Neuromapp - queue.h, Copyright (c), 2015,
- * Tim Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Neuromapp - iobench.h, Copyright (c), 2015,
+ * Judit Planas - Swiss Federal Institute of technology in Lausanne,
+ * judit.planas@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -20,19 +20,19 @@
  */
 
 /**
- * @file neuromapp/queue/queue.h
- * keyvalue Miniapp
+ * @file neuromapp/iobench/iobench.h
+ * iobench Miniapp
  */
 
-#ifndef MAPP_QUEUE_EXECUTE_
-#define MAPP_QUEUE_EXECUTE_
+#ifndef MAPP_IOBENCH_EXECUTE_
+#define MAPP_IOBENCH_EXECUTE_
 
-/** \fn keyvalue_execute(int argc, char *const argv[])
- \brief keyvalue Miniapp
- \param argc number of argument from the command line
- \param argv the command line from the driver or external call
- \return error message from mapp::mapp_error
+/** \fn iobench_execute(int argc, char *const argv[])
+    \brief iobench Miniapp
+    \param argc number of argument from the command line
+    \param argv the command line from the driver or external call
+    \return error message from mapp::mapp_error
  */
-int coreneuron10_queue_execute(int argc, char* const argv[]);
+int iobench_execute(int argc, char* const argv[]);
 
-#endif
+#endif // MAPP_IOBENCH_EXECUTE_

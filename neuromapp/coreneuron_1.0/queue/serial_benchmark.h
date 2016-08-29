@@ -17,7 +17,7 @@
 
 namespace queue{
 
-    enum benchs {push=0,pop,push_one,mh_bench,all}; // for the main and switch
+    enum benchs {push=1,pop,push_one,mh_bench,all}; // for the main and switch
 
     struct push_helper{
         template<class T>
@@ -133,10 +133,9 @@ namespace queue{
                 t2 = rdtsc();
                 time += (t2 - t1);
             }
-
             return time*1/static_cast<double>(repetition);
         }
-        
+
         static const char name[];
     };
 
