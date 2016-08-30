@@ -35,8 +35,11 @@
     #include <omp.h>
 #endif
 
-#include "nest/H5Synapses/nest_kernel.h"
-#include "nest/H5Synapses/H5Synapses.h"
+#include "nest/h5import/fakenestkernel/nest_kernel.h"
+#include "nest/h5import/H5Synapses.h"
+
+
+using namespace h5import;
 
 
 int main(int argc, char* argv[]) {

@@ -29,7 +29,7 @@
 
 #include "utils/error.h"
 #include <iostream>
-#include "nest/synapse/memory.h"
+#include "nest/nestkernel/environment/memory.h"
 
 BOOST_AUTO_TEST_CASE(nest_pool_constructor)
 {

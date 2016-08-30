@@ -32,10 +32,10 @@
 
 #include "utils/error.h"
 
-#include "nest/mpi_manager.h"
-#include "nest/simulationmanager.h"
-#include "nest/eventdelivermanager.h"
-#include "nest/synapse/connectionmanager.h"
+#include "nest/nestkernel/event_passing/mpi_manager.h"
+#include "nest/nestkernel/event_passing/simulationmanager.h"
+#include "nest/nestkernel/event_passing/eventdelivermanager.h"
+#include "nest/nestkernel/environment/connectionmanager.h"
 
 #include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
 

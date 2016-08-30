@@ -4,7 +4,7 @@
  *  Created on: Jul 6, 2016
  *      Author: schumann
  */
-#include "nest/mpi_manager.h"
+#include "nest/nestkernel/event_passing/mpi_manager.h"
 
 void
 nest::mpi_manager::communicate_Allgather( std::vector< uint_t >& send_buffer,

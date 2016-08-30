@@ -27,7 +27,10 @@
 #define MAPP_APP_
 
 #include "hello/hello.h"
-#include "nest/synapse/drivers/synapse.h"
+#include "nest/drivers/synapse.h"
+#include "nest/drivers/event_passing.h"
+#include "nest/drivers/h5import.h"
+#include "hdf5/drivers/h5read.h"
 #include "keyvalue/keyvalue.h"
 #include "coreneuron_1.0/event_passing/drivers/drivers.h"
 #include "coreneuron_1.0/kernel/kernel.h"

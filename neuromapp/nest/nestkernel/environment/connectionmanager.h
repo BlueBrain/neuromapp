@@ -9,11 +9,12 @@
 #define CONNECTIONMANAGER_H_
 
 #include <boost/program_options.hpp>
-#include "nest/synapse/connector_base.h"
+#include "nest/nestkernel/environment/connector_base.h"
+#include "nest/nestkernel/environment/event.h"
+#include "nest/nestkernel/environment/memory.h"
 #include "nest/libnestutil/sparsetable.h"
-#include "nest/synapse/models/tsodyks2.h"
-#include "nest/synapse/event.h"
-#include "nest/synapse/memory.h"
+#include "nest/models/tsodyks2.h"
+
 
 #include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 

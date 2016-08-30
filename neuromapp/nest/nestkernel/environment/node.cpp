@@ -6,7 +6,7 @@
  */
 
 
-#include "nest/synapse/node.h"
+#include "nest/nestkernel/environment//node.h"
 
 void nest::spikedetector::handle( nest::spikeevent& e )
 {

@@ -1,17 +1,19 @@
 #include <deque>
 #include <vector>
 //#include "nmpi.h"
-#include "NESTNodeSynapse.h"
+#include "nest/h5import/NESTNodeSynapse.h"
 #include <map>
 
 #include <omp.h>
 
 //#include "H5SynMEMPedictor.h"
-#include "H5SynapseLoader_columns.h"
-#include "kernels.h"
+#include "nest/h5import/h5reader.h"
+#include "nest/h5import/kernels.h"
 
 #ifndef H5Synapses_CLASS
 #define H5Synapses_CLASS
+
+namespace h5import {
 
 enum CommunicateSynapses_Status
 {
@@ -70,5 +72,7 @@ public:
   void set_properties(const std::vector<std::string>& prop_names);
   void set_mapping(const GIDCollection& gids);
 };
+
+}; //end h5import namespace
 
 #endif

@@ -29,9 +29,11 @@
 
 #include <vector>
 #include <cstddef>
-#include "nest/synapse/node.h"
 #include <limits.h>
 #include <limits>
+
+#include "nest/nestkernel/environment/node.h"
+
 
 namespace nest
 {

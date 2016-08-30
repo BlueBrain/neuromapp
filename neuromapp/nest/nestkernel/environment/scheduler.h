@@ -29,8 +29,8 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
-#include "nest/synapse/node.h"
-#include "nest/synapse/connector_base.h"
+#include "nest/nestkernel/environment/node.h"
+#include "nest/nestkernel/environment/connector_base.h"
 #include "nest/libnestutil/sparsetable.h"
 
 namespace nest

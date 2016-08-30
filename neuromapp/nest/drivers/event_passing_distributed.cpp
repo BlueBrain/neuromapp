@@ -35,8 +35,8 @@
     #include <omp.h>
 #endif
 
-#include "nest/synapse/connectionmanager.h"
-#include "nest/simulationmanager.h"
+#include "nest/nestkernel/environment/connectionmanager.h"
+#include "nest/nestkernel/event_passing/simulationmanager.h"
 
 
 int main(int argc, char* argv[]) {

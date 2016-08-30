@@ -28,7 +28,7 @@
 #define NODE_H_
 
 #include <vector>
-#include "nest/synapse/event.h"
+#include "nest/nestkernel/environment//event.h"
 
 
 

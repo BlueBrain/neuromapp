@@ -10,29 +10,48 @@
 #include <iterator>
 #include <vector>
 
+#include <omp.h>
+
+namespace h5import {
 
 typedef std::vector<double> TokenArray;
+
+/*
+ * help class for thread buffers
+ * each omp thread gets its own buffer
+ */
+template < typename T >
+struct private_vector
+{
+    typedef T type_name;
+    std::vector< std::vector< type_name > > all_vectors;
+
+    private_vector() : all_vectors(omp_get_num_threads())
+    {}
+
+    std::vector< T >& operator()()
+    {
+        return all_vectors[omp_get_thread_num()];
+    }
+};
 
 template < typename T >
 struct manipulate_kernel
 {
   typedef T type_name;
-  manipulate_kernel( const int& num_threads ):
-      values_per_thread( num_threads )
-  {}
 
   virtual ~manipulate_kernel()
   {}
 
   virtual std::vector< type_name >&
-  operator()( const int& thrd, typename std::vector< type_name >::iterator begin, typename std::vector< type_name >::iterator end )
+  operator()( typename std::vector< type_name >::iterator begin, typename std::vector< type_name >::iterator end )
   {
-    values_per_thread[thrd].resize(end-begin);
-    std::copy(begin, end, values_per_thread[thrd].begin());
-    return values_per_thread[thrd];
+    pv().resize(end-begin);
+    std::copy(begin, end, pv().begin());
+    return pv();
   }
 private:
-  std::vector< std::vector< type_name > > values_per_thread;
+  private_vector< type_name > pv;
 };
 
 template < typename T >
@@ -40,9 +59,9 @@ struct kernel_combi
 {
   typedef T type_name;
   std::vector< manipulate_kernel< type_name >* > kernels_;
-  kernel_combi( const int& num_threads ): values_per_thread(num_threads)
+  kernel_combi( )
   {
-    manipulate_kernel< type_name >* k = new manipulate_kernel< type_name >( num_threads );
+    manipulate_kernel< type_name >* k = new manipulate_kernel< type_name >( );
     kernels_.push_back( k );
   }
 
@@ -61,32 +80,32 @@ struct kernel_combi
   }
 
   std::vector<type_name>&
-  operator()( const int& thrd, typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
+  operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
-      values_per_thread[thrd].resize(end-begin);
-      std::copy(begin, end, values_per_thread[thrd].begin());
-      std::vector<type_name>* result_vector = &values_per_thread[thrd];
+      pv().resize(end-begin);
+      std::copy(begin, end, pv().begin());
+      std::vector<type_name>* result_vector = &pv();
       for ( int i = 0; i < kernels_.size(); i++ ) {
-          result_vector = &( *kernels_[ i ] )( thrd, result_vector->begin(), result_vector->end());
+          result_vector = &( *kernels_[ i ] )( result_vector->begin(), result_vector->end());
       }
       return *result_vector;
     }
 
   template < typename Tin >
   std::vector<type_name>&
-  operator()( const int& thrd, Tin* begin, Tin* end )
+  operator()( Tin* begin, Tin* end )
   {
-      values_per_thread[thrd].resize(end-begin);
-      std::copy(begin, end, values_per_thread[thrd].begin());
-      std::vector<type_name>* result_vector = &values_per_thread[thrd];
+      pv().resize(end-begin);
+      std::copy(begin, end, pv().begin());
+      std::vector<type_name>* result_vector = &pv();
       for ( int i = 0; i < kernels_.size(); i++ ) {
-          result_vector = &( *kernels_[ i ] )( thrd, result_vector->begin(), result_vector->end());
+          result_vector = &( *kernels_[ i ] )( result_vector->begin(), result_vector->end());
       }
       return *result_vector;
   }
 
 private:
-  std::vector< std::vector< type_name > > values_per_thread;
+  private_vector< type_name > pv;
 };
 
 template < typename T >
@@ -95,25 +114,25 @@ struct kernel_multi : public manipulate_kernel< T >
     typedef T type_name;
 
   std::vector< type_name > multis_;
-  kernel_multi( const int& num_threads, TokenArray multis ): manipulate_kernel< type_name >(num_threads), values_per_thread( num_threads )
+  kernel_multi( TokenArray multis )
   {
     for ( int i = 0; i < multis.size(); i++ )
       multis_.push_back( multis[ i ] );
   }
 
   std::vector< type_name >
-  operator()( const int& thrd, typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
+  operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
     const int n = end-begin;
     assert( n == multis_.size() );
-    values_per_thread[thrd].resize(n);
+    pv().resize(n);
 
-    std::transform(begin, end, multis_.begin(), values_per_thread[thrd].begin(), std::multiplies<type_name>());
-    return values_per_thread[thrd];
+    std::transform(begin, end, multis_.begin(), pv().begin(), std::multiplies<type_name>());
+    return pv();
   }
 
 private:
-  std::vector< std::vector< type_name > > values_per_thread;
+  private_vector< type_name > pv;
 };
 
 template < typename T >
@@ -122,24 +141,24 @@ struct kernel_add : public manipulate_kernel< T >
     typedef T type_name;
 
   std::vector< type_name > adds_;
-  kernel_add( const int& num_threads, TokenArray adds ): manipulate_kernel< type_name >(num_threads), values_per_thread( num_threads )
+  kernel_add( TokenArray adds )
   {
     for ( int i = 0; i < adds.size(); i++ )
       adds_.push_back( adds[ i ] );
   }
   std::vector< type_name >&
-  operator()( const int& thrd, typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
+  operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
     const int n = end-begin;
     assert( n == adds_.size() );
-    values_per_thread[thrd].resize(n);
+    pv().resize(n);
 
-    std::transform(begin, end, adds_.begin(), values_per_thread[thrd].begin(), std::plus<type_name>());
-    return values_per_thread[thrd];
+    std::transform(begin, end, adds_.begin(), pv().begin(), std::plus<type_name>());
+    return pv();
   }
 
 private:
-  std::vector< std::vector< type_name > > values_per_thread;
+  private_vector< type_name > pv;
 };
 
 /**
@@ -152,7 +171,7 @@ struct kernel_srwa : public manipulate_kernel< T >
 
   type_name lower;
   type_name upper;
-  kernel_srwa( const int& num_threads, TokenArray& boundaries ): manipulate_kernel< type_name >(num_threads), values_per_thread( num_threads )
+  kernel_srwa( TokenArray& boundaries )
   {
     assert( boundaries.size() == 2 );
     lower = boundaries[ 0 ];
@@ -160,13 +179,13 @@ struct kernel_srwa : public manipulate_kernel< T >
   }
 
   std::vector< type_name >&
-  operator()( const int& thrd, typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
+  operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
     const int n = end-begin;
     assert( n == 5 );
-    values_per_thread[thrd].resize(n);
+    pv().resize(n);
 
-    std::vector< type_name >& output = values_per_thread[thrd].begin();
+    std::vector< type_name >& output = pv().begin();
     std::copy(begin, end, output.begin());
 
     const double Vprop = 0.8433734 * 1000.0;
@@ -176,11 +195,11 @@ struct kernel_srwa : public manipulate_kernel< T >
     else if ( distance < upper )
         output[1] *= -2.0;
 
-    return values_per_thread[thrd];
+    return pv();
   }
 
 private:
-  std::vector< std::vector< type_name > > values_per_thread;
+  private_vector< type_name > pv;
 };
 
 /*template <typename T>
@@ -202,5 +221,7 @@ struct kernel_rand : public manipulate_kernel<T> {
                 return values;
         }
 };*/
+
+}; //end h5import namespace
 
 #endif /* KERNELS_H_ */

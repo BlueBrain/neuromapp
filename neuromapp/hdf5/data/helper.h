@@ -30,15 +30,15 @@
 
 #include "neuromapp/hdf5/data/path.h" // this file is generated automatically
 
-namespace h5mapp{
+namespace hdf5{
     /** helper for the path of the input data */
-    inline std::string hdf5_testdata_datasets(){
-        return h5mapp::helper_build_path::test_data_path()+"syn_test_126.h5";
+    inline std::string testdata_datasets(){
+        return hdf5::helper_data_path::test_data_path()+"syn_test_126.h5";
     }
 
     /** helper for the path of the input data */
-    inline std::string hdf5_testdata_compound(){
-        return h5mapp::hdf5::helper_build_path::test_data_path()+"syn_test_126_comp.h5";
+    inline std::string testdata_compound(){
+        return hdf5::helper_data_path::test_data_path()+"syn_test_126_comp.h5";
     }
 }
 

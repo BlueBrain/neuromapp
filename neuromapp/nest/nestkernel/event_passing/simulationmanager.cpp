@@ -5,8 +5,8 @@
  *      Author: schumann
  */
 
-#include "nest/simulationmanager.h"
-#include "nest/eventdelivermanager.h"
+#include "nest/nestkernel/event_passing/simulationmanager.h"
+#include "nest/nestkernel/event_passing/eventdelivermanager.h"
 
 using namespace nest;
 

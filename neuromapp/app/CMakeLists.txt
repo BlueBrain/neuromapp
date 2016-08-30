@@ -9,7 +9,10 @@ target_link_libraries (app
                        coreneuron10_solver
                        coreneuron10_cstep
                        coreneuron10_event
-                       synapse
+                       nest_synapse
+                       nest_event_passing_driver
+                       nest_h5import_driver
+                       h5read_driver
                        replib
                        storage
                        ${READLINE_LIBRARY}

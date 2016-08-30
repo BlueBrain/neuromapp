@@ -29,19 +29,18 @@
 #include <cassert>
 #include <sys/time.h>
 
+#include <boost/program_options.hpp>
 #include "utils/storage/neuromapp_data.h"
 
 #ifdef _OPENMP
     #include <omp.h>
 #endif
 
-#include <mpix.h>
-
-#include "hdf5/H5SynapseLoader.h"
+#include "hdf5/h5reader.h"
 
 
 int main(int argc, char* argv[]) {
-    assert(argc >= 3);
+    assert(argc >= 6);
 
     MPI_Init(NULL, NULL);
     int rank, size;
@@ -49,24 +48,19 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     std::string h5file(argv[1]);
-    std::vector< std::string > datasets;
-    for (int i=2; i<argc; i++)
-        datasets.push_back(argv[i]);
+    std::string h5dataset(argv[2]);
+    uint64_t transferSize = boost::lexical_cast< uint64_t >(argv[3]);
+    uint64_t totalSize = boost::lexical_cast< uint64_t >(argv[4]);
+
+
+    std::vector< std::string > h5parameters;
+    for (int i=5; i<argc; i++)
+        h5parameters.push_back(argv[i]);
 
     struct timeval start, end;
 
-    //INITIALIZE
-    uint64_t n_readSynapses=0;
-    uint64_t n_SynapsesInDatasets=0;
-    uint64_t fixed_num_syns=524288;
-
-    H5SynapsesLoader loader(h5file, datasets,
-            n_readSynapses,
-            n_SynapsesInDatasets,
-            fixed_num_syns);
+    h5reader loader(h5file, h5dataset, h5parameters, transferSize, totalSize);
     
-    //INFO section
-    std::cout << "rank=" << rank << " io-distance=" << MPIX_IO_distance() << std::endl;  
     gettimeofday(&start, NULL);
 
     std::vector<int> buffer;
@@ -76,13 +70,13 @@ int main(int argc, char* argv[]) {
     struct timeval it_start, it_end;
     while( !loader.eof() ) {
         gettimeofday(&it_start, NULL);
-        loader.iterateOverSynapsesFromFiles(buffer);
+        loader.readblock(buffer);
         gettimeofday(&it_end, NULL);
         long long diff_ms = (1000 * (it_end.tv_sec - it_start.tv_sec))
                 + ((it_end.tv_usec - it_start.tv_usec) / 1000);
-	loaded_bytes += buffer.size() * sizeof(int);
+
+        loaded_bytes += buffer.size() * sizeof(int);
         sum_diff_ms += diff_ms;
-        //std::cout << "rank=" << rank << " time=" << diff_ms << "ms" << ""<<"\n";
     }
 
     gettimeofday(&end, NULL);

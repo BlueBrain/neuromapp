@@ -5,7 +5,7 @@
  *      Author: schumann
  */
 
-#include "nest/synapse/event.h"
+#include "nest/nestkernel/environment/event.h"
 
 void nest::spikeevent::operator()()
 {

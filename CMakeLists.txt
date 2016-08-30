@@ -66,6 +66,8 @@ execute_process(COMMAND unzip -o ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/
 #prepare the ref solution for the test
 execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/rhs_d_ref.tar.gz
                             -C    ${PROJECT_BINARY_DIR}/test/)
+                            
+file(COPY ${PROJECT_SOURCE_DIR}/neuromapp/hdf5/data/syn_test_126_comp.h5 DESTINATION ${PROJECT_BINARY_DIR}/test/)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

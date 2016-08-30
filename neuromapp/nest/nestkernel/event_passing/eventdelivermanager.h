@@ -8,9 +8,9 @@
 #ifndef EVENTDELIVERYMANAGER_H_
 #define EVENTDELIVERYMANAGER_H_
 
-#include "nest/mpi_manager.h"
+#include "nest/nestkernel/event_passing/mpi_manager.h"
 
-#include "nest/synapse/connectionmanager.h"
+#include "nest/nestkernel/environment/connectionmanager.h"
 
 namespace nest
 {

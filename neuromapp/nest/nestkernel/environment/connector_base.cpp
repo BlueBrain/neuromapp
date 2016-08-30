@@ -20,7 +20,7 @@
  *
  */
 
-#include "nest/synapse/connector_base.h"
+#include "nest/nestkernel/environment/connector_base.h"
 
 namespace nest
 {

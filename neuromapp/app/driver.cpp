@@ -39,7 +39,9 @@ namespace mapp{
         std::cout << "   The list of the following miniapps are available: \n";
         std::set<std::string> s; // print in alphabetical order
         s.insert("       hello <arg> \n");
-        s.insert("       synapse <arg> \n");
+        s.insert("       nest_synapse <arg> \n");
+        s.insert("       nest_event <arg> \n");
+        s.insert("       nest_h5import <arg> \n");
         s.insert("       event <arg> \n");
         s.insert("       kernel <arg> \n");
         s.insert("       solver <arg> \n");

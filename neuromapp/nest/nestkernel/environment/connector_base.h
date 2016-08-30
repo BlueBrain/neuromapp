@@ -28,9 +28,9 @@
 #include <vector>
 #include <cassert>
 
-#include "nest/synapse/node.h"
-#include "nest/synapse/event.h"
-#include "nest/synapse/memory.h"
+#include "nest/nestkernel/environment/node.h"
+#include "nest/nestkernel/environment/event.h"
+#include "nest/nestkernel/environment/memory.h"
 
 // when to truncate the recursive instantiation
 #define K_CUTOFF 8

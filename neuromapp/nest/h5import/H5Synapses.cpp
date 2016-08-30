@@ -1,5 +1,5 @@
-#include "H5Synapses.h"
-#include "NESTNodeSynapse.h"
+#include "nest/h5import/H5Synapses.h"
+#include "nest/h5import/NESTNodeSynapse.h"
 
 #include <iostream>
 //#include "nmpi.h"
@@ -25,6 +25,9 @@
 #include <scorep/SCOREP_User.h>
 #endif
 
+
+using namespace h5import;
+
 #define LOG( s, fctn, msg )               \
     std::cout  << " " << ( fctn ) \
     << " " << ( msg ) << " " << __FILE__  \
@@ -40,7 +43,7 @@ H5Synapses::singleConnect( const int& thrd, NESTSynapseRef synapse,
 
     // apply kernels to vaues from h5 file
 
-    std::vector<double>& values = kernel_( thrd, synapse.params_.begin(), synapse.params_.end() );
+    std::vector<double>& values = kernel_( synapse.params_.begin(), synapse.params_.end() );
 
     assert( values.size() >= 2 );
 
@@ -217,7 +220,7 @@ H5Synapses::CommunicateSynapses()
  *
  */
 H5Synapses::H5Synapses()
-  : stride_( 1 ), num_syanpses_per_process_(524288), kernel_(nest::kernel().vp_manager.get_max_threads())
+  : stride_( 1 ), num_syanpses_per_process_(524288)
 {
   // init lock token
   omp_init_lock( &tokenLock_ );
@@ -316,12 +319,12 @@ H5Synapses::import()
 
   CommunicateSynapses_Status com_status = UNSET;
 
-  H5SynapsesLoader synloader( filename_,
+   h5reader synloader( filename_,
     synapses_.prop_names_,
-    n_readSynapses,
-    n_SynapsesInDatasets,
     num_syanpses_per_process_,
     last_total_synapse_ );
+
+   n_SynapsesInDatasets += synloader.size();
 
   struct timeval start_all, end_all, start_load, end_load;
 
@@ -335,7 +338,7 @@ H5Synapses::import()
       SCOREP_USER_REGION_BEGIN( "load", SCOREP_USER_REGION_TYPE_FUNCTION )
 #endif
       gettimeofday(&start_load, NULL);
-      synloader.iterateOverSynapsesFromFiles( synapses_ );
+      synloader.readblock( &synapses_ );
       gettimeofday(&end_load, NULL);
     }
 
@@ -390,7 +393,8 @@ void H5Synapses::set_mapping(const GIDCollection& gids)
     mapping_ = gids;
 }
 
-/*void
+/*
+void
 H5Synapses::set_status( const DictionaryDatum& din )
 {
   filename = getValue< std::string >( din, "file" );
@@ -469,4 +473,5 @@ H5Synapses::addKernel( std::string name, TokenArray params )
     kernel_.push_back< kernel_multi< double > >( params );
   else if ( name == "csaba1" )
     kernel_.push_back< kernel_csaba< double > >( params );
-}*/
+}
+*/

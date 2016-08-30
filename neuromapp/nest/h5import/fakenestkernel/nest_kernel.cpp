@@ -5,7 +5,7 @@
  *      Author: schumann
  */
 
-#include "nest/H5Synapses/nest_kernel.h"
+#include "nest/h5import/fakenestkernel/nest_kernel.h"
 
 void nest::kernel_manager::create()
 {

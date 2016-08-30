@@ -28,8 +28,8 @@
 
 #include <boost/program_options.hpp>
 
-#include "nest/synapse/event.h"
-#include "nest/synapse/scheduler.h"
+#include "nest/nestkernel/environment/event.h"
+#include "nest/nestkernel/environment/scheduler.h"
 
 namespace nest
 {

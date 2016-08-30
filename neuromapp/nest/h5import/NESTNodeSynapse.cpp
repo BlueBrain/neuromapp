@@ -1,4 +1,4 @@
-#include "NESTNodeSynapse.h"
+#include "nest/h5import/NESTNodeSynapse.h"
 //#include "nmpi.h"
 
 /*NESTNodeSynapse::NESTNodeSynapse()

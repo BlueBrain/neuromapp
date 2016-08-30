@@ -1,12 +1,12 @@
-#ifndef NEUROMAPP_PATH
-#define NEUROMAPP_PATH
+#ifndef NEUROMAPP_HDF5PATH
+#define NEUROMAPP_HDF5PATH
 
-namespace h5mapp{
+namespace hdf5{
      /** Helper to obtain the path in the build directory
 
      Data are saved under .zip/.tar format, they are unzip/untar and put in the build directory
      */
-     struct helper_build_path{
+     struct helper_data_path{
          const std::string static test_data_path(){
              return "@PROJECT_BINARY_DIR@/test/";
          }

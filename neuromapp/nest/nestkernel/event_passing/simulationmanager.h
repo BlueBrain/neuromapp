@@ -8,7 +8,7 @@
 #ifndef SIMULATIONMANAGER_H_
 #define SIMULATIONMANAGER_H_
 
-#include "nest/eventdelivermanager.h"
+#include "nest/nestkernel/event_passing/eventdelivermanager.h"
 #include "coreneuron_1.0/event_passing/environment/event_generators.hpp"
 
 namespace nest {

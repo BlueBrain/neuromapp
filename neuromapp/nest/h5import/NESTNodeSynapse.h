@@ -1,10 +1,12 @@
 #include <iostream>
 #include <vector>
 
-#include "nest_kernel.h"
+#include "nest/h5import/fakenestkernel/nest_kernel.h"
 
 #ifndef NESTNODESYNAPSE_CLASS
 #define NESTNODESYNAPSE_CLASS
+
+namespace h5import {
 
 typedef int int32_t;
 typedef long int int64_t;
@@ -231,5 +233,7 @@ struct NESTSynapseList
       return 2* sizeof(int) + sizeof_pool_entry();
   }
 };
+
+}; //end h5import namespace
 
 #endif

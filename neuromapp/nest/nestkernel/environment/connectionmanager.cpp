@@ -5,7 +5,7 @@
  *      Author: schumann
  */
 
-#include "nest/synapse/connectionmanager.h"
+#include "nest/nestkernel/environment/connectionmanager.h"
 
 
 #ifdef _OPENMP

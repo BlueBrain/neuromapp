@@ -1,26 +1,19 @@
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_library (synapse connectionmanager.cpp connector_base.cpp event.cpp node.cpp scheduler.cpp drivers/model_main.cpp)
-target_link_libraries(synapse coreneuron10_environment)
-
-install (TARGETS synapse DESTINATION lib)
-install (FILES connector_base.h event.h node.h scheduler.h drivers/synapse.h DESTINATION include)
-
-#NEST manager libraray
-add_library (nest_manager connectionmanager.cpp
+#NEST environment library
+add_library (nest_environment connectionmanager.cpp
                           connector_base.cpp
                           event.cpp
                           node.cpp
                           scheduler.cpp)
 
-install (TARGETS nest_manager DESTINATION lib)
+install (TARGETS nest_environment DESTINATION lib)
 install (FILES connectionmanager.h
                connector_base.h
                event.h
                node.h
                scheduler.h DESTINATION include)
                
-target_link_libraries (nest_manager
-                       coreneuron10_queueing
+target_link_libraries (nest_environment
                        coreneuron10_environment)

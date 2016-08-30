@@ -30,12 +30,14 @@
 #include <boost/program_options.hpp>
 #include <boost/chrono.hpp>
 
-#include "nest/synapse/drivers/synapse.h"
-#include "nest/synapse/event.h"
-#include "nest/synapse/scheduler.h"
-#include "nest/synapse/models/tsodyks2.h"
-#include "nest/synapse/connector_base.h"
-#include "nest/synapse/connectionmanager.h"
+#include "nest/drivers/synapse.h"
+#include "nest/nestkernel/environment/event.h"
+#include "nest/nestkernel/environment/scheduler.h"
+#include "nest/nestkernel/environment/connector_base.h"
+#include "nest/nestkernel/environment/connectionmanager.h"
+
+#include "nest/models/tsodyks2.h"
+
 #include "utils/error.h"
 
 #include "coreneuron_1.0/event_passing/environment/generator.h"

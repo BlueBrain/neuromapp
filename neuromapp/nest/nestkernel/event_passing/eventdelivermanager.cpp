@@ -7,8 +7,8 @@
 
 #include <vector>
 
-#include "nest/eventdelivermanager.h"
-#include "nest/mpi_manager.h"
+#include "nest/nestkernel/event_passing/eventdelivermanager.h"
+#include "nest/nestkernel/event_passing/mpi_manager.h"
 
 using namespace nest;
 
