@@ -63,10 +63,10 @@ void pool::send_events(const int myID, G& generator, const P& presyns){
             new_event.data_ = gid;
             new_event.t_ = g.second;
 
-            spike_.lock_.acquire();
+            spike_.lock_.lock();
             spike_.spikeout_.push_back(new_event);
             ++(spike_.spike_stats_);
-            spike_.lock_.release();
+            spike_.lock_.unlock();
         }
     }
     catch(const std::bad_alloc& e) {
@@ -98,7 +98,6 @@ void pool::fixed_step(G& generator, const P& presyns){
 
 template <typename P>
 void pool::filter(const P& presyns){
-    std::map<int, std::vector<int> >::iterator it;
     double tt;
     const environment::presyn* input = NULL;
     int spike_gid;

@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "utils/omp/lock.h"
-//#include "keyvalue/lock.h"
 #include "keyvalue/meta.h"
 
 class keyvalue_map{
@@ -26,11 +25,7 @@ private:
     int                                             _numReaders;
     int                                             _numWriters;
 
-#ifdef _OPENMP
-    mapp::omp_lock _nRdLock,_nWtLock,_readersLock,_writersLock;
-#else
-    mapp::dummy_lock _nRdLock,_nWtLock,_readersLock,_writersLock;
-#endif
+    mapp::mutex _nRdLock,_nWtLock,_readersLock,_writersLock;
 
 public:
     explicit keyvalue_map (bool threadSafe = false, std::string pdsName = "");

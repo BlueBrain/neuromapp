@@ -115,7 +115,11 @@ void iobench::benchmark::createData() {
 
 #pragma omp parallel default(shared) //shared(keys_, values_, reads_) not allowed since they are class members
     {
+#ifdef _OPENMP
         int id = omp_get_thread_num();
+#else
+        int id = 0;
+#endif
         int start_idx = id * a_.npairs();
         for (int i = 0; i < a_.npairs(); i++) {
             // Set keys
@@ -210,9 +214,13 @@ void iobench::benchmark::write(stats & stats) {
             std::random_shuffle (wr_perm.begin(), wr_perm.end());
 
         gettimeofday(&wr_start, NULL);
-#pragma omp parallel default(shared) //shared(keys_, values_, wr_perm, status) not allowed since there are class members
+        #pragma omp parallel default(shared) //shared(keys_, values_, wr_perm, status) not allowed since there are class members
         {
+#ifdef _OPENMP
             int id = omp_get_thread_num();
+#else
+            int id = 0;
+#endif
             /////////////////////////////////////////////
             int start_idx = id * a_.npairs();
             for (int i = 0; i < a_.npairs(); i++) {
@@ -293,7 +301,11 @@ void iobench::benchmark::read(stats & stats) {
         gettimeofday(&rd_start, NULL);
 #pragma omp parallel default(shared) //shared(keys_, reads_, rd_perm, status) not allowed since there are class members
         {
+#ifdef _OPENMP
             int id = omp_get_thread_num();
+#else
+            int id = 0;
+#endif
             /////////////////////////////////////////////
             int start_idx = id * a_.npairs();
             for (int i = 0; i < a_.npairs(); i++) {
@@ -347,3 +359,4 @@ void iobench::benchmark::read(stats & stats) {
     // READ stats
     stats.compute_stats(a_.rank(), a_.procs());
 }
+

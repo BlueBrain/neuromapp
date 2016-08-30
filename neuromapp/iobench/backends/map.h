@@ -27,12 +27,16 @@
 #ifndef MAPP_IOBENCH_MAP_
 #define MAPP_IOBENCH_MAP_
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
+
 #include <map>
 #include <vector>
 #include <cstring>
 
-#include "basic.h"
+#include "utils/omp/lock.h"
+#include "iobench/backends/basic.h"
 
 
 /** \fn createDB()
@@ -53,12 +57,12 @@ class KVStatusMap : public KVStatus {
 class MapKV : public BaseKV {
 
     private:
-        typedef std::pair<std::string, size_t> Key;
-        typedef std::pair<char *, size_t> Value;
-        typedef std::map<Key, Value> IOMap;
+        typedef std::pair<std::string, size_t> key_type; // stl notation
+        typedef std::pair<char *, size_t> value_type;
+        typedef std::map<key_type, value_type> IOMap;
 
         IOMap _map;
-        omp_lock_t _mapLock;
+        mapp::mutex _mapLock;
 
         // Use private maps per thread and merge results from time to time
         std::vector<IOMap *> _thrMaps;
@@ -81,7 +85,6 @@ class MapKV : public BaseKV {
  */
 void MapKV::initDB(bool compress, int nthr, int npairs, int mpi_rank, int mpi_size)
 {
-    omp_init_lock(&_mapLock);
     for (int i = 0; i < nthr; i++) {
         _thrMaps.push_back(new IOMap());
     }
@@ -92,21 +95,25 @@ void MapKV::initDB(bool compress, int nthr, int npairs, int mpi_rank, int mpi_si
  */
 inline void MapKV::putKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size)
 {
+    #ifdef _OPENMP
     int id = omp_get_thread_num();
+    #else
+    int id = 1;
+    #endif
 
     std::string kdata((char *) key, key_size);
-    Key k(kdata, key_size);
+    key_type k(kdata, key_size);
 
     char * vdata = new char[value_size];
     std::memcpy(vdata, value, value_size);
-    Value v(vdata, value_size);
+    value_type v(vdata, value_size);
 
-    _thrMaps[id]->insert(std::pair<Key, Value>(k, v));
+    _thrMaps[id]->insert(std::pair<key_type, value_type>(k, v));
 
     if (_thrMaps[id]->size() > 32 + id) {
-        omp_set_lock(&_mapLock);
+        _mapLock.lock();
         _map.insert(_thrMaps[id]->begin(), _thrMaps[id]->end());
-        omp_unset_lock(&_mapLock);
+        _mapLock.unlock();
 
         _thrMaps[id]->clear();
     }
@@ -118,9 +125,9 @@ inline void MapKV::putKV(KVStatus * kvs, void * key, size_t key_size, void * val
 inline size_t MapKV::getKV (KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size)
 {
     std::string kdata((char *) key, key_size);
-    Key k(kdata, key_size);
+    key_type k(kdata, key_size);
 
-    Value v = _map[k];
+    value_type v = _map[k];
     size_t str_size = v.second;
     std::memcpy(value, v.first, std::min(value_size, str_size));
     if (str_size != value_size)
@@ -134,10 +141,14 @@ inline size_t MapKV::getKV (KVStatus * kvs, void * key, size_t key_size, void * 
  */
 inline void MapKV::waitKVput(std::vector<KVStatus *> &status, int start, int end)
 {
+#ifdef _OPENMP
     int id = omp_get_thread_num();
-    omp_set_lock(&_mapLock);
+#else
+    int id = 1;
+#endif
+    _mapLock.lock();
     _map.insert(_thrMaps[id]->begin(), _thrMaps[id]->end());
-    omp_unset_lock(&_mapLock);
+    _mapLock.unlock();
 
     _thrMaps[id]->clear();
 }

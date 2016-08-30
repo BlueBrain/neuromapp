@@ -36,8 +36,6 @@
 #include <iostream>
 #ifdef _OPENMP
    #include <omp.h>
-#else
-   #define omp_get_num_threads() 1
 #endif
 
 #ifdef IO_MPI
@@ -104,7 +102,11 @@ public:
         // Get the number of threads from OpenMP
         #pragma omp parallel
         {
+#ifdef _OPENMP
             threads_ = omp_get_num_threads();
+#else
+            threads_ = 1;
+#endif
         }
     }
 

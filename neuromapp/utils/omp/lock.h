@@ -31,7 +31,7 @@
 
 namespace mapp {
 
-class omp_lock{
+class omp_mutex{
 private:
 	omp_lock_t mut_;
 
@@ -39,34 +39,36 @@ public:
 	/** \fn omp_lock()
 	 *  \brief inits mut_
 	 */
-	omp_lock(){omp_init_lock(&mut_);}
+	omp_mutex(){omp_init_lock(&mut_);}
 
 	/** \fn ~omp_lock()
 	 *  \brief destroys mut_
 	 */
-	~omp_lock(){omp_destroy_lock(&mut_);}
+	omp_mutex(){omp_destroy_lock(&mut_);}
 
 	/** \fn acquire()
 	 *  \brief sets mut_
 	 */
-	inline void acquire(){omp_set_lock(&mut_);}
+	inline void lock(){omp_set_lock(&mut_);}
 
 	/** \fn release()
 	 *  \brief unsets mut_
 	 */
-	inline void release(){omp_unset_lock(&mut_);}
+	inline void unlock(){omp_unset_lock(&mut_);}
 };
 
+    typedef omp_mutex mutex ;
 }
 #endif
 
 namespace mapp {
 
-class dummy_lock{
+class dummy_mutex{
 public:
-	void acquire(){}
-	void release(){}
+	void lock(){}
+	void unlock(){}
 };
 
+    typedef dummy_mutex mutex;
 }
 #endif
