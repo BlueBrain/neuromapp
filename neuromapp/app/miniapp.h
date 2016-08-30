@@ -36,6 +36,9 @@
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/solver/solver.h"
 #include "coreneuron_1.0/cstep/cstep.h"
+#include "coreneuron_1.0/cstep/cstep.h"
+#include "coreneuron_1.0/queue/queue.h"
 #include "replib/replib.h"
+#include "iobench/iobench.h"
 
 #endif

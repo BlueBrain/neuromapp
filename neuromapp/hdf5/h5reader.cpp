@@ -36,7 +36,7 @@
     assert( sizeof( int ) == sizeof( float ) );
 
     //create memtype
-    memtype_ = H5Tcreate( H5T_COMPOUND, sizeof( int ) + num_compound_ );
+    memtype_ = H5Tcreate( H5T_COMPOUND, sizeof( int ) * num_compound_ );
 
     //target field is interpreted as int, everything else is interpreted as float
     for ( int i = 0; i < parameters.size(); i++ )

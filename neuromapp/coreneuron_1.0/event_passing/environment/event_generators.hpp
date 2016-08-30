@@ -70,6 +70,12 @@ namespace environment {
     template< typename Iterator >
     void generate_poisson_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, double lambda, neurondistribution* neuron_dist);
 
+    template< typename Iterator >
+    void generate_poisson_events_net(Iterator beg, const int& seed,  const int& simtime, const double& net_firing_rate, const neurondistribution& neuron_dist);
+
+    template< typename Iterator >
+    void generate_poisson_events_neuron(Iterator beg, const int& seed,  const int& simtime, const double& neuron_firing_rate, const neurondistribution& neuron_dist);
+
     /** \fn void generate_uniform_events(Iterator beg, int simtime, int ngroups, int rank, int nprocs, int ncells, int firing_interval)
         \brief generates events based on a poisson distribution approximation.
 	\param beg iterator to the beginning of the vector of queues of events.

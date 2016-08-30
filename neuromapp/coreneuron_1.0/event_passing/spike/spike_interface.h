@@ -27,6 +27,8 @@
 #define MAPP_SPIKE_INTERFACE_H
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include "utils/omp/lock.h"
 
@@ -69,6 +71,58 @@ struct spike_interface{
         post_spike_stats_(0),
         received_spike_stats_(0)
         {nin_.resize(nprocs); displ_.resize(nprocs);}
+};
+
+struct spike_interface_stats_collector : public spike_interface {
+    std::vector<double> allgather_times_;
+    std::vector<std::pair<int, double> > allgather_v_times_;
+    std::fstream outfile_allgather;
+    std::fstream outfile_allgather_v;
+
+    /** \fn spike_interface_stats_collector(int nprocs)
+        \brief spike_interface constructor. Initializes nin and displ buffers
+        to have size == number of processes
+     */
+    spike_interface_stats_collector(int nprocs, int simtime, int mindelay, int myrank, char * outfile_prefix, int ncells, int nSpikes): spike_interface(nprocs) {
+	std::stringstream outfile_name;
+	outfile_name << outfile_prefix << "/allgather_times_r" << myrank << "_c" << ncells << "_s" << nSpikes << "_d" << mindelay << "_t" << simtime << ".dat";
+	outfile_allgather.open(outfile_name.str().c_str(), std::fstream::out);
+
+        outfile_name.str( std::string() );
+	outfile_name.clear();
+	outfile_name << outfile_prefix << "/allgather_v_times_r" << myrank << "_c" << ncells << "_s" << nSpikes << "_d" << mindelay << "_t" << simtime << ".dat";
+	outfile_allgather_v.open(outfile_name.str().c_str(), std::fstream::out);
+
+	allgather_times_.reserve(simtime/mindelay + 3);
+	allgather_v_times_.reserve(simtime/mindelay + 3);
+    }
+
+    ~spike_interface_stats_collector() { outfile_allgather.close(); outfile_allgather_v.close();  }
+};
+
+struct spike_interface_stats_collector_large_mpi : public spike_interface {
+    std::vector<double> allgather_times_;
+    std::vector<int> allgather_v_sizes_;
+    std::vector<double> allgather_v_times_;
+
+    int nprocs_;
+    int simtime_;
+    int mindelay_;
+    int ncells_;
+    int nSpikes_;
+    std::stringstream outfile_prefix_;
+
+    /** \fn spike_interface_stats_collector(int nprocs)
+        \brief spike_interface constructor. Initializes nin and displ buffers
+        to have size == number of processes
+     */
+    spike_interface_stats_collector_large_mpi(int nprocs, int simtime, int mindelay, int myrank, char * outfile_prefix, int ncells, int nSpikes): spike_interface(nprocs), nprocs_(nprocs), simtime_(simtime), mindelay_(mindelay), ncells_(ncells), nSpikes_(nSpikes), outfile_prefix_(outfile_prefix)  {
+
+	allgather_times_.reserve(simtime/mindelay + 3);
+	allgather_v_times_.reserve(simtime/mindelay + 3);
+	allgather_v_sizes_.reserve(simtime/mindelay + 3);
+    }
+
 };
 
 } //end of namespace

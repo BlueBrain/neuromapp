@@ -30,9 +30,6 @@
 #include <string>
 #include <vector>
 
-#ifdef SKV_STORE
-#include "keyvalue/skv/meta_skv.h"
-#endif
 
 namespace keyvalue{
 

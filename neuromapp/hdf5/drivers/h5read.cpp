@@ -124,6 +124,7 @@ void hdf5_h5read_content(po::variables_map const& vm){
         command << token << " ";
         names.erase(0, pos + delimiter.length());
     }
+    command << names;
 
     std::cout<< "Running command " << command.str() <<std::endl;
 	system(command.str().c_str());

@@ -15,6 +15,9 @@ target_link_libraries (h5read_distributed_exec
                        ${MPI_C_LIBRARIES}
                        ${Boost_LIBRARIES}
                        ${HDF5_LIBRARIES})
+                       
+set_target_properties(h5read_distributed_exec PROPERTIES
+        COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS} -DIO_MPI")
 
 target_include_directories(h5read_distributed_exec PRIVATE ${HDF5_INCLUDE_DIRS})
 

@@ -29,6 +29,8 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <functional>
+
 
 #ifndef MAPP_CONTAINER_H_
 #define MAPP_CONTAINER_H_
@@ -36,22 +38,20 @@
 namespace queueing {
 
 struct event {
+    explicit event(int d = 0, double t = 0.):data_(d),t_(t){};
     int data_;
     double t_;
+    //        /** \fn operator <
+    //         *  \brief compares the time of two events
+    //         *  \return true if *this(time) < x(time), else false
+    //         */
+    inline bool operator>(const event &x) const {
+        return t_ > x.t_;
+    }
 };
 
 class queue {
 public:
-    struct is_more{
-        /** \fn operator()
-         *  \brief compares the time of two events
-         *  \return true if x(time) < y(time), else false
-         */
-        bool operator() (const event &x, const event &y) const {
-                return x.t_ > y.t_;
-        }
-    };
-
     /** \fn size()
      *  \return the size of pq_que
      */
@@ -73,7 +73,7 @@ public:
     void insert(double t, int data);
 
 private:
-    std::priority_queue<event, std::vector<event>, is_more> pq_que;
+    std::priority_queue<event, std::vector<event>, std::greater<event> > pq_que;
 };
 
 } //end of namespace

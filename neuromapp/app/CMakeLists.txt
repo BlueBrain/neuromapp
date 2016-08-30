@@ -13,8 +13,10 @@ target_link_libraries (app
                        nest_event_passing_driver
                        nest_h5import_driver
                        h5read_driver
+                       coreneuron10_queue
                        replib
                        storage
+                       iobench
                        ${READLINE_LIBRARY}
                        ${CURSES_CURSES_LIBRARY}
                        ${Boost_PROGRAM_OPTIONS_LIBRARIES}

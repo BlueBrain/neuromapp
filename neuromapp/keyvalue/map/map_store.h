@@ -38,7 +38,7 @@ public:
     void insert (const keyvalue::meta& m);
     int retrieve (keyvalue::meta& m);
     void remove (const keyvalue::meta& m);
-    void wait (const keyvalue::meta& m){}; //empty for the futur if async;
+    void wait (const keyvalue::meta& m){}; //empty for the future if async;
     inline bool & async(){return _async;}
     inline bool const& async() const {return _async;}
 };
