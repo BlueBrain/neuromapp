@@ -29,11 +29,13 @@
 #define BOOST_TEST_MODULE IOBenchTest
 #endif
 
+#include <stdio.h>
+
 #include <boost/test/unit_test.hpp>
+
 #include "iobench/benchmark.h"
 #include "utils/argv_data.h"
-#include <omp.h>
-#include <stdio.h>
+
 
 BOOST_AUTO_TEST_CASE(iobench_test){
 

@@ -47,11 +47,7 @@ namespace queueing {
 
 class nrn_thread_data{
 private:
-#ifdef _OPENMP
-    mapp::omp_lock lock_;
-#else
-    mapp::dummy_lock lock_;
-#endif
+    mapp::mutex lock_;
 
     queue qe_;
     NrnThread* nt_;

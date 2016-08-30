@@ -27,7 +27,7 @@
 #ifndef MAPP_IOBENCH_COMMON_
 #define MAPP_IOBENCH_COMMON_
 
-#include "map.h"
+#include "iobench/backends/map.h"
 
 #ifdef IO_LDB
 #include "ldb.h"
@@ -36,8 +36,6 @@
 #ifdef IO_CASS
 #include "cassandra.h"
 #endif
-
-#include "map.h"
 
 
 /** \fn BaseKV * createDB()
@@ -49,18 +47,18 @@ inline BaseKV * createDB (const std::string & backend)
 {
     if (backend == "ldb") {
 #ifdef IO_LDB
-        return new LDBKV();
+        return reinterpret_cast<BaseKV*>(new LDBKV());
 #else
         std::cout << "Error: asked for LevelDB backend, but not configured." << std::endl;
 #endif
     } else if (backend == "cassandra") {
 #ifdef IO_CASS
-        return new CassKV();
+        return reinterpret_cast<BaseKV*>(new CassKV());
 #else
         std::cout << "Error: asked for Cassandra backend, but not configured." << std::endl;
 #endif
     } else {
-        return new MapKV();
+        return reinterpret_cast<BaseKV*>(new MapKV());
     }
 }
 

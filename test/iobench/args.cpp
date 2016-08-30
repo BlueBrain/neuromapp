@@ -63,7 +63,11 @@ BOOST_AUTO_TEST_CASE(args_constructor_default_test){
 
     #pragma omp parallel
     {
+#ifdef _OPENMP
         threads = omp_get_num_threads();
+#else
+        threads = 1;
+#endif
     }
 
     BOOST_CHECK_EQUAL(a.procs(), procs);
