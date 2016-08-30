@@ -44,7 +44,7 @@ public:
 	/** \fn ~omp_lock()
 	 *  \brief destroys mut_
 	 */
-	omp_mutex(){omp_destroy_lock(&mut_);}
+	~omp_mutex(){omp_destroy_lock(&mut_);}
 
 	/** \fn acquire()
 	 *  \brief sets mut_
@@ -59,9 +59,8 @@ public:
 
     typedef omp_mutex mutex ;
 }
-#endif
 
-namespace mapp {
+#else
 
 class dummy_mutex{
 public:
@@ -71,4 +70,6 @@ public:
 
     typedef dummy_mutex mutex;
 }
+#endif
+
 #endif
