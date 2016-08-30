@@ -27,14 +27,12 @@
 #ifndef MAPP_IOBENCH_MAP_
 #define MAPP_IOBENCH_MAP_
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <map>
 #include <vector>
 #include <cstring>
 
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 #include "utils/omp/lock.h"
 #include "iobench/backends/basic.h"
 
@@ -95,11 +93,7 @@ void MapKV::initDB(bool compress, int nthr, int npairs, int mpi_rank, int mpi_si
  */
 inline void MapKV::putKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size)
 {
-    #ifdef _OPENMP
     int id = omp_get_thread_num();
-    #else
-    int id = 1;
-    #endif
 
     std::string kdata((char *) key, key_size);
     key_type k(kdata, key_size);
@@ -141,11 +135,7 @@ inline size_t MapKV::getKV (KVStatus * kvs, void * key, size_t key_size, void * 
  */
 inline void MapKV::waitKVput(std::vector<KVStatus *> &status, int start, int end)
 {
-#ifdef _OPENMP
     int id = omp_get_thread_num();
-#else
-    int id = 1;
-#endif
     _mapLock.lock();
     _map.insert(_thrMaps[id]->begin(), _thrMaps[id]->end());
     _mapLock.unlock();

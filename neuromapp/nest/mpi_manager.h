@@ -13,9 +13,8 @@
 #include <vector>
 
 #include <mpi.h>
-#ifdef _OPENMP
-    #include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 typedef unsigned int uint_t;
 

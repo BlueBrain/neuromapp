@@ -27,13 +27,12 @@
 #ifndef MAPP_IOBENCH_BENCHMARK_
 #define MAPP_IOBENCH_BENCHMARK_
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
+
 #include <map>
 
 #include "iobench/backends/basic.h"
-
 #include "iobench/utils/args.h"
 #include "iobench/utils/stats.h"
 
