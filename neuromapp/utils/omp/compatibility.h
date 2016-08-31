@@ -31,16 +31,19 @@
 #include <omp.h>
 #else
 // Otherwise, define dummy functions so that the mini-apps work properly
-#include <iostream>
+#include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 inline int omp_get_num_threads() { return 1; }
 inline int omp_get_thread_num() { return 0; }
-void omp_set_num_threads (int threads)
-{
-    if (threads > 1)
-        std::cout << "Setting the number of OMP threads, but OMP is not available. Execution may be wrong!" << std::endl;
+static inline void omp_set_num_threads (int threads){
+    if (threads != 1)
+        printf("Setting the number of OMP threads, but OMP is not available. Execution may be wrong!\n");
+};
+#ifdef __cplusplus
 }
-
 #endif
-
+#endif
 #endif // MAPP_COMP_H_
