@@ -12,6 +12,7 @@ namespace tool{
         for (q = first(); q; q = q2) {
             q2 = next(q);
             remove(q); /// Potentially dereferences freed pointer this->sptree_
+            delete q;
         }
     }
 
