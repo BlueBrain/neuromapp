@@ -36,12 +36,11 @@
 #include "utils/storage/storage.h"
 
 #include "coreneuron_1.0/event_passing/queueing/queue.h"
-#include "utils/omp/lock.h"
 #include "coreneuron_1.0/common/data/helper.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
+#include "utils/omp/lock.h"
 
 namespace queueing {
 

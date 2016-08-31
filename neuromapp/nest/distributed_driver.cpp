@@ -31,9 +31,8 @@
 #include <vector>
 #include "utils/storage/neuromapp_data.h"
 
-#ifdef _OPENMP
-    #include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 #include "nest/synapse/connectionmanager.h"
 #include "nest/simulationmanager.h"
@@ -108,18 +107,11 @@ int main(int argc, char* argv[]) {
     presyns(rank, &neuro_dist);
     nest::connectionmanager cn(vm);
 
-    #ifdef _OPENMP
     omp_set_num_threads(nthreads);
-    #endif
     #pragma omp parallel
     {
-        #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
         const int num_threads = omp_get_num_threads();
-        #else
-        const int thrd = 0;
-        const int num_threads = 1;
-        #endif
 
         //neuron distribution on thread based on rank distribution
         environment::continousdistribution neuron_vp_dist(num_threads, thrd, &neuro_dist);
@@ -146,11 +138,7 @@ int main(int argc, char* argv[]) {
 
     #pragma omp parallel
     {
-        #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
-        #else
-        const int thrd = 0;
-        #endif
 
         while(t < Tstop){
             #pragma omp barrier
@@ -176,13 +164,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-
-
     gettimeofday(&end, NULL);
 
     long long diff_ms = (1000 * (end.tv_sec - start.tv_sec))
         + ((end.tv_usec - start.tv_usec) / 1000);
-
 
     int l_num = 0;
     double  l_sumtime = 0;

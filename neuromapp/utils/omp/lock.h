@@ -57,10 +57,12 @@ public:
 	inline void unlock(){omp_unset_lock(&mut_);}
 };
 
-    typedef omp_mutex mutex ;
+    typedef omp_mutex mutex;
 }
 
 #else
+
+namespace mapp {
 
 class dummy_mutex{
 public:

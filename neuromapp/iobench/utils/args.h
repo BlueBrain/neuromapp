@@ -34,9 +34,9 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
-#ifdef _OPENMP
-   #include <omp.h>
-#endif
+
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 #ifdef IO_MPI
 #include "utils/mpi/controler.h"
@@ -102,11 +102,7 @@ public:
         // Get the number of threads from OpenMP
         #pragma omp parallel
         {
-#ifdef _OPENMP
             threads_ = omp_get_num_threads();
-#else
-            threads_ = 1;
-#endif
         }
     }
 

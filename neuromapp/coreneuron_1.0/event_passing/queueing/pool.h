@@ -32,9 +32,8 @@
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "utils/storage/neuromapp_data.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 namespace queueing {
 
