@@ -15,6 +15,16 @@ namespace h5import {
 class h5reader
 {
 public:
+    /*
+     *  store data from neuron link dataset
+     */
+    struct NeuronLink
+    {
+      int id;
+      int syn_n;
+      uint64_t syn_ptr;
+    };
+
     struct h5view
     {
       hsize_t offset[ 1 ];
@@ -22,7 +32,7 @@ public:
       hsize_t count[ 1 ];
       hsize_t block[ 1 ];
 
-      h5view( hsize_t icount,
+      h5view( hsize_t icount = 0,
         hsize_t ioffset = 0,
         hsize_t istride = 1,
         hsize_t iblock = 1 )
@@ -38,6 +48,11 @@ public:
       {
         return offset[ 0 ] + ( v_idx / block[ 0 ] ) * ( stride[ 0 ] - 1 ) + v_idx;
       }
+      static bool
+      MinSynPtr( const NeuronLink& a, const NeuronLink& b )
+      {
+        return a.syn_ptr < b.syn_ptr;
+      };
     };
 
     class h5dataset
@@ -72,25 +87,46 @@ public:
     };
 
 protected:
-  hid_t file_id_, gid_; // hdf5 file pointer
+  // hdf5 file pointer
+  hid_t file_id_, gid_;
   hid_t memtype_;
   h5dataset* dataset_ptr_;
 
-  unsigned long long global_offset_;
-  unsigned long long totalsize_;
-  unsigned long long transfersize_;
-  unsigned int num_compound_;
+  //pointer in syn dataset
+  uint64_t global_offset_;
+  //considered pointer to last entry
+  uint64_t totalsize_;
+  //number of data transfered on each read call
+  uint64_t transfersize_;
+  //number of columns in syn dataset
+  uint32_t num_compound_;
 
   int num_processes_;
   int rank_;
 
-  size_t size( h5dataset* dataset );
+  std::vector< NeuronLink > neuronLinks_;
+
+  /*
+   *  return size from dataset
+   */
+  size_t size( h5dataset* dataset ) const;
+
+  /*
+   *  load neuron links from hdf5 file
+   */
+  void loadNeuronLinks();
+
+  /*
+   *  remove not needed neuron links to reduce memory footprint
+   *  function is memory intense
+   */
+  void removeNotNeededNeuronLinks();
 
 public:
     h5reader( const std::string& h5file,
               const std::vector< std::string >& datasets,
-              const unsigned long long& transfersize,
-              const unsigned long long& limittotalsize = -1 );
+              const uint64_t& transfersize,
+              const uint64_t& limittotalsize = -1 );
 
     ~h5reader();
 
@@ -113,10 +149,13 @@ public:
     /*
      * read block from dataset and move internal pointer forward
      */
-    void readblock( NESTSynapseList* synapses );
+    void readblock( NESTSynapseList& synapses, h5view& dataspace_view);
+
+    /*
+    * search source neuron in neuronlinks and integrate them in the synapse list
+    */
+    void integrateSourceNeurons(NESTSynapseList& synapses, const h5view& view );
 };
-
-
 }; //end of h5import namespace
 
 #endif

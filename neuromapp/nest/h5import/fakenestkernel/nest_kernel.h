@@ -1,11 +1,13 @@
-#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 #include <omp.h>
 #include <mpi.h>
+#include <stdint.h>
+
+#include "coreneuron_1.0/event_passing/environment/presyn_maker.h"
 
 #ifndef NESTKERNEL_CLASS
 #define NESTKERNEL_CLASS
 
-namespace nest
+namespace h5import
 {
     typedef size_t index;
     struct kernel_manager
@@ -34,20 +36,14 @@ namespace nest
             {
                 return size;
             }
-            index suggest_rank(const int& gid);
+            index suggest_rank(const uint64_t& gid);
         } mpi_manager;
 
         struct node_manager
         {
             index size();
-            bool is_local_gid(const int& gid);
+            bool is_local_gid(const uint64_t& gid);
         } node_manager;
-
-        struct connection_manager
-        {
-            std::vector<long> num_connections;
-            void connect(const int& s_gid, const int& t_gid, std::vector<double>& v);
-        } connection_manager;
 
         struct vp_manager
         {
@@ -68,6 +64,13 @@ namespace nest
                 #endif
             }
         } vp_manager;
+
+        struct connection_manager
+        {
+            std::vector< long > num_connections;
+            std::vector< double > sum_values;
+            void connect(const uint64_t& s_gid, const uint64_t& t_gid, const std::vector<double>& v);
+        } connection_manager;
 
         inline void set_mpi_dist(environment::nestdistribution* mpi_dist)
         {
@@ -96,7 +99,7 @@ namespace nest
         }
     };
 
-    inline nest::kernel_manager& kernel()
+    inline kernel_manager& kernel()
     {
         return *kernel_manager::kernel_instance;
     }

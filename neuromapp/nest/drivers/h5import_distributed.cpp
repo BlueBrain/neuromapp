@@ -57,17 +57,17 @@ int main(int argc, char* argv[]) {
 
 
     //load kernel environment
-    nest::kernel_env kenv;
+    kernel_env kenv;
 
     environment::nestdistribution neuro_mpi_dist(size, rank, ncells);
-    nest::kernel().set_mpi_dist(&neuro_mpi_dist);
+    kernel().set_mpi_dist(&neuro_mpi_dist);
 
     omp_set_num_threads(nthreads);
 
     std::vector<environment::nestdistribution*> neuro_vp_dists;
     for (int thrd=0; thrd<nthreads; thrd++) {
         neuro_vp_dists.push_back(new environment::nestdistribution(nthreads, thrd, &neuro_mpi_dist));
-        nest::kernel().set_vp_dist (thrd, neuro_vp_dists[thrd] );
+        kernel().set_vp_dist (thrd, neuro_vp_dists[thrd] );
     }
 
     struct timeval start, end;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     long num_connections=0;
     for (int thrd=0; thrd<nthreads; thrd++) {
-        num_connections += nest::kernel().connection_manager.num_connections[thrd];
+        num_connections += kernel().connection_manager.num_connections[thrd];
     }
     std::cout<<"stats: num_connections="<<num_connections<<std::endl;
 

@@ -6,12 +6,8 @@
 #ifndef NESTNODESYNAPSE_CLASS
 #define NESTNODESYNAPSE_CLASS
 
-namespace h5import {
-
-typedef int int32_t;
-typedef long int int64_t;
-typedef unsigned int uint32_t;
-typedef unsigned long int uint64_t;
+namespace h5import
+{
 
 struct GIDCollection
 {
@@ -57,6 +53,14 @@ struct mpi_buffer
     {
         //assert(buf.size()>n);
         buf.push_back(v);
+    }
+    T& operator[](const size_t& idx)
+    {
+    return buf[idx];
+    }
+    const T& operator[](const size_t& idx) const
+    {
+    return buf[idx];
     }
     T& pop_front()
     {
@@ -116,27 +120,28 @@ struct NESTSynapseRef
   {}
 
   int
-  serialize( mpi_buffer<int>& buf )
+  serialize( mpi_buffer<int>& buf, size_t i )
   {
-    const int begin_size = buf.size();
-    buf.push_back( source_neuron_ );
-    buf.push_back( target_neuron_ );
-    buf.push_back( node_id_ );
+    //const int begin_size = buf.size();
+    const size_t begin_i = i;
+    buf[i++] = source_neuron_;
+    buf[i++] = target_neuron_;
+    buf[i++] = node_id_;
 
-    for ( int i = 0; i < params_.size(); i++ )
-      buf.push_back( *reinterpret_cast< int* >( &params_[ i ] ) );
+    for ( int j = 0; j < params_.size(); j++ )
+      buf[i++] = *reinterpret_cast< int* >( &params_[ j ] ) ;
 
-    return buf.size() - begin_size;
+    return i-begin_i;
   }
   void
-  deserialize( mpi_buffer<int>& buf )
+  deserialize( mpi_buffer<int>& buf, size_t i )
   {
-    source_neuron_ = buf.pop_front();
-    target_neuron_ = buf.pop_front();
-    node_id_ = buf.pop_front();
+    source_neuron_ = buf[i++];
+    target_neuron_ = buf[i++];
+    node_id_ = buf[i++];
 
-    for ( int i = 0; i < params_.size(); i++ )
-      params_[ i ] = *reinterpret_cast< float* >( &buf.pop_front() );
+    for ( int j = 0; j < params_.size(); j++ )
+      params_[ j ] = *reinterpret_cast< float* >( &buf[i++] );
   }
   void
   integrateMapping( const GIDCollection& gidc )
@@ -144,7 +149,7 @@ struct NESTSynapseRef
     source_neuron_ = gidc[ source_neuron_ ];
     target_neuron_ = gidc[ target_neuron_ ];
 
-    node_id_ = nest::kernel().mpi_manager.suggest_rank( target_neuron_ );
+    node_id_ = kernel().mpi_manager.suggest_rank( target_neuron_ );
   }
 
   NESTSynapseRef&
@@ -234,6 +239,6 @@ struct NESTSynapseList
   }
 };
 
-}; //end h5import namespace
+};
 
 #endif

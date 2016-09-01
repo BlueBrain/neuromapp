@@ -5,41 +5,45 @@
  *      Author: schumann
  */
 
+#include <numeric>
+
 #include "nest/h5import/fakenestkernel/nest_kernel.h"
 
-void nest::kernel_manager::create()
+using namespace h5import;
+
+void kernel_manager::create()
 {
     kernel_instance = new kernel_manager;
 }
 
-void nest::kernel_manager::destroy()
+void kernel_manager::destroy()
 {
     delete kernel_instance;
 }
 
-nest::index nest::kernel_manager::mpi_manager::suggest_rank(const int& gid)
+size_t kernel_manager::mpi_manager::suggest_rank(const uint64_t& gid)
 {
     return kernel().neuro_mpi_dist->suggest_group(gid);
 }
 
-nest::index nest::kernel_manager::node_manager::size()
+size_t kernel_manager::node_manager::size()
 {
     return kernel().neuro_vp_dist[kernel().vp_manager.get_thread_id()]->getglobalcells();
 }
-bool nest::kernel_manager::node_manager::is_local_gid(const int& gid)
+bool kernel_manager::node_manager::is_local_gid(const uint64_t& gid)
 {
     return kernel().neuro_vp_dist[kernel().vp_manager.get_thread_id()]->isLocal(gid);
 }
 
-void nest::kernel_manager::connection_manager::connect(const int& s_gid, const int& t_gid, std::vector<double>& v)
+void kernel_manager::connection_manager::connect(const uint64_t& s_gid, const uint64_t& t_gid, const std::vector<double>& v)
 {
-    //assert(kernel().neuro_vp_dist[kernel().vp_manager.get_thread_id()]->isLocal(t_gid));
-
     const int thrd = kernel().vp_manager.get_thread_id();
-    if (num_connections.size()<=thrd)
-        num_connections.resize(thrd+1);
+    if (num_connections.size()<=thrd) {
+        num_connections.resize(thrd+1, 0);
+        sum_values.resize(thrd+1, 0.);
+    }
     num_connections[thrd]++;
-    //maybe computation
+    sum_values[thrd] = std::accumulate(v.begin(), v.end(), sum_values[thrd]);
 }
 
-nest::kernel_manager* nest::kernel_manager::kernel_instance = 0;
+kernel_manager* kernel_manager::kernel_instance = 0;

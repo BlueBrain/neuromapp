@@ -16,3 +16,13 @@ target_link_libraries(nestdistri
                       ${MPI_CXX_LIBRARIES}
                       ${MPI_C_LIBRARIES})
 add_mpi_test(nestdistri)
+
+add_executable(h5import_read h5import.cpp)
+target_link_libraries(h5import_read
+                            h5import
+                            coreneuron10_environment
+                            ${Boost_LIBRARIES}
+                            ${MPI_CXX_LIBRARIES}
+                            ${MPI_C_LIBRARIES}
+                            ${HDF_LIBRARIES})
+add_mpi_test(h5import_read)

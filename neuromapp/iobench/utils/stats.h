@@ -37,16 +37,22 @@
 
 namespace iobench {
 
+struct Stats_descriptive_basic{
+    Stats_descriptive_basic(): avg_(0.0), stddev_(0.0), stderr_(0.0)
+    {}
+    double avg_;
+    double stddev_;
+    double stderr_;
+};
+
+/** \brief basic overload the ostream operator to print Stats_descriptive_basic */
+inline std::ostream &operator<<(std::ostream &out, Stats_descriptive_basic const& d){
+     out << "avg:" << d.avg_ << " stddev:" << d.stddev_ << " stderr:" << d.stderr_;
+     return out;
+};
+
 class stats {
     private:
-
-        struct Distribution{
-            Distribution(): avg_(0.0), stddev_(0.0), stderr_(0.0)
-            {}
-            double avg_;
-            double stddev_;
-            double stderr_;
-        };
 
         std::vector <double> rec_time_;
         std::vector <double> rec_mb_;
@@ -59,11 +65,11 @@ class stats {
         double              avgMB_per_cycle_;
         double              avgOPS_per_cycle_;
 
-        Distribution        OPS_;
-        Distribution        MB_;
+        Stats_descriptive_basic        OPS_;
+        Stats_descriptive_basic        MB_;
 
-        Distribution        BW_;
-        Distribution        IOPS_;
+        Stats_descriptive_basic        BW_;
+        Stats_descriptive_basic        IOPS_;
 
     public:
         /**
@@ -232,10 +238,10 @@ class stats {
             total_mb_ = std::accumulate(rec_mb_.begin(), rec_mb_.end(), 0.0);
             total_ops_ = std::accumulate(rec_ops_.begin(), rec_ops_.end(), 0.0);
 
-            compute_statistics(rec_ops_, OPS_);
-            compute_statistics(rec_mb_, MB_);
-            compute_statistics(bw, BW_);
-            compute_statistics(iops, IOPS_);
+            summarize_statistics(rec_ops_, OPS_);
+            summarize_statistics(rec_mb_, MB_);
+            summarize_statistics(bw, BW_);
+            summarize_statistics(iops, IOPS_);
 
 #ifdef IO_MPI
             MPI_Barrier(MPI_COMM_WORLD);
@@ -281,14 +287,14 @@ class stats {
                             MPI_Recv(&recs_per_ranks.back(), 1, MPI_DOUBLE, i, i * 100 + 7, MPI_COMM_WORLD, &status);
                         }
                     }
-                    Distribution recs_per_rank_distri;
-                    compute_statistics(recs_per_ranks, recs_per_rank_distri);
+                    Stats_descriptive_basic recs_per_rank_distri;
+                    summarize_statistics(recs_per_ranks, recs_per_rank_distri);
                     avg_recs_per_rank = recs_per_rank_distri.avg_;
 
-                    compute_statistics(mbs, MB_);
-                    compute_statistics(opss, OPS_);
-                    compute_statistics(bws, BW_);
-                    compute_statistics(iopss, IOPS_);
+                    summarize_statistics(mbs, MB_);
+                    summarize_statistics(opss, OPS_);
+                    summarize_statistics(bws, BW_);
+                    summarize_statistics(iopss, IOPS_);
                } else {
                    MPI_Send(&total_time_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 0, MPI_COMM_WORLD);
                    MPI_Send(&total_mb_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 1, MPI_COMM_WORLD);
@@ -313,30 +319,22 @@ class stats {
 
         /** \brief the print function */
         void print(std::ostream& out) const{
-            out << "  Total time (s): " << total_time_ << " \n"
-                    << "  Total size (MB): " << total_mb_ << " \n"
-                    << "  Avg data size per cycle (MB/cycle): " << avgMB_per_cycle_ << " \n"
-                    << "  Avg data size (MB): " << MB_.avg_ << " \n"
-                    << "    data size std dev: " << MB_.stddev_ << " \n"
-                    << "    data size std err: " << MB_.stderr_ << " \n"
-                    << "  Total OPS (I/O op): " << total_ops_ << " \n"
-                    << "  Avg OPS per cycle (I/O op/rec): " << avgOPS_per_cycle_ << " \n"
-                    << "  Avg OPS (I/O op): " << OPS_.avg_ << " \n"
-                    << "    size std dev: " << OPS_.stddev_ << " \n"
-                    << "    size std err: " << OPS_.stderr_ << " \n"
-                    << "  Avg BW (MB/s): " << BW_.avg_ << " \n"
-                    << "    BW std dev: " << BW_.stddev_ << " \n"
-                    << "    BW std err: " << BW_.stderr_ << " \n"
-                    << "  Avg IOPS (I/O op/s): " << IOPS_.avg_ << " \n"
-                    << "    IOPS std dev: " << IOPS_.stddev_ << " \n"
-                    << "    IOPS std err: " << IOPS_.stderr_ << " \n";
+            out << "  Total time (s):\n\t" << total_time_ << " \n"
+                    << "  Total size (MB):\n\t" << total_mb_ << " \n"
+                    << "  Total OPS (I/O op):\n\t" << total_ops_ << " \n"
+                    << "  Avg data size per cycle (MB/cycle):\n\t" << avgMB_per_cycle_ << " \n"
+                    << "  Avg OPS per cycle (I/O op/rec):\n\t" << avgOPS_per_cycle_ << " \n"
+                    << "  data size (MB):\n\t" << MB_ << " \n"
+                    << "  OPS (I/O op):\n\t" << OPS_ << " \n"
+                    << "  BW (MB/s):\n\t" << BW_ << " \n"
+                    << "  IOPS (I/O op/s):\n\t" << IOPS_ << " \n";
         }
 
     private:
         /** \fun void compute_statistics(const std::vector<double> &values, double & avg, double & stddev, double & stderr)
         \brief Compute the statistics: given a vector of double values, compute the average, standard deviation and standard error
          */
-        void compute_statistics(const std::vector<double> &values, Distribution & v)
+        void summarize_statistics(const std::vector<double> &values, Stats_descriptive_basic & v)
         {
             // Average
             int n = values.size();

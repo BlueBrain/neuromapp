@@ -26,12 +26,12 @@ struct private_vector
     typedef T type_name;
     std::vector< std::vector< type_name > > all_vectors;
 
-    private_vector() : all_vectors(omp_get_num_threads())
+    private_vector() : all_vectors(kernel().vp_manager.get_max_threads())
     {}
 
-    std::vector< T >& operator()()
+    std::vector< T >* operator()()
     {
-        return all_vectors[omp_get_thread_num()];
+        return &(all_vectors[kernel().vp_manager.get_thread_id()]);
     }
 };
 
@@ -43,11 +43,11 @@ struct manipulate_kernel
   virtual ~manipulate_kernel()
   {}
 
-  virtual std::vector< type_name >&
+  virtual std::vector< type_name >*
   operator()( typename std::vector< type_name >::iterator begin, typename std::vector< type_name >::iterator end )
   {
-    pv().resize(end-begin);
-    std::copy(begin, end, pv().begin());
+    pv()->resize(end-begin);
+    std::copy(begin, end, pv()->begin());
     return pv();
   }
 private:
@@ -73,35 +73,41 @@ struct kernel_combi
 
   template < typename K >
   void
-  push_back( const std::vector< type_name >& v )
+  push_back( TokenArray v )
   {
     K* k = new K( v );
     kernels_.push_back( static_cast< manipulate_kernel< type_name >* >( k ) );
   }
 
-  std::vector<type_name>&
+  std::vector<type_name>*
   operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
-      pv().resize(end-begin);
-      std::copy(begin, end, pv().begin());
-      std::vector<type_name>* result_vector = &pv();
+      pv()->resize(end-begin);
+      std::copy(begin, end, pv()->begin());
+      std::vector<type_name>* result_vector = pv();
       for ( int i = 0; i < kernels_.size(); i++ ) {
-          result_vector = &( *kernels_[ i ] )( result_vector->begin(), result_vector->end());
+          result_vector = ( *kernels_[ i ] )( result_vector->begin(), result_vector->end());
       }
-      return *result_vector;
+      return result_vector;
     }
 
   template < typename Tin >
-  std::vector<type_name>&
+  std::vector<type_name>*
   operator()( Tin* begin, Tin* end )
   {
-      pv().resize(end-begin);
-      std::copy(begin, end, pv().begin());
-      std::vector<type_name>* result_vector = &pv();
+      pv()->resize(end-begin);
+
+
+
+      std::vector<type_name>* result_vector = pv();
+      int i=0;
+      for (Tin* ptr=begin;ptr<end; ptr++)
+          (*result_vector)[i++] = *ptr;
+      //std::copy(begin, end, result_vector->begin());
       for ( int i = 0; i < kernels_.size(); i++ ) {
-          result_vector = &( *kernels_[ i ] )( result_vector->begin(), result_vector->end());
+          result_vector = ( *kernels_[ i ] )( result_vector->begin(), result_vector->end());
       }
-      return *result_vector;
+      return result_vector;
   }
 
 private:
@@ -120,14 +126,14 @@ struct kernel_multi : public manipulate_kernel< T >
       multis_.push_back( multis[ i ] );
   }
 
-  std::vector< type_name >
+  std::vector< type_name >*
   operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
     const int n = end-begin;
     assert( n == multis_.size() );
-    pv().resize(n);
+    pv()->resize(n);
 
-    std::transform(begin, end, multis_.begin(), pv().begin(), std::multiplies<type_name>());
+    std::transform(begin, end, multis_.begin(), pv()->begin(), std::multiplies<type_name>());
     return pv();
   }
 
@@ -146,14 +152,14 @@ struct kernel_add : public manipulate_kernel< T >
     for ( int i = 0; i < adds.size(); i++ )
       adds_.push_back( adds[ i ] );
   }
-  std::vector< type_name >&
+  std::vector< type_name >*
   operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
     const int n = end-begin;
     assert( n == adds_.size() );
-    pv().resize(n);
+    pv()->resize(n);
 
-    std::transform(begin, end, adds_.begin(), pv().begin(), std::plus<type_name>());
+    std::transform(begin, end, adds_.begin(), pv()->begin(), std::plus<type_name>());
     return pv();
   }
 
@@ -178,12 +184,12 @@ struct kernel_srwa : public manipulate_kernel< T >
     upper = boundaries[ 1 ];
   }
 
-  std::vector< type_name >&
+  std::vector< type_name >*
   operator()( typename std::vector<type_name>::iterator begin, typename std::vector<type_name>::iterator end )
   {
     const int n = end-begin;
     assert( n == 5 );
-    pv().resize(n);
+    pv()->resize(n);
 
     std::vector< type_name >& output = pv().begin();
     std::copy(begin, end, output.begin());
