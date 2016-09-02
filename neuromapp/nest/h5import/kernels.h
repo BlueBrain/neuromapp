@@ -10,7 +10,7 @@
 #include <iterator>
 #include <vector>
 
-#include <omp.h>
+#include "nest/h5import/fakenestkernel/nest_kernel.h"
 
 namespace h5import {
 
@@ -26,8 +26,10 @@ struct private_vector
     typedef T type_name;
     std::vector< std::vector< type_name > > all_vectors;
 
-    private_vector() : all_vectors(kernel().vp_manager.get_max_threads())
-    {}
+    private_vector() : all_vectors( kernel().vp_manager.get_num_threads() )
+    {
+    	assert(kernel_available());
+    }
 
     std::vector< T >* operator()()
     {
@@ -177,6 +179,7 @@ struct kernel_srwa : public manipulate_kernel< T >
 
   type_name lower;
   type_name upper;
+  
   kernel_srwa( TokenArray& boundaries )
   {
     assert( boundaries.size() == 2 );

@@ -191,30 +191,31 @@ namespace nest
         }
 
         //check for valid synapse model & parameters
-        if (use_mpi || use_manager || use_connector || use_connection)
-        if (vm["model"].as<std::string>() == "tsodyks2") {
-            const double delay = vm["delay"].as<double>();
-            const double weight = vm["weight"].as<double>();
-            const double U = vm["U"].as<double>();
-            const double u = vm["u"].as<double>();
-            const double x = vm["x"].as<double>();
-            const double tau_rec = vm["tau_rec"].as<double>();
-            const double tau_fac = vm["tau_fac"].as<double>();
+        if (use_mpi || use_manager || use_connector || use_connection) {
+            if (vm["model"].as<std::string>() == "tsodyks2") {
+                const double delay = vm["delay"].as<double>();
+                const double weight = vm["weight"].as<double>();
+                const double U = vm["U"].as<double>();
+                const double u = vm["u"].as<double>();
+                const double x = vm["x"].as<double>();
+                const double tau_rec = vm["tau_rec"].as<double>();
+                const double tau_fac = vm["tau_fac"].as<double>();
 
-            try {
-                short lid = 0; // only one node
-                spikedetector sd;
-                tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, lid);
+                try {
+                    short lid = 0; // only one node
+                    spikedetector sd;
+                    tsodyks2 syn(delay, weight, U, u, x, tau_rec, tau_fac, lid);
+                }
+                catch (std::invalid_argument& e) {
+                    std::cout << "Error in model parameters: " << e.what() << std::endl;
+                    return mapp::MAPP_BAD_DATA;
+                }
             }
-            catch (std::invalid_argument& e) {
-                std::cout << "Error in model parameters: " << e.what() << std::endl;
+            /* else if ( more models ) */
+            else {
+                std::cout << "Error: Selected connection model is  unknown" << std::endl;
                 return mapp::MAPP_BAD_DATA;
             }
-        }
-        /* else if ( more models ) */
-        else {
-            std::cout << "Error: Selected connection model is  unknown" << std::endl;
-            return mapp::MAPP_BAD_DATA;
         }
 
 

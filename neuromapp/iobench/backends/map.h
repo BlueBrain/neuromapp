@@ -27,7 +27,9 @@
 #ifndef MAPP_IOBENCH_MAP_
 #define MAPP_IOBENCH_MAP_
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #include <map>
 #include <vector>
 #include <cstring>

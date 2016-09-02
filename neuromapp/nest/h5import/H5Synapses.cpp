@@ -1,6 +1,5 @@
 #include "nest/h5import/fakenestkernel/nest_kernel.h"
 #include "nest/h5import/H5Synapses.h"
-#include "nest/h5import/NESTNodeSynapse.h"
 
 #include <iostream>
 //#include "nmpi.h"
@@ -29,7 +28,13 @@
 
 using namespace h5import;
 
-void H5Synapses::threadConnectNeurons( NESTSynapseList& synapses )
+H5Synapses::H5Synapses()
+  : transfersize_(524288), sizelimit_(-1)
+{
+	assert(kernel_available());
+}
+
+void H5Synapses::threadConnectNeurons( SynapseList& synapses )
 {
 #ifdef SCOREP_COMPILE
   SCOREP_USER_REGION( "connect", SCOREP_USER_REGION_TYPE_FUNCTION )
@@ -39,7 +44,7 @@ void H5Synapses::threadConnectNeurons( NESTSynapseList& synapses )
     {
         for ( int i = 0; i < synapses.size(); i++ )
         {
-            const size_t target = synapses[ i ].target_neuron_;
+            const index target = synapses[ i ].target_neuron_;
             // synapse belongs to local thread, connect function is thread safe under this condition
             if ( kernel().node_manager.is_local_gid(target))
                 singleConnect( synapses[ i ], target );
@@ -52,7 +57,7 @@ void H5Synapses::threadConnectNeurons( NESTSynapseList& synapses )
  *  Aftewards all synapses are on their target nodes
  */
 CommunicateSynapses_Status
-H5Synapses::CommunicateSynapses( NESTSynapseList& synapses )
+H5Synapses::CommunicateSynapses( SynapseList& synapses )
 {
 #ifdef SCOREP_COMPILE
   SCOREP_USER_REGION( "alltoall", SCOREP_USER_REGION_TYPE_FUNCTION )
@@ -76,7 +81,7 @@ H5Synapses::CommunicateSynapses( NESTSynapseList& synapses )
   int entriesadded;
 
   #pragma omp parallel for
-  for ( uint32_t i = 0; i < synapses.size(); i++ )
+  for ( size_t i = 0; i < synapses.size(); i++ )
   {
     const size_t offset = i * intsizeof_entry;
     // serialize entry
@@ -118,7 +123,7 @@ H5Synapses::CommunicateSynapses( NESTSynapseList& synapses )
 
   // fill synapse list with values from buffer
   #pragma omp parallel for
-  for ( uint32_t i = 0; i < synapses.size(); i++ ) {
+  for ( size_t i = 0; i < synapses.size(); i++ ) {
       const size_t offset = i * intsizeof_entry;
       synapses[ i ].deserialize( recvbuf, offset );
   }
@@ -133,21 +138,18 @@ H5Synapses::CommunicateSynapses( NESTSynapseList& synapses )
     return NOCOM;
 }
 
-/**
- *
- */
-H5Synapses::H5Synapses()
-  : transfersize_(524288), sizelimit_(-1)
-{}
-
-void H5Synapses::integrateMapping( NESTSynapseList& synapses )
+void H5Synapses::integrateMapping( SynapseList& synapses )
 {
 #ifdef SCOREP_COMPILE
   SCOREP_USER_REGION( "det", SCOREP_USER_REGION_TYPE_FUNCTION )
 #endif
 
-  for ( int i = 0; i < synapses.size(); i++ )
-    synapses[ i ].integrateMapping( mapping_ );
+  for ( int i = 0; i < synapses.size(); i++ ) {
+	  SynapseRef s = synapses[i];
+      s.source_neuron_ = mapping_[ s.source_neuron_ ];
+      s.target_neuron_ = mapping_[ s.target_neuron_ ];
+      s.node_id_ = kernel().mpi_manager.suggest_rank( s.target_neuron_ );
+  }
 }
 
 //helper for sort
@@ -155,7 +157,7 @@ typedef std::pair< int, int > intpair;
 inline bool first_less( const intpair& l, const intpair& r ) { return l.first < r.first; };
 
 void
-H5Synapses::sort( NESTSynapseList & synapses )
+H5Synapses::sort( SynapseList& synapses )
 {
 #ifdef SCOREP_COMPILE
     SCOREP_USER_REGION( "sort", SCOREP_USER_REGION_TYPE_FUNCTION )
@@ -166,7 +168,7 @@ H5Synapses::sort( NESTSynapseList & synapses )
         std::vector< intpair > v_idx( synapses.size() );
         for ( int i = 0; i < v_idx.size(); i++ )
         {
-            v_idx[ i ].first = synapses.node_id_[ i ];
+            v_idx[ i ].first = synapses[ i ].node_id_;
             v_idx[ i ].second = i;
         }
         std::sort( v_idx.begin(), v_idx.end(), first_less);
@@ -175,9 +177,9 @@ H5Synapses::sort( NESTSynapseList & synapses )
         uint32_t source_neuron_tmp;
         uint32_t node_id_tmp;
         std::vector< char > pool_tmp( synapses.sizeof_entry() );
-        NESTSynapseRef buf( source_neuron_tmp,
+        SynapseRef buf( source_neuron_tmp,
                 node_id_tmp,
-                synapses.num_params_,
+                synapses.get_num_params(),
                 &pool_tmp[0] );
 
         //apply reordering based on v_idx[:].second
@@ -214,7 +216,7 @@ void H5Synapses::import()
   uint64_t t_load=0;
   uint64_t t_mpicon=0;
   uint64_t t_push=0;
-  std::queue< NESTSynapseList* > synapse_queue;
+  std::queue< SynapseList* > synapse_queue;
 
   // add all synapses into queue
   gettimeofday(&start_push, NULL);
@@ -226,8 +228,7 @@ void H5Synapses::import()
                 #ifdef SCOREP_COMPILE
                 SCOREP_USER_REGION( "enqueue", SCOREP_USER_REGION_TYPE_FUNCTION )
                 #endif
-                NESTSynapseList* newone = new NESTSynapseList;
-                newone->set_properties( model_params_ );
+                SynapseList* newone = new SynapseList( model_params_.size() );
 
                 h5reader::h5view dataspace_view;
                 {
@@ -261,7 +262,7 @@ void H5Synapses::import()
        SCOREP_USER_REGION( "dequeue", SCOREP_USER_REGION_TYPE_FUNCTION )
         #endif
         gettimeofday(&start_mpicon, NULL);
-        NESTSynapseList* synapses = synapse_queue.front();
+        SynapseList* synapses = synapse_queue.front();
         synapse_queue.pop();
 
         com_status = CommunicateSynapses( *synapses );

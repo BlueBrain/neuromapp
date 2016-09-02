@@ -138,7 +138,7 @@ using namespace h5import;
     }
 
 
-    void h5reader::integrateSourceNeurons(NESTSynapseList& synapses, const h5view& view )
+    void h5reader::integrateSourceNeurons( SynapseList& synapses, const h5view& view )
     {
     //use private iterator to be thread safe
     std::vector< NeuronLink >::const_iterator it_neuronLinks = neuronLinks_.begin();
@@ -168,7 +168,7 @@ using namespace h5import;
      * Move file pointer to for next function call
      *
      */
-    void h5reader::readblock( NESTSynapseList& synapses, h5view& dataspace_view )
+    void h5reader::readblock( SynapseList& synapses, h5view& dataspace_view )
     {
       hsize_t private_offset = transfersize_ * rank_ + global_offset_;
 

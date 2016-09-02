@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-#include "nest/h5import/NESTNodeSynapse.h"
+#include "nest/h5import/SynapseList.h"
 
 #ifndef H5IMPORT_H5READER_CLASS
 #define H5IMPORT_H5READER_CLASS
@@ -149,12 +149,12 @@ public:
     /*
      * read block from dataset and move internal pointer forward
      */
-    void readblock( NESTSynapseList& synapses, h5view& dataspace_view);
+    void readblock( SynapseList& synapses, h5view& dataspace_view );
 
     /*
     * search source neuron in neuronlinks and integrate them in the synapse list
     */
-    void integrateSourceNeurons(NESTSynapseList& synapses, const h5view& view );
+    void integrateSourceNeurons( SynapseList& synapses, const h5view& view );
 };
 }; //end of h5import namespace
 

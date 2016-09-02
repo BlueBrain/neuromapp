@@ -27,7 +27,9 @@
 #ifndef MAPP_IOBENCH_BENCHMARK_
 #define MAPP_IOBENCH_BENCHMARK_
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #include <map>
 
 #include "iobench/backends/basic.h"

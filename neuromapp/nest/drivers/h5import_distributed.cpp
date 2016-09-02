@@ -51,37 +51,34 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    const int nthreads = atoi(argv[1]);
+    int nthreads = atoi(argv[1]);
     const int ncells = atoi(argv[2]);
     std::string syn_file(argv[3]);
 
+#ifdef _OPENMP
+	omp_set_num_threads(nthreads);
+#else
+	nthreads = 1;
+	std::cout << "WARNING: OpenMP not available! num_threads is set to 1.";
+#endif
 
     //load kernel environment
-    kernel_env kenv;
-
-    environment::nestdistribution neuro_mpi_dist(size, rank, ncells);
-    kernel().set_mpi_dist(&neuro_mpi_dist);
-
-    omp_set_num_threads(nthreads);
-
-    std::vector<environment::nestdistribution*> neuro_vp_dists;
-    for (int thrd=0; thrd<nthreads; thrd++) {
-        neuro_vp_dists.push_back(new environment::nestdistribution(nthreads, thrd, &neuro_mpi_dist));
-        kernel().set_vp_dist (thrd, neuro_vp_dists[thrd] );
-    }
+    kernel_env kenv(ncells, nthreads, rank, size);
 
     struct timeval start, end;
-        //run simulation
-
+	
+     //run simulation
     gettimeofday(&start, NULL);
-
 
     H5Synapses h5synapses;
     h5synapses.set_filename(syn_file);
     std::vector<std::string> props;
     props.push_back("delay");
     props.push_back("weight");
-    h5synapses.set_properties(props);
+	props.push_back("U0");
+	props.push_back("TauRec");
+	props.push_back("TauFac");
+    h5synapses.set_parameters(props);
 
     GIDCollection gids;
     h5synapses.set_mapping(gids);
@@ -99,9 +96,6 @@ int main(int argc, char* argv[]) {
         num_connections += kernel().connection_manager.num_connections[thrd];
     }
     std::cout<<"stats: num_connections="<<num_connections<<std::endl;
-
-    for (int i=0; i<nthreads; i++)
-        delete neuro_vp_dists[i];
 
     MPI_Finalize();
     return 0;

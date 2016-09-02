@@ -1,4 +1,8 @@
+
+#ifdef _OPENMP
 #include <omp.h>
+#endif
+
 #include <mpi.h>
 #include <stdint.h>
 
@@ -14,39 +18,42 @@ namespace h5import
     {
         static kernel_manager* kernel_instance;
 
-        environment::nestdistribution* neuro_mpi_dist;
-        std::vector<environment::nestdistribution*> neuro_vp_dist;
+        environment::nestdistribution neuro_mpi_dist;
+        std::vector< environment::nestdistribution* > neuro_vp_dist;
 
         struct mpi_manager
         {
-            int rank;
-            int size;
+            int rank_;
+            int size_;
 
-            mpi_manager(): size(1), rank(0)
+            mpi_manager( const int& rank, const int& size ): rank_(rank), size_(size)
             {
-                MPI_Comm_size(MPI_COMM_WORLD, &size);
-                MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+                //MPI_Comm_size(MPI_COMM_WORLD, &size);
+                //MPI_Comm_rank(MPI_COMM_WORLD, &rank);
             }
 
             inline index get_rank()
             {
-                return rank;
+                return rank_;
             }
             inline index get_num_processes()
             {
-                return size;
+                return size_;
             }
-            index suggest_rank(const uint64_t& gid);
+            index suggest_rank( const index& gid );
         } mpi_manager;
 
         struct node_manager
         {
             index size();
-            bool is_local_gid(const uint64_t& gid);
+            bool is_local_gid( const index& gid );
         } node_manager;
 
         struct vp_manager
         {
+			size_t nthreads_;
+			vp_manager( const size_t& nthreads ): nthreads_( nthreads )
+			{}
             inline index get_thread_id()
             {
                 #ifdef _OPENMP
@@ -55,13 +62,9 @@ namespace h5import
                 return 0;
                 #endif
             }
-            inline index get_max_threads()
+            inline const size_t& get_num_threads() const
             {
-                #ifdef _OPENMP
-                return omp_get_max_threads();
-                #else
-                return 1;
-                #endif
+                return nthreads_;
             }
         } vp_manager;
 
@@ -69,35 +72,48 @@ namespace h5import
         {
             std::vector< long > num_connections;
             std::vector< double > sum_values;
-            void connect(const uint64_t& s_gid, const uint64_t& t_gid, const std::vector<double>& v);
+            void connect( const index& s_gid, const index& t_gid, const std::vector< double >& v );
+			connection_manager( const size_t nthreads ):
+				num_connections( nthreads ),
+				sum_values( nthreads )
+			{};
         } connection_manager;
+		
+		kernel_manager( const index& nneurons, const size_t& nthreads, const int& rank, const int& size ):
+			neuro_mpi_dist( size, rank, nneurons ),
+			mpi_manager( rank, size ),
+			vp_manager( nthreads ),
+			connection_manager( nthreads ) 
+		{
+			for ( int thrd=0; thrd<nthreads; thrd++ )
+				neuro_vp_dist.push_back( new environment::nestdistribution( nthreads, thrd, &neuro_mpi_dist ) );
+		}
+		~kernel_manager()
+		{
+			for ( int thrd=0; thrd<vp_manager.get_num_threads(); thrd++ )
+				delete neuro_vp_dist[ thrd ];
+		}
 
-        inline void set_mpi_dist(environment::nestdistribution* mpi_dist)
-        {
-            neuro_mpi_dist = mpi_dist;
-        }
-        inline void set_vp_dist(const int& thrd, environment::nestdistribution* vp_dist)
-        {
-            if (thrd>=neuro_vp_dist.size())
-                neuro_vp_dist.resize(thrd+1);
-            neuro_vp_dist[thrd] = vp_dist;
-        }
-
-        static void create();
+        static void create( const index& nneurons, const size_t& nthreads, const int& rank, const int& size );
         static void destroy();
     };
 
     struct kernel_env
     {
-        kernel_env()
+        kernel_env( const index& nneurons, const size_t& nthreads, const int& rank, const int& size )
         {
-            kernel_manager::create();
+            kernel_manager::create( nneurons, nthreads, rank, size );
         }
         ~kernel_env()
         {
             kernel_manager::destroy();
         }
     };
+	
+	inline bool kernel_available()
+	{
+		return kernel_manager::kernel_instance != NULL;
+	}
 
     inline kernel_manager& kernel()
     {

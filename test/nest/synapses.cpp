@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     command_v.push_back("--model");
     command_v.push_back("tsodyks2");
     command_v.push_back("--U");
-    command_v.push_back("2.0"); // model does not exist
+    command_v.push_back("2.0");
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 	#endif //_DEBUG

@@ -1,8 +1,10 @@
 #include <vector>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #include <stdint.h>
 
-#include "nest/h5import/NESTNodeSynapse.h"
+#include "nest/h5import/SynapseList.h"
 #include "nest/h5import/h5reader.h"
 #include "nest/h5import/kernels.h"
 
@@ -31,27 +33,23 @@ private:
     std::string filename_;
     std::vector< std::string > model_params_;
     kernel_combi< double > kernel_;
-    GIDCollectionDatum mapping_;
+    GIDCollection mapping_;
 
     uint64_t sizelimit_;
     uint64_t transfersize_;
 
-    inline void singleConnect( NESTSynapseRef synapse, const size_t t_gid)
+    inline void singleConnect( SynapseRef synapse, const index t_gid)
     {
-        size_t source = synapse.source_neuron_;
-        //std::vector<double>* values = kernel_( synapse.params_.begin(), synapse.params_.end() );
-
-        std::vector<double> values(synapse.params_.size());
-        for (int i=0; i<synapse.params_.size(); i++)
-            values[i] = synapse.params_[i];
-        kernel().connection_manager.connect(source, t_gid, values);
+        index source = synapse.source_neuron_;
+        std::vector<double>* values = kernel_( synapse.params_.begin(), synapse.params_.end() );
+        kernel().connection_manager.connect(source, t_gid, *values);
     }
 
   CommunicateSynapses_Status
-       CommunicateSynapses( NESTSynapseList& synapses );
-  void threadConnectNeurons( NESTSynapseList& synapses );
-  void sort( NESTSynapseList& synapses );
-  void integrateMapping( NESTSynapseList& synapses );
+       CommunicateSynapses( SynapseList& synapses );
+  void threadConnectNeurons( SynapseList& synapses );
+  void sort( SynapseList& synapses );
+  void integrateMapping( SynapseList& synapses );
   void addKernel( std::string name, TokenArray params );
 
 
@@ -64,7 +62,7 @@ public:
       filename_ = path;
   }
 
-  inline void set_properties(const std::vector<std::string>& prop_names)
+  inline void set_parameters(const std::vector<std::string>& prop_names)
   {
       model_params_ = prop_names;
   }

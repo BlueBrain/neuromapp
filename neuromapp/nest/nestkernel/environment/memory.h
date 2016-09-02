@@ -227,7 +227,7 @@ namespace nest{
         #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
         #else
-        const int thrd = 1;
+        const int thrd = 0;
         #endif
 
         Tnew* p = NULL;
@@ -250,7 +250,7 @@ namespace nest{
         #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
         #else
-        const int thrd = 1;
+        const int thrd = 0;
         #endif
 
         T* p = NULL;
