@@ -137,8 +137,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(remove_greater,T,full_test_types) {
     queue.push(n);
     BOOST_CHECK_EQUAL(queue.size(), 11);
     BOOST_CHECK_EQUAL(queue.top(), 2);
-    tool::move(queue,n,1); //should 1 is the minimum value and 1 as a precise IEEE representation
-    BOOST_CHECK_EQUAL(queue.top() , 1);
+    tool::move(queue,n,1); //should 1 is the minimum value 
+    BOOST_CHECK_EQUAL(queue.top() , 1); // check equal ok because 1 has a precise IEEE representation
     BOOST_CHECK_EQUAL(queue.size(), 11);
   }
 
