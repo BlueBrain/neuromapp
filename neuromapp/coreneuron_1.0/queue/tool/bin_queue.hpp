@@ -16,12 +16,23 @@ namespace tool {
 
     I remove the array and use a std::vector to have a safe resize
  */
+ 
+     //node for the bin queue
+    template<class T>
+    struct bin_node {
+        typedef T value_type;
+        explicit bin_node(value_type t = value_type()):t_(t),left_(0),cnt_(-1){};
+        value_type t_;
+        bin_node* left_;
+        int cnt_;
+    };
 
     template<class T>
     class bin_queue {
     public:
         typedef T value_type;
         typedef std::size_t size_type;
+        typedef bin_node<value_type> node_type;
 
         inline explicit bin_queue(double dt = 0.025, value_type t0 = 0.):size_(0),qpt_(0),dt_(dt),tt_(t0)
                                                                              ,bins_(1024){}
@@ -30,14 +41,14 @@ namespace tool {
 
         /** std::priority_queue API like */
         inline void push(value_type t){
-            tool::bin_node<value_type>* n = new tool::bin_node<value_type>(t);
+            node_type* n = new node_type(t);
             enqueue(t,n); // t encapsulate in the bin_node but also needed for the "hash function"
             size_++;
         }
 
         inline void pop(){
             if(!empty()){
-                tool::bin_node<value_type>* q = first();
+                node_type* q = first();
                 remove(q);
                 delete q;
                 size_--;
@@ -60,21 +71,28 @@ namespace tool {
         inline bool empty(){
             return !bool(size_); // is it true on Power?
         }
+        
+        inline node_type* find(node_type& n){
+            remove(&n);
+            return n;
+        }
 
         /** original API */
         inline void enqueue(value_type tt, tool::bin_node<value_type>*);
 
         // for intenal only
-        tool::bin_node<value_type>* first();
-        tool::bin_node<value_type>* next(tool::bin_node<value_type>*);
-        void remove(tool::bin_node<value_type>*);
+        node_type* first();
+        node_type* next(node_type*);
+        void remove(node_type*);
     private:
         size_type size_;
         int qpt_; // unused here
         double dt_; // step times
         value_type tt_; // time at beginning of qpt_ interval
-        std::vector<tool::bin_node<value_type>* > bins_; // for correct resize
+        std::vector<node_type*> bins_; // for correct resize
     };
+    
+    
 }
 
 

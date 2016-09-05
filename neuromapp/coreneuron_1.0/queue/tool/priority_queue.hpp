@@ -29,7 +29,7 @@
 #ifndef PRIORITY_QUEUE_HPP_
 #define PRIORITY_QUEUE_HPP_
 
-#include "coreneuron_1.0/queue/tool/queue_helper.h"
+#include "coreneuron_1.0/queue/tool/algorithm.h"
 #include "coreneuron_1.0/queue/tool/bin_queue.hpp"
 #include "coreneuron_1.0/queue/tool/bin_queue.ipp"
 #include "coreneuron_1.0/queue/tool/sptq_queue.hpp"

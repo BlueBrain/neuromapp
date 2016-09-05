@@ -42,32 +42,50 @@ namespace tool {
 but ok for the type support and the comparator, by default std::less and not std::greated
 as it was in the original version, already a bit of clean up specially for the push ... */
 
+//node for the splay tree
+template<class T>
+struct sptq_node {
+    typedef T value_type;
+    explicit sptq_node(value_type t = value_type()):t_(t),left_(0),right_(0),parent_(0){};
+    value_type t_;
+    sptq_node* left_;
+    sptq_node* right_;
+    sptq_node* parent_;
+};
+
+template<class T>
+struct SPTREE{
+    sptq_node<T>	* root;		/* root node */
+    int
+};
+
 template<class T = double, class Compare = std::less<T> >
 class sptq_queue {
 public:
     typedef tool::SPTREE<T> container;
     typedef std::size_t size_type;
     typedef T value_type;
+    typedef sptq_node<T> node_type;
 
     inline sptq_queue():s(0) {
         tool::spinit(&q);
     }
 
     inline ~sptq_queue(){
-        tool::sptq_node<T> *n;
+        node_type *n;
         while((n = tool::spdeq(&(&q)->root)) != NULL)
           delete n;
     }
 
     inline void push(value_type value){
-        tool::sptq_node<T> *n = new tool::sptq_node<T>(value);
+        node_type *n = new node_type(value);
         tool::spenq<T,Compare>(n, &q); // the Comparator is use only here
         s++;
     }
 
     inline void pop(){
         if(!empty()){
-            tool::sptq_node<T> *n = tool::spdeq(&(&q)->root);
+            node_type *n = tool::spdeq(&(&q)->root);
             delete n; // pop remove definitively the element else memory leak
             s--;
         }
@@ -88,10 +106,8 @@ public:
         return !bool(s); // is it true on Power?
     }
 
-    inline void move(tool::sptq_node<T> & n, value_type value){
-        tool::sptq_node<T> * node = tool::spdelete(&n, &q);
-        node->t_ = value;
-        tool::spenq<T,Compare>(node, &q);
+    inline node_type* find(node_type& n){
+          return spdelete(&n, &q);
     }
 
     void print(std::ostream &os) {
@@ -105,6 +121,7 @@ private:
     size_type s;
     container q;
 };
+
 
 
 // carefull the << delete the queue only for debugging 

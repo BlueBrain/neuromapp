@@ -2,21 +2,22 @@
 #ifndef bin_queue_ipp_
 #define bin_queue_ipp_
 
-#include "coreneuron_1.0/queue/tool/queue_helper.h" //for the sptq::bin_node object
+#include "coreneuron_1.0/queue/tool/algorithm.h" //for the sptq::bin_node object
 
 namespace tool{
 
     template<class T>
     bin_queue<T>::~bin_queue() {
-        tool::bin_node<T>* q, *q2;
+        node_type* q, *q2;
         for (q = first(); q; q = q2) {
             q2 = next(q);
             remove(q); /// Potentially dereferences freed pointer this->sptree_
+            delete q;
         }
     }
 
     template<class T>
-    void bin_queue<T>::enqueue(T td, tool::bin_node<T>* q) {
+    void bin_queue<T>::enqueue(T td, node_type* q) {
 
         int rev_dt = 1/dt_;
         int idt = (int)((td - tt_)*rev_dt + 1.e-10);
@@ -34,7 +35,7 @@ namespace tool{
     }
 
     template<class T>
-    tool::bin_node<T>* bin_queue<T>::first() {
+    typename bin_queue<T>::node_type* bin_queue<T>::first() {
         for (int i = qpt_; i < bins_.size(); ++i) {
             if (bins_[i]) {
                 return bins_[i];
@@ -44,7 +45,7 @@ namespace tool{
     }
 
     template<class T>
-    tool::bin_node<T>* bin_queue<T>::next(tool::bin_node<T>* q) {
+    typename bin_queue<T>::node_type* bin_queue<T>::next(node_type* q) {
         if (q->left_) { return q->left_; }
         for (int i = q->cnt_ + 1; i < bins_.size(); ++i) {
             if (bins_[i]) {
@@ -55,8 +56,8 @@ namespace tool{
     }
 
     template<class T>
-    void bin_queue<T>::remove(tool::bin_node<T>* q) {
-        tool::bin_node<T>* q1, *q2;
+    void bin_queue<T>::remove(node_type* q) {
+        node_type* q1, *q2;
         q1 = bins_[q->cnt_];
         if (q1 == q) {
             bins_[q->cnt_] = q->left_;

@@ -26,59 +26,18 @@
  THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef tqueue_helper_h_
-#define tqueue_helper_h_
+#ifndef algorithm_h_
+#define algorithm_h_
 
 namespace tool { // namespace si better than C style
 
-    //node for the bin queue
-    template<class T>
-    struct bin_node {
-        typedef T value_type;
-        explicit bin_node(value_type t = value_type()):t_(t),left_(0),cnt_(-1){};
-        value_type t_;
-        bin_node* left_;
-        int cnt_;
-    };
-
-    //node for the splay tree
-    template<class T>
-    struct sptq_node {
-        typedef T value_type;
-        explicit sptq_node(value_type t = value_type()):t_(t),left_(0),right_(0),parent_(0){};
-        value_type t_;
-        sptq_node* left_;
-        sptq_node* right_;
-        sptq_node* parent_;
-    };
-
-    template<class T>
-    struct SPTREE{
-        sptq_node<T>	* root;		/* root node */
-        int	enqcmps;	/* compares in spenq */
-    };
-
-    /** Forward declarations for the c++ interface, useless but give definition
-    of this function */
-    /* init tree */
-    template<class T>
-    void spinit(SPTREE<T>*);
-
-    /* insert item into the tree */
-    template<class T, class Compare>
-    sptq_node<T>* spenq(sptq_node<T>*, SPTREE<T>*);
-
-    /* return and remove lowest item in subtree */
-    template<class T>
-    sptq_node<T>* spdeq(sptq_node<T>**);
-    
-    /* return first node in tree */
-    template<class T>
-    sptq_node<T>* sphead(SPTREE<T>*);
-
-    /* delete a specific node in the tree */
-    template<class T>
-    void spdelete(sptq_node<T>*, SPTREE<T>*);
+    // idem for every queue,
+    template<class Q> // Q is a queue
+    inline void move(Q &q, typename Q::node_type& n,  typename Q::value_type value){
+        typename Q::node_type* new_n  = q.find(n); // find the node
+        new_n->t_ = value; // attribute a new value
+        q.push(new_n); // reinsert in the queue
+    }
     
 } // end namespace
 
