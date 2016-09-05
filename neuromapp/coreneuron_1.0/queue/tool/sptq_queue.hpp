@@ -132,7 +132,7 @@ public:
     }
 
     inline node_type* find(node_type& n){
-          return spdelete(&n, &q);
+        return spdelete(&n, &q);
     }
 
     void print(std::ostream &os) {
