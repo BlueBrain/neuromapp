@@ -46,6 +46,10 @@ namespace tool {
             size_++;
         }
 
+        inline void push(node_type& n) const{
+            enqueue(n.t_,&n); // t encapsulate in the bin_node but also needed for the "hash function"
+        }
+
         inline void pop(){
             if(!empty()){
                 node_type* q = first();

@@ -33,8 +33,8 @@ namespace tool { // namespace si better than C style
 
     // idem for every queue,
     template<class Q> // Q is a queue
-    inline void move(Q &q, typename Q::node_type& n,  typename Q::value_type value){
-        typename Q::node_type* new_n  = q.find(n); // find the node
+    inline void move(Q& q, typename Q::node_type& n,  typename Q::value_type value){
+        typename Q::node_type& new_n  = q.find(n); // find the node
         new_n->t_ = value; // attribute a new value
         q.push(new_n); // reinsert in the queue
     }

@@ -26,9 +26,6 @@ namespace tool{
         assert(idt >= 0);
         if(idt < qpt_)
             qpt_ = idt; // keep track of the first bin
-//        idt += qpt_;
-//        if (idt >= bins_.size()) { idt -= bins_.size(); } // is it relevant now ?
-//        assert (idt < bins_.size());
         q->cnt_ = idt; // only for iteration
         q->left_ = bins_[idt];
         bins_[idt] = q;
@@ -38,6 +35,7 @@ namespace tool{
     typename bin_queue<T>::node_type* bin_queue<T>::first() {
         for (int i = qpt_; i < bins_.size(); ++i) {
             if (bins_[i]) {
+                qpt_ = i; // keep track of the first bin
                 return bins_[i];
             }
         }

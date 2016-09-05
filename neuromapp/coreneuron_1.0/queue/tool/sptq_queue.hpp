@@ -35,7 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <ostream>
 #include <functional>
 
-#include "coreneuron_1.0/queue/tool/queue_helper.h"
+#include "coreneuron_1.0/queue/tool/algorithm.h"
 
 namespace tool {
 /** The queue: TQeue from Michael starts here, not compliant with std for the container,
@@ -56,8 +56,29 @@ struct sptq_node {
 template<class T>
 struct SPTREE{
     sptq_node<T>	* root;		/* root node */
-    int
+    int	enqcmps;	/* compares in spenq */
 };
+
+/** Forward declarations for the c++ interface */
+/* init tree */
+template<class T>
+void spinit(SPTREE<T>*);
+
+/* insert item into the tree */
+template<class T, class Compare>
+sptq_node<T>* spenq(sptq_node<T>*, SPTREE<T>*);
+
+/* return and remove lowest item in subtree */
+template<class T>
+sptq_node<T>* spdeq(sptq_node<T>**);
+
+/* return first node in tree */
+template<class T>
+sptq_node<T>* sphead(SPTREE<T>*);
+
+/*return a looking node */
+template<class T>
+sptq_node<T>* spdelete(sptq_node<T>*,SPTREE<T>*);
 
 template<class T = double, class Compare = std::less<T> >
 class sptq_queue {
@@ -81,6 +102,10 @@ public:
         node_type *n = new node_type(value);
         tool::spenq<T,Compare>(n, &q); // the Comparator is use only here
         s++;
+    }
+
+    inline void push(node_type& n) const{
+        tool::spenq<T,Compare>(n, &q);
     }
 
     inline void pop(){
@@ -121,8 +146,6 @@ private:
     size_type s;
     container q;
 };
-
-
 
 // carefull the << delete the queue only for debugging 
 template<class T, class Compare>
