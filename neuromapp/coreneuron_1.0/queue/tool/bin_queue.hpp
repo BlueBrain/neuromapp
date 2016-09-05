@@ -46,8 +46,9 @@ namespace tool {
             size_++;
         }
 
-        inline void push(node_type& n) const{
-            enqueue(n.t_,&n); // t encapsulate in the bin_node but also needed for the "hash function"
+        inline void push(node_type* n){
+            enqueue(n->t_,n); // t encapsulate in the bin_node but also needed for the "hash function"
+            size_++;
         }
 
         inline void pop(){
@@ -76,11 +77,13 @@ namespace tool {
             return !bool(size_); // is it true on Power?
         }
         
-        inline node_type* find(node_type& n){
-            remove(&n);
+        inline node_type* find(node_type* n){
+            remove(n);
+            size_--; // WARNING remove the node but do not delete it
             return n;
         }
 
+    private:
         /** original API */
         inline void enqueue(value_type tt, tool::bin_node<value_type>*);
 
@@ -88,17 +91,14 @@ namespace tool {
         node_type* first();
         node_type* next(node_type*);
         void remove(node_type*);
-    private:
+    
         size_type size_;
         int qpt_; // unused here
         double dt_; // step times
         value_type tt_; // time at beginning of qpt_ interval
         std::vector<node_type*> bins_; // for correct resize
     };
-    
-    
 }
-
 
 #include "bin_queue.ipp"
 

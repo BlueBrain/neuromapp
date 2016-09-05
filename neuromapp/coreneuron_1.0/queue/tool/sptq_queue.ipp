@@ -513,21 +513,21 @@ void spdelete(sptq_node<T>* n, SPTREE<T>* q){
     sptq_node<T> * x;
 
     splay( n, q );
-    x = spdeq( &q->root->rightlink );
+    x = spdeq( &q->root->right_ );
     if( x == NULL )		/* empty right subtree */
     {
-        q->root = q->root->leftlink;
-        if (q->root) q->root->uplink = NULL;
+        q->root = q->root->left_;
+        if (q->root) q->root->parent_ = NULL;
     }
     else			/* non-empty right subtree */
     {
-        x->uplink = NULL;
-        x->leftlink = q->root->leftlink;
-        x->rightlink = q->root->rightlink;
-        if( x->leftlink != NULL )
-            x->leftlink->uplink = x;
-        if( x->rightlink != NULL )
-            x->rightlink->uplink = x;
+        x->parent_ = NULL;
+        x->left_ = q->root->left_;
+        x->right_ = q->root->right_;
+        if( x->left_ != NULL )
+            x->left_->parent_ = x;
+        if( x->right_ != NULL )
+            x->right_->parent_ = x;
         q->root = x;
     }
 } /* spdelete */

@@ -78,61 +78,64 @@ sptq_node<T>* sphead(SPTREE<T>*);
 
 /*return a looking node */
 template<class T>
-sptq_node<T>* spdelete(sptq_node<T>*,SPTREE<T>*);
+void spdelete(sptq_node<T>*,SPTREE<T>*);
 
 template<class T = double, class Compare = std::less<T> >
 class sptq_queue {
 public:
-    typedef tool::SPTREE<T> container;
+    typedef SPTREE<T> container;
     typedef std::size_t size_type;
     typedef T value_type;
     typedef sptq_node<T> node_type;
 
-    inline sptq_queue():s(0) {
-        tool::spinit(&q);
+    inline sptq_queue():size_(0) {
+        spinit(&q);
     }
 
     inline ~sptq_queue(){
         node_type *n;
-        while((n = tool::spdeq(&(&q)->root)) != NULL)
+        while((n = spdeq(&(&q)->root)) != NULL)
           delete n;
     }
 
     inline void push(value_type value){
         node_type *n = new node_type(value);
-        tool::spenq<T,Compare>(n, &q); // the Comparator is use only here
-        s++;
+        spenq<T,Compare>(n, &q); // the Comparator is use only here
+        size_++;
     }
 
-    inline void push(node_type& n) const{
-        tool::spenq<T,Compare>(n, &q);
+    inline void push(node_type* n){
+        spenq<T,Compare>(n, &q);
+        size_++;
     }
 
     inline void pop(){
         if(!empty()){
-            node_type *n = tool::spdeq(&(&q)->root);
+            node_type *n = spdeq(&(&q)->root);
             delete n; // pop remove definitively the element else memory leak
-            s--;
+            size_--;
         }
     }
 
     inline value_type top(){
         value_type tmp = value_type();
         if(!empty())
-            tmp = tool::sphead<T>(&q)->t_;
+            tmp = sphead<T>(&q)->t_;
         return tmp;
     }
 
     inline size_type size(){
-        return s;
+        return size_;
     }
 
     inline bool empty(){
-        return !bool(s); // is it true on Power?
+        return !bool(size_); // is it true on Power?
     }
 
-    inline node_type* find(node_type& n){
-        return spdelete(&n, &q);
+    inline node_type* find(node_type* n){
+        spdelete(n, &q);
+        size_--; // WARNING remove the node but do not delete it
+        return n;
     }
 
     void print(std::ostream &os) {
@@ -143,7 +146,7 @@ public:
     }
 
 private:
-    size_type s;
+    size_type size_;
     container q;
 };
 
