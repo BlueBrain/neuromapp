@@ -54,20 +54,20 @@ public:
     }
 
     inline ~sptq_queue(){
-        tool::node<T> *n;
+        tool::sptq_node<T> *n;
         while((n = tool::spdeq(&(&q)->root)) != NULL)
           delete n;
     }
 
     inline void push(value_type value){
-        tool::node<T> *n = new tool::node<T>(value);
+        tool::sptq_node<T> *n = new tool::sptq_node<T>(value);
         tool::spenq<T,Compare>(n, &q); // the Comparator is use only here
         s++;
     }
 
     inline void pop(){
         if(!empty()){
-            tool::node<T> *n = tool::spdeq(&(&q)->root);
+            tool::sptq_node<T> *n = tool::spdeq(&(&q)->root);
             delete n; // pop remove definitively the element else memory leak
             s--;
         }
@@ -76,7 +76,7 @@ public:
     inline value_type top(){
         value_type tmp = value_type();
         if(!empty())
-            tmp = tool::sphead<T>(&q)->key();
+            tmp = tool::sphead<T>(&q)->t_;
         return tmp;
     }
 
@@ -86,6 +86,12 @@ public:
 
     inline bool empty(){
         return !bool(s); // is it true on Power?
+    }
+
+    inline void move(tool::sptq_node<T> & n, value_type value){
+        tool::sptq_node<T> * node = tool::spdelete(&n, &q);
+        node->t_ = value;
+        tool::spenq<T,Compare>(node, &q);
     }
 
     void print(std::ostream &os) {
@@ -99,6 +105,7 @@ private:
     size_type s;
     container q;
 };
+
 
 // carefull the << delete the queue only for debugging 
 template<class T, class Compare>
