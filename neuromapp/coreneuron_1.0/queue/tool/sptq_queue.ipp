@@ -96,32 +96,11 @@ Hines changed to void spinit(SPTREE**) for use with TQueue.
  *  - replug spdelete for move function
  */
 
-/** first a bit of trait class */
+/** comparator */
 template<class T, class Compare>
-struct helper_comparator{
-    inline static bool helper_comparator_one(const T& a, const T& b);
-    inline static bool helper_comparator_two(const T& a, const T& b);
-};
-
-template<class T>
-struct helper_comparator<T, std::greater<T> >{
-    inline static bool helper_comparator_one(const T& a, const T& b, std::greater<T> u = std::greater<T>()){
-        return u(a-b,T()); // i.e. (a-b) > 0 and T() = 0 for double
-    }
-    inline static bool helper_comparator_two(const T& a, const T& b, std::greater_equal<T> u = std::greater_equal<T>()){
-        return u(T(),a-b); // i.e. (a-b) <= 0 and T() = 0 for double
-    }
-};
-
-template<class T>
-struct helper_comparator<T,std::less<T> >{
-    inline static bool helper_comparator_one(const T& a, const T& b){
-        return  helper_comparator<T,std::greater<T> >::helper_comparator_two(a,b);
-    }
-    inline static bool helper_comparator_two(const T& a, const T& b){
-        return  helper_comparator<T,std::greater<T> >::helper_comparator_one(a,b);
-    }
-};
+inline bool comparator(const T& a, const T& b, Compare c = Compare()){
+    return c(a,b);
+}
 
 /*----------------
  *
@@ -175,7 +154,7 @@ sptq_node<T> * spenq( sptq_node<T>* n, SPTREE<T>* q ) {
        note that the children will be reversed! */
 
     q->enqcmps++;
-        if(helper_comparator<T,Compare>::helper_comparator_one(next->t_, key))
+        if(comparator<T,Compare>(next->t_, key))
         goto two;
 
     one:	/* assert next->key <= key */
@@ -192,7 +171,7 @@ sptq_node<T> * spenq( sptq_node<T>* n, SPTREE<T>* q ) {
             }
 
         q->enqcmps++;
-            if(helper_comparator<T,Compare>::helper_comparator_one(temp->t_, key))
+            if(comparator<T,Compare>(temp->t_, key))
         {
                 left->right_ = next;
                 next->parent_ = left;
@@ -218,7 +197,7 @@ sptq_node<T> * spenq( sptq_node<T>* n, SPTREE<T>* q ) {
 
         q->enqcmps++;
 
-    } while(helper_comparator<T,Compare>::helper_comparator_two(next->t_, key));	/* change sides */
+    } while(!comparator<T,Compare>(next->t_, key));	/* change sides */
 
     two:	/* assert next->key > key */
 
@@ -234,7 +213,7 @@ sptq_node<T> * spenq( sptq_node<T>* n, SPTREE<T>* q ) {
             }
 
         q->enqcmps++;
-            if(helper_comparator<T,Compare>::helper_comparator_two(temp->t_, key))
+            if(!comparator<T,Compare>(temp->t_, key))
         {
                 right->left_ = next;
                 next->parent_ = right;
@@ -259,7 +238,7 @@ sptq_node<T> * spenq( sptq_node<T>* n, SPTREE<T>* q ) {
 
         q->enqcmps++;
 
-    } while(helper_comparator<T,Compare>::helper_comparator_one(next->t_, key));	/* change sides */
+    } while(comparator<T,Compare>(next->t_, key));	/* change sides */
 
         goto one;
 
