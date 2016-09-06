@@ -48,7 +48,7 @@ install (FILES  kernel/mechanism/mechanism.h
                 queue/tool/bin_queue.ipp
                 queue/tool/sptq_queue.hpp
                 queue/tool/sptq_queue.ipp
-                queue/tool/queue_helper.h
+                queue/tool/algorithm.h
                 DESTINATION include)
 
 add_subdirectory (event_passing)
