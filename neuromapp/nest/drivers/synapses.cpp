@@ -289,7 +289,7 @@ namespace nest
             double syn_tau_fac = vm["tau_fac"].as<double>();
             bool pool = vm["pool"].as<bool>();
 
-            std::string exec ="nest_dist_exec";
+            std::string exec ="nest_event_passing_distributed_exec";
 
             command << "OMP_NUM_THREADS=" << nthread << " " <<
                 mpi_run <<" -n "<< nproc << " " << path << exec <<

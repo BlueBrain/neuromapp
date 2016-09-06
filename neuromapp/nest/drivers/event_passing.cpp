@@ -51,7 +51,6 @@ int nest_event_passing_help(int argc, char* const argv[], po::variables_map& vm)
     ("numprocs", po::value<size_t>()->default_value(8),"the number of MPI processes")
     ("numthreads", po::value<size_t>()->default_value(8),"the number of OMP threads per process")
     ("run", po::value<std::string>()->default_value(launcher_helper::mpi_launcher()),"the command to run parallel jobs")
-    ("numgroups", po::value<size_t>()->default_value(8),"the number of cell groups per process")
     ("simtime", po::value<size_t>()->default_value(100),"the number of timesteps in the simulation")
     ("numcells", po::value<size_t>()->default_value(64),"total number of presynaptic cells (gids) in the simulation")
     ("fan", po::value<size_t>()->default_value(12),"the number of synapses per neuron")
@@ -109,7 +108,6 @@ void nest_event_passing_content(po::variables_map const& vm){
     size_t nproc = vm["numprocs"].as<size_t>();
 
     //command line args
-    size_t ngroup = vm["numgroups"].as<size_t>();
     size_t simtime = vm["simtime"].as<size_t>();
     size_t ncells = vm["numcells"].as<size_t>();
     size_t fan = vm["fan"].as<size_t>();
@@ -130,7 +128,7 @@ void nest_event_passing_content(po::variables_map const& vm){
 
     command << "OMP_NUM_THREADS=" << nthread << " " <<
         mpi_run <<" -n "<< nproc << " " << path << exec << " " <<
-        ngroup << " " << simtime << " " <<
+        nthread << " " << simtime << " " <<
         ncells << " " << fan << " " <<
         nspike << " " << mindelay << " " <<
         syn_model << " " << syn_delay << " " <<
