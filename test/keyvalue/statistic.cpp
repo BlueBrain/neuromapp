@@ -56,31 +56,37 @@ BOOST_AUTO_TEST_CASE(statistic_constructors_test){
 }
 
 BOOST_AUTO_TEST_CASE(accumulate_mpi_test){
-    int numprocs = MPI::COMM_WORLD.Get_size();
+    int numprocs, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     int size(100);
     std::vector<double> v(size+1,0.);
     boost::algorithm::iota(v.begin(),v.end(),0); //0,1,2 ...
     double tmp = keyvalue::accumulate(v.begin(), v.end(), 0.); // MPI is inside, reduction on 0, only
-    if( MPI::COMM_WORLD.Get_rank() == 0)
+    if (rank == 0)
         BOOST_CHECK_EQUAL(tmp, size*(size+1)/2*numprocs);
 }
 
 BOOST_AUTO_TEST_CASE(reduce_mpi_test){
-    int numprocs = MPI::COMM_WORLD.Get_size();
-    double x = MPI::COMM_WORLD.Get_rank();
+    int numprocs, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    double x = rank;
     double tmp = keyvalue::reduce(x); // MPI is inside, reduction on 0, only
-    if( MPI::COMM_WORLD.Get_rank() == 0)
+    if (rank == 0)
         BOOST_CHECK_EQUAL(tmp, (numprocs-1.)*numprocs/2.);
 }
 
 BOOST_AUTO_TEST_CASE(reduce_it_mpi_test){
-    int numprocs = MPI::COMM_WORLD.Get_size();
+    int numprocs, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     int size(100);
     std::vector<double> v(size+1,0.);
     boost::algorithm::iota(v.begin(),v.end(),0); //0,1,2 ...
     // MPI is inside, reduction on 0, only
     keyvalue::reduce<std::vector<double>::iterator, double>(v.begin(), v.end());
-    if( MPI::COMM_WORLD.Get_rank() == 0) {
+    if (rank == 0) {
         for (unsigned int i = 0; i < v.size(); i++) {
             BOOST_CHECK_EQUAL(v[i], (double) i * numprocs);
         }
@@ -88,7 +94,9 @@ BOOST_AUTO_TEST_CASE(reduce_it_mpi_test){
 }
 
 BOOST_AUTO_TEST_CASE(statistic_process_loop_test){
-    int numprocs = MPI::COMM_WORLD.Get_size();
+    int numprocs, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     keyvalue::argument a;
     unsigned int num_ops = 10;
     double size = 20.0 * sizeof(double);
@@ -101,14 +109,16 @@ BOOST_AUTO_TEST_CASE(statistic_process_loop_test){
     double time = (vsize-1.) * vsize / 2.;
     double iops = (double) num_ops / time;
     double mbw = (size * num_ops) / time;
-    if( MPI::COMM_WORLD.Get_rank() == 0) {
+    if (rank == 0) {
         BOOST_CHECK_EQUAL(s.iops(), iops*numprocs);
         BOOST_CHECK_EQUAL(s.mbw(), mbw*numprocs);
     }
 }
 
 BOOST_AUTO_TEST_CASE(statistic_process_task_test){
-    int numprocs = MPI::COMM_WORLD.Get_size();
+    int numprocs, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     keyvalue::argument a;
     a.taskdeps() = true;
     unsigned int num_ops = 10;
@@ -123,7 +133,7 @@ BOOST_AUTO_TEST_CASE(statistic_process_task_test){
     double time = v[1] - v[0];
     double iops = (double) num_ops / time;
     double mbw = (size * num_ops) / time;
-    if( MPI::COMM_WORLD.Get_rank() == 0) {
+    if (rank == 0) {
         BOOST_CHECK_EQUAL(s.iops(), iops*numprocs);
         BOOST_CHECK_EQUAL(s.mbw(), mbw*numprocs);
     }

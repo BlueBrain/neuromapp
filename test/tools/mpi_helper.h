@@ -34,14 +34,14 @@ struct MPIInitializer {
         int init = 0;
         MPI_Initialized(&init);
         if (init == 0) {
-            MPI::Init();
+            MPI_Init(NULL, NULL);
         }
     }
     ~MPIInitializer(){
         int fini = 0;
         MPI_Finalized(&fini);
         if (!fini) {
-            MPI::Finalize();
+            MPI_Finalize();
         }
     }
 };

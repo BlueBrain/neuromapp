@@ -43,10 +43,10 @@ namespace mapp{
             int init = 0;
             MPI_Initialized(&init);
             if (init == 0) {
-                MPI::Init();
+                MPI_Init(NULL, NULL);
             }
-            s = MPI::COMM_WORLD.Get_size();
-            r = MPI::COMM_WORLD.Get_rank();
+            MPI_Comm_size(MPI_COMM_WORLD, &s);
+            MPI_Comm_rank(MPI_COMM_WORLD, &r);
             std::cout << mapp::mpi_filter_master(); // MPI print master only move to  mpi_filter_all for all
         };
 
@@ -60,7 +60,7 @@ namespace mapp{
             int fini = 0;
             MPI_Finalized(&fini);
             if (!fini) {
-                MPI::Finalize();
+                MPI_Finalize();
             }
         }
 
