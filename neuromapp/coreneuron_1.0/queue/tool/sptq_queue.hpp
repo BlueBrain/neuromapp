@@ -35,57 +35,107 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <ostream>
 #include <functional>
 
-#include "coreneuron_1.0/queue/tool/queue_helper.h"
+#include "coreneuron_1.0/queue/tool/algorithm.h"
 
 namespace tool {
 /** The queue: TQeue from Michael starts here, not compliant with std for the container,
 but ok for the type support and the comparator, by default std::less and not std::greated
 as it was in the original version, already a bit of clean up specially for the push ... */
 
+//node for the splay tree
+template<class T>
+struct sptq_node {
+    typedef T value_type;
+    explicit sptq_node(value_type t = value_type()):t_(t),left_(0),right_(0),parent_(0){};
+    value_type t_;
+    sptq_node* left_;
+    sptq_node* right_;
+    sptq_node* parent_;
+};
+
+template<class T>
+struct SPTREE{
+    sptq_node<T>	* root;		/* root node */
+    int	enqcmps;	/* compares in spenq */
+};
+
+/** Forward declarations for the c++ interface */
+/* init tree */
+template<class T>
+void spinit(SPTREE<T>*);
+
+/* insert item into the tree */
+template<class T, class Compare>
+sptq_node<T>* spenq(sptq_node<T>*, SPTREE<T>*);
+
+/* return and remove lowest item in subtree */
+template<class T>
+sptq_node<T>* spdeq(sptq_node<T>**);
+
+/* return first node in tree */
+template<class T>
+sptq_node<T>* sphead(SPTREE<T>*);
+
+/*return a looking node */
+template<class T>
+void spdelete(sptq_node<T>*,SPTREE<T>*);
+
 template<class T = double, class Compare = std::less<T> >
 class sptq_queue {
 public:
-    typedef tool::SPTREE<T> container;
+    typedef SPTREE<T> container;
     typedef std::size_t size_type;
     typedef T value_type;
+    typedef sptq_node<T> node_type;
 
-    inline sptq_queue():s(0) {
-        tool::spinit(&q);
+    inline sptq_queue():size_(0) {
+        spinit(&q);
     }
 
     inline ~sptq_queue(){
-        tool::node<T> *n;
-        while((n = tool::spdeq(&(&q)->root)) != NULL)
+        node_type *n;
+        while((n = spdeq(&(&q)->root)) != NULL)
           delete n;
     }
 
     inline void push(value_type value){
-        tool::node<T> *n = new tool::node<T>(value);
-        tool::spenq<T,Compare>(n, &q); // the Comparator is use only here
-        s++;
+        node_type *n = new node_type(value);
+        spenq<T,Compare>(n, &q); // the Comparator is use only here
+        size_++;
+    }
+
+    inline void push(node_type* n){
+        spenq<T,Compare>(n, &q);
+        size_++;
     }
 
     inline void pop(){
         if(!empty()){
-            tool::node<T> *n = tool::spdeq(&(&q)->root);
+            node_type *n = spdeq(&(&q)->root);
             delete n; // pop remove definitively the element else memory leak
-            s--;
+            size_--;
         }
     }
 
     inline value_type top(){
         value_type tmp = value_type();
         if(!empty())
-            tmp = tool::sphead<T>(&q)->key();
+            tmp = sphead<T>(&q)->t_;
         return tmp;
     }
 
     inline size_type size(){
-        return s;
+        return size_;
     }
 
     inline bool empty(){
-        return !bool(s); // is it true on Power?
+        return !bool(size_); // is it true on Power?
+    }
+
+    inline node_type* find(node_type* n){
+        spdelete(n, &q);
+        size_--; // WARNING remove the node but do not delete it
+        return n;
     }
 
     void print(std::ostream &os) {
@@ -96,7 +146,7 @@ public:
     }
 
 private:
-    size_type s;
+    size_type size_;
     container q;
 };
 

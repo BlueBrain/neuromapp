@@ -31,12 +31,12 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
     unsigned int size = 0;
 
     /****************************************/
-    _readersLock.acquire();
+    _readersLock.lock();
     while (_numWriters > 0) {}
-    _nRdLock.acquire();
+    _nRdLock.lock();
     _numReaders++;
-    _nRdLock.release();
-    _readersLock.release();
+    _nRdLock.unlock();
+    _readersLock.unlock();
     /****************************************/
 
 
@@ -54,9 +54,9 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
             << " given value size too small, it should be " << size << " bytes" << std::endl;
 
             /****************************************/
-            _nRdLock.acquire();
+            _nRdLock.lock();
             _numReaders--;
-            _nRdLock.release();
+            _nRdLock.unlock();
             /****************************************/
 
             return 0;
@@ -70,9 +70,9 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
         << " key (" << m.key() << ") does not exist" << std::endl;
     }
     /****************************************/
-    _nRdLock.acquire();
+    _nRdLock.lock();
     _numReaders--;
-    _nRdLock.release();
+    _nRdLock.unlock();
     /****************************************/
     return size;
 }
@@ -81,13 +81,13 @@ int keyvalue_map::retrieve(keyvalue::meta& m)
 
 void keyvalue_map::remove(const keyvalue::meta& m){
     /****************************************/
-    _readersLock.acquire();
+    _readersLock.lock();
     while (_numReaders > 0) {}
-    _writersLock.acquire();
+    _writersLock.lock();
     while (_numReaders > 0) {}
-    _nWtLock.acquire();
+    _nWtLock.unlock();
     _numWriters++;
-    _nWtLock.release();
+    _nWtLock.unlock();
     while (_numReaders > 0) {}
     /****************************************/
 
@@ -105,23 +105,23 @@ void keyvalue_map::remove(const keyvalue::meta& m){
     }
 
     /****************************************/
-    _nWtLock.acquire();
+    _nWtLock.lock();
     _numWriters--;
-    _nWtLock.release();
-    _writersLock.release();
-    _readersLock.release();
+    _nWtLock.unlock();
+    _writersLock.unlock();
+    _readersLock.unlock();
     /****************************************/
 }
 
 void  keyvalue_map::insert(const keyvalue::meta& m){
     /****************************************/
-    _readersLock.acquire();
+    _readersLock.lock();
     while (_numReaders > 0) {}
-    _writersLock.acquire();
+    _writersLock.lock();
     while (_numReaders > 0) {}
-    _nWtLock.acquire();
+    _nWtLock.lock();
     _numWriters++;
-    _nWtLock.release();
+    _nWtLock.unlock();
     while (_numReaders > 0) {}
     /****************************************/
     std::vector<double> * v = new std::vector<double>(m.value(),m.value()+m.value_size());
@@ -130,11 +130,11 @@ void  keyvalue_map::insert(const keyvalue::meta& m){
     _valSizes.insert(std::make_pair(m.key(),m.key_size()));
 
     /****************************************/
-    _nWtLock.acquire();
+    _nWtLock.lock();
     _numWriters--;
-    _nWtLock.release();
-    _writersLock.release();
-    _readersLock.release();
+    _nWtLock.unlock();
+    _writersLock.unlock();
+    _readersLock.unlock();
     /****************************************/
     
 }

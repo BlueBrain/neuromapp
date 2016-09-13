@@ -28,9 +28,8 @@
 #define MEMORY_H_
 
 #include <algorithm>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 namespace nest{
 
@@ -224,11 +223,7 @@ namespace nest{
     inline Tnew*
     suicide_and_resurrect( Told* connector, C connection )
     {
-        #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
-        #else
-        const int thrd = 0;
-        #endif
 
         Tnew* p = NULL;
        #pragma omp critical // not thread safe!!
@@ -247,11 +242,7 @@ namespace nest{
     inline T*
     allocate( C c )
     {
-        #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
-        #else
-        const int thrd = 0;
-        #endif
 
         T* p = NULL;
        #pragma omp critical // not thread safe!!
@@ -265,11 +256,7 @@ namespace nest{
     inline T*
     allocate()
     {
-        #ifdef _OPENMP
         const int thrd = omp_get_thread_num();
-        #else
-        const int thrd = 0;
-        #endif
 
         T* p = NULL;
 #pragma omp critical // not thread safe!!

@@ -41,12 +41,7 @@ namespace spike {
     Afterwards, events are retreived and processed by the queueing algo.
  */
 struct spike_interface{
-#ifdef _OPENMP
-    mapp::omp_lock lock_;
-#else
-    mapp::dummy_lock lock_;
-#endif
-
+    mapp::mutex lock_;
     //CONTAINERS
     std::vector<queueing::event> spikein_;
     std::vector<queueing::event> spikeout_;

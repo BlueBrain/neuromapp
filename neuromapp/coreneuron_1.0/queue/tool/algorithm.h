@@ -26,13 +26,19 @@
  THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PRIORITY_QUEUE_HPP_
-#define PRIORITY_QUEUE_HPP_
+#ifndef algorithm_h_
+#define algorithm_h_
 
-#include "coreneuron_1.0/queue/tool/algorithm.h"
-#include "coreneuron_1.0/queue/tool/bin_queue.hpp"
-#include "coreneuron_1.0/queue/tool/bin_queue.ipp"
-#include "coreneuron_1.0/queue/tool/sptq_queue.hpp"
-#include "coreneuron_1.0/queue/tool/sptq_queue.ipp"
+namespace tool { // namespace si better than C style
+
+    // idem for every queue,
+    template<class Q> // Q is a queue
+    inline void move(Q& q, typename Q::node_type* n,  typename Q::value_type value){
+        typename Q::node_type* new_n  = q.find(n); // find the node, and remove from the queue but NOT DELETE !
+        new_n->t_ = value; // attribute a new value
+        q.push(new_n); // reinsert in the queue
+    }
+    
+} // end namespace
 
 #endif

@@ -7,10 +7,8 @@
 
 #include "nest/nestkernel/environment/connectionmanager.h"
 
-
-#ifdef _OPENMP
-    #include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 namespace nest {
     connectionmanager::connectionmanager(po::variables_map const& vm):

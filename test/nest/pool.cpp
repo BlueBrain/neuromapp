@@ -24,11 +24,11 @@
  */
 
 #define BOOST_TEST_MODULE PoolTest
+#include <iostream>
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 
 #include "utils/error.h"
-#include <iostream>
 #include "nest/nestkernel/environment/memory.h"
 
 BOOST_AUTO_TEST_CASE(nest_pool_constructor)

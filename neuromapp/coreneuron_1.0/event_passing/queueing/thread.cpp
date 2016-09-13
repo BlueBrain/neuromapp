@@ -60,13 +60,13 @@ void nrn_thread_data::self_send(int d, double tt){
 }
 
 void nrn_thread_data::inter_thread_send(int d, double tt){
-    lock_.acquire();
+    lock_.lock();
     event ite;
     ite.data_ = d;
     ite.t_ = tt;
     ++ite_received_;
     inter_thread_events_.push_back(ite);
-    lock_.release();
+    lock_.unlock();
 }
 
 void nrn_thread_data::inter_send_no_lock(int d, double tt){
@@ -77,7 +77,7 @@ void nrn_thread_data::inter_send_no_lock(int d, double tt){
 }
 
 void nrn_thread_data::enqueue_my_events(){
-    lock_.acquire();
+    lock_.lock();
     event ite;
     for(int i = 0; i < inter_thread_events_.size(); ++i){
         ite = inter_thread_events_[i];
@@ -85,7 +85,7 @@ void nrn_thread_data::enqueue_my_events(){
         qe_.insert(ite.t_, ite.data_);
     }
     inter_thread_events_.clear();
-    lock_.release();
+    lock_.unlock();
 }
 
 bool nrn_thread_data::deliver(){

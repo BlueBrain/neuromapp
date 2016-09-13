@@ -113,6 +113,35 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(push_pop_random_greater,T,full_test_types) {
     }
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(remove_greater,T,full_test_types) {
+    typedef T value_type;
+    typedef typename T::value_type nested_value_type;
+    typedef typename T::node_type node_type;
+
+
+    value_type queue;
+    boost::array<nested_value_type,10> a;
+    for(int i=0 ; i < 10; i++)
+        a[i] = i+2;
+    std::random_shuffle(a.begin(), a.end());
+    typename boost::array<nested_value_type,10>::iterator it;
+    it = a.begin();
+    // fill the queue and sort
+    
+    while(it != a.end()){
+        queue.push(*it);
+        it++;
+    }
+    
+    node_type* n = new node_type(55);
+    queue.push(n);
+    BOOST_CHECK_EQUAL(queue.size(), 11);
+    BOOST_CHECK_EQUAL(queue.top(), 2);
+    tool::move(queue,n,1); //should 1 is the minimum value 
+    BOOST_CHECK_EQUAL(queue.top() , 1); // check equal ok because 1 has a precise IEEE representation
+    BOOST_CHECK_EQUAL(queue.size(), 11);
+  }
+
 BOOST_AUTO_TEST_CASE(helper_solver_test){
     std::vector<std::string> command_v;
     int error(mapp::MAPP_OK);

@@ -31,6 +31,9 @@
 #include "iobench/benchmark.h"
 #include "iobench/backends/common.h"
 
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
+
 #ifdef IO_MPI
 #include <mpi.h>
 #include "utils/mpi/print.h"
@@ -210,7 +213,7 @@ void iobench::benchmark::write(stats & stats) {
             std::random_shuffle (wr_perm.begin(), wr_perm.end());
 
         gettimeofday(&wr_start, NULL);
-#pragma omp parallel default(shared) //shared(keys_, values_, wr_perm, status) not allowed since there are class members
+        #pragma omp parallel default(shared) //shared(keys_, values_, wr_perm, status) not allowed since there are class members
         {
             int id = omp_get_thread_num();
             /////////////////////////////////////////////
@@ -347,3 +350,4 @@ void iobench::benchmark::read(stats & stats) {
     // READ stats
     stats.compute_stats(a_.rank(), a_.procs());
 }
+

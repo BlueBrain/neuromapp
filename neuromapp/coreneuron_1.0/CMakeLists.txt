@@ -34,7 +34,7 @@ add_library (coreneuron10_cstep STATIC
 add_library (coreneuron10_queue STATIC
              queue/main.cpp)
 
-target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common coreneuron10_queue)
+target_link_libraries(coreneuron10_cstep coreneuron10_kernel coreneuron10_common) 
 
 install (TARGETS coreneuron10_kernel coreneuron10_solver coreneuron10_cstep
                  coreneuron10_common coreneuron10_queue DESTINATION lib)
@@ -48,7 +48,7 @@ install (FILES  kernel/mechanism/mechanism.h
                 queue/tool/bin_queue.ipp
                 queue/tool/sptq_queue.hpp
                 queue/tool/sptq_queue.ipp
-                queue/tool/queue_helper.h
+                queue/tool/algorithm.h
                 DESTINATION include)
 
 add_subdirectory (event_passing)

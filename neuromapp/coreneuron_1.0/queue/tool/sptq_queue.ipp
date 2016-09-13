@@ -82,44 +82,25 @@ Hines changed to void spinit(SPTREE**) for use with TQueue.
  *    David Brower, daveb@rtech.uucp
  *
  * Thu Oct  6 12:11:33 PDT 1988 (daveb) Fixed spdeq, which was broken
- *	handling one-node trees.  I botched the pascal translation of
+ *	handling one-sptq_node trees.  I botched the pascal translation of
  *	a VAR parameter.
  *
  * July 2016 - Tim Ewart - timothee.ewart@gmail.com
  *  - namespace stdq instead of C style signature
  *  - Remove all macros
- *  - Item becomes node
- *  - Introduce generacity for the value of the node and integrate the template argumenent comparator
+ *  - Item becomes sptq_node
+ *  - Introduce generacity for the value of the sptq_node and integrate the template argumenent comparator
  *    to respect the std::API
  *  - Introduce object function to select the good comparator for std::less and std::greater
+ * Sep. 2016 - Tim Ewart - timothee.ewart@gmail.com
+ *  - replug spdelete for move function
  */
 
-/** first a bit of trait class */
+/** comparator */
 template<class T, class Compare>
-struct helper_comparator{
-    inline static bool helper_comparator_one(const T& a, const T& b);
-    inline static bool helper_comparator_two(const T& a, const T& b);
-};
-
-template<class T>
-struct helper_comparator<T, std::greater<T> >{
-    inline static bool helper_comparator_one(const T& a, const T& b, std::greater<T> u = std::greater<T>()){
-        return u(a-b,T()); // i.e. (a-b) > 0 and T() = 0 for double
-    }
-    inline static bool helper_comparator_two(const T& a, const T& b, std::greater_equal<T> u = std::greater_equal<T>()){
-        return u(T(),a-b); // i.e. (a-b) <= 0 and T() = 0 for double
-    }
-};
-
-template<class T>
-struct helper_comparator<T,std::less<T> >{
-    inline static bool helper_comparator_one(const T& a, const T& b){
-        return  helper_comparator<T,std::greater<T> >::helper_comparator_two(a,b);
-    }
-    inline static bool helper_comparator_two(const T& a, const T& b){
-        return  helper_comparator<T,std::greater<T> >::helper_comparator_one(a,b);
-    }
-};
+inline bool comparator(const T& a, const T& b, Compare c = Compare()){
+    return c(a,b);
+}
 
 /*----------------
  *
@@ -146,13 +127,13 @@ void spinit(tool::SPTREE<T>* q){
  *  and the right branch of the left subtree
  */
 template<class T, class Compare>
-node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
-    typename node<T>::value_type key;
+sptq_node<T> * spenq( sptq_node<T>* n, SPTREE<T>* q ) {
+    typename sptq_node<T>::value_type key;
 
-    node<T> * left;	/* the rightmost node in the left tree */
-    node<T> * right;	/* the leftmost node in the right tree */
-    node<T> * next;	/* the root of the unsplit part */
-    node<T> * temp;
+    sptq_node<T> * left;	/* the rightmost sptq_node in the left tree */
+    sptq_node<T> * right;	/* the leftmost sptq_node in the right tree */
+    sptq_node<T> * next;	/* the root of the unsplit part */
+    sptq_node<T> * temp;
     
     n->parent_ = NULL;
     next = q->root;
@@ -164,7 +145,7 @@ node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
     }
     else		/* difficult enq */
     {
-        key = n->key();
+        key = n->t_;
         left = n;
         right = n;
 
@@ -173,7 +154,7 @@ node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
        note that the children will be reversed! */
 
     q->enqcmps++;
-        if(helper_comparator<T,Compare>::helper_comparator_one(next->key(), key))
+        if(comparator<T,Compare>(next->t_, key))
         goto two;
 
     one:	/* assert next->key <= key */
@@ -190,7 +171,7 @@ node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
             }
 
         q->enqcmps++;
-            if(helper_comparator<T,Compare>::helper_comparator_one(temp->key(), key))
+            if(comparator<T,Compare>(temp->t_, key))
         {
                 left->right_ = next;
                 next->parent_ = left;
@@ -216,7 +197,7 @@ node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
 
         q->enqcmps++;
 
-    } while(helper_comparator<T,Compare>::helper_comparator_two(next->key(), key));	/* change sides */
+    } while(!comparator<T,Compare>(next->t_, key));	/* change sides */
 
     two:	/* assert next->key > key */
 
@@ -232,7 +213,7 @@ node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
             }
 
         q->enqcmps++;
-            if(helper_comparator<T,Compare>::helper_comparator_two(temp->key(), key))
+            if(!comparator<T,Compare>(temp->t_, key))
         {
                 right->left_ = next;
                 next->parent_ = right;
@@ -257,7 +238,7 @@ node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
 
         q->enqcmps++;
 
-    } while(helper_comparator<T,Compare>::helper_comparator_one(next->key(), key));	/* change sides */
+    } while(comparator<T,Compare>(next->t_, key));	/* change sides */
 
         goto one;
 
@@ -275,22 +256,22 @@ node<T> * spenq( node<T>* n, SPTREE<T>* q ) {
 
 /*----------------
  *
- *  spdeq() -- return and remove head node from a subtree.
+ *  spdeq() -- return and remove head sptq_node from a subtree.
  *
- *  remove and return the head node from the node set; this deletes
- *  (and returns) the leftmost node from q, replacing it with its right
- *  subtree (if there is one); on the way to the leftmost node, rotations
+ *  remove and return the head sptq_node from the sptq_node set; this deletes
+ *  (and returns) the leftmost sptq_node from q, replacing it with its right
+ *  subtree (if there is one); on the way to the leftmost sptq_node, rotations
  *  are performed to shorten the left branch of the tree
  */
 template<class T>
-node<T> * spdeq(node<T>** np ) /* pointer to a node pointer */
+sptq_node<T> * spdeq(sptq_node<T>** np ) /* pointer to a sptq_node pointer */
 
 {
-    node<T> * deq;  		/* one to return */
-    node<T> * next;       	/* the next thing to deal with */
-    node<T> * left;      	/* the left child of next */
-    node<T> * farleft;		/* the left child of left */
-    node<T> * farfarleft;	/* the left child of farleft */
+    sptq_node<T> * deq;  		/* one to return */
+    sptq_node<T> * next;       	/* the next thing to deal with */
+    sptq_node<T> * left;      	/* the left child of next */
+    sptq_node<T> * farleft;		/* the left child of left */
+    sptq_node<T> * farfarleft;	/* the left child of farleft */
 
     if( np == NULL || *np == NULL )
     {
@@ -367,14 +348,14 @@ node<T> * spdeq(node<T>** np ) /* pointer to a node pointer */
  *  detect n not in q and complain
  */
 template<class T>
-void splay( node<T>* n, SPTREE<T>* q )
+void splay( sptq_node<T>* n, SPTREE<T>* q )
 {
-    node<T> * up;	/* points to the node being dealt with */
-    node<T> * prev;	/* a descendent of up, already dealt with */
-    node<T> * upup;	/* the parent of up */
-    node<T> * upupup;	/* the grandparent of up */
-    node<T> * left;	/* the top of left subtree being built */
-    node<T> * right;	/* the top of right subtree being built */
+    sptq_node<T> * up;	/* points to the sptq_node being dealt with */
+    sptq_node<T> * prev;	/* a descendent of up, already dealt with */
+    sptq_node<T> * upup;	/* the parent of up */
+    sptq_node<T> * upupup;	/* the grandparent of up */
+    sptq_node<T> * left;	/* the top of left subtree being built */
+    sptq_node<T> * right;	/* the top of right subtree being built */
 
     left = n->left_;
     right = n->right_;
@@ -474,9 +455,9 @@ void splay( node<T>* n, SPTREE<T>* q )
  *      the bottom of the left branch
  */
 template<class T>
-node<T> * sphead( SPTREE<T>* q )
+sptq_node<T> * sphead( SPTREE<T>* q )
 {
-    node<T> * x;
+    sptq_node<T> * x;
 
     /* splay version, good amortized bound */
     x = spdeq( &q->root );
@@ -496,6 +477,39 @@ node<T> * sphead( SPTREE<T>* q )
     return( x );
 
 } /* sphead */
+
+
+/*----------------
+ *
+ * spdelete() -- Delete sptq_node from a tree.
+ *
+ *	n is deleted from q; the resulting splay tree has been splayed
+ *	around its new root, which is the successor of n
+ *
+ */
+template<class T>
+void spdelete(sptq_node<T>* n, SPTREE<T>* q){
+    sptq_node<T> * x;
+
+    splay( n, q );
+    x = spdeq( &q->root->right_ );
+    if( x == NULL )		/* empty right subtree */
+    {
+        q->root = q->root->left_;
+        if (q->root) q->root->parent_ = NULL;
+    }
+    else			/* non-empty right subtree */
+    {
+        x->parent_ = NULL;
+        x->left_ = q->root->left_;
+        x->right_ = q->root->right_;
+        if( x->left_ != NULL )
+            x->left_->parent_ = x;
+        if( x->right_ != NULL )
+            x->right_->parent_ = x;
+        q->root = x;
+    }
+} /* spdelete */
 
 } // end namespace
 
