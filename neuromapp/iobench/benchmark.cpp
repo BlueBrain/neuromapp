@@ -192,8 +192,8 @@ void iobench::benchmark::write(stats & stats) {
     struct timeval wr_start, wr_stop;
 
     // Compute the total amount of data to be written and the IOPS
-    stats.mb() = (double) a_.threads() * (double) ( (a_.valuesize() * a_.npairs()) / (1024.0 * 1024.0) );
-    stats.ops() = a_.npairs() * a_.threads();
+    const double mb = (double) a_.threads() * (double) ( (a_.valuesize() * a_.npairs()) / (1024.0 * 1024.0) );
+    const unsigned int ops = a_.npairs() * a_.threads();
 
     int wr_viter = 0; // valid iterations = iterations without errors
     for (int it = 0; it < a_.niter(); it++) {
@@ -234,7 +234,7 @@ void iobench::benchmark::write(stats & stats) {
 
         if (it >= a_.skip() && error == 0) {
             double sec = (wr_stop.tv_sec - wr_start.tv_sec) + (wr_stop.tv_usec - wr_start.tv_usec) * 1e-6;
-            stats.record(sec);
+            stats.record(sec, mb, ops);
             wr_viter++;
 #ifdef IO_MPI
             if (a_.rank() == 0)
@@ -276,8 +276,8 @@ void iobench::benchmark::read(stats & stats) {
     struct timeval rd_start, rd_stop;
 
     // Compute the total amount of data to be read and the IOPS
-    stats.mb() = (double) a_.threads() * (double) ( (a_.valuesize() * a_.npairs()) / (1024.0 * 1024.0) );
-    stats.ops() = a_.npairs() * a_.threads();
+    const double mb = (double) a_.threads() * (double) ( (a_.valuesize() * a_.npairs()) / (1024.0 * 1024.0) );
+    const unsigned int ops = a_.npairs() * a_.threads();
 
 
     int rd_viter = 0; // valid iterations = iterations without errors
@@ -315,7 +315,7 @@ void iobench::benchmark::read(stats & stats) {
 
         if (/*it >= a_.skip() &&*/ error == 0) { // Only 1 iteration by now
             double sec = (rd_stop.tv_sec - rd_start.tv_sec) + (rd_stop.tv_usec - rd_start.tv_usec) * 1e-6;
-            stats.record(sec);
+            stats.record(sec, mb, ops);
             rd_viter++;
         }
         errors_ += error;

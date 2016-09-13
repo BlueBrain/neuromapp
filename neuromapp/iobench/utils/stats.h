@@ -37,187 +37,318 @@
 
 namespace iobench {
 
+struct Stats_descriptive_basic{
+    Stats_descriptive_basic(): avg_(0.0), stddev_(0.0), stderr_(0.0)
+    {}
+    double avg_;
+    double stddev_;
+    double stderr_;
+};
+
+/** \brief basic overload the ostream operator to print Stats_descriptive_basic */
+inline std::ostream &operator<<(std::ostream &out, Stats_descriptive_basic const& d){
+     out << "avg:" << d.avg_ << " stddev:" << d.stddev_ << " stderr:" << d.stderr_;
+     return out;
+};
+
 class stats {
-
     private:
-        std::vector<double> bw_;
-        std::vector<double> iops_;
 
-        double              mb_;
-        unsigned int        ops_;
-        double              time_;
-        double              avgBW_;
-        double              stddevBW_;
-        double              stderrBW_;
-        double              avgIOPS_;
-        double              stddevIOPS_;
-        double              stderrIOPS_;
+        std::vector <double> rec_time_;
+        std::vector <double> rec_mb_;
+        std::vector <double> rec_ops_;
+
+        double              total_time_;
+        double              total_mb_;
+        double              total_ops_;
+
+        double              avgMB_per_cycle_;
+        double              avgOPS_per_cycle_;
+
+        Stats_descriptive_basic        OPS_;
+        Stats_descriptive_basic        MB_;
+
+        Stats_descriptive_basic        BW_;
+        Stats_descriptive_basic        IOPS_;
 
     public:
-
-        stats() : bw_(), iops_(), mb_(0.0), ops_(0), time_(0.0), avgBW_(0.0), stddevBW_(0.0),
-        stderrBW_(0.0), avgIOPS_(0.0), stddevIOPS_(0.0), stderrIOPS_(0.0) {}
-
-
         /**
         \brief record a new time (in seconds) to compute BW and IOPS value
         */
-        void record (double time) {
-            time_ += time;
-            bw_.push_back(mb_ / time);
-            iops_.push_back((double) ops_ / time);
+        void record (double time, double mb, unsigned int ops) {
+            rec_time_.push_back( time );
+            rec_mb_.push_back( mb );
+            rec_ops_.push_back( ops );
         }
 
         /**
-        \brief return the amount of bytes (in MB), read only
+        \brief return total measured time (seconds), read only
         */
-        inline double mb() const {
-            return mb_;
+        inline double total_time() const {
+            return total_time_;
         }
 
         /**
-        \brief return the amount of operations, read only
+        \brief return total data size (MB), read only
         */
-        inline unsigned int ops() const {
-            return ops_;
+        inline double total_mb() const {
+            return total_mb_;
+        }
+
+        /**
+        \brief return total number of operations (I/O ops), read only
+        */
+        inline double total_ops() const {
+            return total_ops_;
+        }
+
+        /**
+        \brief return the average number of read operations over cycle, read only
+        */
+        inline double avgOPS_per_cycle() const {
+            return avgOPS_per_cycle_;
+        }
+
+        /**
+        \brief return the average data size (MB) over cycle, read only
+        */
+        inline double avgMB_per_cycle() const {
+            return avgMB_per_cycle_;
+        }
+
+        /**
+        \brief return the average number of read operations, read only
+        */
+        inline double avgOPS() const {
+            return OPS_.avg_;
+        }
+
+        /**
+        \brief return the standard deviation of number of read operations, read only
+        */
+        inline double stddevOPS() const {
+            return OPS_.stddev_;
+        }
+
+        /**
+        \brief return the standard error of number of read operations, read only
+        */
+        inline double stderrOPS() const {
+            return OPS_.stderr_;
+        }
+
+        /**
+        \brief return the average data size (MB), read only
+        */
+        inline double avgMB() const {
+            return MB_.avg_;
+        }
+
+        /**
+        \brief return the standard deviation of the data size, read only
+        */
+        inline double stddevMB() const {
+            return MB_.stddev_;
+        }
+
+        /**
+        \brief return the standard error of the data size, read only
+        */
+        inline double stderrMB() const {
+            return MB_.stderr_;
         }
 
         /**
         \brief return the average bandwidth (in MB/s), read only
         */
         inline double avgBW() const {
-            return avgBW_;
+            return BW_.avg_;
         }
 
         /**
         \brief return the standard deviation of the bandwidth, read only
         */
         inline double stddevBW() const {
-            return stddevBW_;
+            return BW_.stddev_;
         }
 
         /**
         \brief return the standard error of the bandwidth, read only
         */
         inline double stderrBW() const {
-            return stderrBW_;
+            return BW_.stderr_;
         }
 
         /**
         \brief return the average IOPS (in I/O op/s), read only
         */
         inline double avgIOPS() const {
-            return avgIOPS_;
+            return IOPS_.avg_;
         }
 
         /**
         \brief return the standard deviation of the IOPS, read only
         */
         inline double stddevIOPS() const {
-            return stddevIOPS_;
+            return IOPS_.stddev_;
         }
 
         /**
         \brief return the standard error of the IOPS, read only
         */
         inline double stderrIOPS() const {
-            return stderrIOPS_;
+            return IOPS_.stderr_;
         }
 
-
-        /**
-        \brief return the amount of bytes (in MB), write only
-        */
-        inline double &mb() {
-            return mb_;
+        inline bool check_valid_record(const double& time, const double& mb, const unsigned int& ops) {
+            return (mb>(1./1024./1024.) && time > 0. && ops > 0);
         }
 
-        /**
-        \brief return the amount of operations, write only
-        */
-        inline unsigned int &ops() {
-            return ops_;
-        }
 
         /** \fun void compute_stats()
         \brief Compute the statistics for BW and IOPS
          */
         void compute_stats(int mpi_rank, int mpi_size) {
-            compute_statistics(bw_, avgBW_, stddevBW_, stderrBW_);
-            compute_statistics(iops_, avgIOPS_, stddevIOPS_, stderrIOPS_);
+            //remove not valid entries
+            std::vector< double > val_rec_time;
+            std::vector< double > val_rec_mb;
+            std::vector< double > val_rec_ops;
+            for (int i=0; i<rec_time_.size(); i++)
+                if (check_valid_record(rec_time_[i], rec_mb_[i], rec_ops_[i])) {
+                    val_rec_time.push_back(rec_time_[i]);
+                    val_rec_mb.push_back(rec_mb_[i]);
+                    val_rec_ops.push_back(rec_ops_[i]);
+                }
+            rec_time_.swap(val_rec_time);
+            rec_mb_.swap(val_rec_mb);
+            rec_ops_.swap(val_rec_ops);
+
+            //continues with only valid entries
+            int n_recs = rec_time_.size();
+            std::vector< double > bw(n_recs);
+            std::vector< double > iops(n_recs);
+            for (int i=0; i<n_recs; i++){
+                bw[i] = rec_mb_[i] / rec_time_[i];
+                iops[i] = rec_ops_[i] / rec_time_[i];
+            }
+
+            double avg_recs_per_rank = n_recs;
+
+            total_time_ = std::accumulate(rec_time_.begin(), rec_time_.end(), 0.0);
+            total_mb_ = std::accumulate(rec_mb_.begin(), rec_mb_.end(), 0.0);
+            total_ops_ = std::accumulate(rec_ops_.begin(), rec_ops_.end(), 0.0);
+
+            summarize_statistics(rec_ops_, OPS_);
+            summarize_statistics(rec_mb_, MB_);
+            summarize_statistics(bw, BW_);
+            summarize_statistics(iops, IOPS_);
+
 #ifdef IO_MPI
             MPI_Barrier(MPI_COMM_WORLD);
 
+
             if (mpi_size > 1) {
                 if (mpi_rank == 0) {
-                    std::vector<double> bws, iopss;
+                    std::vector<double> mbs, opss, bws, iopss, recs_per_ranks;
+                    mbs.reserve(mpi_size);
+                    opss.reserve(mpi_size);
                     bws.reserve(mpi_size);
                     iopss.reserve(mpi_size);
+                    recs_per_ranks.reserve(mpi_size);
 
-                    bws.push_back(avgBW_);
-                    iopss.push_back(avgIOPS_);
+                    mbs.push_back(MB_.avg_);
+                    opss.push_back(OPS_.avg_);
+                    bws.push_back(BW_.avg_);
+                    iopss.push_back(IOPS_.avg_);
+                    recs_per_ranks.push_back(avg_recs_per_rank);
 
                     for (int i = 1; i < mpi_size; i++) {
-                        bws.push_back(0.0);
-                        iopss.push_back(0.0);
-
+                        double rank_time, rank_mb, rank_ops;
                         MPI_Status status;
-                        MPI_Recv(&bws.back(), 1, MPI_DOUBLE, i, i * 100 + 0, MPI_COMM_WORLD, &status);
-                        MPI_Recv(&iopss.back(), 1, MPI_DOUBLE, i, i * 100 + 1, MPI_COMM_WORLD, &status);
+                        MPI_Recv(&rank_time, 1, MPI_DOUBLE, i, i * 100 + 0, MPI_COMM_WORLD, &status);
+                        MPI_Recv(&rank_mb, 1, MPI_DOUBLE, i, i * 100 + 1, MPI_COMM_WORLD, &status);
+                        MPI_Recv(&rank_ops, 1, MPI_DOUBLE, i, i * 100 + 2, MPI_COMM_WORLD, &status);
 
-                        double time;
-                        MPI_Recv(&time, 1, MPI_DOUBLE, i, i * 100 + 2, MPI_COMM_WORLD, &status);
-                        time_ += time;
+                        if (check_valid_record(rank_time, rank_mb, rank_ops)) {
+                            total_time_ += rank_time;
+                            total_mb_ += rank_mb;
+                            total_ops_ += rank_ops;
+
+                            mbs.push_back(0.0);
+                            opss.push_back(0.0);
+                            bws.push_back(0.0);
+                            iopss.push_back(0.0);
+                            recs_per_ranks.push_back(0.0);
+
+                            MPI_Recv(&mbs.back(), 1, MPI_DOUBLE, i, i * 100 + 3, MPI_COMM_WORLD, &status);
+                            MPI_Recv(&opss.back(), 1, MPI_DOUBLE, i, i * 100 + 4, MPI_COMM_WORLD, &status);
+                            MPI_Recv(&bws.back(), 1, MPI_DOUBLE, i, i * 100 + 5, MPI_COMM_WORLD, &status);
+                            MPI_Recv(&iopss.back(), 1, MPI_DOUBLE, i, i * 100 + 6, MPI_COMM_WORLD, &status);
+                            MPI_Recv(&recs_per_ranks.back(), 1, MPI_DOUBLE, i, i * 100 + 7, MPI_COMM_WORLD, &status);
+                        }
                     }
+                    Stats_descriptive_basic recs_per_rank_distri;
+                    summarize_statistics(recs_per_ranks, recs_per_rank_distri);
+                    avg_recs_per_rank = recs_per_rank_distri.avg_;
 
-                    // Statistics
-                    mb_ = mb_ * mpi_size;
-                    ops_ = ops_ * mpi_size;
-
-                    compute_statistics(bws, avgBW_, stddevBW_, stderrBW_);
-                    compute_statistics(iopss, avgIOPS_, stddevIOPS_, stderrIOPS_);
+                    summarize_statistics(mbs, MB_);
+                    summarize_statistics(opss, OPS_);
+                    summarize_statistics(bws, BW_);
+                    summarize_statistics(iopss, IOPS_);
                } else {
-                    MPI_Send(&avgBW_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 0, MPI_COMM_WORLD);
-                    MPI_Send(&avgIOPS_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 1, MPI_COMM_WORLD);
-                    MPI_Send(&time_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 2, MPI_COMM_WORLD);
+                   MPI_Send(&total_time_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 0, MPI_COMM_WORLD);
+                   MPI_Send(&total_mb_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 1, MPI_COMM_WORLD);
+                   MPI_Send(&total_ops_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 2, MPI_COMM_WORLD);
+
+                   if (check_valid_record(total_time_, total_mb_, total_ops_)) {
+                        MPI_Send(&MB_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 3, MPI_COMM_WORLD);
+                        MPI_Send(&OPS_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 4, MPI_COMM_WORLD);
+                        MPI_Send(&BW_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 5, MPI_COMM_WORLD);
+                        MPI_Send(&IOPS_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 6, MPI_COMM_WORLD);
+                        MPI_Send(&avg_recs_per_rank, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 7, MPI_COMM_WORLD);
+                   }
+
                }
             }
 
 #endif
+
+            avgMB_per_cycle_ = total_mb_ / avg_recs_per_rank;
+            avgOPS_per_cycle_ = total_ops_ / avg_recs_per_rank;
         }
 
         /** \brief the print function */
         void print(std::ostream& out) const{
-            out << "  Total time (s): " << time_ << " \n"
-                    << "  Total data (MB): " << mb_ << " \n"
-                    << "  Total IOPS (I/O op/s): " << ops_ << " \n"
-                    << "  Avg BW (MB/s): " << avgBW_ << " \n"
-                    << "    BW std dev: " << stddevBW_ << " \n"
-                    << "    BW std err: " << stderrBW_ << " \n"
-                    << "  Avg IOPS (I/O op/s): " << avgIOPS_ << " \n"
-                    << "    IOPS std dev: " << stddevIOPS_ << " \n"
-                    << "    IOPS std err: " << stderrIOPS_ << " \n";
+            out << "  Total time (s):\n\t" << total_time_ << " \n"
+                    << "  Total size (MB):\n\t" << total_mb_ << " \n"
+                    << "  Total OPS (I/O op):\n\t" << total_ops_ << " \n"
+                    << "  Avg data size per cycle (MB/cycle):\n\t" << avgMB_per_cycle_ << " \n"
+                    << "  Avg OPS per cycle (I/O op/rec):\n\t" << avgOPS_per_cycle_ << " \n"
+                    << "  data size (MB):\n\t" << MB_ << " \n"
+                    << "  OPS (I/O op):\n\t" << OPS_ << " \n"
+                    << "  BW (MB/s):\n\t" << BW_ << " \n"
+                    << "  IOPS (I/O op/s):\n\t" << IOPS_ << " \n";
         }
 
     private:
         /** \fun void compute_statistics(const std::vector<double> &values, double & avg, double & stddev, double & stderr)
         \brief Compute the statistics: given a vector of double values, compute the average, standard deviation and standard error
          */
-        void compute_statistics(const std::vector<double> &values, double & avg, double & stddev, double & stderr)
+        void summarize_statistics(const std::vector<double> &values, Stats_descriptive_basic & v)
         {
             // Average
             int n = values.size();
-            avg = std::accumulate(values.begin(), values.end(), 0.0) / n;
+            v.avg_ = std::accumulate(values.begin(), values.end(), 0.0) / n;
 
             // Std deviation
-            stddev = 0.0;
+            v.stddev_ = 0.0;
             for (int i = 0; i < n; i++) {
-                stddev += (values[i] - avg) * (values[i] - avg);
+                v.stddev_ += (values[i] - v.avg_) * (values[i] - v.avg_);
             }
-            stddev = sqrt(1.0 / n * stddev);
+            v.stddev_ = sqrt(1.0 / n * v.stddev_);
 
             // Std error
-            stderr = stddev / sqrt(n);
+            v.stderr_ = v.stddev_ / sqrt(n);
         }
 };
 

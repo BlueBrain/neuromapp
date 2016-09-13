@@ -61,13 +61,15 @@ int main(int argc, char * const argv[]){
      mapp::driver d;
      d.insert("hello",hello_execute);
      d.insert("synapse", nest::model_execute);
+     d.insert("nest_event", nest::event_passing::execute);
+     d.insert("nest_h5import", nest::h5import::execute);
+     d.insert("h5read", hdf5::h5read::execute);
      d.insert("event",event_execute);
      d.insert("kernel",coreneuron10_kernel_execute);
      d.insert("solver",coreneuron10_solver_execute);
      d.insert("cstep",coreneuron10_cstep_execute);
      d.insert("keyvalue",keyvalue_execute);
      d.insert("replib",replib_execute);
-     d.insert("iobench",iobench_execute);
      d.insert("queue",coreneuron10_queue_execute);
 
      //direct run

@@ -122,7 +122,7 @@ public:
             << rdst_;
         }
 
-        double mb = (a_.write() ? wrst_.mb() : rdst_.mb());
+        double mb = (a_.write() ? wrst_.avgMB_per_cycle() : rdst_.avgMB_per_cycle());
         // CSV line for easier processing
         out << "IOMAPP," << a_.procs() << "," << a_.threads() << "," << a_.backend() << "," << mb << ","
                 << wrst_.avgBW() << "," << wrst_.stddevBW() << "," << wrst_.stderrBW() << ","
