@@ -8,6 +8,7 @@ install (FILES eventdelivermanager.h
                simulationmanager.h
                simulationmanager.h
                mpi_manager.h DESTINATION include)
+
                
 target_link_libraries (nest_dist
                        nest_manager
