@@ -306,7 +306,15 @@ BOOST_AUTO_TEST_CASE(nset_h5import_nestnodesynapse)
     BOOST_CHECK_EQUAL( syns[1].params_.end()-syns[1].params_.begin(), 2 );
     BOOST_CHECK_CLOSE( syns[1].params_[0], 1., 0.000001 );
     BOOST_CHECK_CLOSE( syns[1].params_[1], 2., 0.000001 );
-    
+
+
+    h5import::SynapseRef tmp_syn = syns[1];
+    BOOST_CHECK_EQUAL( &(syns[1].source_neuron_), &(tmp_syn.source_neuron_) );
+    BOOST_CHECK_EQUAL( &(syns[1].node_id_), &(tmp_syn.node_id_) );
+    BOOST_CHECK_EQUAL( &(syns[1].target_neuron_), &(tmp_syn.target_neuron_) );
+    BOOST_CHECK_EQUAL( &(syns[1].params_[0]), &(tmp_syn.params_[0]) );
+    BOOST_CHECK_EQUAL( &(syns[1].params_[1]), &(tmp_syn.params_[1]) );
+
     syns.clear();
     BOOST_CHECK_EQUAL( syns.size(), 0 );
 }
