@@ -28,7 +28,6 @@
 
 #include "hello/hello.h"
 #include "nest/drivers/synapse.h"
-#include "nest/drivers/event_passing.h"
 #include "nest/drivers/h5import.h"
 #include "hdf5/drivers/h5read.h"
 #include "keyvalue/keyvalue.h"

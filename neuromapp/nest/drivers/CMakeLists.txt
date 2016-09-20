@@ -19,11 +19,6 @@ target_link_libraries (nest_h5import_distributed_exec
 install (TARGETS nest_h5import_distributed_exec DESTINATION bin)
 
 
-add_library(nest_event_passing_driver event_passing.cpp )
-target_link_libraries( nest_event_passing_driver
-                       ${Boost_LIBRARIES} )
-install (TARGETS nest_event_passing_driver DESTINATION lib)
-
 add_executable(nest_event_passing_distributed_exec event_passing_distributed.cpp )
 
 target_link_libraries (nest_event_passing_distributed_exec

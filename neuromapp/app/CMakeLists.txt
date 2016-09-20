@@ -10,7 +10,6 @@ target_link_libraries (app
                        coreneuron10_cstep
                        coreneuron10_event
                        nest_synapse
-                       nest_event_passing_driver
                        nest_h5import_driver
                        h5read_driver
                        coreneuron10_queue

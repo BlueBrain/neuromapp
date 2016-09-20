@@ -130,7 +130,7 @@ struct SynapseRef
 
   /**
    * Serialize and write bytes to the passed mpi_buffer
-   * i is used as starting adress in the mpi_buffer
+   * i is used as starting address in the mpi_buffer
    */
   size_t serialize( mpi_buffer<int>& buf, size_t i )
   {
@@ -147,7 +147,7 @@ struct SynapseRef
   /**
    * deserialize mpi buffer and copy back into the memory
    * locations given by the SynapseRef object
-   * i is used as the starting adress in the mpi_buffer
+   * i is used as the starting address in the mpi_buffer
    */
   void deserialize( mpi_buffer<int>& buf, size_t i )
   {
@@ -161,6 +161,8 @@ struct SynapseRef
 
   SynapseRef& operator=( const SynapseRef& r )
   {
+    if (this == &r)
+        return *this;
     source_neuron_ = r.source_neuron_;
     target_neuron_ = r.target_neuron_;
     node_id_ = r.node_id_;
