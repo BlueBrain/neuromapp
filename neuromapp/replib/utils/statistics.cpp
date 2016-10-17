@@ -49,7 +49,8 @@ void statistics::process() {
     double r_mbw = ( ((double) (bytes_ * times_.size())) / time ) / (1024. * 1024.);
 
     // Then, compute average BW of all ranks
-    g_mbw = replib::reduce(r_mbw) / c_.procs();
+    a_mbw = replib::reduce(r_mbw);
+    g_mbw = a_mbw / c_.procs();
 
     // Find max and min rank statistics (max and min results stored in rank 0)
     double_int me;
@@ -102,6 +103,7 @@ void statistics::print(std::ostream& os) const {
     c_.print(os);
 
     os << "Average bandwidth: " << g_mbw << " MB/s per rank" << std::endl
+            << "Aggregated bandwidth: " << a_mbw << " MB/s" << std::endl
             << "Max bandwidth: " << max_.mbw_ << " MB/s writing " << max_.size_ / 1024.
             << " KB from rank " << max_.rank_ << std::endl
             << "Min bandwidth: " << min_.mbw_ << " MB/s writing " << min_.size_ / 1024.
@@ -109,11 +111,12 @@ void statistics::print(std::ostream& os) const {
 
 
     // CSV output data format:
-    // miniapp_name, num_procs, writeMode, invertRanks, numCells, reportingSteps, globalBW (KB/s),
-    // maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
+    // miniapp_name, num_procs, writeMode, invertRanks, numCells, reportingSteps, avgRankBW (MB/s),
+    // aggregatedBW (MB/s), maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
     os << "RLMAPP," << c_.procs() << "," << c_.write() << "," << ( c_.invert() ? "inv" : "seq" ) << ","
-            << c_.numcells() << "," << c_.rep_steps() << "," << std::fixed << g_mbw << "," << max_.mbw_ << ","
-            << max_.size_ << "," << max_.rank_ << "," << min_.mbw_ << "," << min_.size_ << "," << min_.rank_ << std::endl;
+            << c_.numcells() << "," << c_.rep_steps() << "," << std::fixed << g_mbw << "," << a_mbw << ","
+            << max_.mbw_ << "," << max_.size_ << "," << max_.rank_ << "," << min_.mbw_ << ","
+            << min_.size_ << "," << min_.rank_ << std::endl;
 }
 
 }
