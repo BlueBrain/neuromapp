@@ -69,6 +69,7 @@ int main(int argc, char * const argv[]){
      d.insert("cstep",coreneuron10_cstep_execute);
      d.insert("keyvalue",keyvalue_execute);
      d.insert("replib",replib_execute);
+     d.insert("iobench",iobench_execute);
      d.insert("queue",coreneuron10_queue_execute);
 
      //direct run

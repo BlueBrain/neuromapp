@@ -15,6 +15,7 @@ target_link_libraries (app
                        coreneuron10_queue
                        replib
                        storage
+                       iobench
                        ${READLINE_LIBRARY}
                        ${CURSES_CURSES_LIBRARY}
                        ${Boost_PROGRAM_OPTIONS_LIBRARIES}

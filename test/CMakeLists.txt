@@ -10,6 +10,7 @@ endif()
 
 add_subdirectory (coreneuron_1.0)
 add_subdirectory (hello)
+add_subdirectory (iobench)
 add_subdirectory (utils)
 add_subdirectory (app)
 add_subdirectory (keyvalue)
