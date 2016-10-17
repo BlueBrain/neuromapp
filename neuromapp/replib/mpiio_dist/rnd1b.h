@@ -48,7 +48,7 @@ fileview * rnd1b(config & c) {
     }
 
     // Number of elements to skip for this process
-    int offsetElems;
+    //int offsetElems;
 
     // Size (bytes) and number of elements that this process will write at every reporting cycle
     unsigned int elemsToWrite = compCount;
