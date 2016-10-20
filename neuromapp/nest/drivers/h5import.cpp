@@ -53,7 +53,7 @@ int nest_h5import_help(int argc, char* const argv[], po::variables_map& vm){
     ("run", po::value<std::string>()->default_value(launcher_helper::mpi_launcher()),"the command to run parallel jobs")
     ("numcells", po::value<size_t>()->default_value(64),"total number of presynaptic cells (gids) in the simulation")
     ("path", po::value< std::string >()->default_value(""),"path to hdf5 synapse file")
-    ("num_synapses", po::value< size_t >()->default_value(-1),"restrict number of loaded synapses")
+    //("num_synapses", po::value< size_t >()->default_value(-1),"restrict number of loaded synapses")
     ("flags", po::value< std::string >()->default_value(""),"set additional flags");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -75,11 +75,11 @@ int nest_h5import_help(int argc, char* const argv[], po::variables_map& vm){
     }
 
     if (vm["path"].as< std::string >() == "") {
-        std::cout<<"path to hdf5 has to be set correctly"<<std::endl;
+        std::cout<<"no path to hdf5 file given"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["numcells"].as<size_t>() > 0 ){
+    if(vm["numcells"].as<size_t>() <= 0 ){
         std::cout<<"numcells has to be greater than zero"<<std::endl;
         return mapp::MAPP_BAD_ARG;
     }
@@ -95,26 +95,23 @@ void nest_h5import_content(po::variables_map const& vm){
     std::stringstream command;
     std::string path = helper_build_path::mpi_bin_path();
 
-    size_t nthread = vm["numthreads"].as<size_t>();
     std::string mpi_run = vm["run"].as<std::string>();
+    size_t nthread = vm["numthreads"].as<size_t>();
     size_t nproc = vm["numprocs"].as<size_t>();
-
-    //command line args
-    size_t ngroup = vm["numgroups"].as<size_t>();
-    size_t simtime = vm["simtime"].as<size_t>();
     size_t ncells = vm["numcells"].as<size_t>();
-    size_t last_syn = vm["num_synapses"].as<size_t>();
+    //size_t last_syn = vm["num_synapses"].as<size_t>();
     std::string filepath = vm["path"].as< std::string >();
     std::string flags = vm["flags"].as< std::string >();
 
-    std::string exec ="h5import_distributed";
+    std::string exec ="nest_h5import_distributed_exec";
 
     command << "OMP_NUM_THREADS=" << nthread << " " <<
-        mpi_run <<" -n "<< nproc << " " << path << exec <<
-        ngroup << " " << simtime << " " <<
-        ncells << " " <<
+        mpi_run  <<" -n "<<
+        nproc    << " " <<
+        path     << exec << " " <<
+        nthread  << " " <<
+        ncells   << " " <<
         filepath << " " <<
-        last_syn << " " <<
         flags;
 
     std::cout<< "Running command " << command.str() <<std::endl;

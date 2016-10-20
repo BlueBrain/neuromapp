@@ -88,6 +88,7 @@ H5Synapses::CommunicateSynapses( SynapseList& synapses )
     entriesadded = synapses[ i ].serialize( send_buffer, offset );
 
     // save number of values added
+    #pragma omp atomic
     sendcounts[ synapses[ i ].node_id_ ] += entriesadded;
   }
 

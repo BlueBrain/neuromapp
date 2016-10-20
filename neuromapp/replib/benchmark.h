@@ -151,7 +151,7 @@ replib::statistics run_benchmark (benchmark & b) {
         stepsToWrite--;
 
         // Rewrite vector
-        for (unsigned int j = i%10; j < compCount; j += 10) {
+        for (int j = i%10; j < compCount; j += 10) {
             bufferToFill[j] = (float) b.get_config().id() * 1000.0 + (float) nwrites
                     + (float) ( ((float) ((j%1000) + 1.0)) / 1000.0);
         }
