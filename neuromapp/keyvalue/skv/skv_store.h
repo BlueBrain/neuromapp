@@ -25,11 +25,7 @@ private:
 	skv_client_t	_skvClient;
 	skv_pds_id_t	_pdsId;
 
-#ifdef _OPENMP
-    mapp::omp_lock _lock;
-#else
-    mapp::dummy_lock _lock;
-#endif
+    mapp::mutex         _lock;
 
 
 public:

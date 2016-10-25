@@ -167,10 +167,10 @@ void keyvalue_skv::insert(const keyvalue::meta_skv& m){
 
 		//std::cout << "[" << _rank << "] async Insert():: < " << *key << ", " << *value << " >" << std::endl;
 
-		_lock.acquire();
+		_lock.lock();
 		status = _skvClient.iInsert(&_pdsId, (char*)m.key().c_str(), m.key_size(), (char*)m.value(), m.value_size(), 0,
 				SKV_COMMAND_RIU_APPEND, (skv_client_cmd_ext_hdl_t *) m.handle());
-		_lock.release();
+		_lock.unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
@@ -187,10 +187,10 @@ void keyvalue_skv::insert(const keyvalue::meta_skv& m){
 
 		//std::cout << "[" << _rank << "] Insert():: < " << *key << ", " << *value << " >" << std::endl;
 
-		_lock.acquire();
+		_lock.lock();
 		status = _skvClient.Insert(&_pdsId, (char*)m.key().c_str(), m.key_size(), (char*)m.value(), m.value_size(),
                                    0, SKV_COMMAND_RIU_APPEND );
-		_lock.release();
+		_lock.unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
@@ -227,10 +227,10 @@ int keyvalue_skv::retrieve(keyvalue::meta_skv& m)
 //		char * v = new char[valueSize];
 //		std::memcpy(v, value, valueSize);
 
-		_lock.acquire();
+		_lock.lock();
 		status = _skvClient.iRetrieve(&_pdsId,(char*)m.key().c_str(), m.key_size(),(char*)m.value(), m.value_size(), &size, 0,
 				SKV_COMMAND_RIU_FLAGS_NONE, (skv_client_cmd_ext_hdl_t *) m.handle());
-		_lock.release();
+		_lock.unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
@@ -245,10 +245,10 @@ int keyvalue_skv::retrieve(keyvalue::meta_skv& m)
 	} else {
 		//std::cout << "[" << _rank << "] Retrieve():: key: " << key << std::endl;
 
-		_lock.acquire();
+		_lock.lock();
 		status = _skvClient.Retrieve(&_pdsId,(char*) m.key().c_str(),  m.key_size(),(char*) m.value(), m.value_size(),
                                      &size, 0, SKV_COMMAND_RIU_FLAGS_NONE );
-		_lock.release();
+		_lock.unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
@@ -282,10 +282,10 @@ void keyvalue_skv::remove(const keyvalue::meta_skv& m)
 //		char * k = new char[keySize];
 //		std::memcpy(k, key, keySize);
 
-		_lock.acquire();
+		_lock.lock();
 		status = _skvClient.iRemove(&_pdsId, (char*)m.key().c_str(),  m.key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE,
                                     (skv_client_cmd_ext_hdl_t *) m.handle());
-		_lock.release();
+		_lock.unlock();
 
 		if (status == SKV_SUCCESS) {
 			//std::cout
@@ -301,9 +301,9 @@ void keyvalue_skv::remove(const keyvalue::meta_skv& m)
 	} else {
 		std::cout << "[" << _rank << "] Remove():: key: " << m.key() << std::endl;
 
-		_lock.acquire();
+		_lock.lock();
 		status = _skvClient.Remove(&_pdsId, (char*)m.key().c_str(),  m.key_size(), SKV_COMMAND_REMOVE_FLAGS_NONE);
-		_lock.release();
+		_lock.unlock();
 
 		if (status == SKV_SUCCESS) {
 			std::cout
@@ -324,9 +324,9 @@ void keyvalue_skv::wait(const keyvalue::meta_skv& m)
 {
 	skv_status_t status = SKV_ERRNO_UNSPECIFIED_ERROR;
 
-	_lock.acquire();
+	_lock.lock();
 	status = _skvClient.Wait( *((skv_client_cmd_ext_hdl_t *) m.handle()));
-	_lock.release();
+	_lock.unlock();
 
 	if (status == SKV_SUCCESS) {
 		//std::cout
