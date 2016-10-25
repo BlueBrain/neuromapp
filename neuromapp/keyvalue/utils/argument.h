@@ -34,11 +34,8 @@
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
-#ifdef _OPENMP
-   #include <omp.h>
-#else
-   #define omp_get_num_threads() 1
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 #include "utils/mpi/controler.h"
 
@@ -112,7 +109,7 @@ public:
         /** \fn operator()
          \brief functor that transform the argument to integer
          */
-        double operator()(std::string const& s){
+        int operator()(std::string const& s){
             return std::atoi(s.c_str());
         }
     };

@@ -181,11 +181,11 @@ public:
         // Print contents of buffers
           std::cout << mapp::mpi_filter_all();
           std::cout <<  "[" << mapp::controler::getInstance().rank() << "] :: len :: ";
-          for (int j = 1; j < lengths_.size() - 1; j++) {
+          for (unsigned int j = 1; j < lengths_.size() - 1; j++) {
               std::cout << lengths_[j] << " ";
           }
           std::cout << " :: disp :: ";
-          for (int j = 1; j < displacements_.size() - 1; j++) {
+          for (unsigned int j = 1; j < displacements_.size() - 1; j++) {
               std::cout << displacements_[j] << " ";
           }
           std::cout << std::endl;

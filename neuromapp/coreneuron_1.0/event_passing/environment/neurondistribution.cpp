@@ -34,6 +34,31 @@ environment::continousdistribution::continousdistribution(size_t groups, size_t 
         start += offset;
 }
 
+environment::nestdistribution::nestdistribution(size_t groups, size_t me, size_t cells):
+        num_groups(groups), group_id(me), global_number(cells)
+{
+    //keep it simple
+    local_number = 0;
+    for (int i=0; i<global_number; i++)
+        if (isLocal(i))
+            local_number++;
+
+}
+
+environment::nestdistribution::nestdistribution(size_t groups, size_t me, nestdistribution* parent_distr):
+        global_number(parent_distr->getglobalcells())
+{
+    num_groups = parent_distr->num_groups * groups;
+    group_id = parent_distr->num_groups * me + parent_distr->group_id;
+
+    //keep it simple
+    local_number = 0;
+    for (int i=0; i<global_number; i++)
+        if (isLocal(i))
+            local_number++;
+
+}
+
 
 
 

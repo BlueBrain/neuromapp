@@ -33,6 +33,7 @@ namespace queueing {
 
 template<class InputUt, class UnaryFunction>
 UnaryFunction for_each(InputIt First, InputIt last, UnaryFunction f){
+    #pragma omp parallel for
     for(; first != last; ++ first) {
         f(*first);
     }

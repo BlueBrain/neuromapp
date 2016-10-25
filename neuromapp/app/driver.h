@@ -61,14 +61,17 @@ namespace mapp{
         /** \param name key for the functor of the miniapp
             \param f functor the miniapp
          */
-        void insert(const std::string name, int(*f)(int,char *const *) );
+        void insert(const std::string& name, int(*f)(int,char *const *) );
         /**  \brief find the corresponding functor using the key provide by the user (command line).
                     if it fails an exception is generated
              \param argc number of argument in the command line
              \param argv the commane line
          */
-        void execute(int argc, char * const argv[]);
+        void execute(int argc, char * const argv[]) const;
 
+        /**  \brief Print the usage of the driver.
+         */
+        void usage() const;
         private:
         /** Map containing functor of miniapp assocaited to key */
         std::map<std::string, int(*)(int,char * const *) > m;

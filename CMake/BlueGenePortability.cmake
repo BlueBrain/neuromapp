@@ -19,7 +19,12 @@ if(BLUEGENE)
 	## static linking need to be forced on BlueGene
 	# Boost need a bit of tuning parameters for static linking
 	set(Boost_NO_BOOST_CMAKE TRUE)
-        set(Boost_USE_STATIC_LIBS TRUE)	
+        set(Boost_USE_STATIC_LIBS TRUE)
+
+	# same for hdf5 if xlc is used
+        if (CMAKE_COMPILER_IS_XLCXX)
+            set(HDF5_USE_STATIC_LIBRARIES TRUE)
+        endif()	
 else()
 
 if(NOT DEFINED COMPILE_LIBRARY_TYPE)

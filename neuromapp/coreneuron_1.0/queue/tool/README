@@ -1,0 +1,14 @@
+files descriptions:
+
+bin_queue.*:
+    - wrap the bin queue of Michael, not generic because it does not make
+    sense see explanation into bin_queue.hpp
+
+sptq_queue.*:
+    - wrap the priority_queue of MH, this queue has now an API
+    similar to the STD push(T), pop(), empty(), top(). The queue
+    is also generic, std::less<T> by default, need to provide the compartor
+    
+algorithm.h:
+    - implement the move function: 1) find a node 2) change its value 3) 
+      repush in the queue

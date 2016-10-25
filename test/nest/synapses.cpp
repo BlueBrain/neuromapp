@@ -29,13 +29,13 @@
 
 #include "utils/error.h"
 
-#include "nest/synapse/models/tsodyks2.h"
-#include "nest/synapse/connector_base.h"
-#include "nest/synapse/connectionmanager.h"
-#include "nest/synapse/event.h"
-#include "nest/synapse/scheduler.h"
-#include "nest/synapse/node.h"
-#include "nest/synapse/drivers/synapse.h"
+#include "nest/models/tsodyks2.h"
+#include "nest/nestkernel/environment/connector_base.h"
+#include "nest/nestkernel/environment/connectionmanager.h"
+#include "nest/nestkernel/environment/event.h"
+#include "nest/nestkernel/environment/scheduler.h"
+#include "nest/nestkernel/environment/node.h"
+#include "nest/drivers/synapse.h"
 
 #include "coreneuron_1.0/common/data/helper.h" // common functionalities
 
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(nest_model_test)
     command_v.push_back("--model");
     command_v.push_back("tsodyks2");
     command_v.push_back("--U");
-    command_v.push_back("2.0"); // model does not exist
+    command_v.push_back("2.0");
     error = mapp::execute(command_v,nest::model_execute);
     BOOST_CHECK(error==mapp::MAPP_BAD_DATA);
 	#endif //_DEBUG

@@ -52,7 +52,7 @@ inline fileview * file1b(config & c) {
     for (int i = 0; i < c.numcells(); i++) {
         rankSize += atoi(row[i+2].c_str());
     }
-    
+
     // Create the vectors that MPI fileview will use
     fileview * f = common1b(c, rankSize);
 
