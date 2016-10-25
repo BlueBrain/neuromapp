@@ -26,9 +26,8 @@
 #include <iostream>
 #include <string>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 #include <boost/program_options.hpp>
 
@@ -55,9 +54,7 @@ int help(int argc, char* const argv[], po::variables_map& vm){
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-#ifdef _OPENMP
     omp_set_num_threads(vm["numthread"].as<int>());
-#endif
 
     if (vm.count("help")){
         std::cout << desc;
@@ -74,13 +71,9 @@ void content(po::variables_map const& vm){
     #pragma omp parallel
     #pragma omp critical
     {
-#ifdef _OPENMP
         std::cout << "Hello " << vm["name"].as<std::string>()
                   << ", total thread: " << vm["numthread"].as<int>()
                   << ", thread id: " << omp_get_thread_num() << "\n";
-#else
-        std::cout << "Hello " << vm["name"].as<std::string>() << "\n";
-#endif
     }
 }
 

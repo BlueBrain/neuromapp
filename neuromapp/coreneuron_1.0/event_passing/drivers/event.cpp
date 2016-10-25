@@ -40,9 +40,8 @@
 #include "coreneuron_1.0/event_passing/drivers/drivers.h"
 #include "utils/storage/neuromapp_data.h"
 
-#ifdef _OPENMP
-    #include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 int main(int argc, char* argv[]) {
 

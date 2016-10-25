@@ -32,9 +32,8 @@
 #include "coreneuron_1.0/event_passing/spike/spike_interface.h"
 #include "utils/storage/neuromapp_data.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 namespace queueing {
 
@@ -59,7 +58,7 @@ public:
      */
     pool(bool algebra, int ngroups, int md, int rank,
     spike::spike_interface& s_interface): perform_algebra_(algebra),
-    min_delay_(md), rank_(rank), spike_(s_interface), time_(0)
+    min_delay_(md), time_(0), rank_(rank), spike_(s_interface)
     {thread_datas_.resize(ngroups);}
 
     /** \fn send_events(const int myID, G& generator, const P& presyns)

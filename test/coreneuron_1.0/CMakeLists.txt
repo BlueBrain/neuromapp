@@ -1,5 +1,5 @@
 #list of tests
-set(tests kernel solver cstep)
+set(tests kernel solver cstep queue)
 
 #loop over tests for creation
 foreach(i ${tests})
@@ -8,10 +8,9 @@ foreach(i ${tests})
                                coreneuron10_cstep
                                coreneuron10_kernel
                                coreneuron10_solver
+                               coreneuron10_queue
                                storage
-                               ${Boost_UNIT_TEST_FRAMEWORK_LIBRARIES}
-                               ${Boost_SYSTEM_LIBRARIES}
-                               ${Boost_FILESYSTEM_LIBRARIES})
+                               ${Boost_LIBRARIES})
     add_serial_test(${i})
 endforeach()
 

@@ -50,3 +50,4 @@ set_target_properties(MPI_Exec_kv PROPERTIES
 		COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
 
 install (TARGETS MPI_Exec_kv DESTINATION bin)
+

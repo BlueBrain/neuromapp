@@ -84,7 +84,7 @@ bool replib::check_report (char * report, int nwrites, int repCycleElems, int mp
     // Keep track of the indices of each rank (decimal positions)
     std::vector<int> rankIdx(mpiSize, 0);
     // Index to the compsPerRank pairs
-    int pairIdx = 0;
+    unsigned int pairIdx = 0;
     // Number of values of the current rank, resets after we advance to a new pair of compsPerRank
     int currCount = 0;
     // Number of errors found so far

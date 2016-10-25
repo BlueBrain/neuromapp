@@ -148,10 +148,8 @@ replib::statistics run_benchmark (benchmark & b) {
 
     start = MPI_Wtime();
     for( int i = 0; i < steps; i++ ) {
-        stepsToWrite--;
-
         // Rewrite vector
-        for (unsigned int j = i%10; j < compCount; j += 10) {
+        for (int j = i%10; j < compCount; j += 10) {
             bufferToFill[j] = (float) b.get_config().id() * 1000.0 + (float) nwrites
                     + (float) ( ((float) ((j%1000) + 1.0)) / 1000.0);
         }
@@ -165,6 +163,8 @@ replib::statistics run_benchmark (benchmark & b) {
             int sleep = compTimeUs - elapsed;
             usleep( (sleep > 0) ? sleep : 0 );
         }
+
+        stepsToWrite--;
 
         //std::stringstream ss1;
         //ss1 << "[" << b.get_config().id() << "] [it" << i << "] Vector: ";
@@ -202,7 +202,7 @@ replib::statistics run_benchmark (benchmark & b) {
             // Ignore time spent in MPI write
             //start = MPI_Wtime();
 
-            stepsToWrite = 10;
+            stepsToWrite = reportToDisk;
             nwrites++;
         }
     }
