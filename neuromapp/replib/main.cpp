@@ -34,8 +34,6 @@
 namespace po = boost::program_options;
 
 
-int toto(int argc , char* argv[]);
-
 /** \fn replib_help(int argc, char *const argv[], po::variables_map& vm)
     \brief Helper using boost program option to facilitate the command line manipulation
     \param argc number of argument from the command line

@@ -71,4 +71,4 @@ if (MPI_LINK_FLAGS)
             LINK_FLAGS "${MPI_LINK_FLAGS}")
 endif()
 
-install (TARGETS MPI_Exec_kv DESTINATION bin)
+#install (TARGETS MPI_Exec_kv DESTINATION bin)

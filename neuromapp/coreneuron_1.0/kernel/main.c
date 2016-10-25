@@ -39,9 +39,8 @@
 #include "coreneuron_1.0/common/util/timer.h"
 #include "utils/error.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 /** \fn compute_wrapper(NrnThread *nt, struct input_parameters* p)
     \brief Start the computation of kernel following the input parameter
@@ -59,9 +58,7 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
     if(error != MAPP_OK)
         return error;
 
-#ifdef _OPENMP
     omp_set_num_threads(p.th);
-#endif
 
     NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, free_nrnthread);
     if(nt == NULL){

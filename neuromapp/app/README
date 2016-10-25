@@ -44,7 +44,7 @@ Per example for the CoreNeuron kernel application, we have:
 
 When your library is ready you will have to modify:
         - miniapp.h //  add the .h of your library
-        - driver.h // add the function to the main application, the name of your function in the helper
+        - driver.h // add the function to the main application
         - CMakeLists.txt // add your library
 
 To run miniapp

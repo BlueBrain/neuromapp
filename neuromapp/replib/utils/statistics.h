@@ -49,10 +49,11 @@ class statistics {
          */
         explicit statistics(replib::config const& conf = replib::config(),
                 unsigned int bytes = 0.0, std::vector<double> times = std::vector<double>()) :
-                c_(conf), bytes_(bytes), times_(times), g_mbw(0.), max_(), min_() {}
+                c_(conf), bytes_(bytes), times_(times), g_mbw(0.), a_mbw(0.), max_(), min_() {}
 
         inline unsigned int bytes() const {return bytes_;}
         inline double mbw() const {return g_mbw;}
+        inline double aggr_mbw() const {return a_mbw;}
         void process();
         void print(std::ostream& os) const;
 
@@ -61,6 +62,7 @@ class statistics {
         unsigned int bytes_;
         std::vector<double> times_;
         double g_mbw;
+        double a_mbw;
         bw_stats max_;
         bw_stats min_;
 };
