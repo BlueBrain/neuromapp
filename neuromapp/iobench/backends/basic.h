@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 
+#include "iobench/utils/args.h"
 
 class KVStatus {
     public:
@@ -40,7 +41,8 @@ class BaseKV {
 
     public:
 
-        virtual void initDB(bool compress = true, int nthr = 1, int npairs = 1024, int mpi_rank = -1, int mpi_size = 0) {}
+        virtual void initDB(iobench::args &a) {}
+        virtual void finalizeDB() {}
         virtual inline void putKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size) {}
         virtual inline size_t getKV (KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size) { return 0; }
         virtual inline void waitKVput(std::vector<KVStatus *> &status, int start, int end) {}

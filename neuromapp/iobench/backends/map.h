@@ -41,7 +41,6 @@
     \brief Create the appropriate DB backend
     \param backend name of the desired DB to create
     \param db std::vector returning the initialized DBs
-    \return sakjdhfaspi
  */
 inline void createDB (const std::string & backend, std::vector<BaseKV *> & db);
 
@@ -67,7 +66,8 @@ class MapKV : public BaseKV {
 
     public:
         MapKV() : _map(), _thrMaps(){}
-        void initDB(bool compress = true, int nthr = 1, int npairs = 1024, int mpi_rank = -1, int mpi_size = 0);
+        void initDB(iobench::args &a);
+        void finalizeDB() {}
         inline void putKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size);
         inline size_t getKV (KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size);
         inline void waitKVput(std::vector<KVStatus *> &status, int start, int end);
@@ -78,12 +78,12 @@ class MapKV : public BaseKV {
         void createKVStatus(int n, std::vector<KVStatus *> &status);
 };
 
-/** \fn void initDB(bool compress, int nthr, int npairs)
+/** \fn void initDB(iobench::args &a)
     \brief Init the needed data for the specific DB
  */
-void MapKV::initDB(bool compress, int nthr, int npairs, int mpi_rank, int mpi_size)
+void MapKV::initDB(iobench::args &a)
 {
-    for (int i = 0; i < nthr; i++) {
+    for (int i = 0; i < a.threads(); i++) {
         _thrMaps.push_back(new IOMap());
     }
 }
@@ -143,7 +143,7 @@ inline void MapKV::waitKVput(std::vector<KVStatus *> &status, int start, int end
     _thrMaps[id]->clear();
 }
 
-/** \fn void createKVStatus(int n, std::vector<KVStatus *> &status)
+/** \fn void deleteDB()
     \brief Clear DB contents
  */
 void MapKV::deleteDB()
@@ -151,7 +151,7 @@ void MapKV::deleteDB()
     _map.clear();
 }
 
-/** \fn void deleteDB()
+/** \fn void createKVStatus(int n, std::vector<KVStatus *> &status)
     \brief Create the needed structures to handle asynchronous insertions. Opaque class from the outside
  */
 void MapKV::createKVStatus(int n, std::vector<KVStatus *> &status)
