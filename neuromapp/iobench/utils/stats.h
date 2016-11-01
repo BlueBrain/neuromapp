@@ -30,6 +30,7 @@
 #include <vector>
 #include <numeric>
 #include <cmath>
+#include <iostream>
 
 #ifdef IO_MPI
 #include <mpi.h>
@@ -213,7 +214,7 @@ class stats {
             std::vector< double > val_rec_time;
             std::vector< double > val_rec_mb;
             std::vector< double > val_rec_ops;
-            for (int i=0; i<rec_time_.size(); i++)
+            for (unsigned int i=0; i<rec_time_.size(); i++)
                 if (check_valid_record(rec_time_[i], rec_mb_[i], rec_ops_[i])) {
                     val_rec_time.push_back(rec_time_[i]);
                     val_rec_mb.push_back(rec_mb_[i]);
@@ -295,20 +296,19 @@ class stats {
                     summarize_statistics(opss, OPS_);
                     summarize_statistics(bws, BW_);
                     summarize_statistics(iopss, IOPS_);
-               } else {
-                   MPI_Send(&total_time_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 0, MPI_COMM_WORLD);
-                   MPI_Send(&total_mb_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 1, MPI_COMM_WORLD);
-                   MPI_Send(&total_ops_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 2, MPI_COMM_WORLD);
+                } else {
+                    MPI_Send(&total_time_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 0, MPI_COMM_WORLD);
+                    MPI_Send(&total_mb_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 1, MPI_COMM_WORLD);
+                    MPI_Send(&total_ops_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 2, MPI_COMM_WORLD);
 
-                   if (check_valid_record(total_time_, total_mb_, total_ops_)) {
+                    if (check_valid_record(total_time_, total_mb_, total_ops_)) {
                         MPI_Send(&MB_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 3, MPI_COMM_WORLD);
                         MPI_Send(&OPS_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 4, MPI_COMM_WORLD);
                         MPI_Send(&BW_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 5, MPI_COMM_WORLD);
                         MPI_Send(&IOPS_.avg_, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 6, MPI_COMM_WORLD);
                         MPI_Send(&avg_recs_per_rank, 1, MPI_DOUBLE, 0, mpi_rank * 100 + 7, MPI_COMM_WORLD);
-                   }
-
-               }
+                    }
+                }
             }
 
 #endif
