@@ -30,7 +30,7 @@
 #include "iobench/backends/map.h"
 
 #ifdef IO_LDB
-#include "ldb.h"
+#include "iobench/backends/leveldb.h"
 #endif
 
 #ifdef IO_CASS
@@ -49,7 +49,7 @@ inline BaseKV * createDB (const std::string & backend)
 #ifdef IO_LDB
         return reinterpret_cast<BaseKV*>(new LDBKV());
 #else
-        std::cout << "Error: asked for LevelDB backend, but not configured." << std::endl;
+        std::cout << "Error: asked for LevelDB backend, but LevelDB was not found." << std::endl;
 #endif
     } else if (backend == "cassandra") {
 #ifdef IO_CASS
