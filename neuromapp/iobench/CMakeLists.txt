@@ -25,9 +25,22 @@ else()
     set(LEVELDB_LIBRARIES "")
 endif()
 
+# Cassandra backend
+find_package(Cassandra)
+if (${CASSANDRA_FOUND})
+    include_directories(${CASSANDRA_INCLUDE_DIRS})
+    add_definitions(-DIO_CASS -DCASS_USE_OPENSSL -D_GNU_SOURCE)
+
+    set(CASSANDRA_LIBRARIES ${CASSANDRA_LIBRARIES} "-lssl -lcrypto")
+
+    install (FILES backends/cassandra.h DESTINATION include)
+else()
+    set(CASSANDRA_LIBRARIES "")
+endif()
+
 # OMP executable
 add_executable(iobench-omp iobench.cpp benchmark.cpp)
-target_link_libraries (iobench-omp ${LEVELDB_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+target_link_libraries (iobench-omp ${LEVELDB_LIBRARIES} ${CASSANDRA_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 
 if(MPI_FOUND)
     # MPI+OMP executable (add -DIO_MPI to compile flags)
@@ -35,7 +48,7 @@ if(MPI_FOUND)
     set_target_properties(MPI_Exec_io PROPERTIES
         COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS} -DIO_MPI")
     # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-    target_link_libraries (MPI_Exec_io ${LEVELDB_LIBRARIES} ${MPI_CXX_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+    target_link_libraries (MPI_Exec_io ${LEVELDB_LIBRARIES} ${CASSANDRA_LIBRARIES} ${MPI_CXX_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 endif()
 
 
