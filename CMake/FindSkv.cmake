@@ -12,15 +12,15 @@
 
 if (NOT NEUROMAPP_DISABLE_SKV)
     find_path(SKV_INCLUDE_DIR NAMES skv/client/skv_client.hpp
-              HINTS "${CMAKE_PREFIX_PATH}/include" "${SKV_PATH}/include")
+              HINTS ${CMAKE_PREFIX_PATH}/include $ENV{SKV_PATH}/include)
     find_library(SKV_LIBRARY_CLIENT NAMES skv_client_mpi
-              HINTS "${CMAKE_PREFIX_PATH}/lib" "${SKV_PATH}/lib")
+              HINTS ${CMAKE_PREFIX_PATH}/lib $ENV{SKV_PATH}/lib)
     find_library(SKV_LIBRARY_COMMON NAMES skv_common
-              HINTS "${CMAKE_PREFIX_PATH}/lib" "${SKV_PATH}/lib")
+              HINTS ${CMAKE_PREFIX_PATH}/lib $ENV{SKV_PATH}/lib)
     find_library(SKV_LIBRARY_API NAMES it_api
-              HINTS "${CMAKE_PREFIX_PATH}/lib" "${SKV_PATH}/lib")
+              HINTS ${CMAKE_PREFIX_PATH}/lib $ENV{SKV_PATH}/lib)
     find_library(SKV_LIBRARY_LOGGER NAMES fxlogger
-              HINTS "${CMAKE_PREFIX_PATH}/lib" "${SKV_PATH}/lib")
+              HINTS ${CMAKE_PREFIX_PATH}/lib $ENV{SKV_PATH}/lib)
 
     set(SKV_LIBRARIES ${SKV_LIBRARY_CLIENT} ${SKV_LIBRARY_COMMON} ${SKV_LIBRARY_API} ${SKV_LIBRARY_LOGGER})
     set(SKV_INCLUDE_DIRS ${SKV_INCLUDE_DIR})
@@ -43,7 +43,7 @@ endif()
 # Print summary
 if(SKV_FOUND)
     message("SKV include dir = ${SKV_INCLUDE_DIR}")
-    message("SKV lib = ${SKV_LIBRARY}")
+    message("SKV lib = ${SKV_LIBRARY_CLIENT}")
     
     message("SKV_FOUND: ${SKV_FOUND}")
     message("SKV_INCLUDE_DIRS: ${SKV_INCLUDE_DIRS}")

@@ -12,9 +12,9 @@
 
 if (NOT NEUROMAPP_DISABLE_CEPH)
     find_path(CEPH_INCLUDE_DIR NAMES rados/librados.hpp
-               HINTS "${CMAKE_PREFIX_PATH}/include" "${CEPH_PATH}/include")
+               HINTS ${CMAKE_PREFIX_PATH}/include $ENV{CEPH_PATH}/include)
     find_library(CEPH_LIBRARY NAMES rados
-              HINTS "${CMAKE_PREFIX_PATH}/lib64" "${CEPH_PATH}/lib64")
+              HINTS ${CMAKE_PREFIX_PATH}/lib64 $ENV{CEPH_PATH}/lib64)
 
     set(CEPH_LIBRARIES ${CEPH_LIBRARY})
     set(CEPH_INCLUDE_DIRS ${CEPH_INCLUDE_DIR})
