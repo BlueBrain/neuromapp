@@ -43,6 +43,22 @@ int main(int argc, char* argv[]) {
         s.process();
         //print the results
         std::cout << s << std::endl;
+    } else if (a.backend() == "skv") {
+            benchmark<keyvalue::skv> b(a);
+            //bench
+            keyvalue::statistic s = run_benchmark(b);
+            //compute statistics
+            s.process();
+            //print the results
+            std::cout << s << std::endl;
+    } else if (a.backend() == "ceph") {
+        benchmark<keyvalue::ceph> b(a);
+        //bench
+        keyvalue::statistic s = run_benchmark(b);
+        //compute statistics
+        s.process();
+        //print the results
+        std::cout << s << std::endl;
     } else {
         std::cout << "Backend not supported in this version" << std::endl;
     }

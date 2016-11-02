@@ -81,14 +81,14 @@ void iobench::benchmark::initDB() {
     }
 
 #ifdef IO_MPI
-    db_[0]->initDB(a_.compress(), a_.threads(), a_.npairs(), a_.rank(), a_.procs());
+    db_[0]->initDB(a_);
 #else
     if (!single_db) {
         for (int i = 0; i < db_.size(); i++) {
-            db_[i]->initDB(a_.compress(), i, a_.threads());
+            db_[i]->initDB(a_);
         }
     } else {
-        db_[0]->initDB(a_.compress(), a_.threads(), a_.npairs());
+        db_[0]->initDB(a_);
     }
 #endif
 }
