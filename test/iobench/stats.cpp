@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
     double mb = 1024;
     double ops = 2048;
 
-    double avgb = 0.0, avgi;
+    double avgb = 0.0, avgi = 0.0;
     for (int i = 0; i < 8; i++) {
         st.record(times[i], mb, ops);
         avgb += mb / times[i];
@@ -72,8 +72,9 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
     avgb /= 8;
     avgi /= 8;
     // Stddev and stderr are 0.0 because all ranks compute the same avg
-    // FIXME: introduce variability accross ranks and compute this properly
-    double stddev = 0.0, stderr = 0.0;
+    // (except when there is only 1 rank)
+    // FIXME: introduce variability across ranks and compute this properly
+    double stddev = 0.0, stderr = 0.0, stddevb = 0.0, stderrb = 0.0, stddevi = 0.0, stderri = 0.0;
 
     int mpi_size, mpi_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
@@ -81,7 +82,19 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
 
     st.compute_stats(mpi_rank, mpi_size);
 
-    if( mpi_rank == 0) {
+    if (mpi_size == 1) {
+        // Compute the correct stddev and stderr for bw and iops
+        for (int i = 0; i < 8; i++) {
+            stddevb += ((mb/times[i]) - avgb) * ((mb/times[i]) - avgb);
+            stddevi += ((ops/times[i]) - avgi) * ((ops/times[i]) - avgi);
+        }
+        stddevb = sqrt(1.0 / 8 * stddevb);
+        stddevi = sqrt(1.0 / 8 * stddevi);
+        stderrb = stddevb / sqrt(8);
+        stderri = stddevi / sqrt(8);
+    }
+
+    if (mpi_rank == 0) {
         BOOST_CHECK_CLOSE(st.avgMB_per_cycle(), mb*mpi_size, 0.00001);
         BOOST_CHECK_CLOSE(st.avgOPS_per_cycle(), ops*mpi_size, 0.00001);
         BOOST_CHECK_CLOSE(st.avgMB(), mb, 0.00001);
@@ -91,12 +104,11 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
         BOOST_CHECK_CLOSE(st.stddevOPS(), stddev, 0.00001);
         BOOST_CHECK_CLOSE(st.stderrOPS(), stderr, 0.00001);
         BOOST_CHECK_CLOSE(st.avgBW(), avgb, 0.00001);
-        BOOST_CHECK_CLOSE(st.stddevBW(), stddev, 0.00001);
-        BOOST_CHECK_CLOSE(st.stderrBW(), stderr, 0.00001);
+        BOOST_CHECK_CLOSE(st.stddevBW(), stddevb, 0.00001);
+        BOOST_CHECK_CLOSE(st.stderrBW(), stderrb, 0.00001);
         BOOST_CHECK_CLOSE(st.avgIOPS(), avgi, 0.00001);
-        BOOST_CHECK_CLOSE(st.stddevIOPS(), stddev, 0.00001);
-        BOOST_CHECK_CLOSE(st.stderrIOPS(), stderr, 0.00001);
-
+        BOOST_CHECK_CLOSE(st.stddevIOPS(), stddevi, 0.00001);
+        BOOST_CHECK_CLOSE(st.stderrIOPS(), stderri, 0.00001);
     }
 }
 #else
@@ -150,7 +162,7 @@ BOOST_AUTO_TEST_CASE(stats_killer_test){
 
     st.compute_stats(mpi_rank, mpi_size);
 
-    if( mpi_rank == 0) {
+    if (mpi_rank == 0) {
         BOOST_CHECK_CLOSE(st.total_time(), std::accumulate(times.begin(), times.end(), 0.0), 0.00001);
         BOOST_CHECK_CLOSE(st.total_mb(), mb*8, 0.00001);
         BOOST_CHECK_CLOSE(st.total_ops(), ops*8, 0.00001);

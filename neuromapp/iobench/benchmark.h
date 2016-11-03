@@ -70,6 +70,7 @@ public:
                 it != db_.end(); it++) {
             BaseKV * p = *it;
             if (last != p) {
+                p->finalizeDB();
                 // Only delete if the DB instance is different (!single_db)
                 delete p;
                 last = p;
