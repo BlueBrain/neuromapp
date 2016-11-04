@@ -20,10 +20,15 @@ of coreneuron, 3 miniapps are available: kernel and solver
 * solver: This miniapp extracts the linear algbra solver of CoreNeuron, the Hines solver 
 	         (similar to Thomas Solver for 3 bands matrix)
 * cstep: It combines the kernel and the solver to mimic a step time of neuron simulator
+
+* queue: This miniapp simulates the queueing system of CoreNeuron.
  
 ##hello
 
 This directory provides an example of how could be design a miniapp (C++)
+
+You can disable the compilation of this mini-app by using the following variable in cmake
+command: '-DNEUROMAPP_DISABLE_HELLO=TRUE'
 
 ## neuromapp/iobench
 
@@ -35,6 +40,9 @@ the parameter configuration is more flexible.
 
 For more information, run the mini-app with the --help argument.
 
+You can disable the compilation of this mini-app by using the following variable in cmake
+command: '-DNEUROMAPP_DISABLE_IOBENCH=TRUE'
+
 ## neuromapp/keyvalue
 
 This directory contains a miniapp that mimics CoreNeuron simulation loop but outputs 
@@ -44,11 +52,8 @@ cases are defined in order to fill 25%, 50% or 75% of the main memory of a BG/Q 
 
 For more information, run the mini-app with the --help argument.
 
-## neuromapp/queuing
-	 
-This directory contains a miniapp that simulates the queueing system of CoreNeuron.
-
-Moreover the hello directory provides informations to create a new miniapp
+You can disable the compilation of this mini-app by using the following variable in cmake
+command: '-DNEUROMAPP_DISABLE_KEYVALUE=TRUE'
 
 ## neuromapp/replib
 
@@ -58,7 +63,23 @@ provides several options to distribute data across ranks in different ways.
 
 For more information, run the mini-app with the --help argument.
 
+You can disable the compilation of this mini-app by using the following variable in cmake
+command: '-DNEUROMAPP_DISABLE_REPLIB=TRUE'
+
 ## neuromapp/nest/synapse
 
 This directory contains a miniapp that simulates synapse models from NEST.
+
+You can disable the compilation of this mini-app by using the following variable in cmake
+command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
+
+
+## Dependency Handling
+The following variables can be set in the cmake command to disable the compilation of certain 
+parts of the framework or ignore certain external libraries that would be used otherwise:
+'-DNEUROMAPP_DISABLE_HDF5MAPP=TRUE': Ignore the code under neuromapp/hdf5
+'-DNEUROMAPP_DISABLE_CASSANDRA=TRUE': Do not try to find the Cassandra installation
+'-DNEUROMAPP_DISABLE_CEPH=TRUE': Do not try to find the CEPH installation
+'-DNEUROMAPP_DISABLE_LEVELDB=TRUE': Do not try to find the LevelDB installation
+'-DNEUROMAPP_DISABLE_SKV=TRUE': Do not try to find the IBM SKV installation
 
