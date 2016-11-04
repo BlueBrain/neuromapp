@@ -37,7 +37,7 @@
     #include <readline/history.h>
 #endif
 
-#include "app/miniapp.h" // the list of the miniapp API
+#include "app/miniapp.h" // the list of the available mini-apps
 #include "app/driver.h"
 #include "app/driver_exception.h"
 #include "utils/argv_data.h"
@@ -59,18 +59,7 @@ int compute(const mapp::driver& d, int argc, char * const argv[]){
 int main(int argc, char * const argv[]){
 
      mapp::driver d;
-     d.insert("hello",hello_execute);
-     d.insert("synapse", nest::model_execute);
-     d.insert("nest_h5import", nest::h5import::execute);
-     d.insert("h5read", hdf5::h5read::execute);
-     d.insert("event",event_execute);
-     d.insert("kernel",coreneuron10_kernel_execute);
-     d.insert("solver",coreneuron10_solver_execute);
-     d.insert("cstep",coreneuron10_cstep_execute);
-     d.insert("keyvalue",keyvalue_execute);
-     d.insert("replib",replib_execute);
-     d.insert("iobench",iobench_execute);
-     d.insert("queue",coreneuron10_queue_execute);
+     mapp::register_miniapps(d);
 
      //direct run
      if(argv[1] != NULL)
