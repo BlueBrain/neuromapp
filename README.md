@@ -77,9 +77,14 @@ command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
 ## Dependency Handling
 The following variables can be set in the cmake command to disable the compilation of certain 
 parts of the framework or ignore certain external libraries that would be used otherwise:
+
 '-DNEUROMAPP_DISABLE_HDF5MAPP=TRUE': Ignore the code under neuromapp/hdf5
+
 '-DNEUROMAPP_DISABLE_CASSANDRA=TRUE': Do not try to find the Cassandra installation
+
 '-DNEUROMAPP_DISABLE_CEPH=TRUE': Do not try to find the CEPH installation
+
 '-DNEUROMAPP_DISABLE_LEVELDB=TRUE': Do not try to find the LevelDB installation
+
 '-DNEUROMAPP_DISABLE_SKV=TRUE': Do not try to find the IBM SKV installation
 
