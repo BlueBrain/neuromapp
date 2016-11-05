@@ -8,11 +8,29 @@ if(NOT Boost_USE_STATIC_LIBS)
 	add_definitions(-DBOOST_TEST_DYN_LINK=TRUE)
 endif()
 
-add_subdirectory (coreneuron_1.0)
-add_subdirectory (hello)
-add_subdirectory (iobench)
 add_subdirectory (utils)
 add_subdirectory (app)
-add_subdirectory (keyvalue)
-add_subdirectory (hdf5)
-add_subdirectory (nest)
+
+if(NEUROMAPP_CORENEURON_MAPP)
+    add_subdirectory (coreneuron_1.0)
+endif()
+
+if(NEUROMAPP_HELLO_MAPP)
+    add_subdirectory (hello)
+endif()
+
+if(NEUROMAPP_IOBENCH_MAPP)
+    add_subdirectory (iobench)
+endif()
+
+if(NEUROMAPP_KEYVALUE_MAPP)
+    add_subdirectory (keyvalue)
+endif()
+
+if(NEUROMAPP_HDF5_MAPP)
+    add_subdirectory (hdf5)
+endif()
+
+if(NEUROMAPP_NEST_MAPP)
+    add_subdirectory (nest)
+endif()
