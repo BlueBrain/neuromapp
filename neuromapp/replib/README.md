@@ -79,30 +79,30 @@ Some other relevant information for this mini-app:
   order to better understand this parameters, the user must be aware of the following 
   concepts:
  * The real report file is structured as an array, where:
-  * Each item contains the information of all cells for one reporting time step:
+    - Each item contains the information of all cells for one reporting time step:
 
       | rep_time_step_1 | rep_time_step_2 | rep_time_step_3 | ...
 
-  * Each time step contains the information for each cell. Cells are always ordered 
-    in the same way for all time steps, and the order criteria is their GID (integer):
+    - Each time step contains the information for each cell. Cells are always ordered 
+      in the same way for all time steps, and the order criteria is their GID (integer):
 
       | cell_1 | cell_2 | cell_3 | ...
 
-  * Each cell contains the information about its cell compartments. There is one float 
-    value (voltage) for each compartment and a cell can hold a maximum of 350 
-    compartments. When using the ``` --write rnd1b ``` option, the number of 
-    compartments per cell is computed randomly with a lower bound of 200 and an upper 
-    bound of 350:
+    - Each cell contains the information about its cell compartments. There is one float 
+      value (voltage) for each compartment and a cell can hold a maximum of 350 
+      compartments. When using the ``` --write rnd1b ``` option, the number of 
+      compartments per cell is computed randomly with a lower bound of 200 and an upper 
+      bound of 350:
 
       | voltage_comp_1 | voltage_comp_2 | voltage_comp_3 | ...
 
-  * Thus, the write size per process cannot be computed in advance and is reported by 
-    the mini-app at the end of the execution (per reporting step).
+    - Thus, the write size per process cannot be computed in advance and is reported by 
+      the mini-app at the end of the execution (per reporting step).
 
- * If a data distribution file is used to configure the mini-app execution, the amount 
-   of cells is then ignored and the block sizes read from the data distribution file 
-   are used instead. In this case, the amount of data written per process can be easily 
-   derived from the data distribution file and the number of reporting steps.
+* If a data distribution file is used to configure the mini-app execution, the amount 
+  of cells is then ignored and the block sizes read from the data distribution file 
+  are used instead. In this case, the amount of data written per process can be easily 
+  derived from the data distribution file and the number of reporting steps.
 
 
 
