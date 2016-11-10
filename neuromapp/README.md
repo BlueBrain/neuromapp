@@ -2,9 +2,9 @@
 
 * app : contains the main app that organizes all the mini-apps (C++)
 * coreneuron_1.0 : contains 3 mini-apps that extract the functionality of CoreNeuron
-                ** kernel, the main computation of core neuron (C/OMP)
-                ** queueing: contains a simulation of the CoreNeuron queueing functionality (C++)
-                ** solver, the famous Hines solver for sparse matrix (C)
+                * kernel, the main computation of core neuron (C/OMP)
+                * queueing: contains a simulation of the CoreNeuron queueing functionality (C++)
+                * solver, the famous Hines solver for sparse matrix (C)
 * hello: contains a basic example of hello world mini-app (C++)
 * iobench: mini-app to test the performance of a key/value store applied to a neuroscience environment (C++)
 * keyvalue: mini-app to test the performance of one neuroscience use case with key/value store on BG/Q (C++)
