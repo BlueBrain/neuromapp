@@ -34,3 +34,7 @@ endif()
 if(NEUROMAPP_NEST_MAPP)
     add_subdirectory (nest)
 endif()
+
+if(NEUROMAPP_REPLIB_MAPP)
+    add_subdirectory (replib)
+endif()

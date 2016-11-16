@@ -37,7 +37,7 @@ namespace replib {
 inline fileview * common1b(config & c, unsigned int elemsToWrite) {
 
     // Number of elements to skip for this process
-    int offsetElems;
+    int offsetElems = 0;
 
     // Write buffer treated as a single block, so it's like we process a single cell
     c.numcells() = 1;
