@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
     iobench::stats st;
 
     double times[8] = {3.5, 4.8, 2.9, 6.7, 3.9, 4.2, 5.3, 6.4};
-    double mb = 1024;
-    double ops = 2048;
+    double mb = 1024.;
+    double ops = 2048.;
 
     double avgb = 0.0, avgi = 0.0;
     for (int i = 0; i < 8; i++) {
@@ -69,8 +69,8 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
         avgb += mb / times[i];
         avgi += ops / times[i];
     }
-    avgb /= 8;
-    avgi /= 8;
+    avgb /= 8.;
+    avgi /= 8.;
     // Stddev and stderr are 0.0 because all ranks compute the same avg
     // (except when there is only 1 rank)
     // FIXME: introduce variability across ranks and compute this properly
