@@ -28,6 +28,9 @@ if(NOT NEUROMAPP_DISABLE_REPLIB)
 
         install (TARGETS MPI_Exec_rl DESTINATION bin)
 
+        # Install script to generate input distribution file
+        install (PROGRAMS utils/replib_input_distr_generator.sh DESTINATION bin)
+
         set(NEUROMAPP_REPLIB_MAPP ON CACHE BOOL "True if replib mini-app will be installed")
     else()
         set(NEUROMAPP_REPLIB_MAPP OFF CACHE BOOL "True if replib mini-app will be installed")
