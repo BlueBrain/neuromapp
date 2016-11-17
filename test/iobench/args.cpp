@@ -32,6 +32,8 @@
 #include <boost/test/unit_test.hpp>
 #include "iobench/utils/args.h"
 #include "utils/argv_data.h"
+// Get OMP header if available
+#include "utils/omp/compatibility.h"
 
 #ifdef IO_MPI
 //Performs MPI init/finalize
@@ -63,11 +65,7 @@ BOOST_AUTO_TEST_CASE(args_constructor_default_test){
 
     #pragma omp parallel
     {
-#ifdef _OPENMP
         threads = omp_get_num_threads();
-#else
-        threads = 1;
-#endif
     }
 
     BOOST_CHECK_EQUAL(a.procs(), procs);

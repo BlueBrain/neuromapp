@@ -44,11 +44,14 @@ struct double_int {
     recorded while the benchmark was running
  */
 void statistics::process() {
-    // First, BW is computed per rank (in KB/s):
-    double time = std::accumulate(times_.begin(), times_.end(), 0.);
-    double r_mbw = ( ((double) (bytes_ * times_.size())) / time ) / (1024. * 1024.);
+    // First, BW is computed per rank (in MB/s):
+    double r_mbw = 0.0;
+    for (int i = 0; i < times_.size(); i++) {
+        r_mbw += ((double) bytes_ / times_[i]) / (1024. * 1024.);
+    }
+    r_mbw /= (double) times_.size();
 
-    // Then, compute average BW of all ranks
+    // Then, compute average BW  (aggregated and per rank)
     a_mbw = replib::reduce(r_mbw);
     g_mbw = a_mbw / c_.procs();
 
@@ -111,12 +114,12 @@ void statistics::print(std::ostream& os) const {
 
 
     // CSV output data format:
-    // miniapp_name, num_procs, writeMode, invertRanks, numCells, reportingSteps, avgRankBW (MB/s),
-    // aggregatedBW (MB/s), maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
+    // miniapp_name, num_procs, writeMode, invertRanks, numCells, simulationSteps, reportingSteps,
+    // avgRankBW (MB/s), aggregatedBW (MB/s), maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
     os << "RLMAPP," << c_.procs() << "," << c_.write() << "," << ( c_.invert() ? "inv" : "seq" ) << ","
-            << c_.numcells() << "," << c_.rep_steps() << "," << std::fixed << g_mbw << "," << a_mbw << ","
-            << max_.mbw_ << "," << max_.size_ << "," << max_.rank_ << "," << min_.mbw_ << ","
-            << min_.size_ << "," << min_.rank_ << std::endl;
+            << c_.numcells() << "," << c_.sim_steps() << "," << c_.rep_steps() << "," << std::fixed
+            << g_mbw << "," << a_mbw << "," << max_.mbw_ << "," << max_.size_ << "," << max_.rank_
+            << "," << min_.mbw_ << "," << min_.size_ << "," << min_.rank_ << std::endl;
 }
 
 }

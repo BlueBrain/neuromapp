@@ -26,6 +26,7 @@
 #include <iomanip>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <stdlib.h>
 #include <string.h>
 
@@ -94,7 +95,6 @@ bool replib::check_report (char * report, int nwrites, int repCycleElems, int mp
         memset(readValues, 0, readSize);
         mpioff = i * readSize;
         MPI_File_read_at(fh, mpioff, readValues, repCycleElems, MPI_FLOAT, &status);
-
         //std::cout << "----------------------------- Reading values for time step " << i << " -----------------------------" << std::endl;
         for (int s = 0; s < repCycleElems; s++) {
             float expected = (float) compsPerRank[pairIdx].first * 1000.0 + (float) i + (float) ((rankIdx[compsPerRank[pairIdx].first]%1000) + 1.0) / 1000.0;
@@ -127,6 +127,6 @@ bool replib::check_report (char * report, int nwrites, int repCycleElems, int mp
 
     free(readValues);
 
-    std::cout << "Report verification: " << ( (error == 0) ? "PASSED" : "FAILED") << std::endl;
+    //std::cout << "Report verification: " << ( (error == 0) ? "PASSED" : "FAILED") << std::endl;
     return (error == 0);
 }

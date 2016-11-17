@@ -48,12 +48,14 @@ class statistics {
             \brief create the statistics object
          */
         explicit statistics(replib::config const& conf = replib::config(),
-                unsigned int bytes = 0.0, std::vector<double> times = std::vector<double>()) :
+                unsigned int bytes = 0, std::vector<double> times = std::vector<double>()) :
                 c_(conf), bytes_(bytes), times_(times), g_mbw(0.), a_mbw(0.), max_(), min_() {}
 
         inline unsigned int bytes() const {return bytes_;}
         inline double mbw() const {return g_mbw;}
         inline double aggr_mbw() const {return a_mbw;}
+        inline const bw_stats& get_max() const { return max_; }
+        inline const bw_stats& get_min() const { return min_; }
         void process();
         void print(std::ostream& os) const;
 

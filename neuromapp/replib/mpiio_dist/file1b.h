@@ -42,7 +42,6 @@ namespace replib {
     then create the fileview object
  */
 inline fileview * file1b(config & c) {
-
     // Find the corresponding line in the file
     std::vector<std::string> row;
     read_row(c, row);

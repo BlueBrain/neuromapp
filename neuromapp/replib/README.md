@@ -23,8 +23,8 @@ as follows:
 2) Run test:
 
 ```
-    for "s" reporting_steps {
-        for 10 iterations {
+    for "r" reporting_steps {
+        for "s" simulation_steps {
             simulate_computing_phase(sleep)
             create_data_in_bufferToFill
         }
@@ -64,8 +64,10 @@ Here's a more detailed description:
     with some degree of randomness, the block size of each process. This option 
     only applies when data distribution is generated randomly 
     (``` --write rnd1b ```) options (default, 10).
-* --steps, -s [int]: Number of reporting steps. 1 reporting step happens every 10 
-    simulation steps (default, 1)
+* --sim-steps, -s [int]: Number of simulation steps for each reporting step 
+    (default, 15)
+* --rep-steps, -r [int]: Number of reporting steps. 1 reporting step happens every 
+    'sim-steps' simulation steps (default, 1)
 * --time, -t [int]: Amount of time (in ms) spent in 1 simulation step (default, 100)
 * --check, -c: If present, verify the output report was correctly written 
     (no check by default)
@@ -79,9 +81,9 @@ Some other relevant information for this mini-app:
   order to better understand this parameters, the user must be aware of the following 
   concepts:
  * The real report file is structured as an array, where:
-    - Each item contains the information of all cells for one reporting time step:
+    - Each item contains the information of all cells for one simulation time step:
 
-      | rep_time_step_1 | rep_time_step_2 | rep_time_step_3 | ...
+      | sim_time_step_1 | sim_time_step_2 | sim_time_step_3 | ...
 
     - Each time step contains the information for each cell. Cells are always ordered 
       in the same way for all time steps, and the order criteria is their GID (integer):
@@ -91,7 +93,7 @@ Some other relevant information for this mini-app:
     - Each cell contains the information about its cell compartments. There is one float 
       value (voltage) for each compartment and a cell can hold a maximum of 350 
       compartments. When using the ``` --write rnd1b ``` option, the number of 
-      compartments per cell is computed randomly with a lower bound of 200 and an upper 
+      compartments per cell is computed randomly with a lower bound of 100 and an upper 
       bound of 350:
 
       | voltage_comp_1 | voltage_comp_2 | voltage_comp_3 | ...
@@ -99,10 +101,14 @@ Some other relevant information for this mini-app:
     - Thus, the write size per process cannot be computed in advance and is reported by 
       the mini-app at the end of the execution (per reporting step).
 
+    - In this case, the frequency of writing data to disk depends on the 
+      ``` --sim-steps S ``` parameter. ``` S ``` simulation time steps will be grouped 
+      together as one single block and will be written to disk at once.
+
 * If a data distribution file is used to configure the mini-app execution, the amount 
   of cells is then ignored and the block sizes read from the data distribution file 
   are used instead. In this case, the amount of data written per process can be easily 
-  derived from the data distribution file and the number of reporting steps.
-
-
+  derived from the data distribution file and the number of reporting steps. In this 
+  case, the ``` --sim-steps S ``` parameter is only used to simulate the computing 
+  phase.
 

@@ -1,7 +1,7 @@
 # Use -DNEUROMAPP_DISABLE_REPLIB=TRUE to disable compilation/installation of this mini-app
 if(NOT NEUROMAPP_DISABLE_REPLIB)
     set(MPI_STATIC ON)
-    find_package(MPI REQUIRED)
+    find_package(MPI)
 
     if (MPI_FOUND)
         include_directories(${MPI_INCLUDE_PATH})
@@ -11,14 +11,17 @@ if(NOT NEUROMAPP_DISABLE_REPLIB)
 
         #Add replib to the mini-app library
         add_library (replib main.cpp)
-
         install (TARGETS replib DESTINATION lib)
         install (FILES replib.h DESTINATION include)
 
-        add_executable(MPI_Exec_rl utils/statistics.cpp utils/tools.cpp mpiexec.cpp )
+        # Add statistics as a separate library
+        add_library (replib-stats utils/statistics.cpp utils/tools.cpp)
+        install (TARGETS replib-stats DESTINATION lib)
+
+        add_executable(MPI_Exec_rl mpiexec.cpp )
 
         # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-        target_link_libraries (MPI_Exec_rl ${MPI_CXX_LIBRARIES})
+        target_link_libraries (MPI_Exec_rl replib-stats ${MPI_CXX_LIBRARIES})
 
         set_target_properties(MPI_Exec_rl PROPERTIES
 		                      COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")

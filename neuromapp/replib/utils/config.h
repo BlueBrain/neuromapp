@@ -47,26 +47,29 @@ private:
     std::string output_report_;
     bool        invert_;
     int         numcells_;
+    int         sim_steps_;
     int         rep_steps_;
     int         elems_per_step_;
     int         sim_time_ms_;
     bool        check_;
+    bool        passed_;
 
 public:
     /** \fn config(int argc = 0 , char * argv[] = NULL)
         \brief parse the command from argc and argv, the functor indicates the return type, I could
             write template and trait class, to do */
     explicit config (int argc = 0 , char * const argv[] = NULL) :
-            procs_(1), write_("rnd1b"), input_dist_(""), output_report_(""), invert_(false),
-            numcells_(10), rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false) {
+            procs_(1), write_("rnd1b"), input_dist_(""), output_report_(""), invert_(false), numcells_(10),
+            sim_steps_(15), rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false), passed_(false) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
             argument_helper(v,"-w",write(),to_string());
             argument_helper(v,"-o",output_report(),to_string());
             argument_helper(v,"-f",input_dist(),to_string());
             argument_helper(v,"-i",invert(),to_true());
-            argument_helper(v,"-nc",numcells(),to_int());
-            argument_helper(v,"-s",rep_steps(),to_int());
+            argument_helper(v,"-c",numcells(),to_int());
+            argument_helper(v,"-s",sim_steps(),to_int());
+            argument_helper(v,"-r",rep_steps(),to_int());
             argument_helper(v,"-t",sim_time_ms(),to_int());
             argument_helper(v,"-v",check(),to_true());
         }
@@ -164,6 +167,13 @@ public:
     }
 
     /**
+     \brief return the number of simulation steps, read only
+     */
+    inline int sim_steps() const {
+        return sim_steps_;
+    }
+
+    /**
      \brief return the number of reporting steps, read only
      */
     inline int rep_steps() const {
@@ -189,6 +199,13 @@ public:
      */
     inline bool check() const {
         return check_;
+    }
+
+    /**
+     \brief return whether output report verification passed or failed, read only
+     */
+    inline bool passed() const {
+        return passed_;
     }
 
     /**
@@ -241,6 +258,13 @@ public:
      }
 
      /**
+      \brief return the number of simulation steps, write only
+      */
+     inline int& sim_steps() {
+         return sim_steps_;
+     }
+
+     /**
       \brief return the number of reporting steps, write only
       */
      inline int& rep_steps() {
@@ -268,6 +292,13 @@ public:
          return check_;
      }
 
+     /**
+      \brief return whether output report verification passed or failed, write only
+      */
+     inline bool& passed() {
+         return passed_;
+     }
+
     /** \brief the print function, I do not like friend function */
     void print(std::ostream& out) const {
         out << " procs: " << procs() << " \n"
@@ -276,9 +307,14 @@ public:
             << " output_report_: " << output_report() << " \n"
             << " invert_: " << invert() << " \n"
             << " numcells_: " << numcells() << " \n"
+            << " sim_steps_: " << sim_steps() << " \n"
             << " rep_steps_: " << rep_steps() << " \n"
             << " elems_per_step_: " << elems_per_step() << " \n"
-            << " sim_time_ms_: " << sim_time_ms() << " \n";
+            << " sim_time_ms_: " << sim_time_ms() << " \n"
+            << " check_: " << check() << " \n";
+        if (check()) {
+            out << "Report verification: " << ( passed() ? "PASSED" : "FAILED") << "\n";
+        }
     }
 };
 

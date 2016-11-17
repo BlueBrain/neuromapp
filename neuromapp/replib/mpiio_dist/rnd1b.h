@@ -22,6 +22,8 @@
 #ifndef MAPP_RND1B_H
 #define MAPP_RND1B_H
 
+#include <algorithm>
+
 #include "replib/utils/config.h"
 #include "replib/utils/fileview.h"
 #include "replib/mpiio_dist/common1b.h"
@@ -41,19 +43,32 @@ fileview * rnd1b(config & c) {
     // (accounting all the GIDs assigned to the process)
     unsigned int compCount = 0;
 
+    // Maximum number of compartments per neuron (biological parameter)
+    unsigned int maxComps = 350;
+
+    // Save the numcells value to restore it
+    int nc = c.numcells();
+
     //generate cells -> use round robin for gid assignment
-    for (int gid = 1+c.id(); gid < 1+c.numcells(); gid += c.procs()) {
+    for (int gid = 1 + c.id(); gid < 1 + c.numcells(); gid += c.procs()) {
         // Random number of compartments for this gid
-        compCount += std::rand() % 512 + std::rand() % 128 + 200;
+        unsigned int comps = std::rand() % 512 + std::rand() % 128 + 100;
+
+        // Keep the biological limitation of 350 compartments per neuron
+        comps = std::min(comps, maxComps);
+
+        compCount += comps;
     }
 
-    // Number of elements to skip for this process
-    //int offsetElems;
-
-    // Size (bytes) and number of elements that this process will write at every reporting cycle
+    // Number of elements that this process will write at every simulation step
     unsigned int elemsToWrite = compCount;
+    // Number of elements that this process will write at every reporting step
+    elemsToWrite *= c.sim_steps();
 
     fileview * f = common1b(c, elemsToWrite * sizeof(float));
+
+    // common1b() overwrites c.numcells() for convenience, restore original value
+    c.numcells() = nc;
 
     return f;
 }
