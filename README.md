@@ -76,13 +76,13 @@ command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
 
 # Installation Instructions #
 
-1) Create a build directory, for example inside the source directory (NEUROMAPP_SRC_DIR):
+1) Create a build directory, for example inside the source directory (```NEUROMAPP_SRC_DIR```):
 ```
 $ mkdir $NEUROMAPP_SRC_DIR/build
 ```
 
 2) Configure, compile and install the framework. Optionally, specify the desired 
-installation directory (NEUROMAPP_INST_DIR):
+installation directory (```NEUROMAPP_INST_DIR```):
 ```
 $ cd $NEUROMAPP_SRC_DIR/build
 $ cmake .. -DCMAKE_INSTALL_PREFIX=$NEUROMAPP_INST_DIR
