@@ -74,17 +74,49 @@ You can disable the compilation of this mini-app by using the following variable
 command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
 
 
+# Installation Instructions #
+
+1) Create a build directory, for example inside the source directory (```NEUROMAPP_SRC_DIR```):
+```
+$ mkdir $NEUROMAPP_SRC_DIR/build
+```
+
+2) Configure, compile and install the framework. Optionally, specify the desired 
+installation directory (```NEUROMAPP_INST_DIR```):
+```
+$ cd $NEUROMAPP_SRC_DIR/build
+$ cmake .. -DCMAKE_INSTALL_PREFIX=$NEUROMAPP_INST_DIR
+$ make
+$ make install
+```
+
+If you're using GCC 5.1 and above, please add the following flag to your ```cmake``` 
+command to tell GCC to not use the C++11 ABI:
+```
+-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0
+```
+
 ## Dependency Handling
-The following variables can be set in the cmake command to disable the compilation of certain 
+The following variables can be set in the ```cmake``` command to disable the compilation of certain 
 parts of the framework or ignore certain external libraries that would be used otherwise:
 
-'-DNEUROMAPP_DISABLE_HDF5MAPP=TRUE': Ignore the code under neuromapp/hdf5
+'```-DNEUROMAPP_DISABLE_HDF5MAPP=TRUE```': Ignore the code under neuromapp/hdf5
 
-'-DNEUROMAPP_DISABLE_CASSANDRA=TRUE': Do not try to find the Cassandra installation
+'```-DNEUROMAPP_DISABLE_HELLO=TRUE```': Ignore the code under neuromapp/hello
 
-'-DNEUROMAPP_DISABLE_CEPH=TRUE': Do not try to find the CEPH installation
+'```-DNEUROMAPP_DISABLE_IOBENCH=TRUE```': Ignore the code under neuromapp/iobench
 
-'-DNEUROMAPP_DISABLE_LEVELDB=TRUE': Do not try to find the LevelDB installation
+'```-DNEUROMAPP_DISABLE_KEYVALUE=TRUE```': Ignore the code under neuromapp/keyvalue
 
-'-DNEUROMAPP_DISABLE_SKV=TRUE': Do not try to find the IBM SKV installation
+'```-DNEUROMAPP_DISABLE_NEST=TRUE```': Ignore the code under neuromapp/nest
+
+'```-DNEUROMAPP_DISABLE_REPLIB=TRUE```': Ignore the code under neuromapp/replib
+
+'```-DNEUROMAPP_DISABLE_CASSANDRA=TRUE```': Do not try to find the Cassandra installation
+
+'```-DNEUROMAPP_DISABLE_CEPH=TRUE```': Do not try to find the CEPH installation
+
+'```-DNEUROMAPP_DISABLE_LEVELDB=TRUE```': Do not try to find the LevelDB installation
+
+'```-DNEUROMAPP_DISABLE_SKV=TRUE```': Do not try to find the IBM SKV installation
 
