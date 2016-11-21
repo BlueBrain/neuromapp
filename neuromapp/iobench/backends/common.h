@@ -60,6 +60,8 @@ inline BaseKV * createDB (const std::string & backend)
     } else {
         return reinterpret_cast<BaseKV*>(new MapKV());
     }
+
+    return NULL;
 }
 
 #endif // MAPP_IOBENCH_COMMON_

@@ -83,7 +83,7 @@ class MapKV : public BaseKV {
  */
 void MapKV::initDB(iobench::args &a)
 {
-    for (int i = 0; i < a.threads(); i++) {
+    for (unsigned int i = 0; i < a.threads(); i++) {
         _thrMaps.push_back(new IOMap());
     }
 }
@@ -104,7 +104,7 @@ inline void MapKV::putKV(KVStatus * kvs, void * key, size_t key_size, void * val
 
     _thrMaps[id]->insert(std::pair<key_type, value_type>(k, v));
 
-    if (_thrMaps[id]->size() > 32 + id) {
+    if ((int) _thrMaps[id]->size() > 32 + id) {
         _mapLock.lock();
         _map.insert(_thrMaps[id]->begin(), _thrMaps[id]->end());
         _mapLock.unlock();

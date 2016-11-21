@@ -70,12 +70,12 @@ void iobench::benchmark::initDB() {
     bool single_db = true;
 
     if (!single_db) {
-        for (int i = 0; i < a_.threads(); i++) {
+        for (unsigned int i = 0; i < a_.threads(); i++) {
             db_.push_back(createDB(a_.backend()));
         }
     } else {
         BaseKV * base = createDB(a_.backend());
-        for (int i = 0; i < a_.threads(); i++) {
+        for (unsigned int i = 0; i < a_.threads(); i++) {
             db_.push_back(base);
         }
     }
@@ -84,7 +84,7 @@ void iobench::benchmark::initDB() {
     db_[0]->initDB(a_);
 #else
     if (!single_db) {
-        for (int i = 0; i < db_.size(); i++) {
+        for (unsigned int i = 0; i < db_.size(); i++) {
             db_[i]->initDB(a_);
         }
     } else {
@@ -98,18 +98,18 @@ void iobench::benchmark::initDB() {
 void iobench::benchmark::createData() {
     // Setting up k/v data
     keys_.reserve(a_.threads() * a_.npairs());
-    for (int i = 0; i < a_.threads() * a_.npairs(); i++)
+    for (unsigned int i = 0; i < a_.threads() * a_.npairs(); i++)
         keys_.push_back(new char[a_.keysize()]);
 
     if (a_.write()) {
         values_.reserve(a_.threads() * a_.npairs());
-        for (int i = 0; i < a_.threads() * a_.npairs(); i++)
+        for (unsigned int i = 0; i < a_.threads() * a_.npairs(); i++)
             values_.push_back(new char[a_.valuesize()]);
     }
 
     if (a_.read()) {
         reads_.reserve(a_.threads() * a_.npairs());
-        for (int i = 0; i < a_.threads() * a_.npairs(); i++)
+        for (unsigned int i = 0; i < a_.threads() * a_.npairs(); i++)
             reads_.push_back(new char[a_.valuesize()]);
     }
 
@@ -120,7 +120,7 @@ void iobench::benchmark::createData() {
     {
         int id = omp_get_thread_num();
         int start_idx = id * a_.npairs();
-        for (int i = 0; i < a_.npairs(); i++) {
+        for (unsigned int i = 0; i < a_.npairs(); i++) {
             // Set keys
             sprintf(keys_[start_idx], "%i_%i", id, i);
 
@@ -185,7 +185,7 @@ void iobench::benchmark::write(stats & stats) {
     // variability (only permuted if set by command line args)
     std::vector<int> wr_perm;
     wr_perm.reserve(a_.threads() * a_.npairs());
-    for (int i = 0; i < a_.threads() * a_.npairs(); i++) {
+    for (unsigned int i = 0; i < a_.threads() * a_.npairs(); i++) {
         wr_perm.push_back(i);
     }
 
@@ -196,7 +196,7 @@ void iobench::benchmark::write(stats & stats) {
     const unsigned int ops = a_.npairs() * a_.threads();
 
     int wr_viter = 0; // valid iterations = iterations without errors
-    for (int it = 0; it < a_.niter(); it++) {
+    for (unsigned int it = 0; it < a_.niter(); it++) {
         for (unsigned int i = 0; i < db_.size(); i++) {
             //db[i]->deleteDB();
         }
@@ -218,7 +218,7 @@ void iobench::benchmark::write(stats & stats) {
             int id = omp_get_thread_num();
             /////////////////////////////////////////////
             int start_idx = id * a_.npairs();
-            for (int i = 0; i < a_.npairs(); i++) {
+            for (unsigned int i = 0; i < a_.npairs(); i++) {
                 db_[id]->putKV(status[id][i], keys_[wr_perm[start_idx + i]], a_.keysize(), values_[wr_perm[start_idx + i]], a_.valuesize());
             }
             db_[id]->waitKVput(status[id], 0, a_.npairs());
@@ -227,8 +227,8 @@ void iobench::benchmark::write(stats & stats) {
         gettimeofday(&wr_stop, NULL);
 
         int error = 0;
-        for (int t = 0; t < a_.threads(); t++)
-            for (int i = 0; i < a_.npairs(); i++)
+        for (unsigned int t = 0; t < a_.threads(); t++)
+            for (unsigned int i = 0; i < a_.npairs(); i++)
                 if (!status[t][i]->success())
                     error++;
 
@@ -269,7 +269,7 @@ void iobench::benchmark::read(stats & stats) {
     // variability (only permuted if set by command line args)
     std::vector<int> rd_perm;
     rd_perm.reserve(a_.threads() * a_.npairs());
-    for (int i = 0; i < a_.threads() * a_.npairs(); i++) {
+    for (unsigned int i = 0; i < a_.threads() * a_.npairs(); i++) {
         rd_perm.push_back(i);
     }
 
@@ -299,7 +299,7 @@ void iobench::benchmark::read(stats & stats) {
             int id = omp_get_thread_num();
             /////////////////////////////////////////////
             int start_idx = id * a_.npairs();
-            for (int i = 0; i < a_.npairs(); i++) {
+            for (unsigned int i = 0; i < a_.npairs(); i++) {
                 db_[id]->getKV(status[id][i], keys_[rd_perm[start_idx + i]], a_.keysize(), reads_[rd_perm[start_idx + i]], a_.valuesize());
             }
             db_[id]->waitKVget(status[id], 0, a_.npairs());
@@ -308,8 +308,8 @@ void iobench::benchmark::read(stats & stats) {
         gettimeofday(&rd_stop, NULL);
 
         int error = 0;
-        for (int t = 0; t < a_.threads(); t++)
-            for (int i = 0; i < a_.npairs(); i++)
+        for (unsigned int t = 0; t < a_.threads(); t++)
+            for (unsigned int i = 0; i < a_.npairs(); i++)
                 if (!status[t][i]->success())
                     error++;
 
@@ -326,9 +326,9 @@ void iobench::benchmark::read(stats & stats) {
         // If data was written in this execution, check we actually read the same values
         int errval = 0;
         int limit = a_.valuesize() / sizeof(float);
-        for (int id = 0; id < a_.threads(); id++) {
+        for (unsigned int id = 0; id < a_.threads(); id++) {
             int start_idx = id * a_.npairs();
-            for (int i = 0; i < a_.npairs(); i++) {
+            for (unsigned int i = 0; i < a_.npairs(); i++) {
                 float * fvalues = (float *) values_[start_idx];
                 float * freads = (float *) reads_[start_idx];
                 for (int i = 0; i < limit; i++) {

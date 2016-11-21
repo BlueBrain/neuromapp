@@ -16,7 +16,7 @@
 
 
 keyvalue_map::keyvalue_map(bool threadSafe, std::string pdsName):
-        _numReaders(0), _async(false), _numWriters(0){
+        _async(false), _numReaders(0), _numWriters(0){
     _rank = mapp::master.rank();
 }
 

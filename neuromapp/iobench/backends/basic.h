@@ -41,6 +41,8 @@ class BaseKV {
 
     public:
 
+        BaseKV() {}
+        virtual ~BaseKV() {}
         virtual void initDB(iobench::args &a) {}
         virtual void finalizeDB() {}
         virtual inline void putKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size) {}

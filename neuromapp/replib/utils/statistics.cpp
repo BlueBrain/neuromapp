@@ -46,7 +46,7 @@ struct double_int {
 void statistics::process() {
     // First, BW is computed per rank (in MB/s):
     double r_mbw = 0.0;
-    for (int i = 0; i < times_.size(); i++) {
+    for (unsigned int i = 0; i < times_.size(); i++) {
         r_mbw += ((double) bytes_ / times_[i]) / (1024. * 1024.);
     }
     r_mbw /= (double) times_.size();
