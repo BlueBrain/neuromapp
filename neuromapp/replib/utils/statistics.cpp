@@ -44,16 +44,21 @@ struct double_int {
     recorded while the benchmark was running
  */
 void statistics::process() {
-    // First, BW is computed per rank (in MB/s):
-    double r_mbw = 0.0;
-    for (unsigned int i = 0; i < times_.size(); i++) {
-        r_mbw += ((double) bytes_ / times_[i]) / (1024. * 1024.);
-    }
-    r_mbw /= (double) times_.size();
+    // First, compute BW as sum(bytes) / sum(time) for all ranks
+    // Add up values per rank, then reduce across ranks
+    double r_time = std::accumulate(times_.begin(), times_.end(), 0.0);
+    double r_mb = (bytes_ * times_.size()) / (1024. * 1024.);
 
-    // Then, compute average BW  (aggregated and per rank)
-    a_mbw = replib::reduce(r_mbw);
-    g_mbw = a_mbw / c_.procs();
+    // Only rank 0 gets the result
+    double time = replib::reduce(r_time);
+    double mb = replib::reduce(r_mb);
+    if (c_.id() == 0) {
+        g_mbw_ = mb / time;
+        a_mbw_ = g_mbw_ * c_.procs();
+    }
+
+    // Compute BW per rank
+    double r_mbw = r_mb / r_time;
 
     // Find max and min rank statistics (max and min results stored in rank 0)
     double_int me;
@@ -102,11 +107,13 @@ void statistics::process() {
 
 /** \brief the print function */
 void statistics::print(std::ostream& os) const {
+    // WARNING: This relies on the fact that only rank 0 will print
+    // and, actually, only rank 0 has the correct results!
     os << "Mini-app configuration:" << std::endl;
     c_.print(os);
 
-    os << "Average bandwidth: " << g_mbw << " MB/s per rank" << std::endl
-            << "Aggregated bandwidth: " << a_mbw << " MB/s" << std::endl
+    os << "Average bandwidth: " << g_mbw_ << " MB/s per rank" << std::endl
+            << "Aggregated bandwidth: " << a_mbw_ << " MB/s" << std::endl
             << "Max bandwidth: " << max_.mbw_ << " MB/s writing " << max_.size_ / 1024.
             << " KB from rank " << max_.rank_ << std::endl
             << "Min bandwidth: " << min_.mbw_ << " MB/s writing " << min_.size_ / 1024.
@@ -118,7 +125,7 @@ void statistics::print(std::ostream& os) const {
     // avgRankBW (MB/s), aggregatedBW (MB/s), maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
     os << "RLMAPP," << c_.procs() << "," << c_.write() << "," << ( c_.invert() ? "inv" : "seq" ) << ","
             << c_.numcells() << "," << c_.sim_steps() << "," << c_.rep_steps() << "," << std::fixed
-            << g_mbw << "," << a_mbw << "," << max_.mbw_ << "," << max_.size_ << "," << max_.rank_
+            << g_mbw_ << "," << a_mbw_ << "," << max_.mbw_ << "," << max_.size_ << "," << max_.rank_
             << "," << min_.mbw_ << "," << min_.size_ << "," << min_.rank_ << std::endl;
 }
 
