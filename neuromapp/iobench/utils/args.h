@@ -54,6 +54,7 @@ class args {
         unsigned int    key_size_;
         unsigned int    value_size_;
         std::string     backend_;
+        std::string     output_;
         bool            read_;
         bool            write_;
         bool            async_;
@@ -72,11 +73,12 @@ public:
             write template and trait class, to do */
     explicit args(int argc = 0 , char * const argv[] = NULL) :
             procs_(-1), rank_(0), threads_(1), npairs_(1024), key_size_(32), value_size_(1024), backend_("map"),
-            read_(true), write_(true), async_(false), compress_(false), rnd_rd_(true), rnd_wr_(true),
+            output_(""), read_(true), write_(true), async_(false), compress_(false), rnd_rd_(true), rnd_wr_(true),
             niter_(1), skip_(0) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
             argument_helper(v, "-b", backend(),to_string());
+            argument_helper(v, "-o", output(),to_string());
             argument_helper(v, "-n", npairs(),to_uint());
             argument_helper(v, "-i", niter(),to_uint());
             argument_helper(v, "-s", skip(),to_uint());
@@ -201,6 +203,13 @@ public:
     }
 
     /**
+     \brief return the name of the output, read only
+     */
+    inline std::string output() const {
+        return output_;
+    }
+
+    /**
      \brief return asynchronous mode or not, read only
      */
     inline bool async() const {
@@ -308,6 +317,13 @@ public:
     }
 
     /**
+     \brief return the name of the output, write only
+     */
+    inline std::string &output() {
+        return output_;
+    }
+
+    /**
      \brief return asynchronous mode or not, write only
      */
     inline bool &async() {
@@ -398,6 +414,7 @@ public:
 #endif
                 << "  threads_: " << threads() << " \n"
                 << "  backend_: " << backend() << " \n"
+                << "  output_: " << output() << " \n"
                 << "  async_: " << async() << " \n"
                 << "  compress_: " << compress() << " \n"
                 << "  niter_: " << niter() << " \n"

@@ -174,6 +174,19 @@ void iobench::benchmark::createData() {
     }
 #endif
 
+    // Needed in MPI-block backend
+#ifdef IO_MPI
+    db_[0]->notifyBuffers(keys_, values_, reads_);
+#else
+    if (!single_db) {
+        for (unsigned int i = 0; i < db_.size(); i++) {
+            db_[i]->notifyBuffers(keys_, values_, reads_);
+        }
+    } else {
+        db_[0]->notifyBuffers(keys_, values_, reads_);
+    }
+#endif
+
     printf("K/V init data: OK!\n");
 }
 
@@ -213,7 +226,7 @@ void iobench::benchmark::write(stats & stats) {
             std::random_shuffle (wr_perm.begin(), wr_perm.end());
 
         gettimeofday(&wr_start, NULL);
-        #pragma omp parallel default(shared) //shared(keys_, values_, wr_perm, status) not allowed since there are class members
+        #pragma omp parallel default(shared) //shared(keys_, values_, wr_perm, status) not allowed since they are class members
         {
             int id = omp_get_thread_num();
             /////////////////////////////////////////////
