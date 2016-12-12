@@ -49,7 +49,8 @@ class statistics {
          */
         explicit statistics(replib::config const& conf = replib::config(),
                 unsigned int bytes = 0, std::vector<double> times = std::vector<double>()) :
-                c_(conf), bytes_(bytes), times_(times), g_mbw_(0.), a_mbw_(0.), max_(), min_() {}
+                c_(conf), bytes_(bytes), times_(times), g_mbw_(0.), a_mbw_(0.), owc_mbw_(0.),
+                wc_mbw_(0.), w_mbw_(0.), max_(), min_() {}
 
         inline unsigned int bytes() const {return bytes_;}
         inline double mbw() const {return g_mbw_;}
@@ -63,8 +64,11 @@ class statistics {
         replib::config const &c_;
         unsigned int bytes_;
         std::vector<double> times_;
-        double g_mbw_;
-        double a_mbw_;
+        double g_mbw_; // Rank BW (MB/s)
+        double a_mbw_; // Aggregated BW (MB/s)
+        double owc_mbw_; // open+write+close aggregated BW (MB/s)
+        double wc_mbw_; // write+close aggregated BW (MB/s)
+        double w_mbw_; // Write-only aggregated BW (MB/s)
         bw_stats max_;
         bw_stats min_;
 };
