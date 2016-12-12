@@ -139,12 +139,22 @@ class benchmark {
             float * bufferToFill = &buffer1[0];
             float * bufferToWrite = &buffer2[0];
 
+            // Use MPI_Info to disable collective buffers if using IME backend
+            MPI_Info info;
+            MPI_Info_create(&info);
+            std::string ime("ime:/");
+            if (c_.output_report().compare(0, ime.length(), ime) == 0) {
+                MPI_Info_set (info, "romio_ds_write", "disable");
+                MPI_Info_set (info, "romio_cb_write", "disable");
+            }
+
             //Open the file
             MPI_File fh;
             char * report = strdup(c_.output_report().c_str());
-            int error = MPI_File_open(MPI_COMM_WORLD, report, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+            int error = MPI_File_open(MPI_COMM_WORLD, report, MPI_MODE_WRONLY | MPI_MODE_CREATE, info, &fh);
+
             if (error != MPI_SUCCESS) {
-                std::cout << "[" << c_.id() << "] Error opening file" << std::endl;
+                std::cout << "[" << c_.id() << "] Error opening file: " << report << std::endl;
                 MPI_Abort(MPI_COMM_WORLD, 911);
             }
 
@@ -160,7 +170,7 @@ class benchmark {
             // Timer used to compute the time spent inside MPI I/O collective only
             mapp::timer t_io;
 
-            // Timer used to simulation the computational phase
+            // Timer used to simulate the computational phase
             mapp::timer t_comp;
 
             // Number of reporting steps
@@ -268,7 +278,7 @@ class benchmark {
                 c_.passed() = (passed == 1) ? true : false;
             }
 
-            replib::statistics s(c_, f_->total_bytes(), welapsed);
+            replib::statistics s(c_, sizeToWrite, welapsed);
 
             return s;
         }
@@ -443,7 +453,7 @@ class benchmark {
                 c_.passed() = (passed == 1) ? true : false;
             }
 
-            replib::statistics s(c_, f_->total_bytes(), welapsed);
+            replib::statistics s(c_, sizeToWrite, welapsed);
 
             return s;
         }
