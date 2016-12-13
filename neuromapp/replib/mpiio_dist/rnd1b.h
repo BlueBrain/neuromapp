@@ -61,9 +61,9 @@ fileview * rnd1b(config & c) {
     }
 
     // Number of elements that this process will write at every simulation step
-    unsigned int elemsToWrite = compCount;
+    unsigned long elemsToWrite = (unsigned long) compCount;
     // Number of elements that this process will write at every reporting step
-    elemsToWrite *= c.sim_steps();
+    elemsToWrite *= (unsigned long) c.sim_steps();
 
     fileview * f = common1b(c, elemsToWrite * sizeof(float));
 

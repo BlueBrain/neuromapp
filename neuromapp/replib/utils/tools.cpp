@@ -50,8 +50,13 @@ bool replib::check_report (char * report, int nwrites, int repCycleElems, int mp
         MPI_Abort(MPI_COMM_WORLD, 911);
     }
 
-    int readSize = repCycleElems * sizeof(float);
+    unsigned long readSize = repCycleElems * sizeof(float);
     float * readValues = (float *) malloc(readSize);
+
+    if (readValues == 0) {
+        std::cout << "Don't have enough memory to check report, aborting check..." << std::endl;
+        return false;
+    }
 
     // Scan first dt to find out the number of compartments per rank and distributions
     memset(readValues, 0, readSize);

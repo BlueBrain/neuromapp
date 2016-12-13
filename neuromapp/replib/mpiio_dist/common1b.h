@@ -34,10 +34,10 @@ namespace replib {
     \brief common code to create the fileview object needed by MPI_File_set_view
     when each process writes a single, contiguous block of data
  */
-inline fileview * common1b(config & c, unsigned int bytesToWrite) {
+inline fileview * common1b(config & c, unsigned long bytesToWrite) {
 
     // Number of elements to skip for this process (in bytes)
-    int offsetBytes = 0;
+    unsigned long offsetBytes = 0;
 
     // Write buffer treated as a single block, so it's like we process a single cell
     c.numcells() = 1;
@@ -51,23 +51,23 @@ inline fileview * common1b(config & c, unsigned int bytesToWrite) {
     f->add_length(1);
 
     // Find out the offset for this process with respect its lower ranks
-    int bytesPerStep = 0;
+    unsigned long bytesPerStep = 0;
     if (c.procs() > 1) {
         MPI_Status status;
         if (c.id() == 0) {
             offsetBytes = 0;
-            int lastByte = offsetBytes + bytesToWrite;
-            MPI_Send(&lastByte, 1, MPI_INT, c.id()+1, c.id(), MPI_COMM_WORLD);
+            unsigned long lastByte = offsetBytes + bytesToWrite;
+            MPI_Send(&lastByte, 1, MPI_UNSIGNED_LONG, c.id()+1, c.id(), MPI_COMM_WORLD);
         } else {
-            MPI_Recv(&offsetBytes, 1, MPI_INT, c.id()-1, c.id()-1, MPI_COMM_WORLD, &status);
-            int lastByte = offsetBytes + bytesToWrite;
+            MPI_Recv(&offsetBytes, 1, MPI_UNSIGNED_LONG, c.id()-1, c.id()-1, MPI_COMM_WORLD, &status);
+            unsigned long lastByte = offsetBytes + bytesToWrite;
             if (c.id() < c.procs()-1) {
-                MPI_Send(&lastByte, 1, MPI_INT, c.id()+1, c.id(), MPI_COMM_WORLD);
+                MPI_Send(&lastByte, 1, MPI_UNSIGNED_LONG, c.id()+1, c.id(), MPI_COMM_WORLD);
             } else {
                 bytesPerStep = lastByte;
             }
         }
-        MPI_Bcast(&bytesPerStep, 1, MPI_INT, c.procs()-1, MPI_COMM_WORLD);
+        MPI_Bcast(&bytesPerStep, 1, MPI_UNSIGNED_LONG, c.procs()-1, MPI_COMM_WORLD);
     } else {
         // Single process running, no need to coordinate with others
         bytesPerStep = bytesToWrite;
