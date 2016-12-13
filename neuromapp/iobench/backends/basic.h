@@ -35,6 +35,8 @@
 class KVStatus {
     public:
         virtual bool success() { return true; }
+
+        virtual std::string getErrorString() { return std::string();}
 };
 
 class BaseKV {

@@ -175,15 +175,13 @@ void iobench::benchmark::createData() {
 #endif
 
     // Needed in MPI-block backend
-#ifdef IO_MPI
-    db_[0]->notifyBuffers(keys_, values_, reads_);
-#else
-    if (!single_db) {
-        for (unsigned int i = 0; i < db_.size(); i++) {
-            db_[i]->notifyBuffers(keys_, values_, reads_);
-        }
-    } else {
-        db_[0]->notifyBuffers(keys_, values_, reads_);
+    db_[0]->notifyBuffers(keys_, a_.keysize(), values_, a_.valuesize(), reads_);
+#ifndef IO_MPI
+    BaseKV * lastDB;
+    lastDB = db_[0];
+    for (unsigned int i = 1; i < db_.size() && db_[i] != lastDB; i++) {
+        db_[i]->notifyBuffers(keys_, a_.keysize(), values_, a_.valuesize(), reads_);
+        lastDB = db_[i];
     }
 #endif
 
@@ -294,7 +292,7 @@ void iobench::benchmark::read(stats & stats) {
 
 
     int rd_viter = 0; // valid iterations = iterations without errors
-    for (int it = 0; it < 1 /*niter*/; it++) {
+    for (int it = 0; it < 1 /*a_.niter()*/; it++) {
         std::vector< std::vector<KVStatus *> > status;
         for (unsigned int i = 0; i < db_.size(); i++) {
             std::vector<KVStatus *> s;

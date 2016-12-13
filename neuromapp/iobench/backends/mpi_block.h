@@ -42,22 +42,41 @@
 
 class KVStatusMPIB : public KVStatus {
     public:
-        bool success() { return true; }
+        int _error;
+
+        bool success() { return _error == MPI_SUCCESS; }
+
+        std::string getErrorString()
+        {
+            int length = 1024;
+            char err[1024];
+            /*int error = */ MPI_Error_string(_error, err, &length);
+            return std::string(err);
+        }
 };
 
+struct MPIFileDescriptor {
+        char *       _path;
+        MPI_File     _file;
+        MPI_Info     _info;
+        MPI_Datatype _filetype;
+
+};
 
 class MPIBKV : public BaseKV {
 
     private:
         // Use a large buffer to avoid caching benefits
-        float *      _buffer;
-        size_t       _bufferSize;
-        unsigned int _index;
-        size_t       _blockSize;
-        MPI_File     _file;
+        float *           _buffer;
+        size_t            _bufferSize;
+        unsigned int      _index;
+        size_t            _blockSize; // Size of all blocks written by all ranks in 1 iteration
+        MPIFileDescriptor _fileDesc;
+
+        void openFile(iobench::args *a = NULL);
 
     public:
-        MPIBKV() : _buffer(), _bufferSize(0), _index(0), _blockSize(0), _file() {}
+        MPIBKV() : _buffer(NULL), _bufferSize(0), _index(0), _blockSize(0), _fileDesc() {}
         void initDB(iobench::args &a);
         void notifyBuffers(std::vector<char *> &keys, size_t key_size, std::vector<char *> &values, size_t value_size, std::vector<char *> &reads);
         void finalizeDB() {}
@@ -71,15 +90,78 @@ class MPIBKV : public BaseKV {
         void createKVStatus(int n, std::vector<KVStatus *> &status);
 };
 
+
+/** \fn void openFile()
+    \brief Use MPI to open the file and set the fileview
+ */
+void MPIBKV::openFile(iobench::args *a)
+{
+    // args are only needed the first time
+    if (_fileDesc._path == NULL && a == NULL) {
+        std::cout << "ERROR: MPIBKV::openFile() needs iobench::args the first time is called!" << std::endl;
+    }
+
+    if (a != NULL) {
+        // Set the needed information in _fileDesc so that the file can be open multiple
+        // times without needing args
+        std::string output = (a->output().empty()) ? "./test_kv_mpib.bin" : a->output();
+        _fileDesc._path = strdup(output.c_str());
+
+        MPI_Info_create(&_fileDesc._info);
+        // Use MPI_Info to disable collective buffers if using IME backend
+        std::string ime("ime:/");
+        if (output.compare(0, ime.length(), ime) == 0) {
+            MPI_Info_set (_fileDesc._info, "romio_ds_write", "disable");
+            MPI_Info_set (_fileDesc._info, "romio_cb_write", "disable");
+        }
+
+        // Set fileview
+         int elems = 3; // LB + 1 block of data + UB
+         size_t min_size = a->valuesize() * a->npairs();
+         _blockSize = min_size * a->procs();
+         int lengths[] = {1, min_size, 1};
+         MPI_Aint displacements[] = {0, min_size * a->rank(), _blockSize};
+         MPI_Datatype data_types[] = {MPI_LB, MPI_BYTE, MPI_UB};
+
+         MPI_Type_struct(elems, &lengths[0], &displacements[0], &data_types[0], &_fileDesc._filetype);
+         MPI_Type_commit(&_fileDesc._filetype);
+
+    }
+
+    // Open file
+    int error = MPI_File_open(MPI_COMM_WORLD, _fileDesc._path, MPI_MODE_RDWR | MPI_MODE_CREATE, _fileDesc._info, &_fileDesc._file);
+    if (error != MPI_SUCCESS) {
+        std::cout << "[" << mapp::controler::getInstance().rank() << "] Error opening file: "
+                << _fileDesc._path << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 911);
+    }
+
+    // Apply the view
+    // No header data in mini-app
+    MPI_Offset position_to_write = 0;
+
+    char native[10] = "native";
+    error = MPI_File_set_view(_fileDesc._file, position_to_write, MPI_FLOAT, _fileDesc._filetype, native, MPI_INFO_NULL);
+    if (error != MPI_SUCCESS) {
+        std::cout << "[" << mapp::controler::getInstance().rank() << "] Error setting file view" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 913);
+    }
+
+    // Index should be reset here
+    _index = 0;
+}
+
+
 /** \fn void initDB(iobench::args &a)
     \brief Init the needed data for the specific DB
  */
 void MPIBKV::initDB(iobench::args &a)
 {
     // Disable OpenMP, as we're using MPI I/O to write
-    if (omp_get_num_threads() > 1) {
+    if (a.threads() > 1) {
         std::cout << "WARNING: iobench with MPI-block backend does not support multi-threading, setting OMP num threads to 1!" << std::endl;
         omp_set_num_threads(1);
+        a.threads() = 1;
     }
 
     // Try to allocate a buffer large enough (first attempt: 1 GB)
@@ -88,7 +170,7 @@ void MPIBKV::initDB(iobench::args &a)
 
     // If malloc fails (returns 0), try smaller values
     // Minimum size to allocate is the size needed for 1 iteration
-    size_t min_size = a_.valuesize() * a_.npairs();
+    size_t min_size = a.valuesize() * a.npairs();
     while (_buffer == 0) {
         _bufferSize /= 2;
         if (_bufferSize < min_size) {
@@ -98,45 +180,10 @@ void MPIBKV::initDB(iobench::args &a)
         _buffer = (float *) malloc(_bufferSize);
     }
 
-    // Open file
-    char * report = strdup(a.output().c_str());
-    MPI_Info info;
-    MPI_Info_create(&info);
-
-    // Use MPI_Info to disable collective buffers if using IME backend
-    std::string ime("ime:/");
-    if (a.output().compare(0, ime.length(), ime) == 0) {
-        MPI_Info_set (info, "romio_ds_write", "disable");
-        MPI_Info_set (info, "romio_cb_write", "disable");
-    }
-
-    int error = MPI_File_open(MPI_COMM_WORLD, report, MPI_MODE_WRONLY | MPI_MODE_CREATE, info, &_file);
-    if (error != MPI_SUCCESS) {
-        std::cout << "[" << a.rank() << "] Error opening file: " << report << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 911);
-    }
-
-    // Set fileview
-    int elems = 3; // LB + 1 block of data + UB
-    size_t total_bytes = min_size * a.procs();
-    std::vector<int> lengths = {1, min_size, 1};
-    std::vector<MPI_Aint> displacements = {0, min_size * a.id(), total_bytes};
-    std::vector<MPI_Datatype> data_types = {MPI_LB, MPI_BYTE, MPI_UB};
-    MPI_Datatype filetype;
-
-    // Apply the view
-    MPI_Type_struct(elems, &lengths[0], &displacements[0], &data_types[0], &filetype);
-    MPI_Type_commit(&filetype);
-
-    // No header data in miniapp
-    MPI_Offset position_to_write = 0;
-
-    char native[10] = "native";
-    error = MPI_File_set_view(_file, position_to_write, MPI_FLOAT, filetype, native, MPI_INFO_NULL);
-    if (error != MPI_SUCCESS) {
-        std::cout << "[" << a.rank() << "] Error setting file view" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 913);
-    }
+    // Init file descriptor properly and open file
+    _fileDesc._path = NULL;
+    _fileDesc._file = 0;
+    openFile(&a);
 }
 
 /** \fn void notifyBuffers(std::vector<char *> &keys, size_t key_size, std::vector<char *> &values, size_t value_size, std::vector<char *> &reads)
@@ -145,15 +192,15 @@ void MPIBKV::initDB(iobench::args &a)
 void MPIBKV::notifyBuffers(std::vector<char *> &keys, size_t key_size, std::vector<char *> &values, size_t value_size, std::vector<char *> &reads)
 {
     // Number of times 'values' vector fits in '_buffer'
-    unsigned int times = (values.size() * value_size) / _bufferSize;
+    unsigned int times = _bufferSize / (values.size() * value_size);
     // Set _bufferSize accordingly and ignore the remaining part of the buffer
     _bufferSize = times * values.size() * value_size;
     // Index _buffer as a char *
-    char * buffer = _buffer;
+    char * buffer = (char *) _buffer;
     size_t offset = 0;
     for (unsigned int t = 0; t < times; t++) {
         for (unsigned int v = 0; v < values.size(); v++) {
-            std::memcpy(buffer[offset], values[v], value_size);
+            std::memcpy(&buffer[offset], values[v], value_size);
             offset += value_size;
         }
     }
@@ -166,23 +213,23 @@ inline void MPIBKV::putKV(KVStatus * kvs, void * key, size_t key_size, void * va
 {
     // mpi file write at index, jump bsize for next, %buf size
     MPI_Status status;
-    int error = MPI_File_write_all(_file, &_buffer[_index], value_size / sizeof(float), MPI_FLOAT, &status);
+    ((KVStatusMPIB *) kvs)->_error = MPI_File_write_all(_fileDesc._file, &_buffer[_index], value_size / sizeof(float), MPI_FLOAT, &status);
     _index += value_size / sizeof(float);
     if (_index >= _bufferSize) _index = 0;
+
+    //((KVStatusMPIB *) kvs)->_error = MPI_File_write_all(_fileDesc._file, value, value_size / sizeof(float), MPI_FLOAT, &status);
+
 }
 
-/** \fn size_t putKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size)
+/** \fn size_t getKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size)
     \brief Retrieve from the DB the associated value to the given key. Returns retrieved value size
  */
 inline size_t MPIBKV::getKV (KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size)
 {
-    // ????
-    size_t str_size = 0;
-    //std::memcpy(value, v.first, std::min(value_size, str_size));
-    //if (str_size != value_size)
-    //    std::cout << "Str size(" << str_size << ") & val size(" << value_size << ") DIFFER!!!" << std::endl;
-
-    return str_size;
+    MPI_Status status;
+    ((KVStatusMPIB *) kvs)->_error = MPI_File_read_at(_fileDesc._file, _index, value, value_size/sizeof(float), MPI_FLOAT, &status);
+    _index += value_size;
+    return value_size;
 }
 
 /** \fn void waitKVput(std::vector<KVStatus *> &status, int start, int end)
@@ -190,12 +237,14 @@ inline size_t MPIBKV::getKV (KVStatus * kvs, void * key, size_t key_size, void *
  */
 inline void MPIBKV::waitKVput(std::vector<KVStatus *> &status, int start, int end)
 {
+    // TODO: Use KVStatus to control the success of this operation?
     // close file to force flushing
-    int error = MPI_File_close(&_file);
+    int error = MPI_File_close(&_fileDesc._file);
     if (error != MPI_SUCCESS) {
-        std::cout << "[" << c_.id() << "] Error closing file" << std::endl;
+        std::cout << "[" << mapp::controler::getInstance().rank() << "] Error closing file" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 912);
     }
+    _fileDesc._file = 0;
     _index = 0;
 }
 
@@ -215,6 +264,10 @@ void MPIBKV::createKVStatus(int n, std::vector<KVStatus *> &status)
     for (int i = 0; i < n; i++) {
         status.push_back(new KVStatusMPIB());
     }
+
+    // Calling this function indicates that a write/read operation will follow
+    // Since waitKVput() closes the file, make sure it's open again
+    if (_fileDesc._file == 0) openFile(NULL);
 }
 
 

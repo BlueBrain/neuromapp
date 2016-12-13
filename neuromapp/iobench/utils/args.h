@@ -73,7 +73,7 @@ public:
             write template and trait class, to do */
     explicit args(int argc = 0 , char * const argv[] = NULL) :
             procs_(-1), rank_(0), threads_(1), npairs_(1024), key_size_(32), value_size_(1024), backend_("map"),
-            output_(""), read_(true), write_(true), async_(false), compress_(false), rnd_rd_(true), rnd_wr_(true),
+            output_(), read_(true), write_(true), async_(false), compress_(false), rnd_rd_(true), rnd_wr_(true),
             niter_(1), skip_(0) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
