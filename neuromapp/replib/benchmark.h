@@ -309,9 +309,6 @@ class benchmark {
             // Number of reporting steps
             int rep_steps = c_.rep_steps();
 
-            // Number of simulation steps for each reporting step
-            int sim_steps = c_.sim_steps();
-
             // Constants to calculate values of output buffer
             // Value = RANK_ID * units + reporting_step "." index_in_buffer
             // E.g.: Value = 23045.0117 --> Value written by rank 23, at the 45th
@@ -357,6 +354,7 @@ class benchmark {
             unsigned int times = bufSize / sizeToWrite;
             // Set _bufferSize accordingly and ignore the remaining part of the buffer
             bufSize = times * sizeToWrite;
+            size_t bufElems = bufSize / sizeof(float);
             // Index _buffer as a char *
             size_t offset = 0;
             // Copy 'buffer1' into 'buf'
@@ -411,7 +409,7 @@ class benchmark {
                 MPI_Status status;
                 error = MPI_File_write_all(fh, &buf[bufIdx], compCount, MPI_FLOAT, &status);
                 bufIdx += compCount;
-                if (bufIdx >= bufSize) bufIdx = 0;
+                if (bufIdx >= bufElems) bufIdx = 0;
 
                 if (error != MPI_SUCCESS) {
                     std::cout << "[" << c_.id() << "] Error writing file" << std::endl;
