@@ -38,6 +38,7 @@
 #include "replib/mpiio_dist/fileNb.h"
 
 #include "utils/mpi/timer.h"
+#include "utils/mpi/error.h"
 
 namespace replib {
 
@@ -412,7 +413,7 @@ class benchmark {
                 if (bufIdx >= bufElems) bufIdx = 0;
 
                 if (error != MPI_SUCCESS) {
-                    std::cout << "[" << c_.id() << "] Error writing file" << std::endl;
+                    std::cout << "[" << c_.id() << "] Error writing file: " << mapp::MPIError::errorToString(error) << std::endl;
                     MPI_Abort(MPI_COMM_WORLD, 915);
                 }
 
@@ -423,11 +424,6 @@ class benchmark {
             t_io.toc();
             welapsed.push_back(t_io.time());
 
-            //std::stringstream ss2;
-            //ss2 << "[" << c_.id() << "] total size = " << compCount * sizeof(float) * nwrites
-            //<< " bytes ; write only time = " << t_io.time() << " seconds" << std::endl;
-            //std::cout << mapp::mpi_filter_all() << ss2.str() << mapp::mpi_filter_master();
-
             t_io.tic();
             error = MPI_File_close(&fh);
             if (error != MPI_SUCCESS) {
@@ -436,6 +432,13 @@ class benchmark {
             }
             t_io.toc();
             welapsed.push_back(t_io.time());
+
+            //std::stringstream ss2;
+            //ss2 << "[" << c_.id() << "] total size = " << compCount * sizeof(float) * nwrites << " bytes ; "
+            //<< "MPI_File_open() time = " << welapsed[0] << " seconds" 
+            //<< "MPI_File_write() time = " << welapsed[1] << " seconds" 
+            //<< "MPI_File_close() time = " << welapsed[2] << " seconds" << std::endl;
+            //std::cout << mapp::mpi_filter_all() << ss2.str() << mapp::mpi_filter_master();
 
             if (buf != buffer1) free(buf);
             free(buffer1);
