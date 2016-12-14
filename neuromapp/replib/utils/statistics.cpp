@@ -47,7 +47,7 @@ void statistics::process() {
     // First, compute BW as sum(bytes) / sum(time) for all ranks
     // Add up values per rank, then reduce across ranks
     double r_time = std::accumulate(times_.begin(), times_.end(), 0.0);
-    double r_mb = (bytes_ * times_.size()) / (1024. * 1024.);
+    double r_mb = (bytes_ * (double) c_.rep_steps()) / (1024. * 1024.);
 
     // Only rank 0 gets the result
     double time = replib::reduce(r_time);
