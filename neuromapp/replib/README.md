@@ -22,6 +22,8 @@ as follows:
 
 2) Run test:
 
+  A) ReportingLib-like style
+
 ```
     for "r" reporting_steps {
         for "s" simulation_steps {
@@ -29,8 +31,26 @@ as follows:
             create_data_in_bufferToFill
         }
         swap_buffers(bufferToFill, bufferToWrite)
+        start_io_timer()
+        MPI_File_write_all(bufferToWrite)
+        stop_io_timer()
+    }
+```
+
+  B) IOR-like style
+
+```
+    start_io_timer()
+    open_file()
+    stop_io_timer()
+    start_io_timer()
+    for "r" reporting_steps {
         MPI_File_write_all(bufferToWrite)
     }
+    stop_io_timer()
+    start_io_timer()
+    close_file()
+    stop_io_timer()
 ```
 
 3) Finalization
@@ -68,7 +88,8 @@ Here's a more detailed description:
     (default, 15)
 * --rep-steps, -r [int]: Number of reporting steps. 1 reporting step happens every 
     'sim-steps' simulation steps (default, 1)
-* --time, -t [int]: Amount of time (in ms) spent in 1 simulation step (default, 100)
+* --time, -t [int]: Amount of time (in ms) spent in 1 simulation step (default, 100).
+    If 0 is passed, replib changes its behavior to an IOR-like benchmark
 * --check, -c: If present, verify the output report was correctly written 
     (no check by default)
 
@@ -123,6 +144,11 @@ Some other relevant information for this mini-app:
   be at least the number of MPI processes. If using an input distribution file, it 
   should be enough to check that there are at least as many lines as the number of 
   MPI processes.
+  
+* Depending on the benchmark style: ReportingLib-like or IOR-like, some of the reported
+  statistics may not make sense. For example, when using the ReportingLib-like style,
+  time for open and closing the file is not accounted, so statistics referring to these
+  operations may not hold valid data.
 
 ## Examples ##
 
