@@ -148,7 +148,22 @@ Some other relevant information for this mini-app:
 * Depending on the benchmark style: ReportingLib-like or IOR-like, some of the reported
   statistics may not make sense. For example, when using the ReportingLib-like style,
   time for open and closing the file is not accounted, so statistics referring to these
-  operations may not hold valid data.
+  operations may not hold valid data:
+    - In ReportingLib-like style: only rank bandwidth and aggregated bandwidth make sense.
+      The other reported values are copied from the aforementioned ones.
+      
+    - In IOR-like style: the following three options are reported:
+      + Aggregated bandwidth of the three operations: open_file + write_file + close_file
+
+      + Aggregated bandwidth of the two operations: write_file + close_file
+        (this option is also reported as the regular rank and aggregated bandwidth)
+
+      + Aggregated bandwidth of the write operation: write_file
+
+  The IOR-like style can be useful in environments where I/O internal buffers are flushed
+  during simulated computational phase and, therefore, potentially impact the reported 
+  performance. Please, note that this option effectively measures system's bandwidth, and
+  NOT ReportingLib behavior and I/O impact.
 
 ## Examples ##
 
