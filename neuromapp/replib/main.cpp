@@ -62,7 +62,7 @@ int replib_help(int argc, char* const argv[], po::variables_map& vm){
 
     ("rep-steps,r", po::value<int>()->default_value(1), "[int] Number of reporting steps (1 reporting step happens every 'sim-steps' simulation steps)")
 
-    ("time,t", po::value<int>()->default_value(100), "[int] Amount of time spent in 1 simulation step (in ms)")
+    ("time,t", po::value<int>()->default_value(100), "[int] Amount of time spent in 1 simulation step (in ms). If 0 is passed, replib changes its behavior to an IOR-like benchmark.")
 
     ("check,v", "Verify the output report was correctly written");
 

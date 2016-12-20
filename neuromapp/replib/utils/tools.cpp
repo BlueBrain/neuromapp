@@ -36,7 +36,7 @@
 
 
 
-bool replib::check_report (char * report, int nwrites, int repCycleElems, int mpiSize) {
+bool replib::check_report (char * report, int nwrites, int repCycleElems, int mpiSize, float units, int decimals) {
 
     // Vector of pairs: <rank, count> to illustrate the sequence of data
     std::vector< std::pair<int, int> > compsPerRank;
@@ -50,8 +50,13 @@ bool replib::check_report (char * report, int nwrites, int repCycleElems, int mp
         MPI_Abort(MPI_COMM_WORLD, 911);
     }
 
-    int readSize = repCycleElems * sizeof(float);
+    unsigned long readSize = repCycleElems * sizeof(float);
     float * readValues = (float *) malloc(readSize);
+
+    if (readValues == 0) {
+        std::cout << "Don't have enough memory to check report, aborting check..." << std::endl;
+        return false;
+    }
 
     // Scan first dt to find out the number of compartments per rank and distributions
     memset(readValues, 0, readSize);
@@ -65,7 +70,7 @@ bool replib::check_report (char * report, int nwrites, int repCycleElems, int mp
     int lastRank = -1;
     int count = 0;
     for (int s = 0; s < repCycleElems; s++) {
-        int rank = std::floor(readValues[s]) / 1000;
+        int rank = std::floor(readValues[s]) / units;
         if (lastRank != rank) {
             count = 0;
             compsPerRank.push_back(std::make_pair(rank, count));
@@ -97,11 +102,15 @@ bool replib::check_report (char * report, int nwrites, int repCycleElems, int mp
         MPI_File_read_at(fh, mpioff, readValues, repCycleElems, MPI_FLOAT, &status);
         //std::cout << "----------------------------- Reading values for time step " << i << " -----------------------------" << std::endl;
         for (int s = 0; s < repCycleElems; s++) {
-            float expected = (float) compsPerRank[pairIdx].first * 1000.0 + (float) i + (float) ((rankIdx[compsPerRank[pairIdx].first]%1000) + 1.0) / 1000.0;
-            // We're using 4 decimals, so no need to check for more precision
-            if (fabs(readValues[s] - expected) > 0.0001) {
+            // Value expected for replib benchmark
+            float expected1 = (float) compsPerRank[pairIdx].first * units + (float) i + (float) ((rankIdx[compsPerRank[pairIdx].first]%decimals) + 1.0) / (float) decimals;
+            // Value expected for IOR-like benchmark (no 'i')
+            float expected2 = (float) compsPerRank[pairIdx].first * units + (float) ((rankIdx[compsPerRank[pairIdx].first]%decimals) + 1.0) / (float) decimals;
+            // Set precision depending on the number of decimals
+            float precision = 1.0 / (float) decimals;
+            if ((fabs(readValues[s] - expected1) > precision) && (fabs(readValues[s] - expected2) > precision)) {
                 error++;
-                //std::cout << std::fixed << std::setprecision(4) << readValues[s] << "<--ERROR(" << expected << ")!!    ";
+                //std::cout << std::fixed << std::setprecision(4) << readValues[s] << "<--ERROR(" << expected1 << " OR " << expected2 << ")!!    ";
             }
             currCount++;
             rankIdx[compsPerRank[pairIdx].first]++;
