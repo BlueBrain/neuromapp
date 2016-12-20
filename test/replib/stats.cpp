@@ -26,6 +26,7 @@
 #define BOOST_TEST_MODULE replibStatsTEST
 
 #include <vector>
+#include <numeric>
 
 #include <boost/test/unit_test.hpp>
 #include "replib/utils/statistics.h"
@@ -67,21 +68,27 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
 
     replib::statistics st(c, bytes, times);
 
-    // Compute average bw
-    double avgb = 0.0;
-    double mb = (double) bytes / (1024.*1024.);
-    for (unsigned int i = 0; i < times.size(); i++) {
-        avgb += mb / times[i];
-    }
-    avgb /= (double) times.size();
+    // Compute bytes and time per rank
+    double rmb = (double) bytes / (1024.*1024.);
+    double rtime = std::accumulate(times.begin(), times.end(), 0.0);
+    double rbw = rmb/ rtime;
 
-    // Compute aggregated bw
+    // Compute aggregated values, only rank 0 gets the result
+    double time = 0.0;
+    MPI_Reduce(&rtime, &time, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    double mb = 0.0;
+    MPI_Reduce(&rmb, &mb, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    double avgb = 0.0;
     double aggrb = 0.0;
-    MPI_Reduce(&avgb, &aggrb, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    if (mpi_rank == 0) {
+        avgb = mb / time;
+        aggrb = avgb * mpi_size;
+    }
 
     // Compute max and min ranks
     double_int me, max, min;
-    me.d_ = avgb;
+    me.d_ = rbw;
     me.i_ = mpi_rank;
     MPI_Reduce(&me, &max, 1, MPI_DOUBLE_INT, MPI_MAXLOC, 0, MPI_COMM_WORLD);
     MPI_Reduce(&me, &min, 1, MPI_DOUBLE_INT, MPI_MINLOC, 0, MPI_COMM_WORLD);
@@ -95,10 +102,6 @@ BOOST_AUTO_TEST_CASE(stats_killer_mpi_test){
     min_st.size_ = bytes;
     min_st.time_ = 0.0;
     min_st.mbw_ = min.d_;
-
-    // Finally, compute average bw for one rank
-    // Rank's original avgb is needed to compute max & min, so do not overwrite until this point!
-    avgb = aggrb / (double) mpi_size;
 
     st.process();
 
