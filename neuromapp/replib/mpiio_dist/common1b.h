@@ -34,10 +34,10 @@ namespace replib {
     \brief common code to create the fileview object needed by MPI_File_set_view
     when each process writes a single, contiguous block of data
  */
-inline fileview * common1b(config & c, unsigned int elemsToWrite) {
+inline fileview * common1b(config & c, unsigned long bytesToWrite) {
 
-    // Number of elements to skip for this process
-    int offsetElems;
+    // Number of elements to skip for this process (in bytes)
+    unsigned long offsetBytes = 0;
 
     // Write buffer treated as a single block, so it's like we process a single cell
     c.numcells() = 1;
@@ -46,42 +46,41 @@ inline fileview * common1b(config & c, unsigned int elemsToWrite) {
     // Used by MPI
     f->add_length(1);
     // Number of elements this process will write
-    f->add_length(elemsToWrite);
+    f->add_length(bytesToWrite);
     // Imitating Report::prepareBuffer() behavior
     f->add_length(1);
 
     // Find out the offset for this process with respect its lower ranks
-    int elemsPerStep = 0;
-    elemsToWrite = elemsToWrite / sizeof(float);
+    unsigned long bytesPerStep = 0;
     if (c.procs() > 1) {
         MPI_Status status;
         if (c.id() == 0) {
-            offsetElems = 0;
-            int lastElem = offsetElems + elemsToWrite;
-            MPI_Send(&lastElem, 1, MPI_INT, c.id()+1, c.id(), MPI_COMM_WORLD);
+            offsetBytes = 0;
+            unsigned long lastByte = offsetBytes + bytesToWrite;
+            MPI_Send(&lastByte, 1, MPI_UNSIGNED_LONG, c.id()+1, c.id(), MPI_COMM_WORLD);
         } else {
-            MPI_Recv(&offsetElems, 1, MPI_INT, c.id()-1, c.id()-1, MPI_COMM_WORLD, &status);
-            int lastElem = offsetElems + elemsToWrite;
+            MPI_Recv(&offsetBytes, 1, MPI_UNSIGNED_LONG, c.id()-1, c.id()-1, MPI_COMM_WORLD, &status);
+            unsigned long lastByte = offsetBytes + bytesToWrite;
             if (c.id() < c.procs()-1) {
-                MPI_Send(&lastElem, 1, MPI_INT, c.id()+1, c.id(), MPI_COMM_WORLD);
+                MPI_Send(&lastByte, 1, MPI_UNSIGNED_LONG, c.id()+1, c.id(), MPI_COMM_WORLD);
             } else {
-                elemsPerStep = lastElem;
+                bytesPerStep = lastByte;
             }
         }
-        MPI_Bcast(&elemsPerStep, 1, MPI_INT, c.procs()-1, MPI_COMM_WORLD);
+        MPI_Bcast(&bytesPerStep, 1, MPI_UNSIGNED_LONG, c.procs()-1, MPI_COMM_WORLD);
     } else {
         // Single process running, no need to coordinate with others
-        elemsPerStep = elemsToWrite;
+        bytesPerStep = bytesToWrite;
     }
 
-    c.elems_per_step() = elemsPerStep;
+    c.elems_per_step() = bytesPerStep / sizeof(float);
 
     // Lower bound
     f->add_disp(0);
     // Displacement
-    f->add_disp(offsetElems * sizeof(float));
+    f->add_disp(offsetBytes);
     // Upper bound
-    f->add_disp(elemsPerStep * sizeof(float));  //total bytes consumed by one reporting step
+    f->add_disp(bytesPerStep);  //total bytes consumed by one reporting step
 
     f->add_dtype(MPI_LB);
     for (int i = 0; i < c.numcells(); i++) {

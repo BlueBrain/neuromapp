@@ -55,9 +55,15 @@ int replib_help(int argc, char* const argv[], po::variables_map& vm){
     ("file,f", po::value<std::string>()->default_value(""), "[string] Path to the file with write distribution per process")
 
     ("invert,i", "Invert the rank ID, only applies when reading distribution from file (fileXX)")
+
     ("numcells,c", po::value<int>()->default_value(10), "[int] Number of cells, only applies when creating random write distribution (rndXX)")
-    ("steps,s", po::value<int>()->default_value(1), "[int] Number of reporting steps (1 reporting step every 10 simulation steps)")
-    ("time,t", po::value<int>()->default_value(100), "[int] Amount of time spent in 1 simulation step (in ms)")
+
+    ("sim-steps,s", po::value<int>()->default_value(15), "[int] Number of simulation steps for each reporting step")
+
+    ("rep-steps,r", po::value<int>()->default_value(1), "[int] Number of reporting steps (1 reporting step happens every 'sim-steps' simulation steps)")
+
+    ("time,t", po::value<int>()->default_value(100), "[int] Amount of time spent in 1 simulation step (in ms). If 0 is passed, replib changes its behavior to an IOR-like benchmark.")
+
     ("check,v", "Verify the output report was correctly written");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -91,8 +97,13 @@ int replib_help(int argc, char* const argv[], po::variables_map& vm){
            return mapp::MAPP_BAD_ARG;
     }
 
-    if(vm["steps"].as<int>() < 1 ){
-        std::cout << "Error: steps must be at least 1." << std::endl;
+    if(vm["sim-steps"].as<int>() < 1 ){
+        std::cout << "Error: simulation steps must be at least 1." << std::endl;
+           return mapp::MAPP_BAD_ARG;
+    }
+
+    if(vm["rep-steps"].as<int>() < 1 ){
+        std::cout << "Error: reporting steps must be at least 1." << std::endl;
            return mapp::MAPP_BAD_ARG;
     }
 
@@ -123,14 +134,15 @@ void replib_content(po::variables_map const& vm){
     std::string f(vm["file"].as<std::string>());
     bool inv = !(vm["invert"].empty());
     int nc = vm["numcells"].as<int>();
-    int steps = vm["steps"].as<int>();
+    int ssteps = vm["sim-steps"].as<int>();
+    int rsteps = vm["rep-steps"].as<int>();
     int t = vm["time"].as<int>();
     bool check = !(vm["check"].empty());
 
     command << launcher_helper::mpi_launcher() << " -n " << np << " " << path
             << "MPI_Exec_rl  -w " << wr << " -o " << o << ((f == "") ? "" : " -f ") << f
-            << " " << (inv ? "-i" : "") << " " << " -nc " << nc << " -s " << steps
-            << " -t " << t << (check ? " -v" : "");
+            << " " << (inv ? "-i" : "") << " " << " -c " << nc << " -s " << ssteps
+            << " -r " << rsteps << " -t " << t << (check ? " -v" : "");
 
 	std::cout << "Running command: " << command.str() << std::endl;
 	system(command.str().c_str());

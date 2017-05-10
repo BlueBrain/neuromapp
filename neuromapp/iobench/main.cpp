@@ -45,19 +45,20 @@ int iobench_help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help,h", "Produce this help message")
-    ("backend,b", po::value<std::string>()->default_value("map"), "K/V backend to use")
-    ("pairs,n", po::value<unsigned int>()->default_value(1024), "Number of k/v pairs per thread and per iteration")
-    ("its,i", po::value<unsigned int>()->default_value(10), "Number of iterations per thread")
-    ("skip,s", po::value<unsigned int>()->default_value(0), "Number of initial iterations to discard")
-    ("numproc,p", po::value<unsigned int>()->default_value(0), "Number of processes to use. Use 0 to disable MPI")
-    ("threads,t", po::value<unsigned int>()->default_value(1), "Number of threads to use")
-    ("keySize,k", po::value<size_t>()->default_value(64), "Size of keys in bytes")
-    ("valSize,v", po::value<size_t>()->default_value(1024), "Size of values in bytes")
-    ("compress,c", po::value<unsigned int>()->default_value(1), "Compress data")
-    ("read,r", po::value<unsigned int>()->default_value(1), "Read data")
-    ("write,w", po::value<unsigned int>()->default_value(1), "Write data")
-    ("rrd", po::value<unsigned int>()->default_value(1), "Read data randomly")
-    ("rwr", po::value<unsigned int>()->default_value(1), "Write data randomly") ;
+    ("backend,b", po::value<std::string>()->default_value("map"), "[string] K/V backend to use. \
+                  Supported backends: map (STL map), leveldb (LevelDB), cassandra (Cassandra)")
+    ("pairs,n", po::value<unsigned int>()->default_value(1024), "[int] Number of k/v pairs per thread and per iteration")
+    ("its,i", po::value<unsigned int>()->default_value(10), "[int] Number of iterations per thread")
+    ("skip,s", po::value<unsigned int>()->default_value(0), "[int] Number of initial iterations to discard")
+    ("numproc,p", po::value<unsigned int>()->default_value(0), "[int] Number of processes to use. Use 0 to disable MPI")
+    ("threads,t", po::value<unsigned int>()->default_value(1), "[int] Number of threads to use")
+    ("keySize,k", po::value<size_t>()->default_value(64), "[int] Size of keys in bytes")
+    ("valSize,v", po::value<size_t>()->default_value(1024), "[int] Size of values in bytes")
+    ("compress,c", po::value<unsigned int>()->default_value(1), "[0/1] Compress data")
+    ("read,r", po::value<unsigned int>()->default_value(1), "[0/1] Read data")
+    ("write,w", po::value<unsigned int>()->default_value(1), "[0/1] Write data")
+    ("rrd", po::value<unsigned int>()->default_value(1), "[0/1] Read data randomly")
+    ("rwr", po::value<unsigned int>()->default_value(1), "[0/1] Write data randomly") ;
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);

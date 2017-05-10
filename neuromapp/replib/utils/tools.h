@@ -62,10 +62,10 @@ namespace replib {
              MPI_Reduce(in, out, 1, MPI_DOUBLE_INT, MPI_MINLOC, rank, MPI_COMM_WORLD);
     }
 
-    /** \fun check_report(char * report, int nwrites, int repCycleElems, int mpiSize)
+    /** \fun check_report(char * report, int nwrites, int repCycleElems, int mpiSize, float units, int decimals)
     check the written report for correctness.
     Returns true if the checking succeeded */
-    bool check_report (char * report, int nwrites, int repCycleElems, int mpiSize);
+    bool check_report (char * report, int nwrites, int repCycleElems, int mpiSize, float units, int decimals);
 
 } //end namespace replib
 

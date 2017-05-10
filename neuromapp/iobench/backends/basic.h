@@ -35,13 +35,18 @@
 class KVStatus {
     public:
         virtual bool success() { return true; }
+
+        virtual std::string getErrorString() { return std::string();}
 };
 
 class BaseKV {
 
     public:
 
+        BaseKV() {}
+        virtual ~BaseKV() {}
         virtual void initDB(iobench::args &a) {}
+        virtual void notifyBuffers(std::vector<char *> &keys, size_t key_size, std::vector<char *> &values, size_t value_size, std::vector<char *> &reads) {}
         virtual void finalizeDB() {}
         virtual inline void putKV(KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size) {}
         virtual inline size_t getKV (KVStatus * kvs, void * key, size_t key_size, void * value, size_t value_size) { return 0; }

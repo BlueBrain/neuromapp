@@ -37,6 +37,9 @@
 #include "iobench/backends/cassandra.h"
 #endif
 
+#ifdef IO_MPI
+#include "iobench/backends/mpi_block.h"
+#endif
 
 /** \fn BaseKV * createDB()
     \brief Create the appropriate DB backend
@@ -57,9 +60,17 @@ inline BaseKV * createDB (const std::string & backend)
 #else
         std::cout << "Error: asked for Cassandra backend, but Cassandra was not found." << std::endl;
 #endif
+    } else if (backend == "mpib") {
+#ifdef IO_MPI
+        return reinterpret_cast<BaseKV*>(new MPIBKV());
+#else
+        std::cout << "Error: asked for MPI-block backend, but MPI was not found." << std::endl;
+#endif
     } else {
         return reinterpret_cast<BaseKV*>(new MapKV());
     }
+
+    return NULL;
 }
 
 #endif // MAPP_IOBENCH_COMMON_

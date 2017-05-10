@@ -81,7 +81,7 @@ struct argv_data {
         if (argc<0) throw std::logic_error("argv_data: negative argc");
 
         // argv_.size()==argc+1.
-        if (argv_.size()!=1+argc) throw std::logic_error("argv_data: argv_ vector size mismatch");
+        if ((int)argv_.size()!=1+argc) throw std::logic_error("argv_data: argv_ vector size mismatch");
 
         // argv[i] should be non-zero for i=0..(argc-1), and point to within argv_buf.
         char *argv_buf_begin=&argv_buf[0];

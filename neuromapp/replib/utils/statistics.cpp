@@ -44,13 +44,49 @@ struct double_int {
     recorded while the benchmark was running
  */
 void statistics::process() {
-    // First, BW is computed per rank (in KB/s):
-    double time = std::accumulate(times_.begin(), times_.end(), 0.);
-    double r_mbw = ( ((double) (bytes_ * times_.size())) / time ) / (1024. * 1024.);
+    // First, compute BW as sum(bytes) / sum(time) for all ranks
+    // Add up values per rank, then reduce across ranks
+    double r_time = std::accumulate(times_.begin(), times_.end(), 0.0);
+    double r_mb = (bytes_ * (double) c_.rep_steps()) / (1024. * 1024.);
 
-    // Then, compute average BW of all ranks
-    a_mbw = replib::reduce(r_mbw);
-    g_mbw = a_mbw / c_.procs();
+    // Only rank 0 gets the result
+    double time = replib::reduce(r_time);
+    double mb = replib::reduce(r_mb);
+    if (c_.id() == 0) {
+        g_mbw_ = mb / time;
+        a_mbw_ = g_mbw_ * c_.procs();
+    }
+
+    // Additional BW values when using IOR-like benchmark
+    owc_mbw_ = a_mbw_;
+    if (c_.sim_time_ms() == 0) {
+        // Write + close time: accumulate all times, except position 0 (= open time)
+        // Only rank 0 gets the result
+        double wc_r_time = std::accumulate(times_.begin() + 1, times_.end(), 0.0);
+        double wc_time = replib::reduce(wc_r_time);
+        if (c_.id() == 0) wc_mbw_ = (mb / wc_time) * c_.procs();
+
+        // Write-only time: accumulate all times, except position 0 (= open time) and last position (= close time)
+        // Only rank 0 gets the result
+        double w_r_time = std::accumulate(times_.begin() + 1, times_.end() - 1, 0.0);
+        double w_time = replib::reduce(w_r_time);
+        if (c_.id() == 0) w_mbw_ = (mb / w_time) * c_.procs();
+
+        // Consider real bandwidth as write+close BW:
+        if (c_.id() == 0) {
+            g_mbw_ = wc_mbw_ / c_.procs();
+            a_mbw_ = wc_mbw_;
+        }
+
+    } else {
+        // If replib benchmark was run, we don't have this info,
+        // so just report the same bandwidth for all
+        wc_mbw_ = owc_mbw_;
+        w_mbw_ = owc_mbw_;
+    }
+
+    // Compute BW per rank
+    double r_mbw = r_mb / r_time;
 
     // Find max and min rank statistics (max and min results stored in rank 0)
     double_int me;
@@ -99,11 +135,16 @@ void statistics::process() {
 
 /** \brief the print function */
 void statistics::print(std::ostream& os) const {
+    // WARNING: This relies on the fact that only rank 0 will print
+    // and, actually, only rank 0 has the correct results!
     os << "Mini-app configuration:" << std::endl;
     c_.print(os);
 
-    os << "Average bandwidth: " << g_mbw << " MB/s per rank" << std::endl
-            << "Aggregated bandwidth: " << a_mbw << " MB/s" << std::endl
+    os << "Average bandwidth: " << g_mbw_ << " MB/s per rank" << std::endl
+            << "Aggregated bandwidth: " << a_mbw_ << " MB/s" << std::endl
+            << "Open+write+close aggregated bandwidth: " << owc_mbw_ << " MB/s" << std::endl
+            << "Write+close aggregated bandwidth: " << wc_mbw_ << " MB/s" << std::endl
+            << "Write-only aggregated bandwidth: " << w_mbw_ << " MB/s" << std::endl
             << "Max bandwidth: " << max_.mbw_ << " MB/s writing " << max_.size_ / 1024.
             << " KB from rank " << max_.rank_ << std::endl
             << "Min bandwidth: " << min_.mbw_ << " MB/s writing " << min_.size_ / 1024.
@@ -111,10 +152,12 @@ void statistics::print(std::ostream& os) const {
 
 
     // CSV output data format:
-    // miniapp_name, num_procs, writeMode, invertRanks, numCells, reportingSteps, avgRankBW (MB/s),
-    // aggregatedBW (MB/s), maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
+    // miniapp_name, num_procs, writeMode, invertRanks, numCells, simulationSteps, reportingSteps,
+    // avgRankBW (MB/s), aggregatedBW (MB/s), OWCaggrBW (MB/s), WCaggrBW (MB/s), WaggrBW (MB/s),
+    // maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
     os << "RLMAPP," << c_.procs() << "," << c_.write() << "," << ( c_.invert() ? "inv" : "seq" ) << ","
-            << c_.numcells() << "," << c_.rep_steps() << "," << std::fixed << g_mbw << "," << a_mbw << ","
+            << c_.numcells() << "," << c_.sim_steps() << "," << c_.rep_steps() << "," << std::fixed
+            << g_mbw_ << "," << a_mbw_ << "," << owc_mbw_ << "," << wc_mbw_ << "," << w_mbw_ << ","
             << max_.mbw_ << "," << max_.size_ << "," << max_.rank_ << "," << min_.mbw_ << ","
             << min_.size_ << "," << min_.rank_ << std::endl;
 }

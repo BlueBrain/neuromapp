@@ -23,8 +23,7 @@
 #define MAPP_FILE1B_H
 
 #include <string>
-#include <sstream>
-#include <fstream>
+#include <vector>
 
 #include "replib/utils/config.h"
 #include "replib/utils/fileview.h"
@@ -42,15 +41,14 @@ namespace replib {
     then create the fileview object
  */
 inline fileview * file1b(config & c) {
-
     // Find the corresponding line in the file
     std::vector<std::string> row;
     read_row(c, row);
 
     // Compute total write size for this process
-    unsigned int rankSize = 0;
+    unsigned long rankSize = 0;
     for (int i = 0; i < c.numcells(); i++) {
-        rankSize += atoi(row[i+2].c_str());
+        rankSize += strtoul(row[i+2].c_str(), NULL, 0);
     }
 
     // Create the vectors that MPI fileview will use
