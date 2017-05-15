@@ -64,7 +64,7 @@
 
 //should I include all of the headers?
 #if NEUROMAPP_COMPRESSION_MAPP
-#include "compression/block.h"
+#include "compression/compression.h"
 #endif
 
 #include "app/driver.h"
@@ -102,7 +102,7 @@ void register_miniapps(mapp::driver &d) {
 #endif
 //note should change suffix to execute when time comes
 #if NEUROMAPP_COMPRESSION_MAPP
-    d.insert("compression",comp_test)
+    d.insert("compression",comp_execute);
 #endif
 
 }

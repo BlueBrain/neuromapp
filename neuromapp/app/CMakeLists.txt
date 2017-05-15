@@ -1,5 +1,7 @@
 include_directories(${PROJECT_BINARY_DIR})
+message(STATUS "xxx bin dir is xxx" ${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
+message(STATUS "xxx source dir is xxx" ${PROJECT_SOURCE_DIR})
 
 add_executable (app driver.cpp main.cpp)
 

@@ -1,4 +1,5 @@
 add_subdirectory (utils)
+add_subdirectory (compression)
 add_subdirectory (hello)
 add_subdirectory (nest)
 add_subdirectory (hdf5)
