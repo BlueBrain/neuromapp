@@ -5,7 +5,7 @@
 #include <stdlib.h> // POSIX, size_t are inside
 #include <cstring>  // memset
 
-#include "../util/exception.h"
+#include "exception.h"
 
 namespace neuromapp {
 

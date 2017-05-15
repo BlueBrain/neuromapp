@@ -6,9 +6,9 @@
 #include <type_traits>
 #include <cassert>
 
-#include "cpu/allocator.h" // that's right, this is another way to tie up files in different locations.
-#include "util/exception.h"
-#include "util/type_definition.h"
+#include "allocator.h" // that's right, this is another way to tie up files in different locations.
+#include "exception.h"
+#include "type_definition.h"
 // note the lack of using statements for things like std in general
 
 //tim uses comments to denote the end of meaningful brackets

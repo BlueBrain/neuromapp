@@ -6,7 +6,7 @@
 
 //include the boost program options later on
 //first make sure that the compression option can be shown.
-int comp_test(int argc,char *argv[])
+int comp_execute(int argc,char *const argv[])
 {
     size_t n,m;
     n = 2;
