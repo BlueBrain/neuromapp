@@ -14,6 +14,7 @@ class cstandard {
     typedef std::size_t size_type;
 
     //note that the lengine entries used to be neuromap - w/o extra p
+    //todo remove the mention of lengine anywhere
     /** The allocate function used in the policy */
     void *allocate_policy(size_type size) {
         if ((size & 0x8000000000000000)) // size is uint64_t so I check MSB if a negative number is the arg

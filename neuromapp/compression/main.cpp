@@ -5,15 +5,20 @@
 * used for the neuromapp when compression is typed out as option. 
 */
 
+#include <iterator>
+#include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <boost/program_options.hpp>
 // the includes are relative to the directory above
+#include "compression.h"
 #include "compression/allocator.h"
 #include "compression/exception.h"
 #include "compression/block.h"
-//? do I need  to use the util error?
+// include the zlib header.
+#include "/usr/include/zlib.h"
 
 /* make namespace alias for program options */
 using neuromapp::block;
@@ -39,6 +44,11 @@ std_block * gen_block(std::vector<int> vec)
 //todo include more boost program_options later on
 int comp_execute(int argc,char *const argv[])
 {
+    //prototype for the hello_zlib
+    //
+    void hello_zlib();
+
+    //now the program options section
     try {
         //make desc
         po::options_description desc{"Allowed options"};
@@ -46,6 +56,7 @@ int comp_execute(int argc,char *const argv[])
         desc.add_options()
             //register gen_block with the create user option
             ("help","Print out the help screen")
+            ("demo","this prints out a basic hello world zlib version")
             ("create",po::value< std::vector<int>>()->multitoken(),"The create option");
         //create variable map
         po::variables_map vm;
@@ -53,6 +64,9 @@ int comp_execute(int argc,char *const argv[])
         //finish function registration with notify
         po::notify(vm);
         //loop over reasonable options
+        if (vm.count("demo")) {
+            hello_zlib();
+        }
         if (vm.count("help")) {
             std::cout << desc << std::endl;
         }
@@ -60,6 +74,7 @@ int comp_execute(int argc,char *const argv[])
             std::vector<int> opts;
             opts = vm["create"].as<std::vector <int>>();// this should launch the gen_block function
             std_block * created_block = gen_block(opts);
+            //get validating detail from returned object
             std::cout << created_block->memory_allocated() << std::endl;
         }
     }
@@ -70,3 +85,24 @@ int comp_execute(int argc,char *const argv[])
     return 0;
 }
 
+void hello_zlib() {
+    char a[] = "hello world";
+    char b[50];
+    z_stream def_stream;// this means the struct that will be used for deflation
+
+    //and now setting the initial struct variables
+    def_stream.zalloc = Z_NULL;
+    def_stream.zfree = Z_NULL;
+    def_stream.opaque = Z_NULL;
+    def_stream.avail_in = (uInt)strlen(a) + 1;// makes space for the null char?
+    def_stream.next_in = (Bytef*) a;// this means the first byte is from array a
+    def_stream.next_out = (Bytef*)b;
+    deflateInit(&def_stream,Z_DEFAULT_COMPRESSION);// initializes the compression of array a
+    deflate(&def_stream,Z_FINISH);// begins compression
+    deflateEnd(&def_stream);// frees the structure used for compression
+
+    // method for getting size of compressed array
+    printf("Deflated size is :%lu\n",(char*)def_stream.next_out -b );// think about this line
+    /* vector<char> file_chars(start,end); */
+    /* for_each(file_chars.begin(),file_chars.end(),[](char letter){cout << ((letter == 'e') ? letter : 'X');}); */
+}
