@@ -78,7 +78,7 @@ int comp_execute(int argc,char *const argv[])
             dims = vm["create"].as<std::vector <int>>();// this should launch the gen_block function
             std_block * created_block = gen_block(dims);
             //try entering data from the memvolts file of randomly generated membrane values, use the *created_block to prevent copy argument passing
-            enter_data(*created_block,"../../../memvolts.csv");
+            enter_data(*created_block,"/home/lil/Documents/BlueBrainProj_study-abroad/gsoc/memvolts.csv");
             // and then try  to print out the block with the print template funciton
             created_block->print();
         }
@@ -116,14 +116,13 @@ void enter_data(std_block & empty_block,const std::string & fname)
 {
     //could use either the iterator, or the indexing, dunno which is better
     std::ifstream in_file(fname);
-    //todo ask tim wether the auto is one of the other types above
-    for (auto ele : empty_block) {
-        
-        /* std::cout << ele<<" before"; */
-
-
-
-        /* std::cout << ele << " aftre" << std::endl; */
+    std::cout << fname << std::endl;
+    auto block_it = empty_block.begin();
+    std::string str_temp {""};
+    while(in_file >> str_temp && block_it != empty_block.end()){
+        int int_temp {stoi(str_temp)};
+        *block_it = int_temp;
+        block_it++;
     }
     // close the file
     in_file.close();
