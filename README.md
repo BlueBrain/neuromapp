@@ -97,6 +97,13 @@ command to tell GCC to not use the C++11 ABI:
 ```
 
 ## Dependency Handling
+
+Mandatory dependencies are:
+* BOOST >= 1.44
+* HDF5
+* SLURM
+* MPI
+
 The following variables can be set in the ```cmake``` command to disable the compilation of certain 
 parts of the framework or ignore certain external libraries that would be used otherwise:
 
