@@ -9,7 +9,6 @@
 #include "allocator.h" // that's right, this is another way to tie up files in different locations.
 #include "exception.h"
 #include "type_definition.h"
-// note the lack of using statements for things like std in general
 
 //tim uses comments to denote the end of meaningful brackets
 namespace neuromapp {
@@ -51,7 +50,6 @@ class block : public allocator {
         cols_ = resize_helper<allocator>(n, sizeof(T)); // some policy will resize the col, needs for 2D !
         data_ = (pointer)allocate_policy(sizeof(T) * cols_ * rows_);
     }
-
     //constructor given rval to another block
     block(block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_) {
         // std::move is not needed on basic type
@@ -61,6 +59,7 @@ class block : public allocator {
         other.data_ = nullptr;
     }
 
+    // todo ask tim does this work on blocks with data in them?
     block(const block &other) {
         // std::move is not needed on basic type
         rows_ = other.rows_;
@@ -85,10 +84,11 @@ class block : public allocator {
     }
 
     ~block() {
-        // hey tim was complaining about nullptrs a while ago, look here it is!
         if (data_ != nullptr) // due to move constructor
             deallocate_policy(data_);
     }
+
+    //this is the method that we call to read in as much data as we have space for in the block
 
     void resize(size_type n = 1, size_type m = 1) {
         // essentially just getting which is smaller the resize or the current
@@ -131,7 +131,6 @@ class block : public allocator {
         // determines if i j are legal
         assert(i <= cols_);
         assert(j <= rows_);
-        // how much does this give back? interesting that its not a comma
         return data_[i + j * cols_];
     }
 
@@ -141,7 +140,9 @@ class block : public allocator {
         return data_[i + j * cols_];
     }
 
-    void print(std::ostream &out) const {
+    //did I write this print thing?
+    //since std::cout is being used, we don't need the parameter,
+    void print() const {
         for (int i = 0; i < dim1(); ++i) { // raw first
             for (int j = 0; j < dim0(); ++j) {
                 std::cout << (*this)(j, i) << " ";
@@ -149,7 +150,6 @@ class block : public allocator {
             std::cout << " \n";
         }
     }
-
   private:
     size_type rows_;
     size_type cols_;
@@ -162,6 +162,8 @@ std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
     b.print(out);
     return out;
 }
-} // namespace lengine
+
+} // namespace neuromapp
+
 
 #endif

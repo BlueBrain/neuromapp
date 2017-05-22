@@ -27,6 +27,7 @@ namespace po = boost::program_options;
 // todo change to variable type, and allocation method
 using std_block = block<int,cstandard>;
 
+
 //todo decide if pointer is right return value 
 std_block * gen_block(std::vector<int> vec)
 {
@@ -47,6 +48,7 @@ int comp_execute(int argc,char *const argv[])
     //prototype for the hello_zlib
     //
     void hello_zlib();
+    void enter_data(std_block &,const std::string &);
 
     //now the program options section
     try {
@@ -71,11 +73,14 @@ int comp_execute(int argc,char *const argv[])
             std::cout << desc << std::endl;
         }
         if(vm.count("create")){
-            std::vector<int> opts;
-            opts = vm["create"].as<std::vector <int>>();// this should launch the gen_block function
-            std_block * created_block = gen_block(opts);
-            //get validating detail from returned object
-            std::cout << created_block->memory_allocated() << std::endl;
+            //dims as in dimensions for the block, cols and rows, or just cols
+            std::vector<int> dims;
+            dims = vm["create"].as<std::vector <int>>();// this should launch the gen_block function
+            std_block * created_block = gen_block(dims);
+            //try entering data from the memvolts file of randomly generated membrane values, use the *created_block to prevent copy argument passing
+            enter_data(*created_block,"../../../memvolts.csv");
+            // and then try  to print out the block with the print template funciton
+            created_block->print();
         }
     }
     catch (po::error &e) {
@@ -105,4 +110,22 @@ void hello_zlib() {
     printf("Deflated size is :%lu\n",(char*)def_stream.next_out -b );// think about this line
     /* vector<char> file_chars(start,end); */
     /* for_each(file_chars.begin(),file_chars.end(),[](char letter){cout << ((letter == 'e') ? letter : 'X');}); */
+}
+// this is the tool for adding entries to our block
+void enter_data(std_block & empty_block,const std::string & fname)
+{
+    //could use either the iterator, or the indexing, dunno which is better
+    std::ifstream in_file(fname);
+    //todo ask tim wether the auto is one of the other types above
+    for (auto ele : empty_block) {
+        
+        /* std::cout << ele<<" before"; */
+
+
+
+        /* std::cout << ele << " aftre" << std::endl; */
+    }
+    // close the file
+    in_file.close();
+
 }
