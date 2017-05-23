@@ -41,6 +41,11 @@
 #include "iobench/backends/mpi_block.h"
 #endif
 
+#ifdef IO_ADIOS
+#include "iobench/backends/adios_block.h"
+#endif
+
+
 /** \fn BaseKV * createDB()
     \brief Create the appropriate DB backend
     \param backend name of the desired DB to create
@@ -65,6 +70,12 @@ inline BaseKV * createDB (const std::string & backend)
         return reinterpret_cast<BaseKV*>(new MPIBKV());
 #else
         std::cout << "Error: asked for MPI-block backend, but MPI was not found." << std::endl;
+#endif 
+    } else if (backend == "adios_b") {
+#ifdef IO_ADIOS
+        return reinterpret_cast<BaseKV*>(new ADIOS_BKV());
+#else
+        std::cout << "Error: asked for ADIOS-block backend, but ADIOS was not found." << std::endl;
 #endif
     } else {
         return reinterpret_cast<BaseKV*>(new MapKV());

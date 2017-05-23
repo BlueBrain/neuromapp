@@ -46,7 +46,7 @@ int iobench_help(int argc, char* const argv[], po::variables_map& vm){
     desc.add_options()
     ("help,h", "Produce this help message")
     ("backend,b", po::value<std::string>()->default_value("map"), "[string] K/V backend to use. \
-                  Supported backends: map (STL map), leveldb (LevelDB), cassandra (Cassandra)")
+                  Supported backends: map (STL map), leveldb (LevelDB), cassandra (Cassandra), mpib (MPI Block), adios_b (ADIOS Block)")
     ("pairs,n", po::value<unsigned int>()->default_value(1024), "[int] Number of k/v pairs per thread and per iteration")
     ("its,i", po::value<unsigned int>()->default_value(10), "[int] Number of iterations per thread")
     ("skip,s", po::value<unsigned int>()->default_value(0), "[int] Number of initial iterations to discard")
@@ -127,6 +127,10 @@ void iobench_content(po::variables_map const& vm){
     unsigned int w = vm["write"].as<unsigned int>();
     unsigned int rrd = vm["rrd"].as<unsigned int>();
     unsigned int rwr = vm["rwr"].as<unsigned int>();
+
+    if(b == "mpib" && p == 0) {
+        p = 1;
+    }
 
     command << "OMP_NUM_THREADS=" << t << " ";
 
