@@ -43,6 +43,9 @@ For more information, run the mini-app with the --help argument.
 You can disable the compilation of this mini-app by using the following variable in cmake
 command: '-DNEUROMAPP_DISABLE_IOBENCH=TRUE'
 
+You can build the iobench with ADIOS backend by specifying instalation directory of ADIOS
+using variable ADIOS_ROOT
+
 ## neuromapp/keyvalue
 
 This directory contains a miniapp that mimics CoreNeuron simulation loop but outputs 
