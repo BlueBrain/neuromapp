@@ -39,10 +39,16 @@ if(NOT NEUROMAPP_DISABLE_IOBENCH)
     else()
         set(CASSANDRA_LIBRARIES "")
     endif()
-
+    # ADIOS backend
+    find_package(ADIOS)
+    if (${ADIOS_FOUND})
+	    include_directories(${ADIOS_INCLUDE_DIRS})
+    else()
+        set(ADIOS_LIBRARIES "")
+    endif()
     # OMP executable
     add_executable(iobench-omp iobench.cpp benchmark.cpp)
-    target_link_libraries (iobench-omp ${LEVELDB_LIBRARIES} ${CASSANDRA_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+    target_link_libraries (iobench-omp ${ADIOS_LIBRARIES} ${LEVELDB_LIBRARIES} ${CASSANDRA_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 
     if(MPI_FOUND)
         # MPI+OMP executable (add -DIO_MPI to compile flags)
@@ -50,7 +56,7 @@ if(NOT NEUROMAPP_DISABLE_IOBENCH)
         set_target_properties(MPI_Exec_io PROPERTIES
             COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS} -DIO_MPI")
         # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
-        target_link_libraries (MPI_Exec_io ${LEVELDB_LIBRARIES} ${CASSANDRA_LIBRARIES} ${MPI_CXX_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+	target_link_libraries (MPI_Exec_io ${ADIOS_LIBRARIES} ${LEVELDB_LIBRARIES} ${CASSANDRA_LIBRARIES} ${MPI_CXX_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARIES})
     endif()
 
     install (TARGETS iobench-omp DESTINATION bin)

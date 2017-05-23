@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8.10)
 project (neuromapp)
 
+set(ADIOS_ROOT "" CACHE PATH "extra path to find modules")
+list(APPEND CMAKE_MODULE_PATH ${ADIOS_ROOT}/etc)
 
 option(NEUROMAPP_BUILD_RPATH "Export RPATH " OFF)
 
