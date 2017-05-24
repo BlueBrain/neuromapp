@@ -45,6 +45,13 @@ void iobench::benchmark::init(int argc, char* const argv[]) {
 #ifdef IO_MPI
     // MPI_Init() called when creating args
     //MPI_Init(&argc, &argv);
+    int init = 0;
+    MPI_Initialized(&init);
+    //if (init == 0) {
+        MPI_Init(NULL, NULL);
+	//std::cout << "MPI was NOT initialized!!!!" << std::endl;
+    //}
+
     int mpi_size, mpi_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
