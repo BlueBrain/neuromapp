@@ -48,7 +48,6 @@ int comp_execute(int argc,char *const argv[])
 {
     //prototype for the hello_zlib
     //
-    void enter_data(std_block &,const std::string &);
 
     //now the program options section
     try {

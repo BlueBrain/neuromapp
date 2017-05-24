@@ -9,6 +9,9 @@ if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
         target_link_libraries(compression ${ZLIB_LIBRARIES})
     endif (ZLIB_FOUND)
 
+    add_executable(prac_compression prac_compression.cpp)
+    target_link_libraries(prac_compression ${ZLIB_LIBRARIES})
+
     install (TARGETS compression DESTINATION lib)
     install (FILES block.h DESTINATION include)
 
