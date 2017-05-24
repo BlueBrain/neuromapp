@@ -31,14 +31,14 @@ namespace zlib {
     }
 
     // todo make general to any allocator choice, cstandard and the align
-    void block_compress() {
+    void block_compress(prac_block *full_block) {
         //process create compression buffer, and use zlib compress utitilty
-        char orig_str[] = "compress this";
-        uLong sourceLen = strlen(orig_str) + 1;
+        uLong sourceLen = sizeof(full_block);
         uLong destLen = compressBound(sourceLen);
-        void * temp =  malloc(sizeof(unsigned char)*destLen);
+        void * temp =  malloc(sizeof(unsigned int)*destLen);// what should type be here?
         Bytef * dest_ptr =(Bytef*) temp; 
-        const Bytef* source_ptr =(Bytef*) orig_str;
+        // might need reinterpret_cast, still seems like maybe this is outside the scope for vanilla compress utility
+        const Bytef* source_ptr =reinterpret_cast<const Bytef*>(&full_block);
         std::cout <<  " attempting compression " << std::endl;
         int rc = compress(dest_ptr,&destLen,source_ptr,sourceLen);
         std::cout <<  "the rc was " <<rc << std::endl;
