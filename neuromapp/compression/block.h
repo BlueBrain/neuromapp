@@ -118,7 +118,7 @@ namespace neuromapp {
             pointer data() { return data_; };
 
             size_type dim0() const { return dim0_; }
-            size_type dim1() const { return rows_; }
+            size_type dim1() const { return rows_; }// supposed to be dim1?
             // alias
             size_type num_cols() const { return cols_; }
             size_type num_rows() const { return rows_; }

@@ -33,19 +33,30 @@ namespace zlib {
     // todo make general to any allocator choice, cstandard and the align
     void block_compress(prac_block *full_block) {
         //process create compression buffer, and use zlib compress utitilty
-        uLong sourceLen = sizeof(full_block);
-        uLong destLen = compressBound(sourceLen);
-        void * temp =  malloc(sizeof(unsigned int)*destLen);// what should type be here?
+        uLong comp_sourceLen = sizeof(full_block);
+        uLong comp_destLen = compressBound(comp_sourceLen);
+        void * temp =  malloc(sizeof(unsigned int)*comp_destLen);// what should type be here?
         Bytef * dest_ptr =(Bytef*) temp; 
         // might need reinterpret_cast, still seems like maybe this is outside the scope for vanilla compress utility
-        const Bytef* source_ptr =reinterpret_cast<const Bytef*>(&full_block);
+        const Bytef* source_ptr =(Bytef*)&full_block;
         std::cout <<  " attempting compression " << std::endl;
-        int rc = compress(dest_ptr,&destLen,source_ptr,sourceLen);
+        int rc = compress(dest_ptr,&comp_destLen,source_ptr,comp_sourceLen);
         std::cout <<  "the rc was " <<rc << std::endl;
-        
-
-
-
+        if (rc == Z_OK) {
+            std::cout << " size of compressed block is "<< comp_destLen << " as compared with " << comp_sourceLen << std::endl;
+        }
+        // try to  uncompress the temp
+        //so source lens and stuff are the destLen from before
+        //make a new block of same dimensions
+        int rows = full_block->num_rows();
+        int cols = full_block->num_cols();
+        prac_block uncomp_block(cols,rows);
+        uncomp_block.print();
+        //we use the previous dest_len as our source
+        uLong uncomp_sourceLen = comp_destLen;
+        uLong uncomp_destLen = compressBound(uncomp_sourceLen); 
+        uncompress((Bytef*) &uncomp_block,&uncomp_destLen,(Bytef*) temp,uncomp_sourceLen);
+        uncomp_block.print();
     }
 
 
