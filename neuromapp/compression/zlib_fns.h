@@ -1,4 +1,5 @@
 #include <stdexcept> 
+#include <cstdlib>
 #include "compression/compression.h"
 #include "compression/block.h"
 #include "/usr/include/zlib.h"
@@ -30,30 +31,18 @@ namespace zlib {
     }
 
     // todo make general to any allocator choice, cstandard and the align
-    void block_compress(prac_block * full_block) {
-        //process create compression buffer, and use zlib compress utitilty        
-        int comp_RC;
-        uLong  sourceLen = (uLong) sizeof(*full_block);
-        uLongf * destLen = (uLongf*) compressBound(sourceLen);
-        if ( sourceLen > *destLen ) {
-            std::cerr << "destLen is " << destLen << " compared with " << sourceLen << std::endl;
-            throw std::runtime_error ("problem with dest len");
-        }
-        void * raw_compressed_buf = malloc(*destLen);
-        //the Bytef*'s are pointers to the first position in both rawComp and full_block
-        comp_RC = compress((Bytef*)raw_compressed_buf, destLen, (Bytef*)full_block, sourceLen);
-        switch (comp_RC) {
-            case Z_OK :
-                std::cout <<" worked! compressed size is "<< destLen << " vs " << sourceLen << std::endl;
-                break;
-            case Z_MEM_ERROR :
-                std::cout << "mem error, not enough memory probably not big enough" << std::endl;
-                break;
-            case Z_BUF_ERROR:
-                std::cout << "buff errro not enough space in thebuffer" << std::endl;
-                break;
-        }
-
+    void block_compress() {
+        //process create compression buffer, and use zlib compress utitilty
+        char orig_str[] = "compress this";
+        uLong sourceLen = strlen(orig_str) + 1;
+        uLong destLen = compressBound(sourceLen);
+        void * temp =  malloc(sizeof(unsigned char)*destLen);
+        Bytef * dest_ptr =(Bytef*) temp; 
+        const Bytef* source_ptr =(Bytef*) orig_str;
+        std::cout <<  " attempting compression " << std::endl;
+        int rc = compress(dest_ptr,&destLen,source_ptr,sourceLen);
+        std::cout <<  "the rc was " <<rc << std::endl;
+        
 
 
 
