@@ -1,6 +1,13 @@
 cmake_minimum_required (VERSION 2.8.10)
 project (neuromapp)
 
+
+option(NEUROMAPP_DISABLE_HELLO     "Disable Hello"    OFF )
+option(NEUROMAPP_DISABLE_IOBENCH   "Disable iobench"  OFF )
+option(NEUROMAPP_DISABLE_KEYVALUE  "Disable keyvalue" OFF )
+option(NEUROMAPP_DISABLE_REPLIB    "Disable repLib"   OFF )
+option(NEUROMAPP_DISABLE_NEST      "Disable nest"     OFF )
+
 set(ADIOS_ROOT "" CACHE PATH "extra path to find modules")
 list(APPEND CMAKE_MODULE_PATH ${ADIOS_ROOT}/etc)
 
