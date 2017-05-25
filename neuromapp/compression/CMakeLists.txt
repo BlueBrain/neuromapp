@@ -10,7 +10,7 @@ if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
     endif (ZLIB_FOUND)
 
     ##currently hardcoded to directory with more recent version of boost than the system's
-    set_source_files_properties(prac_hana.cpp COMPILE_FLAGS "-I /home/lil/boost_1_64_0")
+    set_source_files_properties(prac_hana.cpp COMPILE_FLAGS "-Wfatal-errors -I /home/lil/boost_1_64_0")
 
     add_executable(prac_compression prac_compression.cpp)
     ##hana needs c++14 so compile with this standard set
