@@ -9,7 +9,14 @@ if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
         target_link_libraries(compression ${ZLIB_LIBRARIES})
     endif (ZLIB_FOUND)
 
+    ##currently hardcoded to directory with more recent version of boost than the system's
+    set_source_files_properties(prac_hana.cpp COMPILE_FLAGS "-I /home/lil/boost_1_64_0")
+
     add_executable(prac_compression prac_compression.cpp)
+    ##hana needs c++14 so compile with this standard set
+    add_executable(prac_hana prac_hana.cpp)
+	set_property(TARGET prac_hana PROPERTY CXX_STANDARD 14)	
+
     target_link_libraries(prac_compression ${ZLIB_LIBRARIES})
 
     install (TARGETS compression DESTINATION lib)
