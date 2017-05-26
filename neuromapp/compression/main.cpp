@@ -1,9 +1,9 @@
 /*
-* File: main.cpp aka execute compression app
-* Author: Devin Bayly
-* Purpose:  this program establishes the command line argument parsing loop
-* used for the neuromapp when compression is typed out as option. 
-*/
+ * File: main.cpp aka execute compression app
+ * Author: Devin Bayly
+ * Purpose:  this program establishes the command line argument parsing loop
+ * used for the neuromapp when compression is typed out as option. 
+ */
 
 #include <sys/stat.h>
 #include <stdexcept>
@@ -26,33 +26,16 @@ using neuromapp::block;
 using neuromapp::cstandard;
 namespace po = boost::program_options;
 // todo change to variable type, and allocation method
-using std_block = block<int,cstandard>;
-
-
-//todo decide if pointer is right return value 
-std_block * gen_block(std::vector<int> vec)
-{
-    if (vec.size() == 2) {
-        std_block * new_block = new std_block(vec[0],vec[1]);// hopefully constructor dishes out enough heap space for this
-        return new_block;
-    } else if (vec.size() == 1) {
-        // only 1d block
-        std_block* new_block = new std_block(vec[0]);
-        return new_block;
-    }
-
-}
+using std_block = block<float,cstandard>;
 
 //todo include more boost program_options later on
 int comp_execute(int argc,char *const argv[])
 {
-    //prototype for the hello_zlib
-    //
-
     //now the program options section
     try {
         //make desc
         po::options_description desc{"Allowed options"};
+        void create_block(po::variables_map & vm);
         //add options
         desc.add_options()
             //register gen_block with the create user option
@@ -72,14 +55,7 @@ int comp_execute(int argc,char *const argv[])
             std::cout << desc << std::endl;
         }
         if(vm.count("create")){
-            //dims as in dimensions for the block, cols and rows, or just cols
-            std::vector<int> dims;
-            dims = vm["create"].as<std::vector <int>>();// this should launch the gen_block function
-            std_block * created_block = gen_block(dims);
-            //try entering data from the memvolts file of randomly generated membrane values, use the *created_block to prevent copy argument passing
-            created_block->enter_data("../memvolts.csv");
-            // and then try  to print out the block with the print template funciton
-            created_block->print();
+            create_block(vm);
         }
     }
     catch (po::error &e) {
@@ -88,4 +64,36 @@ int comp_execute(int argc,char *const argv[])
     // not quite sure what the return should be in this scenario
     return 0;
 }
+
+void create_block(po::variables_map & vm)
+{
+    std_block * gen_block(std::vector<int> vec);
+    //built around assumption thhat the columns are the first number people are putting in?
+    std::string fname = "../compression/data/csv/values_10_a8213.csv";// hardcoded for now
+    //dims as in dimensions for the block, cols and rows, or just cols
+    std::vector<int> dims;
+    dims = vm["create"].as<std::vector <int>>();//the dimension doesn't include the header line
+    std_block * values_block = gen_block(dims);
+    block<std::string,cstandard> *header_block=new block<std::string,cstandard>(5);
+    header_block->enter_data(fname);
+    //try entering data from the memvolts file of randomly generated membrane values, use the *created_block to prevent copy argument passing
+    values_block->enter_data(fname);
+    // and then try  to print out the block with the print template funciton
+    header_block->print();
+    values_block->print();
+}
+//todo decide if pointer is right return value 
+std_block * gen_block(std::vector<int> vec)
+{
+    if (vec.size() == 2) {
+        std_block * new_block = new std_block(vec[1],vec[0]);// hopefully constructor dishes out enough heap space for this
+        return new_block;
+    } else if (vec.size() == 1) {
+        // only 1d block
+        std_block* new_block = new std_block(vec[0]);
+        return new_block;
+    }
+
+}
+
 

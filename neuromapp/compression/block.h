@@ -1,9 +1,11 @@
 #ifndef NEUROMAPP_BLOCK
 #define NEUROMAPP_BLOCK
 
+#include <string>
 #include <memory> // POSIX, size_t is inside
 #include <iostream>
 #include <type_traits>
+#include <cctype>
 #include <cassert>
 
 #include "allocator.h" // that's right, this is another way to tie up files in different locations.
@@ -150,44 +152,65 @@ namespace neuromapp {
                     std::cout << " \n";
                 }
             }
-            // this is the tool for adding entries to our block
-            void enter_data(const std::string & fname)
-            {
-                //could use either the iterator, or the indexing, dunno which is better
-                //note that this doesn't break if the file doesn't exist
 
+            std::ifstream check_file (std::string fname) {
 
-
-                //check if the file exists
                 struct stat file_check;
                 if (stat(fname.c_str(),&file_check) !=0) {
                     throw std::runtime_error( std::string ("non-existing file ") + fname);
                 }
                 std::ifstream in_file(fname);
                 std::cout << fname << std::endl;
+                return in_file;
+            }
+
+            // this is the tool for adding entries to our block
+            void enter_data(const std::string & fname)
+            {
+                std::ifstream in_file = check_file(fname);
+                //check if the file exists
                 auto block_it = this->begin();
                 std::string str_temp {""};
                 while(in_file >> str_temp && block_it != this->end()){
-                    int int_temp {stoi(str_temp)};
-                    *block_it = int_temp;
+                    // must use static to make num_temp the correct type after conversion
+                    T num_temp {static_cast<T>(stoi(str_temp))};
+                    *block_it = num_temp;
                     block_it++;
                 }
                 // close the file
                 in_file.close();
-
             }
+
+
+
+
             private:
             size_type rows_;
             size_type cols_;
             size_type dim0_;
             pointer data_;
         };
-
-    template <class T, class A>
+   template <class T, class A>
         std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
             b.print(out);
             return out;
         }
+
+    //specialized form of the enter_data method for string header in data
+    template <>
+    void block<std::string,cstandard>::enter_data(const std::string & fname) {
+        std::ifstream in_file = check_file(fname);
+        //check if the file exists
+        auto block_it = this->begin();
+        std::string str_temp {""};
+        while(in_file >> str_temp && block_it != this->end()){
+            *block_it = str_temp;
+            block_it++;
+        }
+        // close the file
+        in_file.close();
+    }
+
 
 } // namespace neuromapp
 

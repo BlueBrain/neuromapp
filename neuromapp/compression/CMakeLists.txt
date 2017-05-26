@@ -7,6 +7,7 @@ if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
         ## this is according to cmake third parties SE post
         include_directories( ${ZLIB_INCLUDE_DIRS})
         target_link_libraries(compression ${ZLIB_LIBRARIES})
+        set_target_properties(compression PROPERTIES COMPILE_FLAGS "-Wfatal-errors -g")
     endif (ZLIB_FOUND)
 
     ##currently hardcoded to directory with more recent version of boost than the system's
