@@ -173,6 +173,12 @@ namespace neuromapp {
                 std::string str_temp {""};
                 while(in_file >> str_temp && block_it != this->end()){
                     // must use static to make num_temp the correct type after conversion
+                    //skip past the header line
+                    //wierd thing is the isalpha was letting # through
+                    if(!std::isdigit(str_temp.at(0))) {
+                        continue;
+                    }
+                    std::cout << "current val is "<< str_temp << std::endl;
                     T num_temp {static_cast<T>(stoi(str_temp))};
                     *block_it = num_temp;
                     block_it++;
@@ -190,7 +196,7 @@ namespace neuromapp {
             size_type dim0_;
             pointer data_;
         };
-   template <class T, class A>
+    template <class T, class A>
         std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
             b.print(out);
             return out;
@@ -198,18 +204,22 @@ namespace neuromapp {
 
     //specialized form of the enter_data method for string header in data
     template <>
-    void block<std::string,cstandard>::enter_data(const std::string & fname) {
-        std::ifstream in_file = check_file(fname);
-        //check if the file exists
-        auto block_it = this->begin();
-        std::string str_temp {""};
-        while(in_file >> str_temp && block_it != this->end()){
-            *block_it = str_temp;
-            block_it++;
+        void block<std::string,cstandard>::enter_data(const std::string & fname) {
+            std::ifstream in_file = check_file(fname);
+            //check if the file exists
+            auto block_it = this->begin();
+            std::string line;
+            //TODO encapsulate the block filling process in separate function
+            while(std::getline(in_file,line)&& block_it != this->end()){
+                std::stringstream ss(line);
+                while(std::getline(ss,line,',')&& block_it != this->end()) {
+                    *block_it= line;
+                    block_it++;
+                }
+            }
+            // close the file
+            in_file.close();
         }
-        // close the file
-        in_file.close();
-    }
 
 
 } // namespace neuromapp
