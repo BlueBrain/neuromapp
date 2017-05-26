@@ -178,8 +178,7 @@ namespace neuromapp {
                     if(!std::isdigit(str_temp.at(0))) {
                         continue;
                     }
-                    std::cout << "current val is "<< str_temp << std::endl;
-                    T num_temp {static_cast<T>(stoi(str_temp))};
+                    T num_temp {std::strtof(str_temp.c_str(),NULL)};//TODO ask about reliance on float type for value block
                     *block_it = num_temp;
                     block_it++;
                 }
