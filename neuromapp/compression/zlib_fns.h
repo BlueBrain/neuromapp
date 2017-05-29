@@ -32,6 +32,22 @@ namespace zlib {
         /* vector<char> file_chars(start,end); */
         /* for_each(file_chars.begin(),file_chars.end(),[](char letter){cout << ((letter == 'e') ? letter : 'X');}); */
     }
+    void check_compress_res(int comp_rc ) {
+        switch(comp_rc) {
+            case Z_OK:
+                std::cout << "compression passed got Z_OK" << std::endl;
+                break;
+
+            case Z_BUF_ERROR:
+                std::cerr << "not enough space in the buffer" << std::endl;
+                throw  std::runtime_error("");
+                break;
+            case Z_MEM_ERROR:
+                std::cerr << "ran out of memory" << std::endl;
+                throw  std::runtime_error("");
+                break;
+        }
+    }
 
     // todo make general to any allocator choice, cstandard and the align
     void block_compress() {
@@ -49,19 +65,18 @@ namespace zlib {
         Bytef* source_ptr = (Bytef*) &source[0];
         Bytef* dest_ptr = (Bytef*) dest;
         int comp_rc = compress(dest_ptr,&dest_len,source_ptr,source_len);
-        //TODO if this works, make check its own function
-        switch(comp_rc) {
-            case Z_OK:
-                std::cout << "compression passed got Z_OK" << std::endl;
-                break;
+        check_compress_res(comp_rc);
+        //if we make it here now we try to uncompress
+        vector<int> uncomp(4);// make capacity 4
+        uLong uncomp_len = compressBound(dest_len);
+        Bytef* uncomp_ptr = (Bytef*) &uncomp[0];
+        comp_rc =uncompress(uncomp_ptr,&uncomp_len,dest_ptr,dest_len);
+        check_compress_res(comp_rc);
 
-            case Z_BUF_ERROR:
-                std::cout << "not enough space in the buffer" << std::endl;
-                break;
-            case Z_MEM_ERROR:
-                std::cout << "ran out of memory" << std::endl;
-                break;
-        }
+
+
+
+
     }
 
 
