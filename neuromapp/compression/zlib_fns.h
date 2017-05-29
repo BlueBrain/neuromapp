@@ -67,16 +67,15 @@ namespace zlib {
         int comp_rc = compress(dest_ptr,&dest_len,source_ptr,source_len);
         check_compress_res(comp_rc);
         //if we make it here now we try to uncompress
-        vector<int> uncomp(4);// make capacity 4
+        //why does the destlen change from the beginning?
+        std::cout << "destlen has become" << dest_len << std::endl;
+        vector<int> uncomp(10);// make capacity 4
         uLong uncomp_len = compressBound(dest_len);
         Bytef* uncomp_ptr = (Bytef*) &uncomp[0];
         comp_rc =uncompress(uncomp_ptr,&uncomp_len,dest_ptr,dest_len);
         check_compress_res(comp_rc);
-
-
-
-
-
+        //make it this far we need to print out the results of the compression
+        std::cout << "first element in uncomp is " << uncomp[3] << std::endl;
     }
 
 
