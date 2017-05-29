@@ -22,8 +22,5 @@ using prac_block = block<int,cstandard>;
 
 int main (void) {
     //do call rom the zlib_funs
-    prac_block * demo_block = new prac_block(30,30);// figure out which is column and which is the row
-    demo_block->enter_data("../memvolts.csv");// load in the data
-    demo_block->print();
-    zlib::block_compress(demo_block);
+    zlib::block_compress();
 }

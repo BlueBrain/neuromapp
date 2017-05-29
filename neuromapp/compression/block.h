@@ -4,6 +4,7 @@
 #include <string>
 #include <memory> // POSIX, size_t is inside
 #include <iostream>
+#include <sstream>
 #include <type_traits>
 #include <cctype>
 #include <cassert>
