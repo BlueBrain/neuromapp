@@ -161,7 +161,6 @@ namespace neuromapp {
                     throw std::runtime_error( std::string ("non-existing file ") + fname);
                 }
                 std::ifstream in_file(fname);
-                std::cout << fname << std::endl;
                 return in_file;
             }
 

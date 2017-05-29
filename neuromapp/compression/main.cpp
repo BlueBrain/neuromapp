@@ -76,11 +76,9 @@ void create_block(po::variables_map & vm)
     std_block * values_block = gen_block(dims);
     block<std::string,cstandard> *header_block=new block<std::string,cstandard>(5);
     header_block->enter_data(fname);
-    header_block->print();
     //try entering data from the memvolts file of randomly generated membrane values, use the *created_block to prevent copy argument passing
     values_block->enter_data(fname);
     // and then try  to print out the block with the print template funciton
-    values_block->print();
 }
 //todo decide if pointer is right return value 
 std_block * gen_block(std::vector<int> vec)
