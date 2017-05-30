@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory> // POSIX, size_t is inside
+#include <ios>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -148,7 +149,7 @@ namespace neuromapp {
             void print(std::ostream & os) const {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
-                        os << (*this)(j, i) << " ";
+                        os << std::hex << (*this)(j, i) << " ";
                     }
                     os << " \n";
                 }
