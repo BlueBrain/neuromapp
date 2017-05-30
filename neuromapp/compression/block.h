@@ -178,7 +178,8 @@ namespace neuromapp {
                 //and now repeat for the row
                 file_in >> row;
                 file_in >> std::ws;
-                block<float,cstandard> b(col,row);
+                //make block match type value_type of calling block
+                block<value_type,cstandard> b(col,row);
                 std::cout << "given " <<row <<" rows " << col << " cols " << std::endl;
                 //take full line
                 std::cout << "starting enter data" << std::endl;
@@ -201,6 +202,7 @@ namespace neuromapp {
                 // now we have to swap the data in this block with the calling object block data
                 rows_ = row;
                 cols_ = col;
+                dim0_ = col;
                 std::swap(*b.data(),*data_);
                 std::cout << "mem addr for first ele of this block : " << &(data_[0]) << std::endl;
             }
