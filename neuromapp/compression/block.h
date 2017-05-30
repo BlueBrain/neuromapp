@@ -4,6 +4,7 @@
 #include <string>
 #include <memory> // POSIX, size_t is inside
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <type_traits>
 #include <cctype>
@@ -143,14 +144,13 @@ namespace neuromapp {
                 return data_[i + j * cols_];
             }
 
-            //did I write this print thing?
-            //since std::cout is being used, we don't need the parameter,
-            void print() const {
+            //when given the std::cout for the standard operator we add to its stream
+            void print(std::ostream & os) const {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
-                        std::cout << (*this)(j, i) << " ";
+                        os << (*this)(j, i) << " ";
                     }
-                    std::cout << " \n";
+                    os << " \n";
                 }
             }
 
@@ -165,25 +165,43 @@ namespace neuromapp {
             }
 
             // this is the tool for adding entries to our block
-            void enter_data(const std::string & fname)
+            void read(std::istream & file_in)
             {
-                std::ifstream in_file = check_file(fname);
-                //check if the file exists
-                auto block_it = this->begin();
-                std::string str_temp {""};
-                while(in_file >> str_temp && block_it != this->end()){
-                    // must use static to make num_temp the correct type after conversion
-                    //skip past the header line
-                    //wierd thing is the isalpha was letting # through
-                    if(!std::isdigit(str_temp.at(0))) {
-                        continue;
+                //get the dimensions of the block from the first two values in the data, (col,row)
+                std::string line;
+                int row,col;
+                file_in >> col;
+                file_in >> std::ws;
+                // TODO look up what is this doing to skip the comma
+                if(file_in.get() != ',') throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
+                //and now repeat for the row
+                file_in >> row;
+                file_in >> std::ws;
+                block<float,cstandard> b(col,row);
+                std::cout << "given " <<row <<" rows " << col << " cols " << std::endl;
+                //take full line
+                std::cout << "starting enter data" << std::endl;
+                row = 0;// start at first row for entering values
+                while(std::getline(file_in,line) && row < b.num_rows()) {
+                    //reset the column count to enter data for first column
+                    col = 0;
+                    //split on commas
+                    std::stringstream comma_splitter(line);
+                    std::string data_cell;
+                    //read from stream comma_splitter, split on comma, and enter into the data_cell string
+                    while(std::getline(comma_splitter,data_cell,',') && col < b.num_cols()) {
+                        // using the block element indexing
+                        b(col++,row) = std::stoi(data_cell);// doesn't this force us to only take ints?
                     }
-                    T num_temp {std::strtof(str_temp.c_str(),NULL)};//TODO ask about reliance on float type for value block
-                    *block_it = num_temp;
-                    block_it++;
+                    row++;
                 }
-                // close the file
-                in_file.close();
+                std::cout << "done reading" << std::endl;
+
+                // now we have to swap the data in this block with the calling object block data
+                rows_ = row;
+                cols_ = col;
+                std::swap(*b.data(),*data_);
+                std::cout << "mem addr for first ele of this block : " << &(data_[0]) << std::endl;
             }
 
 
@@ -201,23 +219,11 @@ namespace neuromapp {
             return out;
         }
 
-    //specialized form of the enter_data method for string header in data
-    template <>
-        void block<std::string,cstandard>::enter_data(const std::string & fname) {
-            std::ifstream in_file = check_file(fname);
-            //check if the file exists
-            auto block_it = this->begin();
-            std::string line;
-            //TODO encapsulate the block filling process in separate function
-            while(std::getline(in_file,line)&& block_it != this->end()){
-                std::stringstream ss(line);
-                while(std::getline(ss,line,',')&& block_it != this->end()) {
-                    *block_it= line;
-                    block_it++;
-                }
-            }
-            // close the file
-            in_file.close();
+    //follow Tim's pattern with the outbound ostream above
+    template <class T, class A>
+        std::istream & operator >> (std::istream & in, block<T,A> &b ) {
+            b.read(in);// create contents of block based on data in inputstream
+            return in;
         }
 
 

@@ -75,7 +75,12 @@ namespace zlib {
         comp_rc =uncompress(uncomp_ptr,&uncomp_len,dest_ptr,dest_len);
         check_compress_res(comp_rc);
         //make it this far we need to print out the results of the compression
-        std::cout << "first element in uncomp is " << uncomp[3] << std::endl;
+        vector<int>::iterator it = uncomp.begin();
+        for (;it != uncomp.end();it++) {
+            std::cout << *it <<", " << std::endl;
+        }
+
+
     }
 
 

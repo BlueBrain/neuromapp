@@ -67,18 +67,12 @@ int comp_execute(int argc,char *const argv[])
 
 void create_block(po::variables_map & vm)
 {
-    std_block * gen_block(std::vector<int> vec);
-    //built around assumption thhat the columns are the first number people are putting in?
-    std::string fname = "../compression/data/csv/values_10_a8213.csv";// hardcoded for now
-    //dims as in dimensions for the block, cols and rows, or just cols
-    std::vector<int> dims;
-    dims = vm["create"].as<std::vector <int>>();//the dimension doesn't include the header line
-    std_block * values_block = gen_block(dims);
-    block<std::string,cstandard> *header_block=new block<std::string,cstandard>(5);
-    header_block->enter_data(fname);
-    //try entering data from the memvolts file of randomly generated membrane values, use the *created_block to prevent copy argument passing
-    values_block->enter_data(fname);
-    // and then try  to print out the block with the print template funciton
+    std::ifstream i_file("../compression/data/csv/values_10_a8214_val.csv");
+    //TODO make another option for taking a filename from the user, should be easier than this
+    std_block do_read_block;
+    i_file >> do_read_block;
+    std::cout <<&do_read_block(0,0)  << std::endl;
+    
 }
 //todo decide if pointer is right return value 
 std_block * gen_block(std::vector<int> vec)
@@ -91,7 +85,6 @@ std_block * gen_block(std::vector<int> vec)
         std_block* new_block = new std_block(vec[0]);
         return new_block;
     }
-
 }
 
 
