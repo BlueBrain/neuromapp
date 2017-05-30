@@ -192,7 +192,7 @@ namespace neuromapp {
                     //read from stream comma_splitter, split on comma, and enter into the data_cell string
                     while(std::getline(comma_splitter,data_cell,',') && col < b.num_cols()) {
                         // using the block element indexing
-                        b(col++,row) = std::stoi(data_cell);// doesn't this force us to only take ints?
+                        std::istringstream(data_cell) >> std::hex >> b(col++,row);// doesn't this force us to only take ints?
                     }
                     row++;
                 }

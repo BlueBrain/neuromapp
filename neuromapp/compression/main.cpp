@@ -35,13 +35,13 @@ int comp_execute(int argc,char *const argv[])
     try {
         //make desc
         po::options_description desc{"Allowed options"};
-        void create_block(po::variables_map & vm);
+        void block_from_file(po::variables_map & vm);
         //add options
         desc.add_options()
             //register gen_block with the create user option
             ("help","Print out the help screen")
             ("demo","this prints out a basic hello world zlib version")
-            ("create",po::value< std::vector<int>>()->multitoken(),"The create option");
+            ("file",po::value<std::string>(),"The create option");
         //create variable map
         po::variables_map vm;
         po::store(po::parse_command_line(argc,argv,desc),vm);
@@ -54,8 +54,8 @@ int comp_execute(int argc,char *const argv[])
         if (vm.count("help")) {
             std::cout << desc << std::endl;
         }
-        if(vm.count("create")){
-            create_block(vm);
+        if(vm.count("file")){
+            block_from_file(vm);
         }
     }
     catch (po::error &e) {
@@ -65,13 +65,13 @@ int comp_execute(int argc,char *const argv[])
     return 0;
 }
 
-void create_block(po::variables_map & vm)
+void block_from_file(po::variables_map & vm)
 {
-    std::ifstream i_file("../compression/data/csv/values_10_a8214_val.csv");
+    std::ifstream i_file(vm["file"].as<string>());// use the filename given as argument to create block
     //TODO make another option for taking a filename from the user, should be easier than this
     std_block do_read_block;
     i_file >> do_read_block;
-    std::cout <<&do_read_block(0,0)  << std::endl;
+    do_read_block.print(std::cout);
     
 }
 //todo decide if pointer is right return value 
