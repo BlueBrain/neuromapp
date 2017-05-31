@@ -150,10 +150,11 @@ namespace neuromapp {
             std::ostream& print(std::ostream & os) const {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
-                        //determine how much printout we get
-                        os << std::setprecision(15) << (*this)(j, i) << " ";
+                        //precision defines accuracy for testing comparison
+                        os << std::setprecision(15) << (*this)(j, i);
+                        os << (j != dim0()-1 ? " " : "");// prevent trailing whitespace in output
                     }
-                    os << " \n";
+                    os << (i != dim1() -1? "\n": "") ;
                 }
                 return os;
             }
@@ -164,15 +165,7 @@ namespace neuromapp {
                         this->cols_ != other.num_cols()) {
                     return false;
                 }
-                //iterate over the entries
-                for (int i = 0 ; i < dim1(); i++ ) {
-                    for (int j = 0 ; j < dim0(); j++) {
-                        if ((*this)(j,i) != other(j,i)) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
+                return (bool) std::memcmp(this->data(),other.data(),other.memory_allocated());
             }
                 
 
@@ -214,7 +207,7 @@ namespace neuromapp {
                     //read from stream comma_splitter, split on comma, and enter into the data_cell string
                     while(std::getline(comma_splitter,data_cell,',') && col < b.num_cols()) {
                         // using the block element indexing
-                        std::stringstream(data_cell) >> std::hex >> b(col++,row);// doesn't this force us to only take ints?
+                        std::stringstream(data_cell) >> std::hex >> b(col++,row);
                     }
                     row++;
                 }
