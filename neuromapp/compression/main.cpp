@@ -67,6 +67,7 @@ int comp_execute(int argc,char *const argv[])
 
 void block_from_file(po::variables_map & vm)
 {
+    // do we trim out the value part to get at the headr csv?
     std::ifstream i_file(vm["file"].as<string>());// use the filename given as argument to create block
     //TODO make another option for taking a filename from the user, should be easier than this
     std_block do_read_block;

@@ -193,7 +193,7 @@ namespace neuromapp {
                     //read from stream comma_splitter, split on comma, and enter into the data_cell string
                     while(std::getline(comma_splitter,data_cell,',') && col < b.num_cols()) {
                         // using the block element indexing
-                        std::istringstream(data_cell) >> std::hex >> b(col++,row);// doesn't this force us to only take ints?
+                        std::stringstream(data_cell) >> std::hex >> b(col++,row);// doesn't this force us to only take ints?
                     }
                     row++;
                 }
@@ -203,19 +203,16 @@ namespace neuromapp {
                 rows_ = row;
                 cols_ = col;
                 dim0_ = col;
-                std::swap(*b.data(),*data_);
-                std::cout << "mem addr for first ele of this block : " << &(data_[0]) << std::endl;
+                //b.print(std::cout);
+                std::swap(data_,b.data_);
             }
-
-
-
-
             private:
             size_type rows_;
             size_type cols_;
             size_type dim0_;
             pointer data_;
         };
+
     template <class T, class A>
         std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
             b.print(out);
