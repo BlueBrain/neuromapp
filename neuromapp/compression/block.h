@@ -6,6 +6,8 @@
 #include <ios>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
+#include <limits>
 #include <sstream>
 #include <type_traits>
 #include <cctype>
@@ -149,7 +151,8 @@ namespace neuromapp {
             void print(std::ostream & os) const {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
-                        os << std::hex << (*this)(j, i) << " ";
+                        //determine how much printout we get
+                        os << std::setprecision(15) << (*this)(j, i) << " ";
                     }
                     os << " \n";
                 }
@@ -200,9 +203,9 @@ namespace neuromapp {
                 std::cout << "done reading" << std::endl;
 
                 // now we have to swap the data in this block with the calling object block data
-                rows_ = row;
-                cols_ = col;
-                dim0_ = col;
+                rows_ = b.num_rows();
+                cols_ = b.num_cols();
+                dim0_ = b.dim0();
                 //b.print(std::cout);
                 std::swap(data_,b.data_);
             }

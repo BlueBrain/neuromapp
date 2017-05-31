@@ -26,7 +26,7 @@ using neuromapp::block;
 using neuromapp::cstandard;
 namespace po = boost::program_options;
 // todo change to variable type, and allocation method
-using std_block = block<float,cstandard>;
+using std_block = block<double,cstandard>;
 
 //todo include more boost program_options later on
 int comp_execute(int argc,char *const argv[])
