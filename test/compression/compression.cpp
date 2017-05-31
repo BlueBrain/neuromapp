@@ -9,7 +9,7 @@
 
 #include <boost/mpl/list.hpp>
 
-#include "block.h"
+#include "compression/block.h"
 
 #define BOOST_TEST_MODULE block
 
