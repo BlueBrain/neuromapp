@@ -203,9 +203,7 @@ namespace neuromapp {
                 file_in >> std::ws;
                 //make block match type value_type of calling block
                 block<value_type,cstandard> b(col,row);
-                std::cout << "given " <<row <<" rows " << col << " cols " << std::endl;
                 //take full line
-                std::cout << "starting enter data" << std::endl;
                 row = 0;// start at first row for entering values
                 while(std::getline(file_in,line) && row < b.num_rows()) {
                     //reset the column count to enter data for first column
@@ -220,7 +218,6 @@ namespace neuromapp {
                     }
                     row++;
                 }
-                std::cout << "done reading" << std::endl;
 
                 // now we have to swap the data in this block with the calling object block data
                 rows_ = b.num_rows();

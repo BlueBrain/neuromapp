@@ -22,13 +22,21 @@ BOOST_AUTO_TEST_CASE( first_test) {
 1, 2, 5, 45,
 1, 2, 5, 45,
 1, 2, 5, 45,
-1, 2, 5, 45
-            )"};
-    std::cout << s1 << std::endl;
-    stringstream ss1;
+1, 2, 5, 45)"};
+    //std::cout << s1 << std::endl;
+    stringstream ss1,ss2;
     ss1 << s1;
     std_block b1;
     ss1 >> b1;
+    //capture output of block print
+    ss2<<b1;
+    BOOST_CHECK(ss2.str() == R"(
+1 2 5 45
+1 2 5 45
+1 2 5 45
+1 2 5 45
+1 2 5 45)");
+
     //built by file, now by hand for comparison
     std_block b2(4,5);
     for (int i = 0; i < b2.num_rows();i++) {
