@@ -95,7 +95,6 @@ namespace neuromapp {
                     deallocate_policy(data_);
             }
 
-            //this is the method that we call to read in as much data as we have space for in the block
 
             void resize(size_type n = 1, size_type m = 1) {
                 // essentially just getting which is smaller the resize or the current
@@ -148,7 +147,7 @@ namespace neuromapp {
             }
 
             //when given the std::cout for the standard operator we add to its stream
-            void print(std::ostream & os) const {
+            std::ostream& print(std::ostream & os) const {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
                         //determine how much printout we get
@@ -156,7 +155,28 @@ namespace neuromapp {
                     }
                     os << " \n";
                 }
+                return os;
             }
+
+            bool operator == (const block & other) {
+                //check size matches first
+                if(this->rows_ != other.num_rows() || 
+                        this->cols_ != other.num_cols()) {
+                    return false;
+                }
+                //iterate over the entries
+                for (int i = 0 ; i < dim1(); i++ ) {
+                    for (int j = 0 ; j < dim0(); j++) {
+                        if ((*this)(j,i) != other(j,i)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+                
+
+
 
             std::ifstream check_file (std::string fname) {
 
@@ -207,7 +227,8 @@ namespace neuromapp {
                 cols_ = b.num_cols();
                 dim0_ = b.dim0();
                 //b.print(std::cout);
-                std::swap(data_,b.data_);
+                //breach privacy, access b data directly
+                std::swap(this->data_,b.data_);
             }
             private:
             size_type rows_;
