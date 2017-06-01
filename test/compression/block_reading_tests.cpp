@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+
 #include <sstream>
 #include <string>
 
@@ -12,7 +14,7 @@
 #include "compression/block.h"
 using neuromapp::block;
 using neuromapp::cstandard;
-using std_block = neuromapp::block<int,cstandard>;
+using std_block = neuromapp::block<float,cstandard>;
 using namespace std;
 BOOST_AUTO_TEST_CASE( first_test) {
 //use raw string literals for easier creation of varied tests for read
@@ -30,19 +32,23 @@ BOOST_AUTO_TEST_CASE( first_test) {
     ss1 >> b1;
     //capture output of block print
     ss2<<b1;
-    BOOST_CHECK(ss2.str() == R"(
-1 2 5 45
+    // block output has no separating commas
+    BOOST_CHECK(ss2.str() == R"(1 2 5 45
 1 2 5 45
 1 2 5 45
 1 2 5 45
 1 2 5 45)");
+
+    //mem cmp test
+
+
 
     //built by file, now by hand for comparison
     std_block b2(4,5);
     for (int i = 0; i < b2.num_rows();i++) {
         //this is the first by hand way of checking this I could think of
         
-        int vals[] {1,2,5,45};
+        float vals[] {1,2,5,45};
         for (int j = 0;j < b2.num_cols(); j++) {
             b2(j,i) = vals[j];
         }

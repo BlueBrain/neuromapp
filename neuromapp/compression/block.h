@@ -165,7 +165,12 @@ namespace neuromapp {
                         this->cols_ != other.num_cols()) {
                     return false;
                 }
-                return (bool) std::memcmp(this->data(),other.data(),other.memory_allocated());
+                int rc =std::memcmp(this->data(),other.data(),other.memory_allocated());
+                if (rc == 0) {
+                    return true;// typical char* comparison rules
+                } else {
+                    return false;
+                }
             }
                 
 
