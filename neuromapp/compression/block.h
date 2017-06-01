@@ -222,8 +222,8 @@ namespace neuromapp {
                 cols_ = b.num_cols();
                 dim0_ = b.dim0();
                 //b.print(std::cout);
-                value_type* tmp_data= (value_type*) b.data();
-                std::swap(this->data_,tmp_data);
+                std::swap(this->data_,b.data_);
+
             }
             private:
             size_type rows_;

@@ -148,40 +148,43 @@ struct shell {
 };
 
 //should I be testing the align this whole time?
-typedef boost::mpl::list<shell<float, neuromapp::cstandard>, shell<float, neuromapp::align>,
-                         shell<double, neuromapp::cstandard>, shell<double, neuromapp::align>>
+typedef boost::mpl::list<shell<float, neuromapp::cstandard>,
+                        shell<int, neuromapp::cstandard>,
+                         shell<double, neuromapp::cstandard>>
     test_allocator_types;
 
 
 
-vector<string> start_string_vect {s1,s2,s3,s4};
-vector<string> correct_string_vect {s1,s2,s3,s4};
+// use lists to facilitate ease when checking various options
+vector<string> start_string_vect {s2};
+vector<string> correct_string_vect {s2_correct};
 BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
-    int correct_counter =1;
+    //use counter to control testing on strings that have correct versions given
+    int correct_counter =0;
     // TODO ask tim about this syntax
     typedef typename T::value_type value_type;
     typedef typename T::allocator_type allocator_type;
     for (string str : start_string_vect) {
-        stringstream ss;
+        stringstream ss,ss2;
+        std::cout << "correct count is " << correct_counter << std::endl;
+        string correct_str = correct_string_vect[correct_counter];
         ss << str;
         block<value_type,allocator_type> b1;
         //check basic error catching
-        BOOST_CHECK_MESSAGE(ss >> b1,"string was\n"<<str);
-        //clear ss
-        ss.str("");
+        BOOST_CHECK_MESSAGE(ss >> b1,
+                "string was\n"<<str);
         //capture output of block print
         // block output has no separating commas
-        ss << b1;
-        if (correct_counter < 4) {
-            BOOST_CHECK_MESSAGE(ss.str() == correct_string_vect[correct_counter],"failed comparison: string was\n" << str+"\n" << "block was\n" << ss.str());
-            correct_counter++;
-        }
+        ss2 << b1;
+        BOOST_CHECK_MESSAGE(ss2.str() == correct_str,
+                "failed comparison: string was\n" << correct_str+"\n" << "block was\n" << ss2.str());
         //mem cmp test
         //built by file, now by hand for comparison
 //        std_block b2(4,5);
 //        for (int i = 0; i < b2.num_rows();i++) {
 //            //this is the first by hand way of checking this I could think of
 //            for (int j = 0;j < b2.num_cols(); j++) {
+//            //use static casts based on value_type to make the conversion from string to block element easier
 //                b2(j,i) = vals[j];
 //            }
 //        }
