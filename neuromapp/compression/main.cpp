@@ -15,6 +15,7 @@
 #include <vector>
 #include <boost/program_options.hpp>
 // the includes are relative to the directory above
+#include "compression/util.h"
 #include "compression/compression.h"
 #include "compression/zlib_fns.h"
 #include "compression/allocator.h"
@@ -67,9 +68,10 @@ int comp_execute(int argc,char *const argv[])
 
 void block_from_file(po::variables_map & vm)
 {
-    // do we trim out the value part to get at the headr csv?
-    std::ifstream i_file(vm["file"].as<string>());// use the filename given as argument to create block
-    //TODO make another option for taking a filename from the user, should be easier than this
+    string fname = vm["file"].as<string>();
+    //check file
+    neuromapp::check_file(fname);
+    std::ifstream i_file(fname);// use the filename given as argument to create block
     std_block do_read_block;
     i_file >> do_read_block;
     do_read_block.print(std::cout);
