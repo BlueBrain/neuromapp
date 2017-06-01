@@ -147,7 +147,7 @@ namespace neuromapp {
             }
 
             //when given the std::cout for the standard operator we add to its stream
-            std::ostream& print(std::ostream & os) const {
+            std::ostream & print(std::ostream & os) const {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
                         //precision defines accuracy for testing comparison
@@ -222,8 +222,8 @@ namespace neuromapp {
                 cols_ = b.num_cols();
                 dim0_ = b.dim0();
                 //b.print(std::cout);
-                //breach privacy, access b data directly
-                std::swap(this->data_,b.data_);
+                value_type* tmp_data= (value_type*) b.data();
+                std::swap(this->data_,tmp_data);
             }
             private:
             size_type rows_;

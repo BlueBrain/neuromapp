@@ -154,7 +154,7 @@ typedef boost::mpl::list<shell<float, neuromapp::cstandard>, shell<float, neurom
 
 
 
-vector<string> start_string_vect {s1,s2,s3,s4,s5,s6,s7,s8,s9};
+vector<string> start_string_vect {s1,s2,s3,s4};
 vector<string> correct_string_vect {s1,s2,s3,s4};
 BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     int correct_counter =1;
@@ -170,9 +170,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
         //clear ss
         ss.str("");
         //capture output of block print
-        ss<<b1;
         // block output has no separating commas
-        BOOST_CHECK_MESSAGE(ss.str() == correct_string_vect[correct_counter],"string was\n" << str);
+        ss << b1;
+        if (correct_counter < 4) {
+            BOOST_CHECK_MESSAGE(ss.str() == correct_string_vect[correct_counter],"failed comparison: string was\n" << str+"\n" << "block was\n" << ss.str());
+            correct_counter++;
+        }
         //mem cmp test
         //built by file, now by hand for comparison
 //        std_block b2(4,5);
@@ -183,7 +186,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
 //            }
 //        }
 //        BOOST_CHECK(b1==b2);
-        if (correct_counter < 4) correct_counter++;
     }
 }
 
