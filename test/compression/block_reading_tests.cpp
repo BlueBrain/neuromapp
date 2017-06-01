@@ -7,6 +7,7 @@
 #include <string>
 
 #define BOOST_TEST_MODULE devin_block_test
+#include <boost/mpl/list.hpp>
 #include <boost/test/unit_test.hpp>
 
 
@@ -15,7 +16,6 @@
 #include "compression/block.h"
 using neuromapp::block;
 using neuromapp::cstandard;
-using std_block = neuromapp::block<float,cstandard>;
 using namespace std;
 
 //use raw string literals for easier creation of varied tests for read
@@ -140,14 +140,31 @@ string s9 {R"(1,5
 8303, 26189, 32218, 9220, 28912, 15932, 16530, 23564, 26151, 5319, 9992, 24977, 24787,
 )"};
 
+//holder struct for combos of numeric type and allocator policy
+template <class T,class A>
+struct shell {
+    typedef T value_type;
+    typedef A allocator_type;
+};
+
+//should I be testing the align this whole time?
+typedef boost::mpl::list<shell<float, neuromapp::cstandard>, shell<float, neuromapp::align>,
+                         shell<double, neuromapp::cstandard>, shell<double, neuromapp::align>>
+    test_allocator_types;
+
+
+
 vector<string> start_string_vect {s1,s2,s3,s4,s5,s6,s7,s8,s9};
 vector<string> correct_string_vect {s1,s2,s3,s4};
-BOOST_AUTO_TEST_CASE( first_test) {
+BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     int correct_counter =1;
+    // TODO ask tim about this syntax
+    typedef typename T::value_type value_type;
+    typedef typename T::allocator_type allocator_type;
     for (string str : start_string_vect) {
         stringstream ss;
         ss << str;
-        std_block b1;
+        block<value_type,allocator_type> b1;
         //check basic error catching
         BOOST_CHECK_MESSAGE(ss >> b1,"string was\n"<<str);
         //clear ss
