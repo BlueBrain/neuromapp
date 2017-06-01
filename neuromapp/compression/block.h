@@ -32,12 +32,16 @@ namespace neuromapp {
             return align::resize_policy(n, sizeof_T);
         }
 
+    //default compress algos are zlib util
     //beginning of actual block class material
-    template <class T, class allocator = typename memory_policy_type::block_type>
+    template <class T, class allocator = typename memory_policy_type::block_type,class compressor = typename compressor_policy::zlib_util_algos>
         class block : public allocator {
             using allocator::allocate_policy;
             using allocator::deallocate_policy;
             using allocator::copy_policy;
+            //expose compressor functions
+            using compressor::compress_policy;
+            using compressor::uncompress_policy;
 
             public:
             typedef std::size_t size_type;
@@ -55,7 +59,8 @@ namespace neuromapp {
             block(size_type n = 1, size_type m = 1) : rows_(m) {
                 dim0_ = n;                                      // dim0 not necessary = num_cols due to the resize
                 cols_ = resize_helper<allocator>(n, sizeof(T)); // some policy will resize the col, needs for 2D !
-                data_ = (pointer)allocate_policy(sizeof(T) * cols_ * rows_);
+                current_size = sizeof(T) * cols_ * rows_;
+                data_ = (pointer)allocate_policy(current_size);
             }
             //constructor given rval to another block
             block(block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_) {
@@ -63,6 +68,7 @@ namespace neuromapp {
                 other.rows_ = 0;
                 other.cols_ = 0;
                 other.dim0_ = 0;
+                current_size = 0;
                 other.data_ = nullptr;
             }
 
@@ -72,8 +78,8 @@ namespace neuromapp {
                 rows_ = other.rows_;
                 cols_ = other.cols_;
                 dim0_ = other.dim0_;
-                size_type size = sizeof(T) * cols_ * rows_;
-                data_ = (pointer)allocate_policy(size);
+                current_size = sizeof(T) * cols_ * rows_;
+                data_ = (pointer)allocate_policy(current_size);
                 copy_policy(data_, other.data_, size);
             }
 
@@ -83,6 +89,7 @@ namespace neuromapp {
                 rows_ = rhs.rows_;
                 cols_ = rhs.cols_;
                 dim0_ = rhs.dim0_;
+                current_size = rhs.current_size;
 
                 // avoid destruction here
                 std::swap(data_, rhs.data_);
@@ -117,7 +124,14 @@ namespace neuromapp {
             iterator begin() { return data_; }
             iterator end() { return data_ + dim0_ * rows_; }
 
+            //difference between memory_allocated and size is that allocated relies on construction size, where size depends on compression
             size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
+
+            size_type size() const { return current_size;}
+
+            bool is_compressed() const {return memory_allocated() == current_size ? false : true;}// compare it to the existing size amount
+
+
 
             const_pointer data() const { return data_; };
 
@@ -176,16 +190,6 @@ namespace neuromapp {
 
 
 
-            std::ifstream check_file (std::string fname) {
-
-                struct stat file_check;
-                if (stat(fname.c_str(),&file_check) !=0) {
-                    throw std::runtime_error( std::string ("non-existing file ") + fname);
-                }
-                std::ifstream in_file(fname);
-                return in_file;
-            }
-
             // this is the tool for adding entries to our block
             void read(std::istream & file_in)
             {
@@ -216,20 +220,25 @@ namespace neuromapp {
                     }
                     row++;
                 }
-
                 // now we have to swap the data in this block with the calling object block data
                 rows_ = b.num_rows();
                 cols_ = b.num_cols();
                 dim0_ = b.dim0();
-                //b.print(std::cout);
                 std::swap(this->data_,b.data_);
 
             }
+
+            // block access to compression functions included via policy
+            void compress() {compress_policy(this);}
+            void uncompress() {uncompress_policy(this);} 
+
             private:
             size_type rows_;
             size_type cols_;
             size_type dim0_;
             pointer data_;
+            //compression members
+            size_type current_size;
         };
 
     template <class T, class A>

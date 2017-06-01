@@ -16,9 +16,8 @@ namespace neuromapp {
 
     class zlib {
         public:
-            //should this be templated?
             template<typename T>
-                void * compress_policy(block<T,cstandard> block_norm) {
+                void compress_policy(block<T,cstandard> block_norm) {
                     //get the approximate size in memory of the block_norm
 
                     uLong source_len = block_norm.memory_allocated();
@@ -45,17 +44,25 @@ namespace neuromapp {
                             // do we still need the break underneath this?
                             break;
                     }
-                    return dest;
+                    //change the block data with the compressed form
+                    std::swap(dest,block_norm.data());
                 }
 
             template<typename T>
-            block<T,cstandard> uncompress(void * compressed_blk) {
-                //do we want this to create a block for us?
-                uLong ;//get the right size for the block_to_fill
-                block<T,cstandard> block_to_fill;
+            void uncompress_policy(block<t,cstandard> compressed_blk) {
+                //original amount of memory used is still discernable
+                uLong dest_len = compressed_blk.memory_allocated();
+                void * dest = std::malloc(destLen);
+                //need to get the compressed source size to work with
+                uLong source_len = compressed_blk.size();
+                //set pointers for uncompress
+                Bytef* source_ptr = (Bytef*) compressed_blk.data();
+                Bytef* dest_ptr = (Bytef*) dest;
+                //perform the uncompress
+                uncompress(dest_ptr,&dest_len,source_ptr,source_len);
+                //swap the data
+                std::swap(compressed_blk.data(),dest);
             }
-
-
     };
 
     //end of neuromapp namespace
