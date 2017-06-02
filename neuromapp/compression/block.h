@@ -13,9 +13,10 @@
 #include <cctype>
 #include <cassert>
 
-#include "allocator.h" // that's right, this is another way to tie up files in different locations.
-#include "exception.h"
 #include "type_definition.h"
+#include "allocator.h" // that's right, this is another way to tie up files in different locations.
+#include "compressor.h"
+#include "exception.h"
 
 //tim uses comments to denote the end of meaningful brackets
 namespace neuromapp {
@@ -34,8 +35,8 @@ namespace neuromapp {
 
     //default compress algos are zlib util
     //beginning of actual block class material
-    template <class T, class allocator = typename memory_policy_type::block_type,class compressor = typename compressor_policy::zlib_util_algos>
-        class block : public allocator {
+    template <class T= typename memory_policy_type::value_type, class allocator = typename memory_policy_type::block_allocator_type,class compressor = typename memory_policy_type::block_compressor_type>
+        class block : public allocator, compressor {
             using allocator::allocate_policy;
             using allocator::deallocate_policy;
             using allocator::copy_policy;
@@ -89,10 +90,16 @@ namespace neuromapp {
                 rows_ = rhs.rows_;
                 cols_ = rhs.cols_;
                 dim0_ = rhs.dim0_;
+                data_ = rhs.data_;
                 current_size = rhs.current_size;
+                rhs.rows_ = 0;
+                rhs.cols_ = 0;
+                rhs.dim0_ = 0;
+                rhs.data_ = nullptr;
 
                 // avoid destruction here
-                std::swap(data_, rhs.data_);
+
+
 
                 return *this;
             }
@@ -224,13 +231,14 @@ namespace neuromapp {
                 rows_ = b.num_rows();
                 cols_ = b.num_cols();
                 dim0_ = b.dim0();
-                std::swap(this->data_,b.data_);
-
+                std::swap(*this,b);
             }
 
             // block access to compression functions included via policy
-            void compress() {compress_policy(this);}
-            void uncompress() {uncompress_policy(this);} 
+            // make into data ref and size as arguments
+            //
+            void compress() {compress_policy(data_,current_size);}
+            void uncompress() {uncompress_policy(data_,this->allocated_memory(),current_size());} 
 
             private:
             size_type rows_;

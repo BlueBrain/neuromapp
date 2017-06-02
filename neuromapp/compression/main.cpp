@@ -17,6 +17,7 @@
 // the includes are relative to the directory above
 #include "compression/util.h"
 #include "compression/compression.h"
+#include "compression/compressor.h"
 #include "compression/zlib_fns.h"
 #include "compression/allocator.h"
 #include "compression/exception.h"
