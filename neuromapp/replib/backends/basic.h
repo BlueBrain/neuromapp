@@ -37,7 +37,7 @@ class Writer {
         Writer() {}
         ~Writer() {}
         virtual void init(replib::config &c) {}
-        virtual void open(const char * path) = 0;
+        virtual void open(char * path) = 0;
         virtual void open(mapp::timer &t_io, const std::string &path) {}
         virtual void write(float * buffer, size_t count) = 0;
         virtual void write(mapp::timer &t_io, float * buffer, size_t count) {}

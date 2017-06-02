@@ -59,7 +59,7 @@ class MPIIOWriter : public replib::Writer {
         ~MPIIOWriter();
 
         void init(replib::config &c);
-        void open(const char * path);
+        void open(char * path);
         void open(mapp::timer &t_io, const std::string &path);
         void write(float * buffer, size_t count);
         void write(mapp::timer &t_io, float * buffer, size_t count);
@@ -105,7 +105,7 @@ void MPIIOWriter::init(replib::config &c) {
 /** \fun open(const char * path)
     \brief Open the file with MPI I/O and set the fileview.
            Inline version to be as fast as possible */
-inline void MPIIOWriter::open(const char * report) {
+inline void MPIIOWriter::open(char * report) {
     //Open the file
     int error = MPI_File_open(MPI_COMM_WORLD, report, MPI_MODE_WRONLY | MPI_MODE_CREATE, info_, &fh_);
     if (error != MPI_SUCCESS) {
