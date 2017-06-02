@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <vector>
 
-#include <sstream>
 #include <string>
 
 #define BOOST_TEST_MODULE devin_block_test
@@ -156,8 +155,8 @@ typedef boost::mpl::list<shell<float, neuromapp::cstandard>,
 
 
 // use lists to facilitate ease when checking various options
-vector<string> start_string_vect {s2};
-vector<string> correct_string_vect {s2_correct};
+vector<string> start_string_vect {s1,s2};
+vector<string> correct_string_vect {s1_correct,s2_correct};
 BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     //use counter to control testing on strings that have correct versions given
     int correct_counter =0;
@@ -172,7 +171,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
         block<value_type,allocator_type> b1;
         //check basic error catching
         BOOST_CHECK_MESSAGE(ss >> b1,
-                "string was\n"<<str);
+                "block creation error\n, string was\n"<<str);
         //capture output of block print
         // block output has no separating commas
         ss2 << b1;
