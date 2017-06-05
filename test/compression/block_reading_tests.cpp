@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     for (string str : start_string_vect) {
         stringstream ss,ss2;
         std::cout << "correct count is " << correct_counter << std::endl;
-        string correct_str = correct_string_vect[correct_counter];
+        string correct_str = correct_string_vect[correct_counter++];
         ss << str;
         block<value_type,allocator_type> b1;
         //check basic error catching

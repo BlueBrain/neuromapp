@@ -223,7 +223,7 @@ namespace neuromapp {
                     //read from stream comma_splitter, split on comma, and enter into the data_cell string
                     while(std::getline(comma_splitter,data_cell,',') && col < b.num_cols()) {
                         // using the block element indexing
-                        std::stringstream(data_cell) >> std::hex >> b(col++,row);
+                        std::stringstream(data_cell) >> std::dec >> b(col++,row);
                     }
                     row++;
                 }
