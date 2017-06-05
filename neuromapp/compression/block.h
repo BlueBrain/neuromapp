@@ -184,12 +184,14 @@ namespace neuromapp {
                 //check size matches first
                 if(this->rows_ != other.num_rows() || 
                         this->cols_ != other.num_cols()) {
+                    std::cerr << "size was off" << std::endl;
                     return false;
                 }
                 int rc =std::memcmp(this->data(),other.data(),other.memory_allocated());
                 if (rc == 0) {
                     return true;// typical char* comparison rules
                 } else {
+                    std::cerr << "memcmp of blocks failed" << std::endl;
                     return false;
                 }
             }
@@ -205,8 +207,10 @@ namespace neuromapp {
                 int row,col;
                 file_in >> col;
                 file_in >> std::ws;
-                // TODO look up what is this doing to skip the comma
-                if(file_in.get() != ',') throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
+                // this comes up in cases where an empty string is provided,
+                if(file_in.get() != ',') {
+                    throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
+                }
                 //and now repeat for the row
                 file_in >> row;
                 file_in >> std::ws;
