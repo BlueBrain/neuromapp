@@ -18,7 +18,6 @@
 #include "compressor.h"
 #include "exception.h"
 
-//tim uses comments to denote the end of meaningful brackets
 namespace neuromapp {
 
     // other allocator nothing special col is not modify
@@ -40,6 +39,7 @@ namespace neuromapp {
             using allocator::allocate_policy;
             using allocator::deallocate_policy;
             using allocator::copy_policy;
+            using allocator::compare_policy;
             //expose compressor functions
             using compressor::compress_policy;
             using compressor::uncompress_policy;
@@ -73,7 +73,6 @@ namespace neuromapp {
                 other.data_ = nullptr;
             }
 
-            // todo ask tim does this work on blocks with data in them?
             block(const block &other) {
                 // std::move is not needed on basic type
                 rows_ = other.rows_;
@@ -182,18 +181,7 @@ namespace neuromapp {
 
             bool operator == (const block & other) {
                 //check size matches first
-                if(this->rows_ != other.num_rows() || 
-                        this->cols_ != other.num_cols()) {
-                    std::cerr << "size was off" << std::endl;
-                    return false;
-                }
-                int rc =std::memcmp(this->data(),other.data(),other.memory_allocated());
-                if (rc == 0) {
-                    return true;// typical char* comparison rules
-                } else {
-                    std::cerr << "memcmp of blocks failed" << std::endl;
-                    return false;
-                }
+                return compare_policy(this->data(),other.data(),current_size);
             }
                 
 

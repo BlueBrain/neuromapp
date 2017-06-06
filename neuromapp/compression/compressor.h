@@ -5,12 +5,22 @@
 #include <cstdlib>
 #include <stdexcept> 
 #include <cstdlib>
-#include "block.h"
 #include "zlib.h"
-
+#include "block.h"
 //TODO change back from std namespace 
 using namespace std;
 namespace neuromapp {
+    class no_compress {
+        public:
+            void compress_policy(void * data_source, size_t uncompressed_size ){ 
+                std::cout << "compression library not found, can't compress, leaving the same size as before" << std::endl;
+            }
+
+            void uncompress_policy(void * data_source,size_t compressed_size,size_t uncompressed_size) {
+                std::cout << "no compression library found" << std::endl;
+            }
+    };
+
     class zlib {
         public:
             //tim's wisdom, don't ppass block as argument, just pointer to data and size (pure C style)
