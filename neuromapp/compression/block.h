@@ -80,7 +80,7 @@ namespace neuromapp {
                 dim0_ = other.dim0_;
                 current_size = sizeof(T) * cols_ * rows_;
                 data_ = (pointer)allocate_policy(current_size);
-                copy_policy(data_, other.data_, size);
+                copy_policy(data_, other.data_, current_size);
             }
 
 
@@ -133,11 +133,9 @@ namespace neuromapp {
             //difference between memory_allocated and size is that allocated relies on construction size, where size depends on compression
             size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
 
-            size_type size() const { return current_size;}
+            bool is_compressed() {return compression_state;}
 
-            bool is_compressed() const {return memory_allocated() == current_size ? false : true;}// compare it to the existing size amount
-
-
+            size_type get_current_size() {return current_size;}
 
             const_pointer data() const { return data_; };
 
@@ -220,17 +218,20 @@ namespace neuromapp {
                     row++;
                 }
                 // now we have to swap the data in this block with the calling object block data
-                rows_ = b.num_rows();
-                cols_ = b.num_cols();
-                dim0_ = b.dim0();
                 std::swap(*this,b);
             }
 
             // block access to compression functions included via policy
             // make into data ref and size as arguments
             //
-            void compress() {compress_policy(data_,current_size);}
-            void uncompress() {uncompress_policy(data_,this->allocated_memory(),current_size());} 
+            void compress() {
+                compress_policy(data_,current_size);
+                compression_state = true;
+            }
+            void uncompress() {
+                uncompress_policy(data_,this->memory_allocated(),current_size);
+                compression_state = false;
+            } 
 
             private:
             size_type rows_;
@@ -239,6 +240,7 @@ namespace neuromapp {
             pointer data_;
             //compression members
             size_type current_size;
+            bool compression_state = false;
         };
 
     template <class T, class A>
