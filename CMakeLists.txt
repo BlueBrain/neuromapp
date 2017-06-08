@@ -43,6 +43,7 @@ include(BlueGenePortability)
 
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
 find_package(Boost 1.44 REQUIRED chrono program_options unit_test_framework system filesystem random)
+find_package(ZLIB REQUIRED)
 find_package(HDF5)
 find_package(SLURM)
 find_package(MPI)
