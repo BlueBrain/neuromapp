@@ -76,12 +76,10 @@ namespace neuromapp {
                         std::cout << "compress worked" << std::endl;
                         break;
                     case Z_BUF_ERROR:
-                        std::cerr << "ran out of space in compress buffer"<< std::endl;
-                        throw runtime_error("");
+                        throw zlib_exception("ran out of space in buffer",1);
                         break;
                     case Z_MEM_ERROR:
-                        std::cerr << "ran out of memory during compression"<< std::endl;
-                        throw runtime_error("");
+                        throw zlib_exception("ran out of memory",2);
                         // do we still need the break underneath this?
                         break;
                 }
