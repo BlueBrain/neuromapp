@@ -2,7 +2,6 @@
 # Use -DNEUROMAPP_DISABLE_comp_test=TRUE to disable compilation/installation of this mini-app
 if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
     add_library (compression main.cpp)
-    find_package(ZLIB REQUIRED)
     if ( ZLIB_FOUND )
         ## this is according to cmake third parties SE post
         include_directories( ${ZLIB_INCLUDE_DIRS})

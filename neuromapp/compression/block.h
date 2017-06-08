@@ -226,11 +226,11 @@ namespace neuromapp {
             // make into data ref and size as arguments
             //
             void compress() {
-                compress_policy(&data_,current_size);
+                compress_policy(&data_,&current_size);
                 compression_state = true;
             }
             void uncompress() {
-                uncompress_policy(data_,this->memory_allocated(),current_size);
+                uncompress_policy(&data_,&current_size,this->memory_allocated());
                 compression_state = false;
             } 
 
