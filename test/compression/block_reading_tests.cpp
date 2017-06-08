@@ -228,8 +228,8 @@ BOOST_AUTO_TEST_CASE(compression_test) {
     // create a block using the read
     stringstream ss(s1);
     block<int,cstandard> b1;
-    //ss>>b1;
     //make a copy of b1
+    ss>>b1;
     block<int,cstandard> b2(b1);// use the copy constructor
     //start compress
     try {
@@ -238,7 +238,8 @@ BOOST_AUTO_TEST_CASE(compression_test) {
         std::cout << "compression threw an error" << std::endl;
     }
     //check current size
-    std::cout << "b1 current size is " << b1.size() << std::endl;
+    std::cout << "b1 current size is " << b1.get_current_size() << "used to be " << b1.memory_allocated() << std::endl;
+    std::cout << "block looks like \n" << b1 << std::endl;
     //do the uncompress
     //
     try{ 
@@ -246,6 +247,8 @@ BOOST_AUTO_TEST_CASE(compression_test) {
     } catch (...) {
         std::cout << "uncompression error" << std::endl;
     }
+
+    std::cout << "uncompressed now block looks like \n" << b1 << std::endl;
     // compare the two blocks should be equal
 
     BOOST_CHECK(b1==b2);
