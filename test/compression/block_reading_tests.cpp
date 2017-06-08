@@ -182,12 +182,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
         block<value_type,allocator_type> b1;
         //check basic error catching
         //note that the ss >> b1 will return 0 when successful
-        try {
         ss >> b1;
-        } catch (...) {
-            std::cout << " exception raised at creation" << std::endl;
-            return;
-        }
         //capture output of block print
         // block output has no separating commas
         ss.str("");
@@ -232,22 +227,13 @@ BOOST_AUTO_TEST_CASE(compression_test) {
     ss>>b1;
     block<int,cstandard> b2(b1);// use the copy constructor
     //start compress
-    try {
-        b1.compress();
-    } catch (...) {
-        std::cout << "compression threw an error" << std::endl;
-    }
+    b1.compress();
     //check current size
     std::cout << "b1 current size is " << b1.get_current_size() << "used to be " << b1.memory_allocated() << std::endl;
     std::cout << "block looks like \n" << b1 << std::endl;
     //do the uncompress
     //
-    try{ 
-        b1.uncompress();
-    } catch (...) {
-        std::cout << "uncompression error" << std::endl;
-    }
-
+    b1.uncompress();
     std::cout << "uncompressed now block looks like \n" << b1 << std::endl;
     // compare the two blocks should be equal
 
