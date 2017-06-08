@@ -181,6 +181,11 @@ namespace neuromapp {
                 //check size matches first
                 return compare_policy(this->data(),other.data(),current_size);
             }
+
+            bool operator != (const block & other) {
+                //should just be the opposite of the existing compare_policy
+                return ! compare_policy(this->data(),other.data(),current_size);
+            }
                 
 
 
