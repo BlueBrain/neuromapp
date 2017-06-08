@@ -26,14 +26,14 @@ namespace neuromapp {
             //tim's wisdom, don't ppass block as argument, just pointer to data and size (pure C style)
             //TODO change the type for the data_source argument, otherwise the swap below wont work. Must match the existing data_type for block
             template<typename data_type>
-            void compress_policy(data_type * data_source, size_t uncompressed_size) {
+            void compress_policy(data_type ** data_source, size_t uncompressed_size) {
                 //get the approximate size in memory of the data_source
                 uLong source_len = (uLong) uncompressed_size;
                 uLong dest_len = compressBound(source_len);
                 //create void buffer holder dest for the compressed block
                 data_type * dest = (data_type *) malloc(dest_len);// creates enough space for the compressed block
                 // assign Bytef* for source and dest
-                Bytef* source_ptr = (Bytef*) data_source;// hopefully typedef pointer (data() return) can be coerced to Bytef*
+                Bytef* source_ptr = (Bytef*) *data_source;// hopefully typedef pointer (data() return) can be coerced to Bytef*
                 Bytef* dest_ptr = (Bytef*) dest;
                 //perform the actual compression
                 int rc = compress(dest_ptr,&dest_len,source_ptr,source_len);
@@ -53,7 +53,7 @@ namespace neuromapp {
                         break;
                 }
                 //swap teh memory so taht we have change the data_source in place
-                std::swap(*dest,*data_source);
+                *data_source = dest;
             }
 
 
