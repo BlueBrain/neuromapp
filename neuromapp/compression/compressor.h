@@ -33,10 +33,10 @@ namespace neuromapp {
                         std::cout << "zlib operation successful" << std::endl;
                         break;
                     case Z_BUF_ERROR:
-                        throw zlib_exception("no more buffer space for compression/uncompression");
+                        throw zlib_exception("no more buffer space for compression/uncompression",Z_BUF_ERROR);
                         break;
                     case Z_MEM_ERROR:
-                        throw zlib_exception("ran out of memory for zlib operation");
+                        throw zlib_exception("ran out of memory for zlib operation",Z_MEM_ERROR);
                         // do we still need the break underneath this?
                         break;
                 }
