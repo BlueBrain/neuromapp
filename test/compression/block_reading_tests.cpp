@@ -118,6 +118,7 @@ typedef boost::mpl::list<shell<int, neuromapp::cstandard>,
     test_allocator_types;
 
 
+//TODO figure out whether this can be used somewhere in the numeric_conv process
 //this is the helper function for getting the values from the string into a vector
 template<typename out>
 void split(const std::string &s , char delim, out result) {
@@ -129,6 +130,17 @@ void split(const std::string &s , char delim, out result) {
     }
 }
 
+//void remove_last_char(stringstream & ss) {
+//    std::cout << "stringstrteam str is " << ss.str() << std::endl;
+//    string temp_s(ss.str());
+//    //modify temp_s, and then reassign
+//    std::cout << "before change tempstr is "<<temp_s << std::endl;
+//    temp_s[temp_s.length() -1] = 'X';
+//    std::cout << "temp-str changed is "<< temp_s << std::endl;
+//    ss.str(temp_s);
+//}
+
+
 template<typename T>
 string numeric_conv(string conv_str,T temp_converter) {
     string line,data_cell;
@@ -136,14 +148,13 @@ string numeric_conv(string conv_str,T temp_converter) {
     //drop first line
     in_ss >> line;
     while(getline(in_ss,line)) {
+        std::cout << "line is " << std::endl;
         stringstream line_ss(line);
         //for spacing read the line outside the loop
-        getline(line_ss,data_cell,',')
-        while() {
+        while(getline(line_ss,data_cell,',')) {
             stringstream data_stream(data_cell);
             data_stream >> temp_converter;
-            out_ss << temp_converter;
-
+            out_ss << temp_converter << " ";
         }
         out_ss << "\n";
     }
