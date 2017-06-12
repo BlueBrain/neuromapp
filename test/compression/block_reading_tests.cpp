@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <iomanip>
 #include <limits>
 #include <iterator>
@@ -242,13 +243,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     }
 }
 
-
+ofstream out("compression_stats.csv");
 //probably a lot of tests...
 BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
     typedef typename T::value_type value_type;
     typedef typename T::allocator_type allocator_type;
     std::cout << "starting compression test" << std::endl;
     for (string fname : csv_fnames) {
+        chrono::time_point<chrono::system_clock> start,end;
         std::cout << "running file " << fname << std::endl;
         ifstream ifile(fname);
 
@@ -256,10 +258,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
         block<value_type,allocator_type> b1;
         //make a copy of b1
         ifile>>b1;
-        std::cout << "block of size" << b1.memory_allocated() << std::endl;
+        out << b1.memory_allocated() << ", ";
         block<value_type,allocator_type> b2(b1);// use the copy constructor
         //start compress
+        start = chrono::system_clock::now();
         b1.compress();
+        end = chrono::system_clock::now();
+        chrono::duration<double> compress_time = end-start;
+        out << b1.get_current_size() <<
+            ", " << compress_time.count() << "\n";
         //do the uncompress
         b1.uncompress();
         // compare the two blocks should be equal
