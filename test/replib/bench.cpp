@@ -33,9 +33,9 @@
 #include "utils/argv_data.h"
 
 
-BOOST_AUTO_TEST_CASE(iobench_test){
-    std::string s[14]={"binary", "-w", "rnd1b", "-o", "./currents.bbp", "-c", "1024", "-s",
-            "5", "-r", "15", "-t", "10", "-v"};
+BOOST_AUTO_TEST_CASE(replib_test){
+    std::string s[16]={"binary", "-w", "rnd1b", "-o", "./currents.bbp", "-c", "1024", "-s",
+            "5", "-r", "15", "-t", "10", "-v", "-b", "mpiio"};
 
     int narg=sizeof(s)/sizeof(s[0]);
     mapp::argv_data A(s,s+narg);

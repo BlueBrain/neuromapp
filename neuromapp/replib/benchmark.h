@@ -29,13 +29,15 @@
 #include <cstring>
 #include <iomanip>
 
-
+#include "replib/backends/basic.h"
+#include "replib/backends/mpiio.h"
+#ifdef RL_ADIOS
+#include "replib/backends/adios.h"
+#endif
 #include "replib/utils/tools.h"
 #include "replib/utils/config.h"
 #include "replib/utils/statistics.h"
-#include "replib/mpiio_dist/rnd1b.h"
-#include "replib/mpiio_dist/file1b.h"
-#include "replib/mpiio_dist/fileNb.h"
+
 
 #include "utils/mpi/timer.h"
 #include "utils/mpi/error.h"
@@ -47,38 +49,35 @@ class benchmark {
     private:
         /** config structure with the benchmark parameters*/
         replib::config c_;
-        replib::fileview * f_;
-
-        /** \fun init()
-            \brief initialize the object */
-        void init() {
-            if (c_.write() == "file1b") {
-                f_ = file1b(c_);
-            } else if (c_.write() == "fileNb") {
-                f_ = fileNb(c_);
-            } else { // "rnd1b"
-                f_ = rnd1b(c_);
-            }
-        }
+        replib::Writer * writer_;
 
     public:
         /** \fun benchmark(int argc, char* argv[])
         \brief create the benchmark and initialize it according to the
         given parameters
          */
-        benchmark(int argc, char* const argv[]) : c_(argc, argv), f_(NULL) {
-            init();
-        }
+        benchmark(int argc, char* const argv[]) : c_(argc, argv), writer_(NULL) {
+            if (c_.backend() == "mpiio") {
+                // MPI I/O backend
+                writer_ = reinterpret_cast<replib::Writer*>(new replib::MPIIOWriter());
+            } else if (c_.backend() == "adios") {
+                // To complete
+#ifdef RL_ADIOS
+                // TODO: Create object for ADIOS backend
+#else
+                std::cout << "Error: asked for ADIOS backend, but ADIOS library was not found." << std::endl;
+#endif
+            } else {
+                std::cout << "Error: unrecognized backend: '" << c_.backend() << "'. Supported backeds are: mpiio and adios" << std::endl;
+                MPI_Abort(MPI_COMM_WORLD, 910);
+            }
 
-        /** \fun benchmark()
-        \brief create the benchmark and initialize it with default values
-         */
-        benchmark() : c_() {
-            init();
+            // Initialize writer
+            writer_->init(c_);
         }
 
         ~benchmark() {
-            delete(f_);
+            delete(writer_);
         }
 
         /** \fun get_config() const
@@ -93,16 +92,16 @@ class benchmark {
             return c_;
         }
 
-        /** \fun get_fileview() const
-        \brief return the fileview */
-        replib::fileview const & get_fileview() const {
-            return *f_;
+        /** \fun get_writer() const
+        \brief return the writer backend object, read-only */
+        replib::Writer const & get_writer() const {
+            return * writer_;
         }
 
-        /** \fun get_fileview()
-        \brief return the fileview */
-        replib::fileview & get_fileview() {
-            return *f_;
+        /** \fun get_writer()
+        \brief return the writer backend object */
+        replib::Writer & get_writer() {
+            return * writer_;
         }
 
         /** \fun success()
@@ -128,9 +127,13 @@ class benchmark {
         recorded statistics */
         replib::statistics run_replib_benchmark ()
         {
-            // Double buffering
-            unsigned int sizeToWrite = f_->total_bytes();
+            writer_->init(c_);
 
+            // Each process can have a different amount of data to write, ask the write what is
+            // the exact size for each process
+            unsigned int sizeToWrite = writer_->total_bytes();
+
+            // Double buffering
             float * buffer1 = (float *) malloc(sizeToWrite);
             float * buffer2 = (float *) malloc(sizeToWrite);
 
@@ -140,26 +143,11 @@ class benchmark {
             float * bufferToFill = &buffer1[0];
             float * bufferToWrite = &buffer2[0];
 
-            // Use MPI_Info to disable collective buffers if using IME backend
-            MPI_Info info;
-            MPI_Info_create(&info);
-            std::string ime("ime:/");
-            if (c_.output_report().compare(0, ime.length(), ime) == 0) {
-                MPI_Info_set (info, "romio_ds_write", "disable");
-                MPI_Info_set (info, "romio_cb_write", "disable");
-            }
+            // c_str returns a 'const char *', but we need 'char *'
+            char * report = strdup(c_.output_report().c_str());
 
             //Open the file
-            MPI_File fh;
-            char * report = strdup(c_.output_report().c_str());
-            int error = MPI_File_open(MPI_COMM_WORLD, report, MPI_MODE_WRONLY | MPI_MODE_CREATE, info, &fh);
-
-            if (error != MPI_SUCCESS) {
-                std::cout << "[" << c_.id() << "] Error opening file: " << report << std::endl;
-                MPI_Abort(MPI_COMM_WORLD, 911);
-            }
-
-            f_->set_fileview(&fh);
+            writer_->open(report);
 
             int nwrites = 0;
             int compCount = sizeToWrite / sizeof(float); // Represents the number of compartments
@@ -232,11 +220,8 @@ class benchmark {
 
                 //std::cout << "[" << 0 << "] --------------------- Writing out data ---------------------" << std::endl;
 
-                MPI_Status status;
                 // t_io only counts time spent in MPI_File_write_all to compute I/O statistics
-                t_io.tic();
-                error = MPI_File_write_all(fh, bufferToWrite, compCount, MPI_FLOAT, &status);
-                t_io.toc();
+                writer_->write(t_io, bufferToWrite, compCount);
 
                 //std::stringstream ss2;
                 //ss2 << "[" << c_.id() << "] [it" << i << "] size = " << compCount * sizeof(float)
@@ -244,11 +229,6 @@ class benchmark {
                 //std::cout << mapp::mpi_filter_all() << ss2.str() << mapp::mpi_filter_master();
 
                 welapsed.push_back(t_io.time());
-
-                if (error != MPI_SUCCESS) {
-                    std::cout << "[" << c_.id() << "] Error writing file" << std::endl;
-                    MPI_Abort(MPI_COMM_WORLD, 915);
-                }
 
                 //std::cout << "[" << mpiRank << "] --------------------- Data written ---------------------" << std::endl;
 
@@ -259,11 +239,9 @@ class benchmark {
             }
             MPI_Barrier(MPI_COMM_WORLD);
 
-            error = MPI_File_close(&fh);
-            if (error != MPI_SUCCESS) {
-                std::cout << "[" << c_.id() << "] Error closing file" << std::endl;
-                MPI_Abort(MPI_COMM_WORLD, 912);
-            }
+            writer_->close();
+
+            writer_->finalize();
 
             free(buffer1);
             free(buffer2);
@@ -289,7 +267,9 @@ class benchmark {
         recorded statistics */
         replib::statistics run_ior_benchmark ()
         {
-            unsigned int sizeToWrite = f_->total_bytes();
+            writer_->init(c_);
+
+            unsigned int sizeToWrite = writer_->total_bytes();
 
             float * buffer1 = (float *) malloc(sizeToWrite);
 
@@ -369,30 +349,14 @@ class benchmark {
             // Keep the index in buf to control when we reach the end and start over
             unsigned int bufIdx = 0;
 
-            // Use MPI_Info to disable collective buffers if using IME backend
-            MPI_Info info;
-            MPI_Info_create(&info);
-            std::string ime("ime:/");
-            if (c_.output_report().compare(0, ime.length(), ime) == 0) {
-                MPI_Info_set (info, "romio_ds_write", "disable");
-                MPI_Info_set (info, "romio_cb_write", "disable");
-            }
+            // c_str returns a 'const char *', but we need 'char *'
+            char * report = strdup(c_.output_report().c_str());
 
             // Synchronize ranks before starting timer
             MPI_Barrier(MPI_COMM_WORLD);
 
             //Open the file
-            MPI_File fh;
-            char * report = strdup(c_.output_report().c_str());
-            t_io.tic();
-            int error = MPI_File_open(MPI_COMM_WORLD, report, MPI_MODE_WRONLY | MPI_MODE_CREATE, info, &fh);
-            if (error != MPI_SUCCESS) {
-                std::cout << "[" << c_.id() << "] Error opening file" << std::endl;
-                MPI_Abort(MPI_COMM_WORLD, 911);
-            }
-
-            f_->set_fileview(&fh);
-            t_io.toc();
+            writer_->open(t_io, c_.output_report());
             welapsed.push_back(t_io.time());
 
             t_io.tic();
@@ -407,15 +371,9 @@ class benchmark {
 
                 //std::cout << "[" << 0 << "] --------------------- Writing out data ---------------------" << std::endl;
 
-                MPI_Status status;
-                error = MPI_File_write_all(fh, &buf[bufIdx], compCount, MPI_FLOAT, &status);
+                writer_->write(&buf[bufIdx], compCount);
                 bufIdx += compCount;
                 if (bufIdx >= bufElems) bufIdx = 0;
-
-                if (error != MPI_SUCCESS) {
-                    std::cout << "[" << c_.id() << "] Error writing file: " << mapp::MPIError::errorToString(error) << std::endl;
-                    MPI_Abort(MPI_COMM_WORLD, 915);
-                }
 
                 //std::cout << "[" << mpiRank << "] --------------------- Data written ---------------------" << std::endl;
 
@@ -424,14 +382,10 @@ class benchmark {
             t_io.toc();
             welapsed.push_back(t_io.time());
 
-            t_io.tic();
-            error = MPI_File_close(&fh);
-            if (error != MPI_SUCCESS) {
-                std::cout << "[" << c_.id() << "] Error closing file" << std::endl;
-                MPI_Abort(MPI_COMM_WORLD, 912);
-            }
-            t_io.toc();
+            writer_->close(t_io);
             welapsed.push_back(t_io.time());
+
+            writer_->finalize();
 
             //std::stringstream ss2;
             //ss2 << "[" << c_.id() << "] total size = " << compCount * sizeof(float) * nwrites << " bytes ; "

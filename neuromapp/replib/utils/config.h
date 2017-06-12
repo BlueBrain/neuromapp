@@ -42,6 +42,7 @@ class config {
 private:
     int         procs_;
     int         id_;
+    std::string backend_;
     std::string write_;
     std::string input_dist_;
     std::string output_report_;
@@ -56,13 +57,16 @@ private:
 
 public:
     /** \fn config(int argc = 0 , char * argv[] = NULL)
-        \brief parse the command from argc and argv, the functor indicates the return type, I could
-            write template and trait class, to do */
+        \brief parse the command from argc and argv, the functor indicates the
+            return type, I could write template and trait class, to do */
     explicit config (int argc = 0 , char * const argv[] = NULL) :
-            procs_(1), write_("rnd1b"), input_dist_(""), output_report_(""), invert_(false), numcells_(10),
-            sim_steps_(15), rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false), passed_(false) {
+            procs_(1), backend_("mpiio"), write_("rnd1b"), input_dist_(""),
+            output_report_(""), invert_(false), numcells_(10), sim_steps_(15),
+            rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false),
+            passed_(false) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
+            argument_helper(v,"-b",backend(),to_string());
             argument_helper(v,"-w",write(),to_string());
             argument_helper(v,"-o",output_report(),to_string());
             argument_helper(v,"-f",input_dist(),to_string());
@@ -129,6 +133,13 @@ public:
      */
     inline int id() const {
         return id_;
+    }
+
+    /**
+     \brief return the I/O backend, read only
+    */
+    inline std::string backend() const {
+        return backend_;
     }
 
     /**
@@ -223,6 +234,13 @@ public:
     }
 
     /**
+      \brief return the I/O backend, write only
+     */
+     inline std::string& backend() {
+         return backend_;
+     }
+
+    /**
       \brief return the write distribution, write only
      */
      inline std::string& write() {
@@ -302,6 +320,7 @@ public:
     /** \brief the print function, I do not like friend function */
     void print(std::ostream& out) const {
         out << " procs: " << procs() << " \n"
+            << " backend_: " << backend() << " \n"
             << " write_: " << write() << " \n"
             << " input_dist_: " << input_dist() << " \n"
             << " output_report_: " << output_report() << " \n"

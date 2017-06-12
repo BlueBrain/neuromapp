@@ -46,6 +46,8 @@ int replib_help(int argc, char* const argv[], po::variables_map& vm){
     desc.add_options()
     ("help,h", "Produce this help message")
 
+    ("backend,b", po::value<std::string>()->default_value("mpiio"), "[string] I/O backend to use. Supported backends: mpiio (MPI I/O), adios (ADIOS)")
+
     ("numproc,p", po::value<int>()->default_value(1), "[int]    Number of MPI processes")
 
     ("write,w", po::value<std::string>()->default_value("rnd1b"), "[string] Specify how processes write to file. Supported options:\n- rnd1b (random, 1 block per process),\n- file1b (read distribution from file, but write 1 block per process),\n- fileNb (read distribution from file, reproduce same block assignment)")
@@ -129,6 +131,7 @@ void replib_content(po::variables_map const& vm){
     std::string path = helper_build_path::mpi_bin_path();
 
     int np = vm["numproc"].as<int>();
+    std::string b(vm["backend"].as<std::string>());
     std::string wr(vm["write"].as<std::string>());
     std::string o(vm["output"].as<std::string>());
     std::string f(vm["file"].as<std::string>());
@@ -142,7 +145,7 @@ void replib_content(po::variables_map const& vm){
     command << launcher_helper::mpi_launcher() << " -n " << np << " " << path
             << "MPI_Exec_rl  -w " << wr << " -o " << o << ((f == "") ? "" : " -f ") << f
             << " " << (inv ? "-i" : "") << " " << " -c " << nc << " -s " << ssteps
-            << " -r " << rsteps << " -t " << t << (check ? " -v" : "");
+            << " -r " << rsteps << " -t " << t << (check ? " -v" : "") << " -b " << b;
 
 	std::cout << "Running command: " << command.str() << std::endl;
 	system(command.str().c_str());
