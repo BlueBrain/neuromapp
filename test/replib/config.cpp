@@ -37,6 +37,7 @@ BOOST_AUTO_TEST_CASE(config_constructor_default_test){
 
     int         procs = 1;
     int         id = 0;
+    std::string backend = "mpiio";
     std::string write = "rnd1b";
     std::string input_dist = "";
     std::string output_report = "";
@@ -54,6 +55,7 @@ BOOST_AUTO_TEST_CASE(config_constructor_default_test){
 
     BOOST_CHECK_EQUAL(c.procs(), procs);
     BOOST_CHECK_EQUAL(c.id(), id);
+    BOOST_CHECK_EQUAL(c.backend(), backend);
     BOOST_CHECK_EQUAL(c.write(), write);
     BOOST_CHECK_EQUAL(c.input_dist(), input_dist);
     BOOST_CHECK_EQUAL(c.output_report(), output_report);
@@ -71,6 +73,7 @@ BOOST_AUTO_TEST_CASE(config_constructor_default_test){
 BOOST_AUTO_TEST_CASE(config_constructor_test){
     replib::config c;
 
+    std::string backend = "adios";
     std::string write = "file1b";
     std::string input_dist = "./input.txt";
     std::string output_report = "./output.txt";
@@ -83,6 +86,7 @@ BOOST_AUTO_TEST_CASE(config_constructor_test){
     bool        check = true;
     bool        passed = true;
 
+    c.backend() = backend;
     c.write() = write;
     c.input_dist() = input_dist;
     c.output_report() = output_report;
@@ -95,6 +99,7 @@ BOOST_AUTO_TEST_CASE(config_constructor_test){
     c.check() = check;
     c.passed() = passed;
 
+    BOOST_CHECK_EQUAL(c.backend(), backend);
     BOOST_CHECK_EQUAL(c.write(), write);
     BOOST_CHECK_EQUAL(c.input_dist(), input_dist);
     BOOST_CHECK_EQUAL(c.output_report(), output_report);
@@ -109,8 +114,8 @@ BOOST_AUTO_TEST_CASE(config_constructor_test){
 }
 
 BOOST_AUTO_TEST_CASE(config_constructor_argv_test){
-    std::string s[17]={"binary", "-w", "fileNb", "-o", "/tmp/currents.bbp", "-f", "/tmp/input.txt",
-            "-i", "-c", "1024", "-s", "7", "-r", "100", "-t", "50", "-v"};
+    std::string s[19]={"binary", "-w", "fileNb", "-o", "/tmp/currents.bbp", "-f", "/tmp/input.txt",
+            "-i", "-c", "1024", "-s", "7", "-r", "100", "-t", "50", "-v", "-b", "adios"};
 
     int narg=sizeof(s)/sizeof(s[0]);
 
@@ -126,6 +131,7 @@ BOOST_AUTO_TEST_CASE(config_constructor_argv_test){
 
     BOOST_CHECK_EQUAL(c.procs(), 4);
     BOOST_CHECK_EQUAL(c.id(), 3);
+    BOOST_CHECK_EQUAL(c.backend(), "adios");
     BOOST_CHECK_EQUAL(c.write(), "fileNb");
     BOOST_CHECK_EQUAL(c.input_dist(), "/tmp/input.txt");
     BOOST_CHECK_EQUAL(c.output_report(), "/tmp/currents.bbp");
