@@ -142,16 +142,19 @@ string numeric_conv(string conv_str,T temp_converter) {
         //for spacing read the line outside the loop
         while(getline(line_ss,data_cell,',')) {
             stringstream data_stream(data_cell);
-            data_stream >> temp_converter;
+            data_stream >>  temp_converter;
             data_stream.str("");
             data_stream.clear();
             // effective generic type conversion
-            data_stream << temp_converter;
+            // TODO make max precision for type
+            data_stream << std::setprecision(15) << temp_converter;
             out.append(data_stream.str()+ " ");
         }
         // trim the last whitespace in the line
-        if (out.size() > 0) out.erase((size_t) out.size()-1,(size_t) 1);
-        out.append("\n");
+        if (out.size() > 0) {
+            out.erase((size_t) out.size()-1,(size_t) 1);
+            out.append("\n");
+        }
     }
     //take out the final newline in the line
     if (out.size() > 0) out.erase((size_t) out.size()-1,(size_t) 1);
@@ -205,9 +208,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
         ss << b1;
         string correct = create_correct_string<value_type>(str);
         std::cout.precision(15);
-        std::cout << "the corrected version is\n" << correct << std::endl;
-     //   BOOST_CHECK_MESSAGE(ss.str() == correct_str,
-     //           "failed comparison: string was\n" << correct_str+"\n" << "block was\n" << ss.str());
+        //std::cout << "the corrected version is\n" << correct << std::endl;
+        //std::cout << "compared with block \n" << ss.str() << std::endl;
+        BOOST_CHECK_MESSAGE(ss.str() == correct,
+                "failed comparison: string was\n" << correct+"\n" << "block was\n" << ss.str());
         //again clear the contents of the stream
         //ss.str("");
         //ss.clear();
