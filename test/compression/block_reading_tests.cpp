@@ -130,35 +130,32 @@ void split(const std::string &s , char delim, out result) {
     }
 }
 
-//void remove_last_char(stringstream & ss) {
-//    std::cout << "stringstrteam str is " << ss.str() << std::endl;
-//    string temp_s(ss.str());
-//    //modify temp_s, and then reassign
-//    std::cout << "before change tempstr is "<<temp_s << std::endl;
-//    temp_s[temp_s.length() -1] = 'X';
-//    std::cout << "temp-str changed is "<< temp_s << std::endl;
-//    ss.str(temp_s);
-//}
-
 
 template<typename T>
 string numeric_conv(string conv_str,T temp_converter) {
-    string line,data_cell;
-    stringstream in_ss(conv_str),out_ss;
+    string line,data_cell,out;
+    stringstream in_ss(conv_str);
     //drop first line
     in_ss >> line;
     while(getline(in_ss,line)) {
-        std::cout << "line is " << std::endl;
         stringstream line_ss(line);
         //for spacing read the line outside the loop
         while(getline(line_ss,data_cell,',')) {
             stringstream data_stream(data_cell);
             data_stream >> temp_converter;
-            out_ss << temp_converter << " ";
+            data_stream.str("");
+            data_stream.clear();
+            // effective generic type conversion
+            data_stream << temp_converter;
+            out.append(data_stream.str()+ " ");
         }
-        out_ss << "\n";
+        // trim the last whitespace in the line
+        if (out.size() > 0) out.erase((size_t) out.size()-1,(size_t) 1);
+        out.append("\n");
     }
-    return out_ss.str();
+    //take out the final newline in the line
+    if (out.size() > 0) out.erase((size_t) out.size()-1,(size_t) 1);
+    return out;
 }
 
 //this function generates the correct format for the string which we compare the block output against
