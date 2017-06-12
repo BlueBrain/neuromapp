@@ -57,11 +57,13 @@ private:
 
 public:
     /** \fn config(int argc = 0 , char * argv[] = NULL)
-        \brief parse the command from argc and argv, the functor indicates the return type, I could
-            write template and trait class, to do */
+        \brief parse the command from argc and argv, the functor indicates the
+            return type, I could write template and trait class, to do */
     explicit config (int argc = 0 , char * const argv[] = NULL) :
-            procs_(1), backend_("mpiio"), write_("rnd1b"), input_dist_(""), output_report_(""), invert_(false), numcells_(10),
-            sim_steps_(15), rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false), passed_(false) {
+            procs_(1), backend_("mpiio"), write_("rnd1b"), input_dist_(""),
+            output_report_(""), invert_(false), numcells_(10), sim_steps_(15),
+            rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false),
+            passed_(false) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
             argument_helper(v,"-b",backend(),to_string());
