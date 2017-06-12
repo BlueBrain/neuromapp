@@ -146,7 +146,7 @@ string numeric_conv(string conv_str,T temp_converter) {
             data_stream.str("");
             data_stream.clear();
             // effective generic type conversion
-            // TODO make max precision for type
+            // TODO ask tim about max precision option
             data_stream << std::setprecision(15) << temp_converter;
             out.append(data_stream.str()+ " ");
         }
@@ -187,13 +187,13 @@ string create_correct_string<int>(string original_str) {
 }
 
 // use lists to facilitate ease when checking various options
-vector<string> start_string_vect {s1,s2,s3,s4};
+vector<string> test_string_vect {s1,s2,s3};
 BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     //use counter to control testing on strings that have correct versions given
     typedef typename T::value_type value_type;
     typedef typename T::allocator_type allocator_type;
     //loop through testing strings
-    for (string str : start_string_vect) {
+    for (string str : test_string_vect) {
         vector<std::string> hand_made_holder;
         stringstream ss,ss2;
         ss << str;
@@ -237,6 +237,20 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
 
         }
         BOOST_CHECK(b1==b2);
+    }
+}
+
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(read_exception_test,T, test_allocator_types) {
+    //check for specific exception messages raised by these problematic strings
+    // first swap the contents of the test_string_vector
+    vector<string>({s4, s5, s6, s7, s8, s9}).swap(test_string_vect);// replaces the contents of our test_string_vector 
+    typedef typename T::value_type value_type;
+    typedef typename T::allocator_type allocator_type;
+    for(string test_string : test_string_vect) {
+        block<value_type,allocator_type> b1;
+        stringstream ss(test_string);
+        ss >> b1;
     }
 }
 
