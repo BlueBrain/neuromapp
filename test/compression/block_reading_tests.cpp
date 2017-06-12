@@ -5,14 +5,13 @@
 #include <fstream>
 #include <algorithm>
 #include <vector>
-
 #include <string>
 
 #define BOOST_TEST_MODULE devin_block_test
 #include <boost/mpl/list.hpp>
 #include <boost/test/unit_test.hpp>
 
-
+//local code for inclusion
 #include "compression/allocator.h"
 #include "compression/exception.h"
 #include "compression/block.h"
@@ -103,6 +102,9 @@ string s9 {R"(1,5
 24576, 400, 10008, 23764, 23698, 26443, 2685, 6515, 28810, 13910, 20320, 19405, 31808,
 8303, 26189, 32218, 9220, 28912, 15932, 16530, 23564, 26151, 5319, 9992, 24977, 24787,
 )"};
+
+//this is a vector of the filenames that hold csv data for testing
+vector<string> csv_fnames { "data/csv/values_10_a8213bulk.csv", "data/csv/values_10_a8213solo.csv", "data/csv/values_10_a8214bulk.csv", "data/csv/values_10_a8214solo.csv", "data/csv/values_10_a8215bulk.csv", "data/csv/values_10_a8215solo.csv", "data/csv/values_10_a8216bulk.csv", "data/csv/values_10_a8216solo.csv", "data/csv/values_10_a8217bulk.csv", "data/csv/values_10_a8217solo.csv", "data/csv/values_10_a8218bulk.csv", "data/csv/values_10_a8218solo.csv", "data/csv/values_10_a8219bulk.csv", "data/csv/values_10_a8219solo.csv", "data/csv/values_10_a8220bulk.csv", "data/csv/values_10_a8220solo.csv", "data/csv/values_10_a8749bulk.csv", "data/csv/values_10_a8749solo.csv", "data/csv/values_10_a8750bulk.csv", "data/csv/values_10_a8750solo.csv", "data/csv/values_10_a8751bulk.csv", "data/csv/values_10_a8751solo.csv", "data/csv/values_10_a8752bulk.csv", "data/csv/values_10_a8752solo.csv", "data/csv/values_10_a8761bulk.csv", "data/csv/values_10_a8761solo.csv", "data/csv/values_8_a10249bulk.csv", "data/csv/values_8_a10249solo.csv", "data/csv/values_8_a10250bulk.csv", "data/csv/values_8_a10250solo.csv", "data/csv/values_8_a10251bulk.csv", "data/csv/values_8_a10251solo.csv", "data/csv/values_8_a10252bulk.csv", "data/csv/values_8_a10252solo.csv", "data/csv/values_8_a10256bulk.csv", "data/csv/values_8_a10256solo.csv", "data/csv/values_8_a10261bulk.csv", "data/csv/values_8_a10261solo.csv", "data/csv/values_8_a10262bulk.csv", "data/csv/values_8_a10262solo.csv", "data/csv/values_8_a10263bulk.csv", "data/csv/values_8_a10263solo.csv", "data/csv/values_8_a10264bulk.csv", "data/csv/values_8_a10264solo.csv",  "data/csv/values_8_a8780bulk.csv", "data/csv/values_8_a8780solo.csv",  "data/csv/values_8_a8781bulk.csv", "data/csv/values_8_a8781solo.csv",  "data/csv/values_8_a8801bulk.csv", "data/csv/values_8_a8801solo.csv",  "data/csv/values_8_a8802bulk.csv", "data/csv/values_8_a8802solo.csv",  "data/csv/values_8_a8803bulk.csv", "data/csv/values_8_a8803solo.csv",  "data/csv/values_8_a8804bulk.csv", "data/csv/values_8_a8804solo.csv",  "data/csv/values_9_a10237bulk.csv", "data/csv/values_9_a10237solo.csv",  "data/csv/values_9_a10238bulk.csv", "data/csv/values_9_a10238solo.csv"};
 
 //holder struct for combos of numeric type and allocator policy
 template <class T,class A>
@@ -241,39 +243,28 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
 }
 
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(read_exception_test,T, test_allocator_types) {
-    //check for specific exception messages raised by these problematic strings
-    // first swap the contents of the test_string_vector
-    vector<string>({s4, s5, s6, s7, s8, s9}).swap(test_string_vect);// replaces the contents of our test_string_vector 
+//probably a lot of tests...
+BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
     typedef typename T::value_type value_type;
     typedef typename T::allocator_type allocator_type;
-    for(string test_string : test_string_vect) {
+    std::cout << "starting compression test" << std::endl;
+    for (string fname : csv_fnames) {
+        std::cout << "running file " << fname << std::endl;
+        ifstream ifile(fname);
+
+        // create a block using the read
         block<value_type,allocator_type> b1;
-        stringstream ss(test_string);
-        ss >> b1;
+        //make a copy of b1
+        ifile>>b1;
+        std::cout << "block of size" << b1.memory_allocated() << std::endl;
+        block<value_type,allocator_type> b2(b1);// use the copy constructor
+        //start compress
+        b1.compress();
+        //do the uncompress
+        b1.uncompress();
+        // compare the two blocks should be equal
+        BOOST_CHECK(b1==b2);
     }
-}
-
-
-BOOST_AUTO_TEST_CASE(compression_test) {
-    // create a block using the read
-    stringstream ss(s1);
-    block<int,cstandard> b1;
-    //make a copy of b1
-    ss>>b1;
-    block<int,cstandard> b2(b1);// use the copy constructor
-    //start compress
-    b1.compress();
-    //check current size
-    //std::cout << "b1 current size is " << b1.get_current_size() << "used to be " << b1.memory_allocated() << std::endl;
-    //std::cout << "block looks like \n" << b1 << std::endl;
-    //do the uncompress
-    //
-    b1.uncompress();
-    //std::cout << "uncompressed now block looks like \n" << b1 << std::endl;
-    // compare the two blocks should be equal
-
-    BOOST_CHECK(b1==b2);
 }
 
 
