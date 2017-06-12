@@ -213,30 +213,30 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
         BOOST_CHECK_MESSAGE(ss.str() == correct,
                 "failed comparison: string was\n" << correct+"\n" << "block was\n" << ss.str());
         //again clear the contents of the stream
-        //ss.str("");
-        //ss.clear();
-        ////mem cmp test
-        //std::string line;
-        //ss<<str;
-        ////toss the first line
-        //std::getline(ss,line);
-        //while(std::getline(ss,line)) {
-        //    std::stringstream line_ss(line);
-        //    split(line_ss.str(),',',std::back_inserter(hand_made_holder));
-        //}
-        ////construct iterator for the container
-        //auto hand_made_it = hand_made_holder.begin();
-        ////built by file, now by hand for comparison
-        //int rows = b1.num_rows(), cols= b1.num_cols();
-        //block<value_type,allocator_type> b2(cols,rows);
-        //for (int i = 0; i < rows;i++) {
-        //    //this is the first by hand way of checking this I could think of
-        //    for (int j = 0;j < cols; j++) {
-        //        std::stringstream(*hand_made_it++) >> std::dec >> b2(j,i);
-        //    }
+        ss.str("");
+        ss.clear();
+        //mem cmp test
+        std::string line;
+        ss<<str;
+        //toss the first line
+        std::getline(ss,line);
+        while(std::getline(ss,line)) {
+            std::stringstream line_ss(line);
+            split(line_ss.str(),',',std::back_inserter(hand_made_holder));
+        }
+        //construct iterator for the container
+        auto hand_made_it = hand_made_holder.begin();
+        //built by file, now by hand for comparison
+        int rows = b1.num_rows(), cols= b1.num_cols();
+        block<value_type,allocator_type> b2(cols,rows);
+        for (int i = 0; i < rows;i++) {
+            //this is the first by hand way of checking this I could think of
+            for (int j = 0;j < cols; j++) {
+                std::stringstream(*hand_made_it++) >> std::dec >> b2(j,i);
+            }
 
-        //}
-        //BOOST_CHECK(b1==b2);
+        }
+        BOOST_CHECK(b1==b2);
     }
 }
 
@@ -251,12 +251,12 @@ BOOST_AUTO_TEST_CASE(compression_test) {
     //start compress
     b1.compress();
     //check current size
-    std::cout << "b1 current size is " << b1.get_current_size() << "used to be " << b1.memory_allocated() << std::endl;
-    std::cout << "block looks like \n" << b1 << std::endl;
+    //std::cout << "b1 current size is " << b1.get_current_size() << "used to be " << b1.memory_allocated() << std::endl;
+    //std::cout << "block looks like \n" << b1 << std::endl;
     //do the uncompress
     //
     b1.uncompress();
-    std::cout << "uncompressed now block looks like \n" << b1 << std::endl;
+    //std::cout << "uncompressed now block looks like \n" << b1 << std::endl;
     // compare the two blocks should be equal
 
     BOOST_CHECK(b1==b2);
