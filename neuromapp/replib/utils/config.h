@@ -43,6 +43,7 @@ private:
     int         procs_;
     int         id_;
     std::string backend_;
+    std::string adios_config_;
     std::string write_;
     std::string input_dist_;
     std::string output_report_;
@@ -63,9 +64,11 @@ public:
             procs_(1), backend_("mpiio"), write_("rnd1b"), input_dist_(""),
             output_report_(""), invert_(false), numcells_(10), sim_steps_(15),
             rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false),
+            adios_config_("xml/config.xml"),
             passed_(false) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
+            argument_helper(v,"-a",adios_config(),to_string());
             argument_helper(v,"-b",backend(),to_string());
             argument_helper(v,"-w",write(),to_string());
             argument_helper(v,"-o",output_report(),to_string());
@@ -140,6 +143,15 @@ public:
     */
     inline std::string backend() const {
         return backend_;
+    }
+
+    /**
+     \brief return the adios xml configuration filename
+    * TODO  avoid string copies by returning const char const*, if values are needed to be written, 
+    *       it is the user responsability to copy data contained in it
+    */
+    inline std::string adios_config() const {
+        return adios_config_;
     }
 
     /**
@@ -240,6 +252,13 @@ public:
          return backend_;
      }
 
+     /**
+      \brief return the adios xml configuration filename
+     */
+     inline std::string& adios_config() {
+         return adios_config_;
+     }
+
     /**
       \brief return the write distribution, write only
      */
@@ -321,6 +340,7 @@ public:
     void print(std::ostream& out) const {
         out << " procs: " << procs() << " \n"
             << " backend_: " << backend() << " \n"
+            << " adios_config_: " << adios_config() << " \n"
             << " write_: " << write() << " \n"
             << " input_dist_: " << input_dist() << " \n"
             << " output_report_: " << output_report() << " \n"
