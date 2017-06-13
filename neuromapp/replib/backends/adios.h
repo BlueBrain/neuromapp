@@ -42,8 +42,8 @@ namespace replib {
   // NOTE: its final 
 class ADIOSWriter : public replib::Writer {
     private:
-      int rank_;
-
+      int       rank_;
+      int64_t   adios_handle_;
     public:
 
         ADIOSWriter();
@@ -82,10 +82,6 @@ void ADIOSWriter::init(replib::config &c) {
     adios_init (c.adios_config().c_str(), MPI_COMM_WORLD);
 
 
-    if (c.write() == "file1b") {
-    } else if (c.write() == "fileNb") {
-    } else { // "rnd1b"
-    }
 }
 
 /** \fun finalize()
@@ -99,7 +95,7 @@ void ADIOSWriter::finalize () {
     \brief Open the file.
            Inline version to be as fast as possible */
 inline void ADIOSWriter::open(char * report) {
-
+  adios_open  (&adios_handle_, "report", report, "a", MPI_COMM_WORLD);
 }
 
 /** \fun open(mapp::timer &t_io, const std::string & path)
@@ -141,6 +137,7 @@ void ADIOSWriter::write(mapp::timer &t_io, float * buffer, size_t count) {
  * TODO
     \brief Close the file. Inline version to be as fast as possible */
 inline void ADIOSWriter::close() {
+  adios_close(adios_handle_);
 }
 
 /** \fun close(mapp::timer &t_io)
