@@ -199,7 +199,7 @@ namespace neuromapp {
                 file_in >> std::ws;
                 // this comes up in cases where an empty string is provided,
                 if(file_in.get() != ',') {
-                    throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
+                    throw 4;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
                 }
                 //and now repeat for the row
                 file_in >> row;
@@ -215,7 +215,7 @@ namespace neuromapp {
                     std::stringstream comma_splitter(line);
                     std::string data_cell;
                     //read from stream comma_splitter, split on comma, and enter into the data_cell string
-                    while(std::getline(comma_splitter,data_cell,',') && col < b.num_cols()) {
+                    while(std::getline(comma_splitter,data_cell,',') && col < b.dim0()) {
                         // using the block element indexing
                         std::stringstream(data_cell) >> std::dec >> b(col++,row);
                     }

@@ -115,12 +115,12 @@ struct shell {
 };
 
 //should I be testing the align this whole time?
-typedef boost::mpl::list<shell<int, neuromapp::cstandard>,
-                        shell<float, neuromapp::cstandard>,
-                         shell<double, neuromapp::cstandard>,
-                         shell<int, neuromapp::align>,
+typedef boost::mpl::list<shell<int, neuromapp::align>,
                         shell<float, neuromapp::align>,
-                         shell<double, neuromapp::align>>
+                         shell<double, neuromapp::align>,
+                         shell<int, neuromapp::cstandard>,
+                        shell<float, neuromapp::cstandard>,
+                         shell<double, neuromapp::cstandard>>
     test_allocator_types;
 
 
@@ -201,7 +201,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     //loop through testing strings
     for (string str : test_string_vect) {
         vector<std::string> hand_made_holder;
-        stringstream ss,ss2;
+        stringstream ss;
         ss << str;
         block<value_type,allocator_type> b1;
         //check basic error catching
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
         //construct iterator for the container
         auto hand_made_it = hand_made_holder.begin();
         //built by file, now by hand for comparison
-        int rows = b1.num_rows(), cols= b1.num_cols();
+        int rows = b1.num_rows(), cols= b1.dim0();
         block<value_type,allocator_type> b2(cols,rows);
         for (int i = 0; i < rows;i++) {
             //this is the first by hand way of checking this I could think of
@@ -251,10 +251,8 @@ ofstream out("compression_stats.csv");
 BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
     typedef typename T::value_type value_type;
     typedef typename T::allocator_type allocator_type;
-    std::cout << "starting compression test" << std::endl;
     for (string fname : csv_fnames) {
         chrono::time_point<chrono::system_clock> start,end;
-        std::cout << "running file " << fname << std::endl;
         ifstream ifile(fname);
 
         // create a block using the read
