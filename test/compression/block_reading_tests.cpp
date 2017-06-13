@@ -117,7 +117,10 @@ struct shell {
 //should I be testing the align this whole time?
 typedef boost::mpl::list<shell<int, neuromapp::cstandard>,
                         shell<float, neuromapp::cstandard>,
-                         shell<double, neuromapp::cstandard>>
+                         shell<double, neuromapp::cstandard>,
+                         shell<int, neuromapp::align>,
+                        shell<float, neuromapp::align>,
+                         shell<double, neuromapp::align>>
     test_allocator_types;
 
 

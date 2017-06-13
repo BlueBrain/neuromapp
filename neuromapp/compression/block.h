@@ -205,7 +205,7 @@ namespace neuromapp {
                 file_in >> row;
                 file_in >> std::ws;
                 //make block match type value_type of calling block
-                block<value_type,cstandard> b(col,row);
+                block<value_type,allocator_type> b(col,row);
                 //take full line
                 row = 0;// start at first row for entering values
                 while(std::getline(file_in,line) && row < b.num_rows()) {

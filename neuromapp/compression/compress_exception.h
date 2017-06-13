@@ -8,7 +8,7 @@ namespace neuromapp {
     // define these as valid aliases for the values 0-5
     class compression_exception : public std::exception {
         public:
-            compression_exception(std::string message,int error_code) throw() : message_{message} error_code_{error_code} {}
+            compression_exception(std::string message,int error_code) throw() : message_{message}, error_code_{error_code} {}
 
             ~compression_exception() throw () {}
 

@@ -39,13 +39,13 @@ namespace neuromapp {
             }
 
             bool compare_policy(void * lhs,const void * rhs,size_t size) {
-                 int rc =std::memcmp(lhs,rhs,size);
-                 if (rc == 0) 
-                     return true;// typical char* comparison rules
-                 else {
-                     std::cerr << "block comparison failed: memcmp of blocks failed" << std::endl;
-                     return false;
-                 }
+                int rc =std::memcmp(lhs,rhs,size);
+                if (rc == 0) 
+                    return true;// typical char* comparison rules
+                else {
+                    std::cerr << "block comparison failed: memcmp of blocks failed" << std::endl;
+                    return false;
+                }
             }
 
             constexpr static char policy_name[] = "cstandard";
@@ -92,10 +92,14 @@ namespace neuromapp {
                 std::memcpy(ptr_destination, ptr_source, size);
             }
 
-            constexpr static char policy_name[] = "align";
-            bool compare_policy(const void * lhs,const void *rhs) {
-                //TODO stub
+            //TODO perhaps function pointer instead? that might be overboard
+            bool compare_policy(void * lhs,const void * rhs,size_t size) {
+                cstandard temp_cstd_inst;
+                return temp_cstd_inst.compare_policy(lhs,rhs,size);
             }
+
+            constexpr static char policy_name[] = "align";
+
     };
 
 } // namespace neuromapp
