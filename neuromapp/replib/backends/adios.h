@@ -39,11 +39,11 @@
 #include <adios.h>
 namespace replib {
 
-  // NOTE: its final 
 class ADIOSWriter : public replib::Writer {
     private:
-      int       rank_;
-      int64_t   adios_handle_;
+      int                 rank_;
+      int64_t             adios_handle_;
+      replib::fileview*   f_;
     public:
 
         ADIOSWriter();
@@ -62,9 +62,8 @@ class ADIOSWriter : public replib::Writer {
 };
 
 /** \fun ADIOSWriter()
-    \brief create the object, no special actions required for MPI I/O
- */
-ADIOSWriter::ADIOSWriter() : rank_(-1) {
+    \brief create the object, no special actions required for MPI I/O */
+ADIOSWriter::ADIOSWriter() : rank_(-1), f_(NULL) {
 }
 
 
@@ -72,16 +71,23 @@ ADIOSWriter::ADIOSWriter() : rank_(-1) {
     \brief Class destructor */
 ADIOSWriter::~ADIOSWriter() {
   adios_finalize (rank_);
+  delete(f_);
 }
 
 
 /** \fun init(const replib::config &c)
     \brief initialize the object using the given configuration */
 void ADIOSWriter::init(replib::config &c) {
+    if (c.write() == "file1b") {
+        f_ = file1b(c);
+    }else if (c.write() == "rnd1b"){
+        f_ = rnd1b(c);
+    }else {
+      std::cerr << " ADIOS dont support yet multiple blocs" << std::endl;
+      MPI_Abort(MPI_COMM_WORLD, 666);
+    }
     rank_ = c.id();
     adios_init (c.adios_config().c_str(), MPI_COMM_WORLD);
-
-
 }
 
 /** \fun finalize()
@@ -99,62 +105,61 @@ inline void ADIOSWriter::open(char * report) {
 }
 
 /** \fun open(mapp::timer &t_io, const std::string & path)
- * TODO
     \brief Open the file.
            Timer will be used to account the time of opening the file and setting the fileview */
 void ADIOSWriter::open(mapp::timer &t_io, const std::string & path) {
-    // Get the file path
-    char * report = strdup(path.c_str());
+  // Get the file path
+  char * report = strdup(path.c_str());
 
-    //Open the file
-    t_io.tic();
-    open(report);
-    t_io.toc();
+  //Open the file
+  t_io.tic();
+  open(report);
+  t_io.toc();
 }
 
 
 /** \fun write(float * buffer, size_t count)
- * TODO
+ * TODO for now it work only with 1 Block per Rank
     \brief Write to file. Inline version to be as fast as possible */
 inline void ADIOSWriter::write(float * buffer, size_t count) {
+  size_t global_size = f_->total_bytes() / sizeof(float);
+  size_t batch_size  = f_->length_at(0);
+  size_t offset      = f_->disp_at(0);
 
+  adios_write(adios_handle_, "global_size", &global_size);
+  adios_write(adios_handle_, "batch_size" , &batch_size);
+  adios_write(adios_handle_, "offset"     , &offset);
+  adios_write(adios_handle_, "data"       , &buffer);
 }
 
 /** \fun write(mapp::timer &t_io, float * buffer, size_t count)
- * TODO
     \brief Write to file. Since we need to measure the writing time, this function receives
            the timer that should be used to surround the write call */
 void ADIOSWriter::write(mapp::timer &t_io, float * buffer, size_t count) {
-    MPI_Status status;
-    // t_io only counts time spent in MPI_File_write_all to compute I/O statistics
-    t_io.tic();
-//    int error = MPI_File_write_all(fh_, buffer, count, MPI_FLOAT, &status);
-    t_io.toc();
-
+  t_io.tic();
+  write (buffer, count);
+  t_io.toc();
 }
 
 /** \fun close()
- * TODO
     \brief Close the file. Inline version to be as fast as possible */
 inline void ADIOSWriter::close() {
   adios_close(adios_handle_);
 }
 
 /** \fun close(mapp::timer &t_io)
- * TODO
     \brief Close the file.
            Timer will be used to account the time of closing the file */
 void ADIOSWriter::close(mapp::timer &t_io) {
-    t_io.tic();
-    close();
-    t_io.toc();
+  t_io.tic();
+  close();
+  t_io.toc();
 }
 
 /** \fun total_bytes()
- * TODO
     \brief Return the total amount of data (in bytes) written at each reporting step */
 unsigned int ADIOSWriter::total_bytes() {
-    return 0;
+  return f_->total_bytes();
 }
 
 } // end namespace
