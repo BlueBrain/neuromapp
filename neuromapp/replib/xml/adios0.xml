@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<adios-config host-language="C">
+  <adios-group name="replib" coordination-communicator="comm">
+    <var name="global_size" type="integer"/>
+    <var name="offset"      type="integer"/>
+    <var name="batch_size"  type="integer"/>
+    <global-bounds dimensions="global_size" offsets="offset">
+      <var name="data" gwrite="buffer" gread="buffer" type="float" dimensions="batch_size"/>
+    </global-bounds>
+  </adios-group>
+  <method group="replib" method="MPI"/>
+  <buffer max-size-MB="1000"/>
+</adios-config>
+
