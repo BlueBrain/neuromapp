@@ -11,17 +11,17 @@ option(NEUROMAPP_DISABLE_NEST      "Disable nest"     OFF )
 set(ADIOS_ROOT "" CACHE PATH "extra path to find modules")
 list(APPEND CMAKE_MODULE_PATH ${ADIOS_ROOT}/etc)
 
-option(NEUROMAPP_BUILD_RPATH "Export RPATH " OFF)
+option(NEUROMAPP_BUILD_RPATH "Export RPATH " ON)
 
 #hack untill the end of xlc bg/q
 if(NEUROMAPP_BUILD_RPATH)
 # rpath for nix
 # use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+SET(CMAKE_SKIP_BUILD_RPATH  TRUE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE) 
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
