@@ -30,7 +30,6 @@ namespace neuromapp {
             void check_compression_rc (int rc) {
                 switch (rc) {
                     case Z_OK:
-                        std::cout << "zlib operation successful" << std::endl;
                         break;
                     case Z_BUF_ERROR:
                         throw zlib_exception("no more buffer space for compression/uncompression",Z_BUF_ERROR);
