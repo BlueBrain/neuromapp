@@ -12,13 +12,14 @@ if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
     ##currently hardcoded to directory with more recent version of boost than the system's
     ##currently makes the boost hana work this way, but attempting with CMAKE_PREFIX_PATH also
 
-    add_executable(prac_compression prac_compression.cpp)
+    #add_executable(prac_compression prac_compression.cpp)
+    add_executable(prac_sort prac_sort.cpp)
     set_source_files_properties(prac_hana.cpp COMPILE_FLAGS "-Wfatal-errors -I /home/lil/boost_1_64_0")
     ##hana needs c++14 so compile with this standard set
     add_executable(prac_hana prac_hana.cpp)
 	set_property(TARGET prac_hana PROPERTY CXX_STANDARD 14)	
 
-    target_link_libraries(prac_compression ${ZLIB_LIBRARIES})
+    #target_link_libraries(prac_compression ${ZLIB_LIBRARIES})
 
     install (TARGETS compression DESTINATION lib)
     install (FILES block.h DESTINATION include)
