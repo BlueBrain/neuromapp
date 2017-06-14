@@ -37,130 +37,136 @@
 #include "utils/mpi/controler.h"
 #include "utils/mpi/timer.h"
 #include <adios.h>
+namespace {
+  int comm = MPI_COMM_WORLD;
+}
+
 namespace replib {
 
-class ADIOSWriter : public replib::Writer {
+
+
+  class ADIOSWriter : public replib::Writer {
     private:
       int                 rank_;
       int64_t             adios_handle_;
       replib::fileview*   f_;
     public:
 
-        ADIOSWriter();
-        ~ADIOSWriter();
+      ADIOSWriter();
+      ~ADIOSWriter();
 
-        void init(replib::config &c);
-        void open(char * path);
-        void open(mapp::timer &t_io, const std::string &path);
-        void write(float * buffer, size_t count);
-        void write(mapp::timer &t_io, float * buffer, size_t count);
-        void close();
-        void close(mapp::timer &t_io);
-        void finalize ();
-        unsigned int total_bytes();
+      void init(replib::config &c);
+      void open(char * path);
+      void open(mapp::timer &t_io, const std::string &path);
+      void write(float * buffer, size_t count);
+      void write(mapp::timer &t_io, float * buffer, size_t count);
+      void close();
+      void close(mapp::timer &t_io);
+      void finalize ();
+      unsigned int total_bytes();
 
-};
+  };
 
-/** \fun ADIOSWriter()
+  /** \fun ADIOSWriter()
     \brief create the object, no special actions required for MPI I/O */
-ADIOSWriter::ADIOSWriter() : rank_(-1), f_(NULL) {
-}
+  ADIOSWriter::ADIOSWriter() : rank_(-1), f_(NULL) {
+  }
 
 
-/** \fun ~ADIOSWriter()
+  /** \fun ~ADIOSWriter()
     \brief Class destructor */
-ADIOSWriter::~ADIOSWriter() {
-  adios_finalize (rank_);
-  delete(f_);
-}
+  ADIOSWriter::~ADIOSWriter() {
+    adios_finalize (rank_);
+    delete(f_);
+  }
 
 
-/** \fun init(const replib::config &c)
+  /** \fun init(const replib::config &c)
     \brief initialize the object using the given configuration */
-void ADIOSWriter::init(replib::config &c) {
+  void ADIOSWriter::init(replib::config &c) {
     if (c.write() == "file1b") {
-        f_ = file1b(c);
+      f_ = file1b(c);
     }else if (c.write() == "rnd1b"){
-        f_ = rnd1b(c);
+      f_ = rnd1b(c);
     }else {
       std::cerr << " ADIOS dont support yet multiple blocs" << std::endl;
       MPI_Abort(MPI_COMM_WORLD, 666);
     }
     rank_ = c.id();
-    adios_init (c.adios_config().c_str(), MPI_COMM_WORLD);
-}
+    adios_init (c.adios_config().c_str(), comm);
+  }
 
-/** \fun finalize()
+  /** \fun finalize()
     \brief call ADIOS finalize  */
-void ADIOSWriter::finalize () {
-  adios_finalize (rank_);
-}
+  void ADIOSWriter::finalize () {
+    adios_finalize (rank_);
+  }
 
 
-/** \fun open(const char * path)
+  /** \fun open(const char * path)
     \brief Open the file.
-           Inline version to be as fast as possible */
-inline void ADIOSWriter::open(char * report) {
-  adios_open  (&adios_handle_, "report", report, "a", MPI_COMM_WORLD);
-}
+    Inline version to be as fast as possible */
+  inline void ADIOSWriter::open(char * report) {
+    adios_open  (&adios_handle_, "report", report, "a", MPI_COMM_WORLD);
+  }
 
-/** \fun open(mapp::timer &t_io, const std::string & path)
+  /** \fun open(mapp::timer &t_io, const std::string & path)
     \brief Open the file.
-           Timer will be used to account the time of opening the file and setting the fileview */
-void ADIOSWriter::open(mapp::timer &t_io, const std::string & path) {
-  // Get the file path
-  char * report = strdup(path.c_str());
+    Timer will be used to account the time of opening the file and setting the fileview */
+  void ADIOSWriter::open(mapp::timer &t_io, const std::string & path) {
+    // Get the file path
+    char * report = strdup(path.c_str());
 
-  //Open the file
-  t_io.tic();
-  open(report);
-  t_io.toc();
-}
+    //Open the file
+    t_io.tic();
+    open(report);
+    t_io.toc();
+  }
 
 
-/** \fun write(float * buffer, size_t count)
- * TODO for now it work only with 1 Block per Rank
-    \brief Write to file. Inline version to be as fast as possible */
-inline void ADIOSWriter::write(float * buffer, size_t count) {
-  size_t global_size = f_->total_bytes() / sizeof(float);
-  size_t batch_size  = f_->length_at(0);
-  size_t offset      = f_->disp_at(0);
+  /** \fun write(float * buffer, size_t count)
+   * TODO for now it work only with 1 Block per Rank
+   \brief Write to file. Inline version to be as fast as possible */
+  inline void ADIOSWriter::write(float * buffer, size_t count) {
+    size_t global_size = f_->total_bytes() / sizeof(float);
+    size_t batch_size  = f_->length_at(1);
+    size_t offset      = f_->disp_at(1);
 
-  adios_write(adios_handle_, "global_size", &global_size);
-  adios_write(adios_handle_, "batch_size" , &batch_size);
-  adios_write(adios_handle_, "offset"     , &offset);
-  adios_write(adios_handle_, "data"       , &buffer);
-}
+    adios_write(adios_handle_, "global_size", &global_size);
+    adios_write(adios_handle_, "batch_size" , &batch_size);
+    adios_write(adios_handle_, "offset"     , &offset);
+    adios_write(adios_handle_, "data"       , &buffer);
+  }
 
-/** \fun write(mapp::timer &t_io, float * buffer, size_t count)
+  /** \fun write(mapp::timer &t_io, float * buffer, size_t count)
     \brief Write to file. Since we need to measure the writing time, this function receives
-           the timer that should be used to surround the write call */
-void ADIOSWriter::write(mapp::timer &t_io, float * buffer, size_t count) {
-  t_io.tic();
-  write (buffer, count);
-  t_io.toc();
-}
+    the timer that should be used to surround the write call */
+  void ADIOSWriter::write(mapp::timer &t_io, float * buffer, size_t count) {
+    t_io.tic();
+    write (buffer, count);
+    t_io.toc();
+  }
 
-/** \fun close()
+  /** \fun close()
     \brief Close the file. Inline version to be as fast as possible */
-inline void ADIOSWriter::close() {
-  adios_close(adios_handle_);
-}
+  inline void ADIOSWriter::close() {
+    adios_close(adios_handle_);
+  }
 
-/** \fun close(mapp::timer &t_io)
+  /** \fun close(mapp::timer &t_io)
     \brief Close the file.
-           Timer will be used to account the time of closing the file */
-void ADIOSWriter::close(mapp::timer &t_io) {
-  t_io.tic();
-  close();
-  t_io.toc();
-}
+    Timer will be used to account the time of closing the file */
+  void ADIOSWriter::close(mapp::timer &t_io) {
+    t_io.tic();
+    close();
+    t_io.toc();
+  }
 
-/** \fun total_bytes()
+  /** \fun total_bytes()
     \brief Return the total amount of data (in bytes) written at each reporting step */
-unsigned int ADIOSWriter::total_bytes() {
-  return f_->total_bytes();
-}
+  unsigned int ADIOSWriter::total_bytes() {
+    return f_->total_bytes();
+  }
 
 } // end namespace
 
