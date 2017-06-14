@@ -3,7 +3,7 @@
 
 #include <string>
 #include <memory> // POSIX, size_t is inside
-#include <ios>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -199,7 +199,7 @@ namespace neuromapp {
                 file_in >> std::ws;
                 // this comes up in cases where an empty string is provided,
                 if(file_in.get() != ',') {
-                    throw 4;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
+                    throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
                 }
                 //and now repeat for the row
                 file_in >> row;
