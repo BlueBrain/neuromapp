@@ -44,32 +44,34 @@ namespace {
 namespace replib {
 
 
-
   class ADIOSWriter : public replib::Writer {
     private:
+      uint64_t            iteration_;
+      uint64_t            total_size;
       int                 rank_;
       int64_t             adios_handle_;
       replib::fileview*   f_;
+      replib::config*     c_;
     public:
 
       ADIOSWriter();
       ~ADIOSWriter();
 
-      void init(replib::config &c);
-      void open(char * path);
-      void open(mapp::timer &t_io, const std::string &path);
-      void write(float * buffer, size_t count);
-      void write(mapp::timer &t_io, float * buffer, size_t count);
-      void close();
-      void close(mapp::timer &t_io);
-      void finalize ();
-      unsigned int total_bytes();
+      void           init     (replib::config &c);
+      void           open     (char * path);
+      void           open     (mapp::timer &t_io, const std::string &path);
+      void           write    (float * buffer, size_t count);
+      void           write    (mapp::timer &t_io, float * buffer, size_t count);
+      void           close    ();
+      void           close    (mapp::timer &t_io);
+      void          finalize  ();
+      unsigned int  total_bytes();
 
   };
 
   /** \fun ADIOSWriter()
     \brief create the object, no special actions required for MPI I/O */
-  ADIOSWriter::ADIOSWriter() : rank_(-1), f_(NULL) {
+  ADIOSWriter::ADIOSWriter() : iteration_(0), rank_(-1), f_(NULL) {
   }
 
 
@@ -93,7 +95,7 @@ namespace replib {
       MPI_Abort(MPI_COMM_WORLD, 666);
     }
     rank_ = c.id();
-    adios_init (c.adios_config().c_str(), comm);
+    c_ = &c;
   }
 
   /** \fun finalize()
@@ -107,7 +109,18 @@ namespace replib {
     \brief Open the file.
     Inline version to be as fast as possible */
   inline void ADIOSWriter::open(char * report) {
-    adios_open  (&adios_handle_, "report", report, "a", MPI_COMM_WORLD);
+    adios_init_noxml    (comm);
+    int64_t adios_group_id;
+    adios_declare_group (&adios_group_id,"report", "", adios_stat_no);
+    adios_select_method (adios_group_id, "MPI",    "verbose=3", "");
+    adios_define_var    (adios_group_id, "global_size",  "", adios_integer, 0,0,0);
+    adios_define_var    (adios_group_id, "batch_size",   "", adios_integer, 0,0,0);
+    adios_define_var    (adios_group_id, "offset",       "", adios_integer, 0,0,0);
+    for (int i =0; i < c_->rep_steps(); i++) {
+      adios_define_var (adios_group_id, "data",          "", adios_real, "batch_size", "global_size", "offset");
+    }
+
+    adios_open  (&adios_handle_, "report", report, "w", MPI_COMM_WORLD);
   }
 
   /** \fun open(mapp::timer &t_io, const std::string & path)
@@ -129,13 +142,15 @@ namespace replib {
    \brief Write to file. Inline version to be as fast as possible */
   inline void ADIOSWriter::write(float * buffer, size_t count) {
     size_t global_size = f_->total_bytes() / sizeof(float);
-    size_t batch_size  = f_->length_at(1);
+    size_t batch_size  = f_->length_at(1); // not valid ???
     size_t offset      = f_->disp_at(1);
-
-    adios_write(adios_handle_, "global_size", &global_size);
-    adios_write(adios_handle_, "batch_size" , &batch_size);
-    adios_write(adios_handle_, "offset"     , &offset);
-    adios_write(adios_handle_, "data"       , &buffer);
+    if (iteration_ == 0) {
+      adios_write(adios_handle_, "global_size", &global_size);
+      adios_write(adios_handle_, "batch_size" , &count);
+      adios_write(adios_handle_, "offset"     , &offset);
+    }
+    adios_write(adios_handle_, "data"       , buffer);
+    iteration_++;
   }
 
   /** \fun write(mapp::timer &t_io, float * buffer, size_t count)
