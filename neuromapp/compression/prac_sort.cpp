@@ -24,6 +24,7 @@ int main (void) {
     ifile >> b1;
     std::cout << "block is " << b1  << std::endl;
     //perform sort
-    sort(b1.col_begin(1),b1.col_end(1));
+    //sort(b1.col_begin(1),b1.col_end(1));
+    b1.sort_cols();
     std::cout << "block sorted becomes " << b1 << std::endl;
 }

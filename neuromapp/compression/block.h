@@ -128,25 +128,32 @@ namespace neuromapp {
             /*nested class with access to member elements
              * idea is to specify a column that you want the iterator to proceed along, and it will only visit the values along that column
              */
-            class col_iter { 
+            class col_iter : public std::iterator <
+                             std::random_access_iterator_tag, // type of iterator
+                             value_type, // actual type values at address
+                             size_type// the distance 
+                             >{ 
                 block<value_type, allocator_type> &member_blk;
-                int col_index,row_mult;
+                size_type col_index,row_mult;
                 public:
                 // use copy ctor for start iter
-                    col_iter(block<value_type,allocator_type> & blk,int col_ind, bool end=false) : member_blk {blk}, col_index {col_ind} {
+                    col_iter(block<value_type,allocator_type> & blk,size_type col_ind, bool end=false) : member_blk {blk}, col_index {col_ind} {
                         if (end == true) row_mult = member_blk.num_rows()-1;
                         else row_mult = 0;
                     }
                     /* add multiples of number of columns to the original column specified in ctor
                      */
                     //prefix ++ 
-                    pointer operator ++ () {
+                    //TODO figure out what the right return types are for these things... that's pretty much waht's stopping me
+                    col_iter& operator ++ () {
                         assert (index <= member_blk.num_rows()); 
-                        return member_blk.data() + (member_blk.dim0()*(++row_mult) + col_index);
+                        ++row_mult;
+                        return *this;
                     }
-                    pointer operator ++ (int) {
+                    col_iter& operator ++ (int) {
                         assert(index <= member_blk.num_rows());
-                        return member_blk.data() + (member_blk.dim0()*(row_mult++) + col_index);
+                        row_mult++;
+                        return *this;
                     }
 
 
@@ -160,11 +167,13 @@ namespace neuromapp {
                     bool operator != (const col_iter & rhs ) const {
                         return row_mult != rhs.row_mult;
                     }
-                    pointer operator - (const col_iter & rhs) const {
-                        return member_blk.data() + (member_blk.dim0()*(row_mult - rhs.row_mult) + col_index);
+                    //distance operators
+                    size_type operator -(const col_iter & rhs) const {
+                        return row_mult - rhs.row_mult;
                     }
-                    pointer operator + (const col_iter & rhs) const {
-                        return member_blk.data() + (member_blk.dim0()*(row_mult + rhs.row_mult) + col_index);
+
+                    size_type operator +(const col_iter &rhs ) const {
+                        return row_mult + rhs.row_mult;
                     }
             };
 
@@ -173,8 +182,17 @@ namespace neuromapp {
             iterator begin() { return data_; }
             iterator end() { return data_ + dim0_ * rows_; }
             //TODO think about whether we have a  way of replacing the begin, and end with col_
-            col_iter col_begin(int col) { return col_iter(*this,col,false) ;}
-            col_iter col_end(int col) {return col_iter(*this,col,true);}
+            void sort_cols() {
+                //iterate over the columns
+                size_type sort_ind = 0;
+                while(sort_ind != dim0_) {
+                    col_iter start(*this,sort_ind,false);
+                    col_iter end(*this,sort_ind,true);
+                    sort(start,end);
+                    sort_ind++;
+                }
+            }
+
 
 
 
