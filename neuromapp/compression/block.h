@@ -125,40 +125,76 @@ namespace neuromapp {
                     *this = std::move(new_block);
                 }
             }
+
+            /* create a traits struct for the iterator below to inherit from
+            */
+            template<typename cat,typename V,typename Dist=ptrdiff_t,typename Ptr= V*,typename Ref = V&>
+                struct col_iter_template {
+                    using value_type = V;
+                    using difference_type = Dist;
+                    using pointer = Ptr;
+                    using reference = Ref;
+                    using iterator_category = cat;
+                };
+
             /*nested class with access to member elements
              * idea is to specify a column that you want the iterator to proceed along, and it will only visit the values along that column
              */
-            class col_iter : public std::iterator <
-                             std::random_access_iterator_tag, // type of iterator
-                             value_type, // actual type values at address
-                             size_type// the distance 
-                             >{ 
+            class col_iter : public col_iter_template<std::random_access_iterator_tag,value_type> { 
                 block<value_type, allocator_type> &member_blk;
                 size_type col_index,row_mult;
                 public:
                 // use copy ctor for start iter
                     col_iter(block<value_type,allocator_type> & blk,size_type col_ind, bool end=false) : member_blk {blk}, col_index {col_ind} {
-                        if (end == true) row_mult = member_blk.num_rows()-1;
+                        if (end == true) row_mult = member_blk.num_rows(); // should be after actual last value, so suitable sentinel
                         else row_mult = 0;
                     }
                     /* add multiples of number of columns to the original column specified in ctor
                      */
                     //prefix ++ 
                     //TODO figure out what the right return types are for these things... that's pretty much waht's stopping me
+                    //self ref and diff type are typedefs we inherit
                     col_iter& operator ++ () {
-                        assert (index <= member_blk.num_rows()); 
+                        assert(row_mult <= member_blk.num_rows());
                         ++row_mult;
                         return *this;
                     }
                     col_iter& operator ++ (int) {
-                        assert(index <= member_blk.num_rows());
+                        assert(row_mult <= member_blk.num_rows());
                         row_mult++;
+                        return *this;
+                    }
+                    col_iter& operator -- () {
+                        assert(row_mult >= (size_type) 0);
+                        --row_mult;
+                        return *this;
+                    }
+                    col_iter& operator -- (int) {
+                        assert(row_mult >= (size_type) 0);
+                        row_mult--;
+                        return *this;
+                    }
+
+                    //reference operator
+                    value_type operator *() {
+                        return member_blk.data() + member_blk.dim0() * row_mult+ col_index;
+                    }
+
+                    col_iter& operator -= (const size_type & dst_val) {
+                        row_mult -= dst_val;
+                        return *this;
+                    }
+
+                    col_iter& operator += (const size_type & dst_val) {
+                        row_mult += dst_val;
                         return *this;
                     }
 
 
-                    /* assumption being made that the same column index is being specified in these cases
-                     * TODO ask tim whether this is something that must be handled
+
+                    
+                    /* assuming that start and end share same column index number
+                     * TODO ask tim whether this is something that must be handled, probably
                      */
                     bool operator == (const col_iter & rhs) const {
                         return row_mult == rhs.row_mult;
@@ -166,6 +202,12 @@ namespace neuromapp {
 
                     bool operator != (const col_iter & rhs ) const {
                         return row_mult != rhs.row_mult;
+                    }
+                    bool operator < (const col_iter &rhs) const {
+                        return row_mult < rhs.row_mult;
+                    }
+                    bool operator > (const col_iter &rhs) const {
+                        return row_mult > rhs.row_mult;
                     }
                     //distance operators
                     size_type operator -(const col_iter & rhs) const {
@@ -175,13 +217,20 @@ namespace neuromapp {
                     size_type operator +(const col_iter &rhs ) const {
                         return row_mult + rhs.row_mult;
                     }
+
+                    size_type operator +(int int_val) const {
+                        return row_mult + (size_type) int_val;
+                    }
+                    size_type operator -(int int_val) const {
+                        return row_mult - (size_type) int_val;
+                    }
             };
 
 
             // stl compatibility
             iterator begin() { return data_; }
             iterator end() { return data_ + dim0_ * rows_; }
-            //TODO think about whether we have a  way of replacing the begin, and end with col_
+            //TODO think about whether we have a  way of replacing the begin, and end with col_iter so we reclaim those functions
             void sort_cols() {
                 //iterate over the columns
                 size_type sort_ind = 0;
