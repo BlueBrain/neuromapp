@@ -129,6 +129,47 @@ namespace neuromapp {
             iterator begin() { return data_; }
             iterator end() { return data_ + dim0_ * rows_; }
 
+            //specialized iterator nestedclass
+            class iter {
+                block<value_type, allocator_type> blk;
+                size_type col_ind,row_mult;
+                public:
+                iter (const block<value_type,allocator_type>&  blk_in, size_type col,bool end=false) 
+                    : blk {blk_in} ,col_ind {col}, row_mult{0} {
+                        if (end == true ) row_mult = blk.dim1();
+                    }
+
+                iter& operator ++ () {
+                    row_mult++;
+                    return *this;
+                }
+                value_type operator* () {
+                    return *(blk.data() + row_mult*blk.dim0() +col_ind);
+                }
+                bool operator == (const iter &rhs) {
+                    return row_mult == rhs.row_mult;
+                }
+                bool operator != (const iter &rhs) {
+                    return row_mult != rhs.row_mult;
+                }
+
+            };
+
+            void col_iter () {
+                iter start(*this,0);
+                iter end(*this,0,true);
+                while (start != end) {
+                    std::cout << "col val is " <<*start << std::endl;
+                    ++start;
+                }
+                std::cout << "over" << std::endl;
+            }
+
+
+
+
+
+
             //difference between memory_allocated and size is that allocated relies on construction size, where size depends on compression
             size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
 
@@ -185,7 +226,7 @@ namespace neuromapp {
                 //should just be the opposite of the existing compare_policy
                 return ! compare_policy(this->data(),other.data(),current_size);
             }
-                
+
 
 
 
