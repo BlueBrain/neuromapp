@@ -4,6 +4,7 @@
 #include <string>
 #include <memory> // POSIX, size_t is inside
 #include <sstream>
+#include <iterator>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -130,7 +131,7 @@ namespace neuromapp {
             iterator end() { return data_ + dim0_ * rows_; }
 
             //specialized iterator nestedclass
-            class iter {
+            class iter : public std::iterator<std::input_iterator_tag,value_type> {
                 block<value_type, allocator_type> blk;
                 size_type col_ind,row_mult;
                 public:
@@ -158,11 +159,8 @@ namespace neuromapp {
             void col_iter () {
                 iter start(*this,0);
                 iter end(*this,0,true);
-                while (start != end) {
-                    std::cout << "col val is " <<*start << std::endl;
-                    ++start;
-                }
-                std::cout << "over" << std::endl;
+                std::copy(start,end,
+                std::ostream_iterator<value_type>(std::cout," ,"));
             }
 
 
