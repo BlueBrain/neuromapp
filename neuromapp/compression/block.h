@@ -141,13 +141,23 @@ namespace neuromapp {
              * idea is to specify a column that you want the iterator to proceed along, and it will only visit the values along that column
              */
             class col_iter : public col_iter_template<std::random_access_iterator_tag,value_type> { 
-                block<value_type, allocator_type> &member_blk;
+                block<value_type, allocator_type> member_blk;
                 size_type col_index,row_mult;
                 public:
-                // use copy ctor for start iter
                     col_iter(block<value_type,allocator_type> & blk,size_type col_ind, bool end=false) : member_blk {blk}, col_index {col_ind} {
                         if (end == true) row_mult = member_blk.num_rows(); // should be after actual last value, so suitable sentinel
                         else row_mult = 0;
+                    }
+                    //define a copy iterator for col_iter that sets the correct column, and row_mult to zero
+                    col_iter(const col_iter & rhs){
+                        member_blk =rhs.member_blk; // use the = to create copy
+                        col_index = rhs.col_index;
+                        row_mult = 0;
+                    }
+                    
+                    //try to resolve the deleted function use with = defined
+                    void operator = (const col_iter &rhs) {
+                        row_mult = rhs.row_mult;
                     }
                     /* add multiples of number of columns to the original column specified in ctor
                      */
@@ -176,9 +186,6 @@ namespace neuromapp {
                     }
 
                     //reference operator
-                    value_type operator *() {
-                        return member_blk.data() + member_blk.dim0() * row_mult+ col_index;
-                    }
 
                     col_iter& operator -= (const size_type & dst_val) {
                         row_mult -= dst_val;
@@ -191,7 +198,19 @@ namespace neuromapp {
                     }
 
 
+                    //references * and & and ()
+                    value_type operator *() {
+                        return member_blk.data() + member_blk.dim0() * row_mult+ col_index;
+                    }
 
+                    value_type operator ()() {
+                        return *this;
+                    }
+
+
+                    reference operator &() {
+                        return &this;
+                    }
                     
                     /* assuming that start and end share same column index number
                      * TODO ask tim whether this is something that must be handled, probably
@@ -210,6 +229,7 @@ namespace neuromapp {
                         return row_mult > rhs.row_mult;
                     }
                     //distance operators
+                    //these might need to become difference_types
                     size_type operator -(const col_iter & rhs) const {
                         return row_mult - rhs.row_mult;
                     }
