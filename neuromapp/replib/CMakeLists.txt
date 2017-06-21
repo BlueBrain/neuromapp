@@ -2,8 +2,11 @@
 if(NOT NEUROMAPP_DISABLE_REPLIB)
     set(MPI_STATIC ON)
     find_package(MPI)
+    if (${COMPILE_LIBRARY_TYPE} STREQUAL "STATIC")
+      set(ADIOS_USE_STATIC_LIBS ON)
+    endif()
     find_package (ADIOS)
-
+    message ("       ADIOS LIBRARIES = ${ADIOS_LIBRARIES}")
     if (MPI_FOUND)
       set (ADIOS_FLAG "")
 
@@ -29,7 +32,7 @@ if(NOT NEUROMAPP_DISABLE_REPLIB)
         # ADIOS option
         if (ADIOS_FOUND)
           include_directories(${ADIOS_INCLUDE_DIRS})
-          target_link_libraries (MPI_Exec_rl replib-stats ${ADIOS_LIBRARIES})
+          target_link_libraries (MPI_Exec_rl ${ADIOS_LIBRARIES} replib-stats )
           set(ADIOS_FLAG -DRL_ADIOS=1)
         endif()
 
