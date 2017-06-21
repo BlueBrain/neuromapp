@@ -191,7 +191,7 @@ namespace neuromapp {
                 }
                 iter operator - ( const int & rhs) {
                     row_mult -= (size_type) rhs;
-                    return *this
+                    return *this;
                 }
 
                 // does this need to be greater than 0 at all times?
@@ -206,17 +206,17 @@ namespace neuromapp {
 
                 //total ordering operators
 
-                bool operator > (const iter & lhs,const iter & rhs) {
-                    return *(lhs) > *(rhs) ;
+                bool operator > (const iter & rhs) {
+                    return (*this) > (*rhs) ;
                 }
-                bool operator < (const iter & lhs,const iter & rhs) {
-                    return *(lhs) < *(rhs) ;
+                bool operator < (const iter & rhs) {
+                    return (*this) < (*rhs) ;
                 }
-                bool operator <= (const iter & lhs,const iter & rhs) {
-                    return *(lhs) <= *(rhs);
+                bool operator <= (const iter & rhs) {
+                    return (*this) <= (*rhs);
                 }
-                bool operator >= (const iter & lhs,const iter & rhs) {
-                    return *(lhs) >= *(rhs);
+                bool operator >= (const iter & rhs) {
+                    return (*this) >= (*rhs);
                 }
 
 
@@ -374,13 +374,15 @@ namespace neuromapp {
         }
 
     // commutative + operators for the iterator
-    iter operator + (const int & lhs,const iter & rhs) {
-        rhs.row_mult += (size_type) lhs;
+    template<class T,class A>
+    typename block<T,A>::iter operator + (const int & lhs,typename block<T,A>::iter & rhs) {
+        rhs.row_mult += (size_t) lhs;
         return rhs;
     }
 
-    iter operator + (const iter & lhs,const int & rhs) {
-        lhs.row_mult += (size_type) rhs;
+    template<class T,class A>
+    typename block<T,A>::iter operator + (typename block<T,A>::iter & lhs,const int & rhs) {
+        lhs.row_mult += (size_t) rhs;
         return lhs;
     }
 
