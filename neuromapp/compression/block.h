@@ -133,27 +133,36 @@ namespace neuromapp {
             iterator end() { return data_ + dim0_ * rows_; }
 
             //specialized iterator nestedclass
-            class iter : public std::iterator<std::input_iterator_tag,value_type> {
+            class iter : public std::iterator<std::bidirectional_iterator_tag,value_type> {
                 block<value_type, allocator_type> blk;
                 size_type col_ind,row_mult;
                 public:
-                iter (const block<value_type,allocator_type>&  blk_in, size_type col,bool end=false) 
-                    : blk {blk_in} ,col_ind {col}, row_mult{0} {
-                        if (end == true ) row_mult = blk.dim1();
-                    }
+                iter (const block<value_type,allocator_type>&  blk_in, size_type col,size_type row) 
+                    : blk {blk_in} ,col_ind {col}, row_mult{row} {}
 
-                iter& operator ++ (int) {// postfix needed for forward iterator
-                    iter this_copy = *this;
+                iter operator ++ (int) {// postfix needed for forward iterator
                     row_mult++;
-                    return this_copy;
+                    size_type one= (size_type) 1;
+                    return iter(blk,col_ind,row_mult-one);
                 }
-                
+
+                iter& operator -- () {
+                    row_mult--;
+                    return *this;
+                }
+
+                iter operator--  (int) {
+                    row_mult--;
+                    size_type one= (size_type) 1;
+                    return iter(blk,col_ind,row_mult + one);
+                }
 
                 iter& operator ++ () {
                     row_mult++;
                     return *this;
                 }
-                value_type operator* () {
+
+                value_type& operator* () {
                     return *(blk.data() + row_mult*blk.dim0() +col_ind);
                 }
                 bool operator == (const iter &rhs) {
@@ -166,21 +175,47 @@ namespace neuromapp {
                 void operator = (const iter &rhs) {
                     row_mult = rhs.row_mult;
                 }
+                // last things needed by a bidirectional iterator
+                iter & operator += (const iter & rhs) {
+                    row_mult += rhs.row_mult;
+                    return *this;
+                }
 
+                iter & operator += (const int & rhs) {
+                    row_mult += (size_type) rhs;
+                    return *this;
+                }
+                iter & operator -= (const int & rhs) {
+                    row_mult -= (size_type) rhs;
+                    return *this;
+                }
+                iter operator + (const int & lhs,const iter & rhs) {
+                    rhs.row_mult += (size_type) lhs;
+                    return rhs;
+                }
+                iter operator -= (const int & rhs) {
+                    row_mult -= rhs;
+                    return *this;
+                }
+                // finish adding the others on http://en.cppreference.com/w/cpp/concept/RandomAccessIterator
 
-
+                iter operator + (const iter & lhs,const int & rhs) {
+                    lhs.row_mult += (size_type) rhs;
+                    return lhs;
+                }
             };
 
             void col_iter () {
-                iter start(*this,0);
-                iter end(*this,0,true);
-                // testing forwardness 
-                auto find = std::adjacent_find(start,end,std::greater<value_type>());
-                while (find != end) {
-                    std::cout << "found " << *find << " at a dist of " << std::distance(start,find) <<" from the beginning" << std::endl;
-                    find =  std::adjacent_find(++find,end,std::greater<value_type>());
-                }
-
+                iter start(*this,0,0);
+                iter end(*this,0,rows_);
+                // testing bidirectionality with move_backward 
+                iter other_start(*this,1,0);
+                iter other_end(*this,1,rows_);
+                std::copy(other_start,other_end,std::ostream_iterator<value_type>(std::cout));
+                std::cout << "#### ende####" << std::endl;
+                std::move_backward(start,end,other_end);
+                std::copy(other_start,other_end,std::ostream_iterator<value_type>(std::cout));
+                std::cout << "#### ende####" << std::endl;
 
             }
 
