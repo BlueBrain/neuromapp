@@ -207,16 +207,16 @@ namespace neuromapp {
                 //total ordering operators
 
                 bool operator > (const iter & rhs) {
-                    return (*this) > (*rhs) ;
+                    return (**this) > (*rhs) ;
                 }
                 bool operator < (const iter & rhs) {
-                    return (*this) < (*rhs) ;
+                    return (**this) < (*rhs) ;
                 }
                 bool operator <= (const iter & rhs) {
-                    return (*this) <= (*rhs);
+                    return (**this) <= (*rhs);
                 }
                 bool operator >= (const iter & rhs) {
-                    return (*this) >= (*rhs);
+                    return (**this) >= (*rhs);
                 }
 
 
@@ -229,12 +229,9 @@ namespace neuromapp {
                 // testing bidirectionality with move_backward 
                 iter other_start(*this,1,0);
                 iter other_end(*this,1,rows_);
-                std::copy(other_start,other_end,std::ostream_iterator<value_type>(std::cout));
-                std::cout << "#### ende####" << std::endl;
-                std::move_backward(start,end,other_end);
-                std::copy(other_start,other_end,std::ostream_iterator<value_type>(std::cout));
-                std::cout << "#### ende####" << std::endl;
-
+                //sort the first two columns
+                std::sort(start,end);
+                std::sort(other_start,other_end);
             }
 
 
@@ -374,14 +371,14 @@ namespace neuromapp {
         }
 
     // commutative + operators for the iterator
-    template<class T,class A>
-    typename block<T,A>::iter operator + (const int & lhs,typename block<T,A>::iter & rhs) {
+    template<class T,class A,class num_t>
+    typename block<T,A>::iter operator + (num_t & lhs,typename block<T,A>::iter & rhs) {
         rhs.row_mult += (size_t) lhs;
         return rhs;
     }
 
-    template<class T,class A>
-    typename block<T,A>::iter operator + (typename block<T,A>::iter & lhs,const int & rhs) {
+    template<class T,class A,class num_t>
+    typename block<T,A>::iter operator + (typename block<T,A>::iter & lhs, num_t & rhs) {
         lhs.row_mult += (size_t) rhs;
         return lhs;
     }
