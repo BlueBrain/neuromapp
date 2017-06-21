@@ -189,20 +189,38 @@ namespace neuromapp {
                     row_mult -= (size_type) rhs;
                     return *this;
                 }
-                iter operator + (const int & lhs,const iter & rhs) {
-                    rhs.row_mult += (size_type) lhs;
-                    return rhs;
+                iter operator - ( const int & rhs) {
+                    row_mult -= (size_type) rhs;
+                    return *this
                 }
-                iter operator -= (const int & rhs) {
-                    row_mult -= rhs;
-                    return *this;
-                }
-                // finish adding the others on http://en.cppreference.com/w/cpp/concept/RandomAccessIterator
 
-                iter operator + (const iter & lhs,const int & rhs) {
-                    lhs.row_mult += (size_type) rhs;
-                    return lhs;
+                // does this need to be greater than 0 at all times?
+                size_type operator - (const iter &rhs) {
+                    return row_mult - rhs.row_mult;
                 }
+
+                value_type operator [] (const int & ind) {
+                    // make use of the existing + operator and *
+                    return *(this + ind);
+                }
+
+                //total ordering operators
+
+                bool operator > (const iter & lhs,const iter & rhs) {
+                    return *(lhs) > *(rhs) ;
+                }
+                bool operator < (const iter & lhs,const iter & rhs) {
+                    return *(lhs) < *(rhs) ;
+                }
+                bool operator <= (const iter & lhs,const iter & rhs) {
+                    return *(lhs) <= *(rhs);
+                }
+                bool operator >= (const iter & lhs,const iter & rhs) {
+                    return *(lhs) >= *(rhs);
+                }
+
+
+
             };
 
             void col_iter () {
@@ -354,6 +372,18 @@ namespace neuromapp {
             b.read(in);// create contents of block based on data in inputstream
             return in;
         }
+
+    // commutative + operators for the iterator
+    iter operator + (const int & lhs,const iter & rhs) {
+        rhs.row_mult += (size_type) lhs;
+        return rhs;
+    }
+
+    iter operator + (const iter & lhs,const int & rhs) {
+        lhs.row_mult += (size_type) rhs;
+        return lhs;
+    }
+
 
 
 } // namespace neuromapp
