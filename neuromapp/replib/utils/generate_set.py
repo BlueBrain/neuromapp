@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import subprocess
-nb_procs      = [16, 32, 128, 256, 512]
-size_per_rank = [4000, 8000, 16000, 4000000, 8000000]
-nb_blocks     = [1,8,32,64]
+nb_procs       = [16, 32, 128, 256, 512, 1024, 2048, 4096, 8192]
+size_per_rank =  [4000, 8000, 16000, 4000000, 8000000]
+nb_blocks     =  [1,8,32,64]
 
 generators    = [("python uniform_generator.py {ranks} {total_size} --nb_blocks {nb_blocks}".
     format(ranks=ranks, total_size=ranks*size, size=size, nb_blocks=blocks),
