@@ -19,7 +19,8 @@ file_size = re.compile(r'\d+')
 print ("backend; nb_proc;\tAvg Bandwith (per rank);\tMin (MB/s);\tMax (MB/s);\tMin (Kb);\tMax (Kb);\tNb Cells;file size")
 for run in range (5):
   for backend in backends:
-    for nb_proc in [2**e for e in range (4,7)]:
+    # we test from 16 procs to 512 procs 
+    for nb_proc in [2**e for e in range (4,9)]:
       for nb_cells in [10**e for e in range (4,7)]:
         subprocess.getoutput (["rm", output_filename])
         output = subprocess.getoutput("{srun} -n {nbproc} {replib} -c {nbcell} -b {backend} -s 100 -r 10 -o {output}".format(srun=srun_name, replib=exec_name, nbproc=nb_proc, nbcell=nb_cells, backend=backend, output=output_filename))

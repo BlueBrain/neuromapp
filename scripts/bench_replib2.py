@@ -9,12 +9,20 @@
 import subprocess
 import re
 backends    = ['mpiio','adios']
-nb_procs    = [2**e for e in range(4,7)]
-nb_blocks   = [1, 8, 128]
+# we test from 16 procs to 512
+nb_procs    = [2**e for e in range(4,9)]
+# number of different blocks written by the procesors
+nb_blocks   = [1, 8, 32, 64]
+load_sizes  = ["4k", "8k", "16k", "4M", "8M"]
 block_place = ["regular", "shuffle"]
 block_size  = ["same", "diffs"]
-models      = [str("{blk_place}_{blk_size}_{nb_blk}".format()) for blk_place, blk_size, nb_blk in block_place, block_size, nb_blocks]
-distributions = { key: [str("{nb_proc}_{model}".format(nb_proc=key, model=model)) for model in models] for key in nb_procs}
+models      = ["{blk_place}_{blk_size}_{nb_blk}_{load_size}".format()
+      for blk_place in block_place
+      for blk_size  in block_size
+      for nb_blk    in nb_blocks
+      for load_size in load_sizes
+              ]
+distributions = { key: ["{nb_proc}_{model}".format(nb_proc=key, model=model) for model in models] for key in nb_procs}
 
 output_filename = "/gpfs/bbp.cscs.ch/scratch/gss/viz/fouriaux/currents.bbp"
 exec_name = "/gpfs/bbp.cscs.ch/home/fouriaux/Devel/adios_dev/neuromapp/install/bin/MPI_Exec_rl"
