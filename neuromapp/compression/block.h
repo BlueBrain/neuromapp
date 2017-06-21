@@ -3,8 +3,10 @@
 
 #include <string>
 #include <memory> // POSIX, size_t is inside
+#include <functional>
 #include <sstream>
 #include <iterator>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -140,6 +142,13 @@ namespace neuromapp {
                         if (end == true ) row_mult = blk.dim1();
                     }
 
+                iter& operator ++ (int) {// postfix needed for forward iterator
+                    iter this_copy = *this;
+                    row_mult++;
+                    return this_copy;
+                }
+                
+
                 iter& operator ++ () {
                     row_mult++;
                     return *this;
@@ -154,13 +163,25 @@ namespace neuromapp {
                     return row_mult != rhs.row_mult;
                 }
 
+                void operator = (const iter &rhs) {
+                    row_mult = rhs.row_mult;
+                }
+
+
+
             };
 
             void col_iter () {
                 iter start(*this,0);
                 iter end(*this,0,true);
-                std::copy(start,end,
-                std::ostream_iterator<value_type>(std::cout," ,"));
+                // testing forwardness 
+                auto find = std::adjacent_find(start,end,std::greater<value_type>());
+                while (find != end) {
+                    std::cout << "found " << *find << " at a dist of " << std::distance(start,find) <<" from the beginning" << std::endl;
+                    find =  std::adjacent_find(++find,end,std::greater<value_type>());
+                }
+
+
             }
 
 
