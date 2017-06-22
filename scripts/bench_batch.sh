@@ -20,6 +20,6 @@ export  BGLOCKLESSMPIO_F_TYPE=0x47504653
 module load slurm
 module load hdf5/1.8.15-patch1 zlib/1.2.3 bg-xl
 module load boost/1.54.0-bgqpatch
-moduel load nix/bgq/python/2.7-full
+module load nix/bgq/python/2.7-full
 cd ../install_blue/bin
 ./bench_replib2.py

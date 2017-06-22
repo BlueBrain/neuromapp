@@ -1,5 +1,4 @@
 #! /bin/env python
-
 import argparse
 import numpy as np
 
@@ -7,9 +6,9 @@ def main (args):
   total_blocks        = args.nb_blocks[0] * args.ranks[0]
   avg_block_size      = args.data_size[0] / total_blocks
 # a regular distribution of block size and ranks over blocks
-  blocks_size         = [avg_block_size for i in range(int(total_blocks))]
-  blocks_offset       = [avg_block_size*i for i in range(int(total_blocks))]
-  blocks_distrib      = [i for i in range(int(total_blocks))]
+  blocks_size         = [avg_block_size] * total_blocks
+  blocks_offset       = [avg_block_size*i for i in range(total_blocks)]
+  blocks_distrib      = range(total_blocks)
 
 # shake it babe
   if args.rand_pos:
