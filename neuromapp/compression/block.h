@@ -135,6 +135,9 @@ namespace neuromapp {
 
 
 
+            iterator begin() { return data_;}
+            iterator end() { return data_ + dim0_ * rows_;}
+
 
             class iter : public std::iterator<std::bidirectional_iterator_tag,value_type,size_type> {
                 block<value_type, allocator_type> * blk;
