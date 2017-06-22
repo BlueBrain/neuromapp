@@ -135,16 +135,14 @@ namespace neuromapp {
 
             //specialized iterator nestedclass
             class iter : public std::iterator<std::bidirectional_iterator_tag,value_type,size_type> {
-                block<value_type, allocator_type> blk;
+                block<value_type, allocator_type> * blk;
                 size_type row_limit = blk.num_rows();
                 size_type col_limit = blk.dim0();
                 size_type col_ind,row_mult;
                 public:
                 //TODO add it ctor argument value checks for range and column
-                iter (const block<value_type,allocator_type>&  blk_in, size_type col,size_type row) 
-                    : blk {blk_in} ,col_ind {col}, row_mult{row} {
-                        if (row_mult > row_limit) throw out_of_range("row mult too hi");
-                    }
+                iter (block<value_type,allocator_type>*  blk_in, size_type col,size_type row) 
+                    : blk {blk_in} ,col_ind {col}, row_mult{row} {}
 
                 iter operator ++ (int) {
                     iter temp(blk,col_ind,row_mult);
@@ -164,7 +162,7 @@ namespace neuromapp {
                 }
 
                 iter& operator ++ () {
-                    if (row_mult > row_limit) throw out_of_range("row mult too hi");
+                    if (row_mult > row_limit) throw std::out_of_range("row mult too hi");
 
                     row_mult++;
                     return *this;
@@ -172,12 +170,12 @@ namespace neuromapp {
 
                 value_type& operator* () {
                     // make use of the () operator from block
-                    return blk(col_ind,row_mult);
+                    return (*blk)(col_ind,row_mult);
                 }
 
                 const value_type& operator* () const {
                     // make use of the () operator from block
-                    return blk(col_ind,row_mult);
+                    return (*blk)(col_ind,row_mult);
                 }
 
 
@@ -194,14 +192,14 @@ namespace neuromapp {
                 }
                 // last things needed by a bidirectional iterator
                 iter & operator += (const iter & rhs) {
-                    if(row_mult > row_limit) throw out_of_range("row mult too hi");
+                    if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
                     row_mult += rhs.row_mult;
                     return *this;
                 }
 
                 template<typename num_t>
                     iter & operator += (const num_t & rhs) {
-                    if(row_mult > row_limit) throw out_of_range("row mult too hi");
+                    if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
                         row_mult += (size_type) rhs;
                         return *this;
                     }
@@ -220,24 +218,20 @@ namespace neuromapp {
                     return row_mult - rhs.row_mult;
                 }
 
-                value_type operator [] (const int & ind) {
+                value_type operator [] (const size_type & row_ind) {
                     // make use of the existing + operator and *
-                    return *(this + ind);
+                    return (*blk)(col_ind,row_ind);
                 }
 
                 // commutative + operators for the iterator
                 template<typename num_t>
                     iter operator + (const num_t & lhs) const {
-                        iter ret_iter{*this};
-                        ret_iter += lhs;
-                        return ret_iter;
+                        return iter(blk,col_ind,row_mult + lhs);
                     }
 
                 template<typename num_t>
-                    iter operator - ( const num_t & rhs) const {
-                        iter ret_iter{*this};
-                        ret_iter -= rhs;
-                        return ret_iter;
+                    iter operator - ( const num_t & lhs) const {
+                        return iter(blk,col_ind,row_mult - lhs);
                     }
 
                 //total ordering operators
@@ -257,14 +251,13 @@ namespace neuromapp {
             };
 
             void col_iter () {
-                iter start(*this,0,0);
-                iter end(*this,0,rows_);
+                iter start(this,0,0);
+                iter end(this,0,rows_);
                 // testing bidirectionality with move_backward 
-                iter other_start(*this,1,0);
-                iter other_end(*this,1,rows_);
+                iter other_start(this,1,0);
+                iter other_end(this,1,rows_);
                 //sort the first two columns
-                std::sort(start,end);
-                std::sort(other_start,other_end);
+                std::sort(start,end,[](const int &a,const int&b)->bool {return a > b;});
             }
 
 
