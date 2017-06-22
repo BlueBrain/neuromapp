@@ -255,14 +255,13 @@ namespace neuromapp {
             };
 
             void col_iter () {
-                iter start(this,0,0);
-                iter end(this,0,rows_);
-                // testing bidirectionality with move_backward 
-                iter other_start(this,1,0);
-                iter other_end(this,1,rows_);
-                //sort the first two columns
-                std::sort(start,end,[](const int &a,const int&b)->bool {return a > b;});
-                std::copy(start,end,std::ostream_iterator<value_type>(std::cout,", "));
+                size_type col_ind = 0;
+                while (col_ind < dim0_) {
+                    iter start(this,col_ind,0);
+                    iter end(this,col_ind,rows_);
+                    std::sort(start,end,[](const value_type &a,const value_type&b)->bool {return a > b;});
+                    col_ind++;
+                }
             }
 
 
