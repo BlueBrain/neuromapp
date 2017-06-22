@@ -141,9 +141,9 @@ namespace neuromapp {
                     : blk {blk_in} ,col_ind {col}, row_mult{row} {}
 
                 iter operator ++ (int) {// postfix needed for forward iterator
+                    iter temp(blk,col_ind,row_mult);
                     row_mult++;
-                    size_type one= (size_type) 1;
-                    return iter(blk,col_ind,row_mult-one);
+                    return temp;
                 }
 
                 iter& operator -- () {
@@ -152,9 +152,9 @@ namespace neuromapp {
                 }
 
                 iter operator--  (int) {
+                    iter temp(blk,col_ind,row_mult);
                     row_mult--;
-                    size_type one= (size_type) 1;
-                    return iter(blk,col_ind,row_mult + one);
+                    return temp;
                 }
 
                 iter& operator ++ () {
@@ -165,6 +165,8 @@ namespace neuromapp {
                 value_type& operator* () {
                     return *(blk.data() + row_mult*blk.dim0() +col_ind);
                 }
+
+
                 bool operator == (const iter &rhs) {
                     return row_mult == rhs.row_mult;
                 }
@@ -181,15 +183,13 @@ namespace neuromapp {
                     return *this;
                 }
 
-                iter & operator += (const int & rhs) {
+                template<typename num_t>
+                iter & operator += (const num_t & rhs) {
                     row_mult += (size_type) rhs;
                     return *this;
                 }
-                iter & operator -= (const int & rhs) {
-                    row_mult -= (size_type) rhs;
-                    return *this;
-                }
-                iter operator - ( const int & rhs) {
+                template<typename num_t>
+                iter & operator -= (const num_t & rhs) {
                     row_mult -= (size_type) rhs;
                     return *this;
                 }
@@ -199,24 +199,51 @@ namespace neuromapp {
                     return row_mult - rhs.row_mult;
                 }
 
+                size_type operator +( const iter & rhs) {
+                    return row_mult - rhs.row_mult;
+                }
+
                 value_type operator [] (const int & ind) {
                     // make use of the existing + operator and *
                     return *(this + ind);
                 }
 
+                // commutative + operators for the iterator
+                template<typename num_t>
+                iter operator + (const num_t & lhs) {
+                    iter ret_iter{*this};
+                    ret_iter += lhs;
+                    return ret_iter;
+                }
+
+                template<typename num_t>
+                iter operator - ( const num_t & rhs) {
+                    iter ret_iter{*this};
+                    ret_iter -= rhs;
+                    return ret_iter;
+                }
+
                 //total ordering operators
 
-                bool operator > (const iter & rhs) {
-                    return (**this) > (*rhs) ;
+                bool operator > (const iter & rhs) const{
+                    value_type rhs_val = *rhs;
+                    value_type this_val = **this;
+                    return this_val > rhs_val;
                 }
-                bool operator < (const iter & rhs) {
-                    return (**this) < (*rhs) ;
+                bool operator < (const iter & rhs) const{
+                    value_type rhs_val = *rhs;
+                    value_type this_val = **this;
+                    return this_val < rhs_val;
                 }
-                bool operator <= (const iter & rhs) {
-                    return (**this) <= (*rhs);
+                bool operator <= (const iter & rhs) const{
+                    value_type rhs_val = *rhs;
+                    value_type this_val = **this;
+                    return this_val <= rhs_val;
                 }
-                bool operator >= (const iter & rhs) {
-                    return (**this) >= (*rhs);
+                bool operator >= (const iter & rhs) const{
+                    value_type rhs_val = *rhs;
+                    value_type this_val = **this;
+                    return this_val >= rhs_val;
                 }
 
 
@@ -369,19 +396,6 @@ namespace neuromapp {
             b.read(in);// create contents of block based on data in inputstream
             return in;
         }
-
-    // commutative + operators for the iterator
-    template<class T,class A,class num_t>
-    typename block<T,A>::iter operator + (num_t & lhs,typename block<T,A>::iter & rhs) {
-        rhs.row_mult += (size_t) lhs;
-        return rhs;
-    }
-
-    template<class T,class A,class num_t>
-    typename block<T,A>::iter operator + (typename block<T,A>::iter & lhs, num_t & rhs) {
-        lhs.row_mult += (size_t) rhs;
-        return lhs;
-    }
 
 
 
