@@ -136,8 +136,8 @@ namespace neuromapp {
             //specialized iterator nestedclass
             class iter : public std::iterator<std::bidirectional_iterator_tag,value_type,size_type> {
                 block<value_type, allocator_type> * blk;
-                size_type row_limit = blk.num_rows();
-                size_type col_limit = blk.dim0();
+                size_type row_limit = blk->num_rows();
+                size_type col_limit = blk->dim0();
                 size_type col_ind,row_mult;
                 public:
                 //TODO add it ctor argument value checks for range and column
@@ -221,6 +221,10 @@ namespace neuromapp {
                 value_type operator [] (const size_type & row_ind) {
                     // make use of the existing + operator and *
                     return (*blk)(col_ind,row_ind);
+                }
+
+                pointer operator -> () const {
+                    return &(*blk)[row_mult];
                 }
 
                 // commutative + operators for the iterator
