@@ -3,7 +3,11 @@
 
 #include <string>
 #include <memory> // POSIX, size_t is inside
+#include <functional>
 #include <sstream>
+#include <stdexcept>
+#include <iterator>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -126,139 +130,139 @@ namespace neuromapp {
                 }
             }
 
-            /* create a traits struct for the iterator below to inherit from
-            */
-            template<typename cat,typename V,typename Dist=ptrdiff_t,typename Ptr= V*,typename Ref = V&>
-                struct col_iter_template {
-                    using value_type = V;
-                    using difference_type = Dist;
-                    using pointer = Ptr;
-                    using reference = Ref;
-                    using iterator_category = cat;
-                };
 
-            /*nested class with access to member elements
-             * idea is to specify a column that you want the iterator to proceed along, and it will only visit the values along that column
-             */
-            class col_iter : public col_iter_template<std::random_access_iterator_tag,value_type> { 
-                block<value_type, allocator_type> member_blk;
-                size_type col_index,row_mult;
+
+
+
+
+
+            class iter : public std::iterator<std::bidirectional_iterator_tag,value_type,size_type> {
+                block<value_type, allocator_type> * blk;
+                size_type row_limit = blk->num_rows();
+                size_type col_limit = blk->dim0();
+                size_type col_ind,row_mult;
                 public:
-                    col_iter(block<value_type,allocator_type> & blk,size_type col_ind, bool end=false) : member_blk {blk}, col_index {col_ind} {
-                        if (end == true) row_mult = member_blk.num_rows(); // should be after actual last value, so suitable sentinel
-                        else row_mult = 0;
-                    }
-                    //define a copy iterator for col_iter that sets the correct column, and row_mult to zero
-                    col_iter(const col_iter & rhs){
-                        member_blk =rhs.member_blk; // use the = to create copy
-                        col_index = rhs.col_index;
-                        row_mult = 0;
-                    }
-                    
-                    //try to resolve the deleted function use with = defined
-                    void operator = (const col_iter &rhs) {
-                        row_mult = rhs.row_mult;
-                    }
-                    /* add multiples of number of columns to the original column specified in ctor
-                     */
-                    //prefix ++ 
-                    //TODO figure out what the right return types are for these things... that's pretty much waht's stopping me
-                    //self ref and diff type are typedefs we inherit
-                    col_iter& operator ++ () {
-                        assert(row_mult <= member_blk.num_rows());
-                        ++row_mult;
+                //TODO add it ctor argument value checks for range and column
+                iter (block<value_type,allocator_type>*  blk_in, size_type col,size_type row) 
+                    : blk {blk_in} ,col_ind {col}, row_mult{row} {}
+
+                iter operator ++ (int) {
+                    iter temp(blk,col_ind,row_mult);
+                    row_mult++;
+                    return temp;
+                }
+
+                iter& operator -- () {
+                    row_mult--;
+                    return *this;
+                }
+
+                iter operator--  (int) {
+                    iter temp(blk,col_ind,row_mult);
+                    row_mult--;
+                    return temp;
+                }
+
+                iter& operator ++ () {
+                    if (row_mult > row_limit) throw std::out_of_range("row mult too hi");
+
+                    row_mult++;
+                    return *this;
+                }
+
+                value_type& operator* () {
+                    // make use of the () operator from block
+                    return (*blk)(col_ind,row_mult);
+                }
+
+                const value_type& operator* () const {
+                    // make use of the () operator from block
+                    return (*blk)(col_ind,row_mult);
+                }
+
+
+                bool operator == (const iter &rhs) {
+                    return row_mult == rhs.row_mult;
+                }
+                bool operator != (const iter &rhs) {
+                    return row_mult != rhs.row_mult;
+                }
+
+                iter& operator = (const iter &rhs) {
+                    row_mult = rhs.row_mult;
+                    return *this;
+                }
+                // last things needed by a bidirectional iterator
+                iter & operator += (const iter & rhs) {
+                    if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
+                    row_mult += rhs.row_mult;
+                    return *this;
+                }
+
+                template<typename num_t>
+                    iter & operator += (const num_t & rhs) {
+                        if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
+                        row_mult += (size_type) rhs;
                         return *this;
                     }
-                    col_iter& operator ++ (int) {
-                        assert(row_mult <= member_blk.num_rows());
-                        row_mult++;
-                        return *this;
-                    }
-                    col_iter& operator -- () {
-                        assert(row_mult >= (size_type) 0);
-                        --row_mult;
-                        return *this;
-                    }
-                    col_iter& operator -- (int) {
-                        assert(row_mult >= (size_type) 0);
-                        row_mult--;
+                template<typename num_t>
+                    iter & operator -= (const num_t & rhs) {
+                        row_mult -= (size_type) rhs;
                         return *this;
                     }
 
-                    //reference operator
+                // does this need to be greater than 0 at all times?
+                size_type operator - (const iter &rhs) {
+                    return row_mult - rhs.row_mult;
+                }
 
-                    col_iter& operator -= (const size_type & dst_val) {
-                        row_mult -= dst_val;
-                        return *this;
-                    }
+                size_type operator +( const iter & rhs) {
+                    return row_mult - rhs.row_mult;
+                }
 
-                    col_iter& operator += (const size_type & dst_val) {
-                        row_mult += dst_val;
-                        return *this;
-                    }
+                value_type operator [] (const size_type & row_ind) {
+                    // make use of the existing + operator and *
+                    return (*blk)(col_ind,row_ind);
+                }
 
+                pointer operator -> () const {
+                    return &(*blk)[row_mult];
+                }
 
-                    //references * and & and ()
-                    value_type operator *() {
-                        return member_blk.data() + member_blk.dim0() * row_mult+ col_index;
-                    }
-
-                    value_type operator ()() {
-                        return *this;
-                    }
-
-
-                    reference operator &() {
-                        return &this;
-                    }
-                    
-                    /* assuming that start and end share same column index number
-                     * TODO ask tim whether this is something that must be handled, probably
-                     */
-                    bool operator == (const col_iter & rhs) const {
-                        return row_mult == rhs.row_mult;
+                // commutative + operators for the iterator
+                template<typename num_t>
+                    iter operator + (const num_t & lhs) const {
+                        return iter(blk,col_ind,row_mult + lhs);
                     }
 
-                    bool operator != (const col_iter & rhs ) const {
-                        return row_mult != rhs.row_mult;
-                    }
-                    bool operator < (const col_iter &rhs) const {
-                        return row_mult < rhs.row_mult;
-                    }
-                    bool operator > (const col_iter &rhs) const {
-                        return row_mult > rhs.row_mult;
-                    }
-                    //distance operators
-                    //these might need to become difference_types
-                    size_type operator -(const col_iter & rhs) const {
-                        return row_mult - rhs.row_mult;
+                template<typename num_t>
+                    iter operator - ( const num_t & lhs) const {
+                        return iter(blk,col_ind,row_mult - lhs);
                     }
 
-                    size_type operator +(const col_iter &rhs ) const {
-                        return row_mult + rhs.row_mult;
-                    }
+                //total ordering operators
 
-                    size_type operator +(int int_val) const {
-                        return row_mult + (size_type) int_val;
-                    }
-                    size_type operator -(int int_val) const {
-                        return row_mult - (size_type) int_val;
-                    }
+                bool operator > (const iter & rhs) const{
+                    return row_mult > rhs.row_mult;
+                }
+                bool operator < (const iter & rhs) const{
+                    return row_mult < rhs.row_mult;
+                }
+                bool operator <= (const iter & rhs) const{
+                    return row_mult <= rhs.row_mult;
+                }
+                bool operator >= (const iter & rhs) const{
+                    return row_mult >= rhs.row_mult;
+                }
             };
 
-
-            // stl compatibility
-            iterator begin() { return data_; }
-            iterator end() { return data_ + dim0_ * rows_; }
-            //TODO think about whether we have a  way of replacing the begin, and end with col_iter so we reclaim those functions
-            void sort_cols() {
-                //iterate over the columns
-                size_type sort_ind = 0;
-                while(sort_ind != dim0_) {
-                    col_iter start(*this,sort_ind,false);
-                    col_iter end(*this,sort_ind,true);
-                    sort(start,end);
-                    sort_ind++;
+            void col_iter () {
+                size_type col_ind = 0;
+                while (col_ind < dim0_) {
+                    iter start(this,col_ind,0);
+                    iter end(this,col_ind,rows_);
+                    std::sort(start,end,[](const value_type &a,const value_type&b)->bool {return a > b;});
+                    col_ind++;
                 }
             }
 
@@ -267,9 +271,7 @@ namespace neuromapp {
 
 
 
-
-
-            //difference between memory_allocated and size is that allocated relies on size at ctor call, where size depends on compression
+            //difference between memory_allocated and size is that allocated relies on construction size, where size depends on compression
             size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
 
             bool is_compressed() {return compression_state;}
@@ -286,14 +288,14 @@ namespace neuromapp {
             size_type num_cols() const { return cols_; }
             size_type num_rows() const { return rows_; }
 
-            reference operator[](size_type i) { return (*this)(0, i); }// what function is getting called here?
+            reference operator[](size_type i) { return (*this)(0, i); }
 
             const_reference operator[](size_type i) const { return (*this)(0, i); }
 
             reference operator()(size_type i, size_type j = 0) {
                 // determines if i j are legal
-                assert(i <= cols_);
-                assert(j <= rows_);
+                //assert(i <= cols_);
+                //assert(j <= rows_);
                 return data_[i + j * cols_];
             }
 
@@ -325,7 +327,7 @@ namespace neuromapp {
                 //should just be the opposite of the existing compare_policy
                 return ! compare_policy(this->data(),other.data(),current_size);
             }
-                
+
 
 
 
@@ -399,6 +401,7 @@ namespace neuromapp {
             b.read(in);// create contents of block based on data in inputstream
             return in;
         }
+
 
 
 } // namespace neuromapp
