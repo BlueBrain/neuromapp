@@ -133,7 +133,7 @@ namespace neuromapp {
             iterator end() { return data_ + dim0_ * rows_; }
 
             //specialized iterator nestedclass
-            class iter : public std::iterator<std::bidirectional_iterator_tag,value_type> {
+            class iter : public std::iterator<std::bidirectional_iterator_tag,value_type,size_type> {
                 block<value_type, allocator_type> blk;
                 size_type col_ind,row_mult;
                 public:
@@ -163,7 +163,13 @@ namespace neuromapp {
                 }
 
                 value_type& operator* () {
-                    return *(blk.data() + row_mult*blk.dim0() +col_ind);
+                    // make use of the () operator from block
+                    return blk(col_ind,row_mult);
+                }
+
+                const value_type& operator* () const {
+                    // make use of the () operator from block
+                    return blk(col_ind,row_mult);
                 }
 
 
@@ -210,14 +216,14 @@ namespace neuromapp {
 
                 // commutative + operators for the iterator
                 template<typename num_t>
-                iter operator + (const num_t & lhs) {
+                iter operator + (const num_t & lhs) const {
                     iter ret_iter{*this};
                     ret_iter += lhs;
                     return ret_iter;
                 }
 
                 template<typename num_t>
-                iter operator - ( const num_t & rhs) {
+                iter operator - ( const num_t & rhs) const {
                     iter ret_iter{*this};
                     ret_iter -= rhs;
                     return ret_iter;
@@ -226,28 +232,17 @@ namespace neuromapp {
                 //total ordering operators
 
                 bool operator > (const iter & rhs) const{
-                    value_type rhs_val = *rhs;
-                    value_type this_val = **this;
-                    return this_val > rhs_val;
+                    return row_mult > rhs.row_mult;
                 }
                 bool operator < (const iter & rhs) const{
-                    value_type rhs_val = *rhs;
-                    value_type this_val = **this;
-                    return this_val < rhs_val;
+                    return row_mult < rhs.row_mult;
                 }
                 bool operator <= (const iter & rhs) const{
-                    value_type rhs_val = *rhs;
-                    value_type this_val = **this;
-                    return this_val <= rhs_val;
+                    return row_mult <= rhs.row_mult;
                 }
                 bool operator >= (const iter & rhs) const{
-                    value_type rhs_val = *rhs;
-                    value_type this_val = **this;
-                    return this_val >= rhs_val;
+                    return row_mult >= rhs.row_mult;
                 }
-
-
-
             };
 
             void col_iter () {
