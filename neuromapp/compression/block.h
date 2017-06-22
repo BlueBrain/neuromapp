@@ -262,6 +262,7 @@ namespace neuromapp {
                 iter other_end(this,1,rows_);
                 //sort the first two columns
                 std::sort(start,end,[](const int &a,const int&b)->bool {return a > b;});
+                std::copy(start,end,std::ostream_iterator<value_type>(std::cout,", "));
             }
 
 
