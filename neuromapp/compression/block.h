@@ -5,6 +5,7 @@
 #include <memory> // POSIX, size_t is inside
 #include <functional>
 #include <sstream>
+#include <stdexcept>
 #include <iterator>
 #include <algorithm>
 #include <iostream>
@@ -135,12 +136,17 @@ namespace neuromapp {
             //specialized iterator nestedclass
             class iter : public std::iterator<std::bidirectional_iterator_tag,value_type,size_type> {
                 block<value_type, allocator_type> blk;
+                size_type row_limit = blk.num_rows();
+                size_type col_limit = blk.dim0();
                 size_type col_ind,row_mult;
                 public:
+                //TODO add it ctor argument value checks for range and column
                 iter (const block<value_type,allocator_type>&  blk_in, size_type col,size_type row) 
-                    : blk {blk_in} ,col_ind {col}, row_mult{row} {}
+                    : blk {blk_in} ,col_ind {col}, row_mult{row} {
+                        if (row_mult > row_limit) throw out_of_range("row mult too hi");
+                    }
 
-                iter operator ++ (int) {// postfix needed for forward iterator
+                iter operator ++ (int) {
                     iter temp(blk,col_ind,row_mult);
                     row_mult++;
                     return temp;
@@ -158,6 +164,8 @@ namespace neuromapp {
                 }
 
                 iter& operator ++ () {
+                    if (row_mult > row_limit) throw out_of_range("row mult too hi");
+
                     row_mult++;
                     return *this;
                 }
@@ -180,25 +188,28 @@ namespace neuromapp {
                     return row_mult != rhs.row_mult;
                 }
 
-                void operator = (const iter &rhs) {
+                iter& operator = (const iter &rhs) {
                     row_mult = rhs.row_mult;
+                    return *this;
                 }
                 // last things needed by a bidirectional iterator
                 iter & operator += (const iter & rhs) {
+                    if(row_mult > row_limit) throw out_of_range("row mult too hi");
                     row_mult += rhs.row_mult;
                     return *this;
                 }
 
                 template<typename num_t>
-                iter & operator += (const num_t & rhs) {
-                    row_mult += (size_type) rhs;
-                    return *this;
-                }
+                    iter & operator += (const num_t & rhs) {
+                    if(row_mult > row_limit) throw out_of_range("row mult too hi");
+                        row_mult += (size_type) rhs;
+                        return *this;
+                    }
                 template<typename num_t>
-                iter & operator -= (const num_t & rhs) {
-                    row_mult -= (size_type) rhs;
-                    return *this;
-                }
+                    iter & operator -= (const num_t & rhs) {
+                        row_mult -= (size_type) rhs;
+                        return *this;
+                    }
 
                 // does this need to be greater than 0 at all times?
                 size_type operator - (const iter &rhs) {
@@ -216,18 +227,18 @@ namespace neuromapp {
 
                 // commutative + operators for the iterator
                 template<typename num_t>
-                iter operator + (const num_t & lhs) const {
-                    iter ret_iter{*this};
-                    ret_iter += lhs;
-                    return ret_iter;
-                }
+                    iter operator + (const num_t & lhs) const {
+                        iter ret_iter{*this};
+                        ret_iter += lhs;
+                        return ret_iter;
+                    }
 
                 template<typename num_t>
-                iter operator - ( const num_t & rhs) const {
-                    iter ret_iter{*this};
-                    ret_iter -= rhs;
-                    return ret_iter;
-                }
+                    iter operator - ( const num_t & rhs) const {
+                        iter ret_iter{*this};
+                        ret_iter -= rhs;
+                        return ret_iter;
+                    }
 
                 //total ordering operators
 
@@ -278,14 +289,14 @@ namespace neuromapp {
             size_type num_cols() const { return cols_; }
             size_type num_rows() const { return rows_; }
 
-            reference operator[](size_type i) { return (*this)(0, i); }// what function is getting called here?
+            reference operator[](size_type i) { return (*this)(0, i); }
 
             const_reference operator[](size_type i) const { return (*this)(0, i); }
 
             reference operator()(size_type i, size_type j = 0) {
                 // determines if i j are legal
-                assert(i <= cols_);
-                assert(j <= rows_);
+                //assert(i <= cols_);
+                //assert(j <= rows_);
                 return data_[i + j * cols_];
             }
 
