@@ -26,6 +26,6 @@ int main (void) {
     //perform sort
     //sort(b1.begin(),b1.end(),Sorter::sort_rule<value_type>);
     b1.col_iter();
-    //std::cout << "PRINTING RESULT OF THE SORTING" << std::endl;
-    //std::cout << b1 << std::endl;
+    std::cout << "PRINTING RESULT OF THE SORTING" << std::endl;
+    std::cout << b1 << std::endl;
 }
