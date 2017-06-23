@@ -43,8 +43,6 @@ if(NOT NEUROMAPP_DISABLE_REPLIB)
 
         # Install script to generate input distribution file
         install (PROGRAMS utils/replib_input_distr_generator.sh utils/uniform_generator.py utils/generate_set.py DESTINATION bin)
-        install (PROGRAMS utils/uniform_distribution.py DESTINATION bin)
-        install (PROGRAMS utils/uniform_distribution.py DESTINATION bin)
 
         set(NEUROMAPP_REPLIB_MAPP ON CACHE BOOL "True if replib mini-app will be installed")
     else()
