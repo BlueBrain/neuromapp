@@ -36,6 +36,7 @@ def main (args):
     my_blocks       = blocks_distrib[my_first_block:my_last_block]
     my_sizes        = [ blocks_size   [j] for j in my_blocks ]
     my_offsets      = [ blocks_offset [j] for j in my_blocks ]
+    my_offsets.sort()
     sizes_str       = ",".join(str(x) for x in my_sizes)
     offsets_str     = ",".join(str(x) for x in my_offsets)
     print ("{rank},{blocks},{sizes},{offsets}".format (rank=i, blocks=len(my_sizes)+1, sizes=sizes_str, offsets=offsets_str))
