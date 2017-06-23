@@ -59,7 +59,7 @@ class benchmark {
         benchmark(int argc, char* const argv[]) : c_(argc, argv), writer_(NULL) {
             if (c_.backend() == "mpiio") {
                 // MPI I/O backend
-                writer_ = new replib::MPIIOWriter();  // ASK why calling explicit constructor ?
+                writer_ = new replib::MPIIOWriter();
             } else if (c_.backend() == "adios") {
 #ifdef RL_ADIOS
                 writer_  = new replib::ADIOSWriter();
