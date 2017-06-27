@@ -6,13 +6,14 @@ if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
         ## this is according to cmake third parties SE post
         include_directories( ${ZLIB_INCLUDE_DIRS})
         target_link_libraries(compression ${ZLIB_LIBRARIES})
-        set_target_properties(compression PROPERTIES COMPILE_FLAGS "-Wfatal-errors -g")
+        set_target_properties(compression PROPERTIES COMPILE_FLAGS "-Wall -Wextra -pedantic-errors")
     endif (ZLIB_FOUND)
 
     ##currently hardcoded to directory with more recent version of boost than the system's
     ##currently makes the boost hana work this way, but attempting with CMAKE_PREFIX_PATH also
 
     #add_executable(prac_compression prac_compression.cpp)
+    set_source_files_properties(prac_sort.cpp COMPILE_FLAGS "-Wall -Wextra -pedantic-errors")
     add_executable(prac_sort prac_sort.cpp)
     set_source_files_properties(prac_hana.cpp COMPILE_FLAGS "-Wfatal-errors -I /home/lil/boost_1_64_0")
     ##hana needs c++14 so compile with this standard set
