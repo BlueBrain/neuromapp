@@ -5,8 +5,8 @@
 #include <memory> // POSIX, size_t is inside
 #include <functional>
 #include <sstream>
-#include <stdexcept>
 #include <iterator>
+#include <vector>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -149,7 +149,7 @@ namespace neuromapp {
                 iter (block<value_type,allocator_type>*  blk_in, size_type col,size_type comp_row,size_type row) 
                     : blk {blk_in} ,col_ind {col}, comparison_row{comp_row}, row_mult{row} {}
 
-                const value_type& get_value() {
+                const value_type& get_value() const {
                     return (*blk)(col_ind,comparison_row);
                 }
                 iter operator ++ (int) {
@@ -271,9 +271,9 @@ namespace neuromapp {
               std::vector<iter> actual_ends;
               size_type sort_row = 0; // row of interest
               // populate these
-              for (int i = 0;i < dim0_;i++) {
-                actual_starts.push_back(iter(*this,i,sort_row,false));
-                actual_ends.push_back(iter(*this,i,sort_row,true));
+              for (size_type i = 0;i < dim0_;i++) {
+                actual_starts.push_back(iter(this,i,sort_row,0));
+                actual_ends.push_back(iter(this,i,sort_row,rows_));
               }
               std::vector<iter> ideal_starts(actual_starts);
               std::vector<iter> ideal_ends(actual_ends);
@@ -287,10 +287,10 @@ namespace neuromapp {
                   //get correct iterators and use as arguments to swap_ranges
                   std::swap_ranges(actual_starts[current_col],actual_ends[current_col],ideal_starts[current_col]);
                   //update the actual vectors to reflectt changed block state
-                  iter && temp_iter_start = std::find(actual_starts[i].begin(),actual_starts[i].end(),ideal_starts[i])
-                  std::swap(actual_starts[i],temp_iter_start);
-                  iter && temp_iter_end = std::find(actual_ends[i].begin(),actual_ends[i].end(),ideal_ends[i])
-                  std::swap(actual_ends[i],temp_iter_end);
+                  auto && temp_iter_start = std::find(actual_starts.begin(),actual_starts.end(),ideal_starts[current_col]);
+                  std::swap(actual_starts[current_col],*temp_iter_start);
+                  auto && temp_iter_end = std::find(actual_ends.begin(),actual_ends.end(),ideal_ends[current_col]);
+                  std::swap(actual_ends[current_col],*temp_iter_end);
                   // continue
               }
             }
