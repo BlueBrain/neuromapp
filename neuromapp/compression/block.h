@@ -150,6 +150,7 @@ namespace neuromapp {
                     : blk {blk_in} ,col_ind {col}, comparison_row{comp_row}, row_mult{row} {}
 
                 const value_type& get_value() const {
+                    std::cout << "giving value when col is " << col_ind  << std::endl;
                     return (*blk)(col_ind,comparison_row);
                 }
                 iter operator ++ (int) {
@@ -280,7 +281,8 @@ namespace neuromapp {
               //sort these starts and ends according to the row value of interest
               std::sort(ideal_starts.begin(),ideal_starts.end(),[] (const iter & a,const iter &b) {
                       return a.get_value() > b.get_value() ? true:false ;});
-              std::sort(ideal_starts.begin(),ideal_starts.end(),[] (const iter & a,const iter &b) {
+              std::cout << "switching to ends" << std::endl;
+              std::sort(ideal_ends.begin(),ideal_ends.end(),[] (const iter & a,const iter &b) {
                       return a.get_value() > b.get_value() ? true:false ;});
               //use the stl swap_ranges in tandem with the 
               for (int current_col = 0;current_col < dim0_ ;current_col++) {
@@ -323,8 +325,8 @@ namespace neuromapp {
 
             reference operator()(size_type i, size_type j = 0) {
                 // determines if i j are legal
-                //assert(i <= cols_);
-                //assert(j <= rows_);
+                assert(i <= cols_);
+                assert(j <= rows_);
                 return data_[i + j * cols_];
             }
 

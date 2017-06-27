@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <vector>
 #include <fstream>
 #include <algorithm>
 #include <iostream>
@@ -19,13 +20,15 @@ using prac_block = block<value_type,cstandard>;
 int main (void) {
     prac_block b1;
     //read data into block from file
-    string fname= "data/csv/values_10_a8213bulk.csv";
+    //string fname= "trans_data/values_9_a8788trans_bulk.csv";
+    string fname= "data/csv/values_10_a8761bulk.csv";
     ifstream ifile(fname);
     ifile >> b1;
+    std::cout << "successful read, cols are "<< b1.num_cols() << "and the () operator gives " <<
+        b1(4,0)<< std::endl;
     //std::cout << "block is " << b1  << std::endl;
     //perform sort
-    //sort(b1.begin(),b1.end(),Sorter::sort_rule<value_type>);
-    b1.col_iter();
+    b1.col_sort();
     std::cout << "PRINTING RESULT OF THE SORTING" << std::endl;
     std::cout << b1 << std::endl;
 }
