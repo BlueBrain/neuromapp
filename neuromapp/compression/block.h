@@ -143,12 +143,15 @@ namespace neuromapp {
                 block<value_type, allocator_type> * blk;
                 size_type row_limit = blk->num_rows();
                 size_type col_limit = blk->dim0();
-                size_type col_ind,row_mult;
+                size_type col_ind,row_mult,comparison_row;
                 public:
                 //TODO add it ctor argument value checks for range and column
-                iter (block<value_type,allocator_type>*  blk_in, size_type col,size_type row) 
-                    : blk {blk_in} ,col_ind {col}, row_mult{row} {}
+                iter (block<value_type,allocator_type>*  blk_in, size_type col,size_type comp_row,size_type row) 
+                    : blk {blk_in} ,col_ind {col}, comparison_row{comp_row}, row_mult{row} {}
 
+                const value_type& get_value() {
+                    return (*blk)(col_ind,comparison_row);
+                }
                 iter operator ++ (int) {
                     iter temp(blk,col_ind,row_mult);
                     row_mult++;
@@ -259,14 +262,37 @@ namespace neuromapp {
                 }
             };
 
-            void col_iter () {
-                size_type col_ind = 0;
-                while (col_ind < dim0_) {
-                    iter start(this,col_ind,0);
-                    iter end(this,col_ind,rows_);
-                    std::sort(start,end,[](const value_type &a,const value_type&b)->bool {return a > b;});
-                    col_ind++;
-                }
+            /* idea is create vector of iterators that sort can sort, and use swap_ranges to change the actual block with those iterators
+             *  - actual is the current state of columns in the block
+             *  - the ideal is the state that the columns sholud be in once sorted accd to comparison row
+             */   
+            void col_sort () {
+              std::vector<iter> actual_starts;
+              std::vector<iter> actual_ends;
+              size_type sort_row = 0; // row of interest
+              // populate these
+              for (int i = 0;i < dim0_;i++) {
+                actual_starts.push_back(iter(*this,i,sort_row,false));
+                actual_ends.push_back(iter(*this,i,sort_row,true));
+              }
+              std::vector<iter> ideal_starts(actual_starts);
+              std::vector<iter> ideal_ends(actual_ends);
+              //sort these starts and ends according to the row value of interest
+              std::sort(ideal_starts.begin(),ideal_starts.end(),[] (const iter & a,const iter &b) {
+                      return a.get_value() > b.get_value() ? true:false ;});
+              std::sort(ideal_starts.begin(),ideal_starts.end(),[] (const iter & a,const iter &b) {
+                      return a.get_value() > b.get_value() ? true:false ;});
+              //use the stl swap_ranges in tandem with the 
+              for (int current_col = 0;current_col < dim0_ ;current_col++) {
+                  //get correct iterators and use as arguments to swap_ranges
+                  std::swap_ranges(actual_starts[current_col],actual_ends[current_col],ideal_starts[current_col]);
+                  //update the actual vectors to reflectt changed block state
+                  iter && temp_iter_start = std::find(actual_starts[i].begin(),actual_starts[i].end(),ideal_starts[i])
+                  std::swap(actual_starts[i],temp_iter_start);
+                  iter && temp_iter_end = std::find(actual_ends[i].begin(),actual_ends[i].end(),ideal_ends[i])
+                  std::swap(actual_ends[i],temp_iter_end);
+                  // continue
+              }
             }
 
 
@@ -313,7 +339,7 @@ namespace neuromapp {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
                         //precision defines accuracy for testing comparison
-                        os << std::setprecision(15) << (*this)(j, i);
+                        os <<std::setprecision(15) << (*this)(j, i);
                         os << (j != dim0()-1 ? " " : "");// prevent trailing whitespace in output
                     }
                     os << (i != dim1() -1? "\n": "") ;
