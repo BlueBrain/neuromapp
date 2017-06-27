@@ -62,11 +62,19 @@ int comp_execute(int argc,char *const argv[])
             file_routine(fname,std::cout,vm);
         }
         if(vm.count("benchmark") && ! vm.count("file")) {
-            vector<std::string> csv_solo_fnames {  "../compression/data/csv/values_10_a8213solo.csv", "../compression/data/csv/values_10_a8214solo.csv", "../compression/data/csv/values_10_a8215solo.csv", "../compression/data/csv/values_10_a8216solo.csv", "../compression/data/csv/values_10_a8217solo.csv", "../compression/data/csv/values_10_a8218solo.csv", "../compression/data/csv/values_10_a8219solo.csv", "../compression/data/csv/values_10_a8220solo.csv", "../compression/data/csv/values_10_a8749solo.csv", "../compression/data/csv/values_10_a8750solo.csv", "../compression/data/csv/values_10_a8751solo.csv", "../compression/data/csv/values_10_a8752solo.csv", "../compression/data/csv/values_10_a8761solo.csv", "../compression/data/csv/values_8_a10249solo.csv", "../compression/data/csv/values_8_a10250solo.csv", "../compression/data/csv/values_8_a10251solo.csv", "../compression/data/csv/values_8_a10252solo.csv", "../compression/data/csv/values_8_a10256solo.csv", "../compression/data/csv/values_8_a10261solo.csv", "../compression/data/csv/values_8_a10262solo.csv", "../compression/data/csv/values_8_a10263solo.csv", "../compression/data/csv/values_8_a10264solo.csv", "../compression/data/csv/values_8_a8780solo.csv", "../compression/data/csv/values_8_a8781solo.csv", "../compression/data/csv/values_8_a8801solo.csv", "../compression/data/csv/values_8_a8802solo.csv", "../compression/data/csv/values_8_a8803solo.csv", "../compression/data/csv/values_8_a8804solo.csv", "../compression/data/csv/values_9_a10237solo.csv", "../compression/data/csv/values_9_a10238solo.csv"};
-            std::ofstream out("benchmark_res.log");
+            vector<std::string> csv_solo_fnames {  "../compression/trans_data/csv/values_10_a8213solo.csv", "../compression/trans_data/csv/values_10_a8214solo.csv", "../compression/trans_data/csv/values_10_a8215solo.csv", "../compression/trans_data/csv/values_10_a8216solo.csv", "../compression/trans_data/csv/values_10_a8217solo.csv", "../compression/trans_data/csv/values_10_a8218solo.csv", "../compression/trans_data/csv/values_10_a8219solo.csv", "../compression/trans_data/csv/values_10_a8220solo.csv", "../compression/trans_data/csv/values_10_a8749solo.csv", "../compression/trans_data/csv/values_10_a8750solo.csv", "../compression/trans_data/csv/values_10_a8751solo.csv", "../compression/trans_data/csv/values_10_a8752solo.csv", "../compression/trans_data/csv/values_10_a8761solo.csv", "../compression/trans_data/csv/values_8_a10249solo.csv", "../compression/trans_data/csv/values_8_a10250solo.csv", "../compression/trans_data/csv/values_8_a10251solo.csv", "../compression/trans_data/csv/values_8_a10252solo.csv", "../compression/trans_data/csv/values_8_a10256solo.csv", "../compression/trans_data/csv/values_8_a10261solo.csv", "../compression/trans_data/csv/values_8_a10262solo.csv", "../compression/trans_data/csv/values_8_a10263solo.csv", "../compression/trans_data/csv/values_8_a10264solo.csv", "../compression/trans_data/csv/values_8_a8780solo.csv", "../compression/trans_data/csv/values_8_a8781solo.csv", "../compression/trans_data/csv/values_8_a8801solo.csv", "../compression/trans_data/csv/values_8_a8802solo.csv", "../compression/trans_data/csv/values_8_a8803solo.csv", "../compression/trans_data/csv/values_8_a8804solo.csv", "../compression/trans_data/csv/values_9_a10237solo.csv", "../compression/trans_data/csv/values_9_a10238solo.csv"};
+
+            vector<std::string> csv_bulk_fnames {  "../compression/trans_data/csv/values_10_a8213bulk.csv", "../compression/trans_data/csv/values_10_a8214bulk.csv", "../compression/trans_data/csv/values_10_a8215bulk.csv", "../compression/trans_data/csv/values_10_a8216bulk.csv", "../compression/trans_data/csv/values_10_a8217bulk.csv", "../compression/trans_data/csv/values_10_a8218bulk.csv", "../compression/trans_data/csv/values_10_a8219bulk.csv", "../compression/trans_data/csv/values_10_a8220bulk.csv", "../compression/trans_data/csv/values_10_a8749bulk.csv", "../compression/trans_data/csv/values_10_a8750bulk.csv", "../compression/trans_data/csv/values_10_a8751bulk.csv", "../compression/trans_data/csv/values_10_a8752bulk.csv", "../compression/trans_data/csv/values_10_a8761bulk.csv", "../compression/trans_data/csv/values_8_a10249bulk.csv", "../compression/trans_data/csv/values_8_a10250bulk.csv", "../compression/trans_data/csv/values_8_a10251bulk.csv", "../compression/trans_data/csv/values_8_a10252bulk.csv", "../compression/trans_data/csv/values_8_a10256bulk.csv", "../compression/trans_data/csv/values_8_a10261bulk.csv", "../compression/trans_data/csv/values_8_a10262bulk.csv", "../compression/trans_data/csv/values_8_a10263bulk.csv", "../compression/trans_data/csv/values_8_a10264bulk.csv", "../compression/trans_data/csv/values_8_a8780bulk.csv", "../compression/trans_data/csv/values_8_a8781bulk.csv", "../compression/trans_data/csv/values_8_a8801bulk.csv", "../compression/trans_data/csv/values_8_a8802bulk.csv", "../compression/trans_data/csv/values_8_a8803bulk.csv", "../compression/trans_data/csv/values_8_a8804bulk.csv", "../compression/trans_data/csv/values_9_a10237bulk.csv", "../compression/trans_data/csv/values_9_a10238bulk.csv"};
+            std::ofstream out("benchmark_res_full_sort.log");
             for (std::string fname : csv_solo_fnames) {
+                out << "fname is : " << fname << std::endl;
                 file_routine(fname,out,vm);
             }
+            for(std::string fname : csv_bulk_fnames) {
+                out << "fname is : " << fname << std::endl;
+                file_routine(fname,out,vm);
+            }
+
         }
     } catch (po::error &e) {
         std::cerr << e.what()  << std::endl;
@@ -81,7 +89,8 @@ void file_routine(std::string fname, ostream & os ,po::variables_map & vm) {
     std_block b1 =  block_from_file(fname);
     if ( vm.count("sort") ) {
         //sort the block before continuing
-        sort(b1.begin(),b1.end());
+        //use different sorting if dimension == 2
+        b1.col_sort();
     }
     if ( vm.count("compress") ) {
         chrono::time_point<chrono::system_clock> start,end;
