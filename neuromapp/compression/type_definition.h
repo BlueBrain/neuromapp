@@ -24,4 +24,4 @@ struct memory_policy_cpu {
 
 typedef struct memory_policy_cpu memory_policy_type;
 
-}; // namespace neuromapp
+} // namespace neuromapp
