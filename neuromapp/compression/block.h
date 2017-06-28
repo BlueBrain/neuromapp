@@ -143,15 +143,18 @@ namespace neuromapp {
                 block<value_type, allocator_type> * blk;
                 size_type row_limit = blk->num_rows();
                 size_type col_limit = blk->dim0();
-                size_type col_ind,row_mult,comparison_row;
+                size_type col_ind,row_mult;
+                value_type comp_val;
                 public:
                 //TODO add it ctor argument value checks for range and column
                 iter (block<value_type,allocator_type>*  blk_in, size_type col,size_type comp_row,size_type row) 
-                    : blk {blk_in} ,col_ind {col}, comparison_row{comp_row}, row_mult{row} {}
+                    : blk {blk_in} ,col_ind {col}, row_mult{row} {
+                        comp_val = (*blk)(col_ind,comp_row);
+                    }
 
                 const value_type& get_value() const {
-                    std::cout << "col is " << col_ind   << std::endl;
-                    return (*blk)(col_ind,comparison_row);
+                    std::cout << "col is " << col_ind <<"val is "<< comp_val  << std::endl;
+                    return comp_val;
                 }
 
                 const size_type & get_col () const {
@@ -202,6 +205,9 @@ namespace neuromapp {
 
                 iter& operator = (const iter &rhs) {
                     row_mult = rhs.row_mult;
+                    //be careful, the column indices changing might mess with things
+                    col_ind = rhs.col_ind;
+                    comp_val = rhs.comp_val;
                     return *this;
                 }
                 // last things needed by a bidirectional iterator
@@ -271,33 +277,30 @@ namespace neuromapp {
             /* idea is create vector of iterators that sort can sort, and use swap_ranges to change the actual block with those iterators
              *  - actual is the current state of columns in the block
              *  - the ideal is the state that the columns sholud be in once sorted accd to comparison row
+             *  - consider just vector of col numbers us
              */   
             void col_sort ( const size_type & sort_row) {
               std::vector<iter> actual_starts;
+              std::vector<size_type> ideal_col_order;
               std::vector<iter> actual_ends;
               // populate these
               for (size_type i = 0;i < cols_;i++) {
+                  // using new allocation, free at end DO IT
                 actual_starts.push_back(iter(this,i,sort_row,0));
                 actual_ends.push_back(iter(this,i,sort_row,rows_));
+                ideal_col_order.push_back(i);
               }
-              std::vector<iter> ideal_starts(actual_starts);
-              std::vector<iter> ideal_ends(actual_ends);
               //sort these starts and ends according to the row value of interest
-              std::sort(ideal_starts.begin(),ideal_starts.end(),[] (const iter & a,const iter &b)->bool {
-                      return a.get_value() < b.get_value() ? true:false ;});
+              std::sort(ideal_col_order.begin(),ideal_col_order.end(),[&actual_starts] (const size_type& a,const size_type& b)->bool {
+                      return actual_starts[a].get_value() < actual_starts[b].get_value() ? true:false ;});
 
-              std::cout << "switching to ends" << std::endl;
-              std::sort(ideal_ends.begin(),ideal_ends.end(),[] (const iter & a,const iter &b)->bool {
-                      return a.get_value() < b.get_value() ? true:false ;});
               //use the stl swap_ranges in tandem with the 
-              for (int current_col = 0;current_col < cols_ ;current_col++) {
+              for (int col_ind = 0;col_ind < cols_ ;col_ind++) {
                   //get correct iterators and use as arguments to swap_ranges
-                  std::swap_ranges(actual_starts[current_col],actual_ends[current_col],ideal_starts[current_col]);
+                  std::swap_ranges(actual_starts[col_ind],actual_ends[col_ind],actual_starts[ideal_col_order[col_ind]]);
                   //update the actual vectors to reflectt changed block state
-                  auto && temp_iter_start = std::find(actual_starts.begin(),actual_starts.end(),ideal_starts[current_col]);
-                  std::swap(actual_starts[current_col],*temp_iter_start);
-                  auto && temp_iter_end = std::find(actual_ends.begin(),actual_ends.end(),ideal_ends[current_col]);
-                  std::swap(actual_ends[current_col],*temp_iter_end);
+                  std::swap(actual_starts[col_ind],actual_starts[ideal_col_order[col_ind]]);
+                  std::swap(actual_ends[col_ind],actual_ends[ideal_col_order[col_ind]]);
                   // continue
               }
             }
