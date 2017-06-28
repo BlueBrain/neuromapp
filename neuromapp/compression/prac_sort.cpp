@@ -28,7 +28,7 @@ int main (void) {
         b1(4,0)<< std::endl;
     //std::cout << "block is " << b1  << std::endl;
     //perform sort
-    b1.col_sort();
+    b1.col_sort(0);
     std::cout << "PRINTING RESULT OF THE SORTING" << std::endl;
     std::cout << b1 << std::endl;
 }

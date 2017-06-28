@@ -90,8 +90,8 @@ void file_routine(std::string fname, ostream & os ,po::variables_map & vm) {
     std_block b1 =  block_from_file(fname);
     if ( vm.count("sort") ) {
         //sort the block before continuing
-        //use different sorting if dimension == 2
-        b1.col_sort();
+        //TODO change from hardcoded for 0 row as sort
+        b1.col_sort(0);
     }
     if ( vm.count("compress") ) {
         chrono::time_point<chrono::system_clock> start,end;
