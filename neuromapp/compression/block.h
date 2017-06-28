@@ -296,13 +296,24 @@ namespace neuromapp {
 
               //use the stl swap_ranges in tandem with the 
               for (int col_ind = 0;col_ind < cols_ ;col_ind++) {
+                  //check whethere the column is in the correct place already
+                  if (actual_starts[col_ind].get_col() == ideal_col_order[col_ind]) continue;
                   //get correct iterators and use as arguments to swap_ranges
+                  this->row_0();
                   std::swap_ranges(actual_starts[col_ind],actual_ends[col_ind],actual_starts[ideal_col_order[col_ind]]);
                   //update the actual vectors to reflectt changed block state
                   std::swap(actual_starts[col_ind],actual_starts[ideal_col_order[col_ind]]);
                   std::swap(actual_ends[col_ind],actual_ends[ideal_col_order[col_ind]]);
                   // continue
               }
+            }
+
+            void row_0() {
+                for (int i = 0 ; i < cols_ ;i++) {
+                    std::cout << (*this)(i,0) << ",";
+                }
+                std::cout << "" << std::endl;
+
             }
 
 
