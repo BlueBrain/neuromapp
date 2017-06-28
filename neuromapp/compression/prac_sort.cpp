@@ -20,8 +20,11 @@ using prac_block = block<value_type,cstandard>;
 int main (void) {
     prac_block b1;
     //read data into block from file
-    //string fname= "trans_data/values_9_a8788trans_bulk.csv";
-    string fname= "data/csv/values_10_a8761bulk.csv";
+    string fname= "trans_data/values_9_a8788trans_bulk.csv";
+    //string fname = "trans_data/8values.csv";
+    //string fname = "trans_data/16values.csv";
+    //string fname = "trans_data/4values.csv";
+    //string fname= "data/csv/values_10_a8761bulk.csv";
     ifstream ifile(fname);
     ifile >> b1;
     std::cout << "successful read, cols are "<< b1.num_cols() << "and the () operator gives " <<
