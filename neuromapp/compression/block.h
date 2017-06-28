@@ -153,7 +153,6 @@ namespace neuromapp {
                     }
 
                 const value_type& get_value() const {
-                    std::cout << "col is " << col_ind <<"val is "<< comp_val  << std::endl;
                     return comp_val;
                 }
 
@@ -301,7 +300,6 @@ namespace neuromapp {
                   //check whethere the column is in the correct place already
                   if (actual_starts[col_ind].get_value() == ideal_col_order[col_ind]) continue;
                   //get correct iterators and use as arguments to swap_ranges
-                  this->row_0("starting");
                   iter && end {iter(this,actual_starts[col_ind].get_col(),sort_row,rows_)};
                   iter * swap_col = &actual_starts[col_ind];
                   while (swap_col->get_value() != ideal_col_order[col_ind]) swap_col++;
@@ -310,7 +308,6 @@ namespace neuromapp {
                   actual_starts[col_ind].set_col(swap_col->get_col());
                   swap_col->set_col(col_ind);
                   std::swap(actual_starts[col_ind],*swap_col);
-                  this->row_0("ending\n");
                   // continue
               }
             }
