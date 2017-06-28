@@ -161,6 +161,10 @@ namespace neuromapp {
                     return col_ind;
                 }
 
+                void set_col (const size_type & col) {
+                    col_ind = col;
+                }
+
                 iter operator ++ (int) {
                     iter temp(blk,col_ind,row_mult);
                     row_mult++;
@@ -281,38 +285,41 @@ namespace neuromapp {
              */   
             void col_sort ( const size_type & sort_row) {
               std::vector<iter> actual_starts;
-              std::vector<size_type> ideal_col_order;
-              std::vector<iter> actual_ends;
+              std::vector<value_type> ideal_col_order;
               // populate these
               for (size_type i = 0;i < cols_;i++) {
                   // using new allocation, free at end DO IT
                 actual_starts.push_back(iter(this,i,sort_row,0));
-                actual_ends.push_back(iter(this,i,sort_row,rows_));
-                ideal_col_order.push_back(i);
+                ideal_col_order.push_back((*this)(i,sort_row));
               }
               //sort these starts and ends according to the row value of interest
-              std::sort(ideal_col_order.begin(),ideal_col_order.end(),[&actual_starts] (const size_type& a,const size_type& b)->bool {
-                      return actual_starts[a].get_value() < actual_starts[b].get_value() ? true:false ;});
+              std::sort(ideal_col_order.begin(),ideal_col_order.end(),[&actual_starts] (const value_type& a,const value_type& b)->bool {
+                      return a < b ? true:false ;});
 
               //use the stl swap_ranges in tandem with the 
               for (int col_ind = 0;col_ind < cols_ ;col_ind++) {
                   //check whethere the column is in the correct place already
-                  if (actual_starts[col_ind].get_col() == ideal_col_order[col_ind]) continue;
+                  if (actual_starts[col_ind].get_value() == ideal_col_order[col_ind]) continue;
                   //get correct iterators and use as arguments to swap_ranges
-                  this->row_0();
-                  std::swap_ranges(actual_starts[col_ind],actual_ends[col_ind],actual_starts[ideal_col_order[col_ind]]);
+                  this->row_0("starting");
+                  iter && end {iter(this,actual_starts[col_ind].get_col(),sort_row,rows_)};
+                  iter * swap_col = &actual_starts[col_ind];
+                  while (swap_col->get_value() != ideal_col_order[col_ind]) swap_col++;
+                  std::swap_ranges(actual_starts[col_ind],end,*swap_col);
                   //update the actual vectors to reflectt changed block state
-                  std::swap(actual_starts[col_ind],actual_starts[ideal_col_order[col_ind]]);
-                  std::swap(actual_ends[col_ind],actual_ends[ideal_col_order[col_ind]]);
+                  actual_starts[col_ind].set_col(swap_col->get_col());
+                  swap_col->set_col(col_ind);
+                  std::swap(actual_starts[col_ind],*swap_col);
+                  this->row_0("ending\n");
                   // continue
               }
             }
 
-            void row_0() {
+            void row_0(std::string && mesg) {
                 for (int i = 0 ; i < cols_ ;i++) {
                     std::cout << (*this)(i,0) << ",";
                 }
-                std::cout << "" << std::endl;
+                std::cout << mesg << std::endl;
 
             }
 
