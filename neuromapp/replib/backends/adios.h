@@ -50,6 +50,7 @@ namespace replib {
       uint64_t            total_size;
       int                 rank_;
       int64_t             adios_handle_;
+      char*               report_;
       replib::fileview*   f_;
       replib::config*     c_;
     public:
@@ -91,8 +92,7 @@ namespace replib {
     }else if (c.write() == "rnd1b"){
       f_ = rnd1b(c);
     }else {
-      std::cerr << " ADIOS dont support yet multiple blocs" << std::endl;
-      MPI_Abort(MPI_COMM_WORLD, 666);
+      f_ = fileNb(c);
     }
     rank_ = c.id();
     c_ = &c;
@@ -109,18 +109,23 @@ namespace replib {
     \brief Open the file.
     Inline version to be as fast as possible */
   inline void ADIOSWriter::open(char * report) {
+    std::cerr << "OPEN THIS F FILE !!!" << std::endl;
+    report_ = strdup(report);
+    std::cerr << "report name = " << report_ << std::endl;
     adios_init_noxml    (comm);
     int64_t adios_group_id;
     adios_declare_group (&adios_group_id,"report", "", adios_stat_no);
-    adios_select_method (adios_group_id, "MPI",    "verbose=3", "");
+    adios_select_method (adios_group_id, "MPI",    "verbose=4", "");
     adios_define_var    (adios_group_id, "global_size",  "", adios_integer, 0,0,0);
-    adios_define_var    (adios_group_id, "batch_size",   "", adios_integer, 0,0,0);
-    adios_define_var    (adios_group_id, "offset",       "", adios_integer, 0,0,0);
-    for (int i =0; i < c_->rep_steps(); i++) {
-      adios_define_var (adios_group_id, "data",          "", adios_real, "batch_size", "global_size", "offset");
+/*
+    for (int i =0; i < f_->wr_blocks(); i++) {
+      adios_define_var (adios_group_id, "batch_size", "", adios_integer, 0,0,0);
+      adios_define_var (adios_group_id, "offset",     "", adios_integer, 0,0,0);
+      adios_define_var (adios_group_id, "data",       "", adios_real,    "batch_size", "global_size", "offset");
     }
+*/
 
-    adios_open  (&adios_handle_, "report", report, "w", MPI_COMM_WORLD);
+//    adios_open  (&adios_handle_, "report", report, "w", MPI_COMM_WORLD);
   }
 
   /** \fun open(mapp::timer &t_io, const std::string & path)
@@ -128,28 +133,34 @@ namespace replib {
     Timer will be used to account the time of opening the file and setting the fileview */
   void ADIOSWriter::open(mapp::timer &t_io, const std::string & path) {
     // Get the file path
-    char * report = strdup(path.c_str());
 
     //Open the file
     t_io.tic();
-    open(report);
+    open((char*) path.c_str());
     t_io.toc();
   }
 
 
   /** \fun write(float * buffer, size_t count)
-   * TODO for now it work only with 1 Block per Rank
    \brief Write to file. Inline version to be as fast as possible */
   inline void ADIOSWriter::write(float * buffer, size_t count) {
     size_t global_size = f_->total_bytes() / sizeof(float);
-    size_t batch_size  = f_->length_at(1); // not valid ???
-    size_t offset      = f_->disp_at(1);
-    if (iteration_ == 0) {
-      adios_write(adios_handle_, "global_size", &global_size);
-      adios_write(adios_handle_, "batch_size" , &count);
-      adios_write(adios_handle_, "offset"     , &offset);
+    std::cerr << "START TO WRITE" << std::endl;
+    adios_open ( &adios_handle_, "report", report_, (iteration_ == 0 ? "w" :"a"), comm);
+    adios_write(  adios_handle_, "global_size", &global_size);
+/*
+    if (iteration_ == 0)
+    for (int i =0; i < f_->wr_blocks(); i++) {
+      size_t offset = f_->disp_at(i+1);
+      size_t batch_size = f_->length_at(i+1);
+      adios_write( adios_handle_, "batch_size" , &batch_size);
+      adios_write( adios_handle_, "offset"     , &offset);
+      adios_write( adios_handle_, "data"       , &buffer[batch_size*i]); // we assume all our data are aligned in memory
     }
-    adios_write(adios_handle_, "data"       , buffer);
+*/
+    adios_close( adios_handle_);
+    std::cerr << "FINISH WRITE" << std::endl;
+    MPI_Barrier (comm);
     iteration_++;
   }
 
@@ -165,7 +176,6 @@ namespace replib {
   /** \fun close()
     \brief Close the file. Inline version to be as fast as possible */
   inline void ADIOSWriter::close() {
-    adios_close(adios_handle_);
   }
 
   /** \fun close(mapp::timer &t_io)
