@@ -117,15 +117,12 @@ namespace replib {
     adios_declare_group (&adios_group_id,"report", "", adios_stat_no);
     adios_select_method (adios_group_id, "MPI",    "verbose=4", "");
     adios_define_var    (adios_group_id, "global_size",  "", adios_integer, 0,0,0);
-/*
+
     for (int i =0; i < f_->wr_blocks(); i++) {
       adios_define_var (adios_group_id, "batch_size", "", adios_integer, 0,0,0);
       adios_define_var (adios_group_id, "offset",     "", adios_integer, 0,0,0);
       adios_define_var (adios_group_id, "data",       "", adios_real,    "batch_size", "global_size", "offset");
     }
-*/
-
-//    adios_open  (&adios_handle_, "report", report, "w", MPI_COMM_WORLD);
   }
 
   /** \fun open(mapp::timer &t_io, const std::string & path)
@@ -145,11 +142,8 @@ namespace replib {
    \brief Write to file. Inline version to be as fast as possible */
   inline void ADIOSWriter::write(float * buffer, size_t count) {
     size_t global_size = f_->total_bytes() / sizeof(float);
-    std::cerr << "START TO WRITE" << std::endl;
     adios_open ( &adios_handle_, "report", report_, (iteration_ == 0 ? "w" :"a"), comm);
     adios_write(  adios_handle_, "global_size", &global_size);
-/*
-    if (iteration_ == 0)
     for (int i =0; i < f_->wr_blocks(); i++) {
       size_t offset = f_->disp_at(i+1);
       size_t batch_size = f_->length_at(i+1);
@@ -157,9 +151,7 @@ namespace replib {
       adios_write( adios_handle_, "offset"     , &offset);
       adios_write( adios_handle_, "data"       , &buffer[batch_size*i]); // we assume all our data are aligned in memory
     }
-*/
     adios_close( adios_handle_);
-    std::cerr << "FINISH WRITE" << std::endl;
     MPI_Barrier (comm);
     iteration_++;
   }
