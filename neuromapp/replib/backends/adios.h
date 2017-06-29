@@ -109,7 +109,6 @@ namespace replib {
     \brief Open the file.
     Inline version to be as fast as possible */
   inline void ADIOSWriter::open(char * report) {
-    std::cerr << "OPEN THIS F FILE !!!" << std::endl;
     report_ = strdup(report);
     std::cerr << "report name = " << report_ << std::endl;
     adios_init_noxml    (comm);
@@ -145,8 +144,9 @@ namespace replib {
     adios_open ( &adios_handle_, "report", report_, (iteration_ == 0 ? "w" :"a"), comm);
     adios_write(  adios_handle_, "global_size", &global_size);
     for (int i =0; i < f_->wr_blocks(); i++) {
-      size_t offset = f_->disp_at(i+1);
-      size_t batch_size = f_->length_at(i+1);
+      size_t offset = f_->disp_at(i+1) / sizeof(float);
+      size_t batch_size = f_->length_at(i+1) / sizeof(float);
+      std::cerr << batch_size << ";" << count << std::endl;
       adios_write( adios_handle_, "batch_size" , &batch_size);
       adios_write( adios_handle_, "offset"     , &offset);
       adios_write( adios_handle_, "data"       , &buffer[batch_size*i]); // we assume all our data are aligned in memory
