@@ -226,7 +226,7 @@ namespace nest{
         const int thrd = omp_get_thread_num();
 
         Tnew* p = NULL;
-       #pragma omp critical // not thread safe!!
+       #pragma omp critical (A) // not thread safe!!
         {
         p = new ( poormansallocpool[thrd].alloc( sizeof( Tnew ) ) )
         Tnew(*connector, connection );
@@ -245,7 +245,7 @@ namespace nest{
         const int thrd = omp_get_thread_num();
 
         T* p = NULL;
-       #pragma omp critical // not thread safe!!
+       #pragma omp critical (B) // not thread safe!!
         {
         p = new ( poormansallocpool[thrd].alloc( sizeof( T ) ) ) T( c );
         }

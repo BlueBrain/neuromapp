@@ -231,10 +231,23 @@ data written by each process. However, we can calculate lower and upper bounds:
 
 ### Using data distribution from file ###
 
+Replib provide a way to specify the distribution of blocks per rank via a file.
+The file format is the following: 
+1 line per rank, specifying size of each blocks and offsets per blocks.
+One line have this format:
+```
+<RANK_ID>,<NB_BLOCKS>+1,<COMMA SEPARATED LIST OF BLOCKS SIZE>,<COMMA SEPARATED LIST OF OFFSETS>
+```
+Warning: Offsets list of each ranks must be ordered
+
+
+We offer some generation scripts to ease the test of different combinations:
+
 ```
 $ $INSTALL_DIR/bin/replib_input_distr_generator.sh 8 > data_distr.csv
 $ srun -N 1 -n 8 $INSTALL_DIR/bin/MPI_Exec_rl -w file1b -f ./data_distr.csv -o /tmp/currents.bbp -r 7 -s 5
 ```
+
 
 Launch 8 ranks on the same node, using one single, continuous block per process using the 
 given distribution file (``` -w file1b -f ./data_distr.csv ```), run the simulation for 7 
@@ -265,4 +278,11 @@ In this case, we can calculate the exact amount of data written by each process:
   per reporting step (1 MPI I/O call) is 5324800 bytes. Thus, the total amount of 
   data written by all ranks will be 37273600 bytes (the latter corresponds to the 
   output report's file size).
+
+
+If you need more advanced distributions such as multiblock distributions with random order or random size per block:
+
+```
+$ $INSTALL_DIR/bin/uniform_generator.py NB_RANKS SIZE_PER_RANKS [--nb_blocks NB_BLOCKS_PER_RANK] > data_distrib.csv
+```
 

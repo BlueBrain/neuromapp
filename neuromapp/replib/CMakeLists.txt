@@ -2,9 +2,15 @@
 if(NOT NEUROMAPP_DISABLE_REPLIB)
     set(MPI_STATIC ON)
     find_package(MPI)
-
+    if (${COMPILE_LIBRARY_TYPE} STREQUAL "STATIC")
+      set(ADIOS_USE_STATIC_LIBS ON)
+    endif()
+    find_package (ADIOS)
+    message ("       ADIOS LIBRARIES = ${ADIOS_LIBRARIES}")
     if (MPI_FOUND)
-        include_directories(${MPI_INCLUDE_PATH})
+      set (ADIOS_FLAG "")
+
+       include_directories(${MPI_INCLUDE_PATH})
 
         include_directories(${PROJECT_BINARY_DIR})
         include_directories(${PROJECT_SOURCE_DIR})
@@ -22,14 +28,21 @@ if(NOT NEUROMAPP_DISABLE_REPLIB)
 
         # Adding MPI_LIBRARIES adds also the -Bdynamic flag, which makes execution crash on BG/Q
         target_link_libraries (MPI_Exec_rl replib-stats ${MPI_CXX_LIBRARIES})
+        
+        # ADIOS option
+        if (ADIOS_FOUND)
+          include_directories(${ADIOS_INCLUDE_DIRS})
+          target_link_libraries (MPI_Exec_rl ${ADIOS_LIBRARIES} replib-stats )
+          set(ADIOS_FLAG -DRL_ADIOS=1)
+        endif()
 
         set_target_properties(MPI_Exec_rl PROPERTIES
-		                      COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+          COMPILE_FLAGS "${MPI_C_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS} ${ADIOS_FLAG}")
 
         install (TARGETS MPI_Exec_rl DESTINATION bin)
 
         # Install script to generate input distribution file
-        install (PROGRAMS utils/replib_input_distr_generator.sh DESTINATION bin)
+        install (PROGRAMS utils/replib_input_distr_generator.sh utils/uniform_generator.py utils/generate_set.py DESTINATION bin)
 
         set(NEUROMAPP_REPLIB_MAPP ON CACHE BOOL "True if replib mini-app will be installed")
     else()

@@ -59,11 +59,10 @@ class benchmark {
         benchmark(int argc, char* const argv[]) : c_(argc, argv), writer_(NULL) {
             if (c_.backend() == "mpiio") {
                 // MPI I/O backend
-                writer_ = reinterpret_cast<replib::Writer*>(new replib::MPIIOWriter());
+                writer_ = new replib::MPIIOWriter();
             } else if (c_.backend() == "adios") {
-                // To complete
 #ifdef RL_ADIOS
-                // TODO: Create object for ADIOS backend
+                writer_  = new replib::ADIOSWriter();
 #else
                 std::cout << "Error: asked for ADIOS backend, but ADIOS library was not found." << std::endl;
 #endif
