@@ -114,7 +114,8 @@ namespace replib {
     adios_init_noxml    (comm);
     int64_t adios_group_id;
     adios_declare_group (&adios_group_id,"report", "", adios_stat_no);
-    adios_select_method (adios_group_id, "MPI",    "verbose=4", "");
+    std::string verbosity = "verbose="+ c_->adios_verbose();
+    adios_select_method (adios_group_id, c_->adios_transport_method().c_str(), verbosity.c_str(), "");
     adios_define_var    (adios_group_id, "global_size",  "", adios_integer, 0,0,0);
 
     for (int i =0; i < f_->wr_blocks(); i++) {
@@ -146,7 +147,6 @@ namespace replib {
     for (int i =0; i < f_->wr_blocks(); i++) {
       size_t offset = f_->disp_at(i+1) / sizeof(float);
       size_t batch_size = f_->length_at(i+1) / sizeof(float);
-      std::cerr << batch_size << ";" << count << std::endl;
       adios_write( adios_handle_, "batch_size" , &batch_size);
       adios_write( adios_handle_, "offset"     , &offset);
       adios_write( adios_handle_, "data"       , &buffer[batch_size*i]); // we assume all our data are aligned in memory

@@ -43,7 +43,8 @@ private:
     int         procs_;
     int         id_;
     std::string backend_;
-    std::string adios_config_;
+    std::string adios_verbose_;
+    std::string adios_transport_method_;
     std::string write_;
     std::string input_dist_;
     std::string output_report_;
@@ -64,11 +65,10 @@ public:
             procs_(1), backend_("mpiio"), write_("rnd1b"), input_dist_(""),
             output_report_(""), invert_(false), numcells_(10), sim_steps_(15),
             rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false),
-            adios_config_("xml/config.xml"),
+            adios_transport_method_("MPI"), adios_verbose_("0"),
             passed_(false) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
-            argument_helper(v,"-a",adios_config(),to_string());
             argument_helper(v,"-b",backend(),to_string());
             argument_helper(v,"-w",write(),to_string());
             argument_helper(v,"-o",output_report(),to_string());
@@ -79,6 +79,8 @@ public:
             argument_helper(v,"-r",rep_steps(),to_int());
             argument_helper(v,"-t",sim_time_ms(),to_int());
             argument_helper(v,"-v",check(),to_true());
+            argument_helper(v,"-av",adios_verbose(),to_string());
+            argument_helper(v,"-at",adios_transport_method(),to_string());
         }
         // Get the number of processes and rank ID from the MPI controller
         procs_ = mapp::master.size();
@@ -146,12 +148,17 @@ public:
     }
 
     /**
-     \brief return the adios xml configuration filename
-    * TODO  avoid string copies by returning const char const*, if values are needed to be written, 
-    *       it is the user responsability to copy data contained in it
+     \brief return the adios transport method in use
     */
-    inline std::string adios_config() const {
-        return adios_config_;
+    inline std::string adios_transport_method() const {
+        return adios_transport_method_;
+    }
+
+    /**
+     \brief return the adios verbosity level
+    */
+    inline std::string adios_verbose() const {
+        return adios_verbose_;
     }
 
     /**
@@ -253,10 +260,17 @@ public:
      }
 
      /**
-      \brief return the adios xml configuration filename
+      \brief return the adios verbosity level
      */
-     inline std::string& adios_config() {
-         return adios_config_;
+     inline std::string& adios_verbose() {
+         return adios_verbose_;
+     }
+
+     /**
+      \brief return the adios transport method
+     */
+     inline std::string& adios_transport_method() {
+         return adios_transport_method_;
      }
 
     /**
@@ -340,7 +354,8 @@ public:
     void print(std::ostream& out) const {
         out << " procs: " << procs() << " \n"
             << " backend_: " << backend() << " \n"
-            << " adios_config_: " << adios_config() << " \n"
+            << " adios_transport_method_: " << adios_transport_method() << " \n"
+            << " adios_verbose_: " << adios_verbose() << " \n"
             << " write_: " << write() << " \n"
             << " input_dist_: " << input_dist() << " \n"
             << " output_report_: " << output_report() << " \n"
