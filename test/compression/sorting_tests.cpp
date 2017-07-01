@@ -61,33 +61,25 @@ bool increasing_check(IT rhs,sz cols_) {
 
 /* _s stands for s, _ns not sorted */
 template<typename V,typename A,typename sz>
-int full_col_persistence( block<V,A> & sorted_block, block<V,A> & unsorted_block, sz& sort_row) {
-    int mismatches = 0;
+bool full_col_persistence( block<V,A> & sorted_block, block<V,A> & unsorted_block, sz& sort_row) {
     sz cols_ = sorted_block.dim0();
     sz rows_ = sorted_block.num_rows();
-    std::vector<sz> ref_vector(cols_);// second argument is how many places to start with
-    //use iota to fill 
-    std::iota (ref_vector.begin(),ref_vector.end(),0);
-    //sort ref_vector values based on the sort_row in the blocks, using the unsorted columns as the compare criteria (mimic the actual col_sort)
-    std::sort (ref_vector.begin(),ref_vector.end(), [&unsorted_block,&sort_row] ( sz & lhs_ind, sz & rhs_ind) {
-            return unsorted_block(lhs_ind,sort_row) < unsorted_block(rhs_ind,sort_row) ? true: false;
-            });
-    std::copy(ref_vector.begin(),ref_vector.end(),std::ostream_iterator<sz>(std::cout," "));
-    std::cout << "" << std::endl;
-    std::cout << "sorted" <<std::endl <<  sorted_block << std::endl;
-    std::cout << "unsorted" << std::endl << unsorted_block << std::endl;
+    vector<V> sort_col_sums,unsorted_col_sums;
     for (size_t i = 0 ;i < cols_ ; i++) {
-        //check that all positions within the column are the same in both blocks
+        V unsorted_col = 0,sorted_col = 0;
         for (size_t j = 0;j < rows_ ; j++) {
-            std::cout << "col " << i << " row " << j << "...";
-            std::cout << sorted_block(i,j) << "VS" << unsorted_block(ref_vector[i],j) << std::endl;
-            //if(sorted_block(i,j) != unsorted_block(ref_vector[i],j)) mismatches++;
-            //std::cout <<setw(10) << "||" << "sorted: " << sorted_block(i,j) << " unsorted: " << unsorted_block(ref_vector[i],j) << " mismatches " << mismatches << "||" ;
-            //if ( j %3 == 0) std::cout << std::endl;
+            unsorted_col += unsorted_block(i,j);
+            sorted_col += sorted_block(i,j);
         }
-
+        sort_col_sums.push_back(sorted_col);
+        unsorted_col_sums.push_back(unsorted_col);
     }
-    return mismatches;
+    // search for each value in sort_col_sums in the unsorted_col_sums, if something is left then we messed up a columns structure
+    for (V sort_sum : sort_col_sums) {
+        auto found = std::find(unsorted_col_sums.begin(),unsorted_col_sums.end(),sort_sum);
+        if (found == unsorted_col_sums.end()) return false;
+    }
+    return true;
 }
 
 
@@ -99,7 +91,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(sort_test,T,test_allocator_types){
     typedef typename T::allocator_type allocator_type;
     typedef value_type * pointer;
     typedef pointer iterator;
-    for (vector<string> fname_container : {practice_files}) {
+    for (vector<string> fname_container : {bulk_files,solo_files}) {
         for (string fname : fname_container) {
             std::cout << "fname is " <<fname << std::endl;
             ifstream ifile(fname);
@@ -107,7 +99,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(sort_test,T,test_allocator_types){
             ifile>> b1;
             size_t cols_ = b1.dim0();
             size_t sort_row = 0, other_row = 2;//TODO remove the references to the otehr row, might not need
-            block<value_type,allocator_type> b2(b1);
+            block<value_type,allocator_type> b2 = b1;
             b1.col_sort(sort_row);
             //st stands for start
             iterator st_srow_s  = &b1(0,sort_row);
@@ -115,9 +107,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(sort_test,T,test_allocator_types){
             BOOST_CHECK_MESSAGE(true == increasing_check(st_srow_s,cols_),
                     "row wasn't strictly increasing\n");
 
-            int mismatch = full_col_persistence(b1,b2,sort_row); 
-            BOOST_CHECK_MESSAGE(0 == mismatch,
-                    "value in row below wasn't consistent\n" + std::to_string(mismatch));
+            ; 
+            BOOST_CHECK_MESSAGE(true == full_col_persistence(b1,b2,sort_row),
+                    "value in row below wasn't consistent\n");
 
         }
     }
