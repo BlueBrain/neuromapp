@@ -20,8 +20,8 @@
 #include "compression/block.h"
 #include "compression/block_sort.h"
 using neuromapp::block;
-using neuromapp::Sorter;
 using neuromapp::cstandard;
+using neuromapp::col_sort;
 using namespace std;
 //holder struct for combos of numeric type and allocator policy
 template <class T,class A>
@@ -46,10 +46,10 @@ vector<string> practice_files ={"trans_data/visually_easy.csv","trans_data/ez_vi
 
 vector<string>bulk_files ={"trans_data/even_easier.csv","trans_data/values_9_a8828trans_bulk.csv","trans_data/values_9_a8827trans_bulk.csv","trans_data/values_9_a8826trans_bulk.csv","trans_data/values_9_a8825trans_bulk.csv","trans_data/values_9_a8792trans_bulk.csv","trans_data/values_9_a8791trans_bulk.csv","trans_data/values_9_a8790trans_bulk.csv","trans_data/values_9_a8789trans_bulk.csv","trans_data/values_9_a8788trans_bulk.csv","trans_data/values_9_a8787trans_bulk.csv","trans_data/values_9_a8786trans_bulk.csv","trans_data/values_9_a8785trans_bulk.csv","trans_data/values_9_a8784trans_bulk.csv","trans_data/values_9_a8783trans_bulk.csv","trans_data/values_9_a8782trans_bulk.csv","trans_data/values_9_a8740trans_bulk.csv","trans_data/values_9_a8739trans_bulk.csv","trans_data/values_9_a8738trans_bulk.csv","trans_data/values_9_a8737trans_bulk.csv","trans_data/values_9_a516trans_bulk.csv","trans_data/values_9_a515trans_bulk.csv","trans_data/values_9_a514trans_bulk.csv","trans_data/values_9_a513trans_bulk.csv","trans_data/values_9_a10260trans_bulk.csv","trans_data/values_9_a10259trans_bulk.csv","trans_data/values_9_a10258trans_bulk.csv","trans_data/values_9_a10257trans_bulk.csv","trans_data/values_9_a10245trans_bulk.csv","trans_data/values_9_a10240trans_bulk.csv","trans_data/values_9_a10239trans_bulk.csv","trans_data/values_9_a10238trans_bulk.csv","trans_data/values_9_a10237trans_bulk.csv","trans_data/values_8_a8804trans_bulk.csv","trans_data/values_8_a8803trans_bulk.csv","trans_data/values_8_a8802trans_bulk.csv","trans_data/values_8_a8801trans_bulk.csv","trans_data/values_8_a8781trans_bulk.csv","trans_data/values_8_a8780trans_bulk.csv","trans_data/values_8_a10264trans_bulk.csv","trans_data/values_8_a10263trans_bulk.csv","trans_data/values_8_a10262trans_bulk.csv","trans_data/values_8_a10261trans_bulk.csv","trans_data/values_8_a10256trans_bulk.csv","trans_data/values_8_a10252trans_bulk.csv","trans_data/values_8_a10251trans_bulk.csv","trans_data/values_8_a10250trans_bulk.csv","trans_data/values_8_a10249trans_bulk.csv","trans_data/values_10_a8761trans_bulk.csv","trans_data/values_10_a8752trans_bulk.csv","trans_data/values_10_a8751trans_bulk.csv","trans_data/values_10_a8750trans_bulk.csv","trans_data/values_10_a8749trans_bulk.csv","trans_data/values_10_a8220trans_bulk.csv","trans_data/values_10_a8219trans_bulk.csv","trans_data/values_10_a8218trans_bulk.csv","trans_data/values_10_a8217trans_bulk.csv","trans_data/values_10_a8216trans_bulk.csv","trans_data/values_10_a8215trans_bulk.csv","trans_data/values_10_a8214trans_bulk.csv","trans_data/values_10_a8213trans_bulk.csv"};
 
-template <typename IT,typename sz>
-bool increasing_check(IT rhs,sz cols_) {
+template <typename IT,typename size_type>
+bool increasing_check(IT rhs,size_type cols_) {
 // must go one less than the number of columns because we are comparing to the following
-	for(sz i = 0; i < cols_ -1;i++) {
+	for(size_type i = 0; i < cols_ -1;i++) {
         if (*rhs > *(rhs+1)) {
             std::cout << *rhs << " was bigger than " << *(rhs+1) << std::endl;
             return false;
@@ -60,14 +60,14 @@ bool increasing_check(IT rhs,sz cols_) {
 }
 
 /* _s stands for s, _ns not sorted */
-template<typename V,typename A,typename sz>
-bool full_col_persistence( block<V,A> & sorted_block, block<V,A> & unsorted_block, sz& sort_row) {
-    sz cols_ = sorted_block.dim0();
-    sz rows_ = sorted_block.num_rows();
+template<typename V,typename A,typename size_type>
+bool full_col_persistence( block<V,A> & sorted_block, block<V,A> & unsorted_block, size_type& sort_row) {
+    size_type cols_ = sorted_block.dim0();
+    size_type rows_ = sorted_block.num_rows();
     vector<V> sort_col_sums,unsorted_col_sums;
-    for (size_t i = 0 ;i < cols_ ; i++) {
+    for (size_type i = 0 ;i < cols_ ; i++) {
         V unsorted_col = 0,sorted_col = 0;
-        for (size_t j = 0;j < rows_ ; j++) {
+        for (size_type j = 0;j < rows_ ; j++) {
             unsorted_col += unsorted_block(i,j);
             sorted_col += sorted_block(i,j);
         }
@@ -91,16 +91,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(sort_test,T,test_allocator_types){
     typedef typename T::allocator_type allocator_type;
     typedef value_type * pointer;
     typedef pointer iterator;
+    typedef size_t size_type;
     for (vector<string> fname_container : {bulk_files,solo_files}) {
         for (string fname : fname_container) {
             std::cout << "fname is " <<fname << std::endl;
             ifstream ifile(fname);
             block<value_type,allocator_type> b1;
             ifile>> b1;
-            size_t cols_ = b1.dim0();
-            size_t sort_row = 0, other_row = 2;//TODO remove the references to the otehr row, might not need
+            size_type cols_ = b1.dim0();
+            size_type sort_row = 0, other_row = 2;//TODO remove the references to the otehr row, might not need
             block<value_type,allocator_type> b2 = b1;
-            b1.col_sort(sort_row);
+            col_sort(&b1,sort_row);
             //st stands for start
             iterator st_srow_s  = &b1(0,sort_row);
             iterator end_srow_s = &b1(cols_,sort_row);
