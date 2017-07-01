@@ -286,7 +286,7 @@ namespace neuromapp {
               std::vector<iter> actual_starts;
               std::vector<value_type> ideal_col_order;
               // populate these
-              for (size_type i = 0;i < cols_;i++) {
+              for (size_type i = 0;i < dim0_;i++) {
                   // using new allocation, free at end DO IT
                 actual_starts.push_back(iter(this,i,sort_row,0));
                 ideal_col_order.push_back((*this)(i,sort_row));
@@ -296,7 +296,7 @@ namespace neuromapp {
                       return a < b ? true:false ;});
 
               //use the stl swap_ranges in tandem with the 
-              for (int col_ind = 0;col_ind < cols_ ;col_ind++) {
+              for (int col_ind = 0;col_ind < dim0_ ;col_ind++) {
                   //check whethere the column is in the correct place already
                   if (actual_starts[col_ind].get_value() == ideal_col_order[col_ind]) continue;
                   //get correct iterators and use as arguments to swap_ranges
@@ -312,9 +312,9 @@ namespace neuromapp {
               }
             }
 
-            void row_0(std::string && mesg) {
-                for (int i = 0 ; i < cols_ ;i++) {
-                    std::cout << (*this)(i,0) << ",";
+            void print_row(size_type row,std::string && mesg,size_type cols) {
+                for (int i = 0 ; i < cols ;i++) {
+                    std::cout << (*this)(i,row) << ",";
                 }
                 std::cout << mesg << std::endl;
 
