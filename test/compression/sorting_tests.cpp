@@ -65,19 +65,21 @@ int full_col_persistence( block<V,A> & sorted_block, block<V,A> & unsorted_block
     int mismatches = 0;
     sz cols_ = sorted_block.dim0();
     sz rows_ = sorted_block.num_rows();
-    std::vector<int> ref_vector(cols_);// second argument is how many places to start with
+    std::vector<sz> ref_vector(cols_);// second argument is how many places to start with
     //use iota to fill 
     std::iota (ref_vector.begin(),ref_vector.end(),0);
     //sort ref_vector values based on the sort_row in the blocks, using the unsorted columns as the compare criteria (mimic the actual col_sort)
-    std::sort (ref_vector.begin(),ref_vector.end(), [&] (const sz & lhs_ind,const sz & rhs_ind) {
+    std::sort (ref_vector.begin(),ref_vector.end(), [&unsorted_block,&sort_row] ( sz & lhs_ind, sz & rhs_ind) {
             return unsorted_block(lhs_ind,sort_row) < unsorted_block(rhs_ind,sort_row) ? true: false;
             });
+    std::copy(ref_vector.begin(),ref_vector.end(),std::ostream_iterator<sz>(std::cout," "));
+    std::cout << "" << std::endl;
     std::cout << "sorted" <<std::endl <<  sorted_block << std::endl;
     std::cout << "unsorted" << std::endl << unsorted_block << std::endl;
     for (size_t i = 0 ;i < cols_ ; i++) {
         //check that all positions within the column are the same in both blocks
         for (size_t j = 0;j < rows_ ; j++) {
-            std::cout << "col " << i << " row " << j;
+            std::cout << "col " << i << " row " << j << "...";
             std::cout << sorted_block(i,j) << "VS" << unsorted_block(ref_vector[i],j) << std::endl;
             //if(sorted_block(i,j) != unsorted_block(ref_vector[i],j)) mismatches++;
             //std::cout <<setw(10) << "||" << "sorted: " << sorted_block(i,j) << " unsorted: " << unsorted_block(ref_vector[i],j) << " mismatches " << mismatches << "||" ;
@@ -103,7 +105,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(sort_test,T,test_allocator_types){
             ifstream ifile(fname);
             block<value_type,allocator_type> b1;
             ifile>> b1;
-            std::cout << "before sorting" << b1 << std::endl;
             size_t cols_ = b1.dim0();
             size_t sort_row = 0, other_row = 2;//TODO remove the references to the otehr row, might not need
             block<value_type,allocator_type> b2(b1);
