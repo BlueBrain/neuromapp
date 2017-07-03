@@ -30,6 +30,7 @@
 
 #include "readi/readi.h"
 #include "readi/Tets.h"
+#include "readi/RdSolver.h"
 
 #include "utils/error.h"
 
@@ -67,7 +68,8 @@ int readi_help(int argc, char* const argv[], po::variables_map& vm){
     \param vm encapsulate the command line and all needed informations
  */
 void readi_content(po::variables_map const& vm){
-    Tets<int, double> tets(vm["filename_mesh"].as<std::string>(), vm["filename_model"].as<std::string>());
+    readi::RdSolver<int, double> solver;
+    solver.read_mesh_and_model(vm["filename_mesh"].as<std::string>(), vm["filename_model"].as<std::string>());
     std::cout << "ca va ou bien ?" << std::endl;
 }
 

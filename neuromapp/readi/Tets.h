@@ -1,5 +1,5 @@
 /*
- * Neuromapp - tets.h, Copyright (c), 2015,
+ * Neuromapp - Tets.h, Copyright (c), 2015,
  * Francesco Casalegno - Swiss Federal Institute of technology in Lausanne,
  * francesco.casalegno@epfl.ch,
  * All rights reserved.
@@ -19,8 +19,8 @@
  */
 
 /**
- * @file neuromapp/readi/readi.h
- * \brief Readi Miniapp
+ * @file neuromapp/readi/Tets.h
+ * \brief Mesh for  Readi Miniapp
  */
 
 #ifndef MAPP_READI_TETS_
@@ -29,6 +29,9 @@
 #include <fstream>
 #include <string>
 #include <cassert>
+#include <algorithm>
+
+namespace readi {
 
 template<class IntType, class FloatType >
 class Tets{
@@ -74,18 +77,26 @@ public:
     }
 
     // access sum of neigh shapes of i-th tetrahedron
-    inline IntType& shape_tot(IntType i) {
+    inline FloatType& shape_tot(IntType i) {
         assert(i>=0 && i<n_tets_);
         return shapes_sums_[i];
     }
-    inline IntType shape_tot(IntType i) const {
+    inline FloatType shape_tot(IntType i) const {
         assert(i>=0 && i<n_tets_);
         return shapes_sums_[i];
     }
 
+
+    // compute max shape d_K, so that tau = D_max * d_K
+    FloatType get_max_shape() {
+        return std::max_element(shapes_.begin(),shapes_.end());
+    }
+
     
-    // constructor, requires mesh and model filenames
-    Tets(std::string filename_mesh, std::string filename_model) {
+
+    // read mesh + model and constructs internal objects
+    void read_from_file(std::string const& filename_mesh, std::string const& filename_model) {
+            
         std::ifstream file_mesh(filename_mesh);
         std::ifstream file_model(filename_model);
         
@@ -107,19 +118,22 @@ public:
             mol_counts_bucket_.resize(n_tets_*n_species_); // bucket containing molecules received from diffusion 
             
             
-            for (IntType i=0; i<n_tets; ++i) {
-                file_mes >> discard >> volume(i);
+            for (IntType i=0; i<n_tets_; ++i) {
+                file_mesh >> discard >> volume(i);
                 for (IntType j=0; j<4; ++j) 
-                   file_mes >> neighbor(i, j);
+                   file_mesh >> neighbor(i, j);
                 for (IntType j=0; j<4; ++j) {
                    double shape_times_vol;
-                   file_mes >> shape_times_vol;
-                   shape(i, j) = shape_times_vol / volume(i);
+                   file_mesh >> shape_times_vol;
+                   if (neighbor(i,j) != -1)
+                        shape(i, j) = shape_times_vol / volume(i);
+                   else
+                       shape(i, j) = 0.;
                 }
                 shape_tot(i) = 0;
-                for (IntType j=0; j<4)
+                for (IntType j=0; j<4; ++j)
                     if (neighbor(i, j) != -1)
-                        shape_tot(i) += shape(i, j)
+                        shape_tot(i) += shape(i, j);
             }
              
 
@@ -147,6 +161,6 @@ private:
 
 };
 
-
+}
 
 #endif// MAPP_READI_TETS_

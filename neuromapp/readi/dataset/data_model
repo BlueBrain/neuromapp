@@ -11,6 +11,7 @@ H 8000
 I 9000
 J 10000
 
+n_reactions 8
 reactions (lhs - rhs - kcst)
 A B - C - 1.e+9
 C - A B - 1.e+2
@@ -21,14 +22,14 @@ H - F G - 1.e+0
 H I - J - 1.e+6
 J - H I - 1.e+0
 
-diffusions (species - dcst)
-A - 1.e-10 
-B - 9.e-11
-C - 8.e-11
-D - 7.e-11
-E - 6.e-11
-F - 5.e-11
-G - 4.e-11
-H - 3.e-11
-I - 2.e-11
-J - 1.e-11
+diffusions (species dcst)
+A  1.e-10 
+B  9.e-11
+C  8.e-11
+D  7.e-11
+E  6.e-11
+F  5.e-11
+G  4.e-11
+H  3.e-11
+I  2.e-11
+J  1.e-11
