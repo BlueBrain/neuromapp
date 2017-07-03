@@ -1,7 +1,7 @@
 /*
  * Neuromapp - hello.h, Copyright (c), 2015,
- * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Francesco Casalegno - Swiss Federal Institute of technology in Lausanne,
+ * francesco.casalegno@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or

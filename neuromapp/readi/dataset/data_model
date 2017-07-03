@@ -1,0 +1,34 @@
+n_species 10
+species (species - intial count)
+A 1000
+B 2000
+C 3000   
+D 4000
+E 5000
+F 6000
+G 7000
+H 8000
+I 9000
+J 10000
+
+reactions (lhs - rhs - kcst)
+A B - C - 1.e+9
+C - A B - 1.e+2
+C D - E - 1.e+8
+E - C D - 1.e+1
+F G - H - 1.e+7
+H - F G - 1.e+0
+H I - J - 1.e+6
+J - H I - 1.e+0
+
+diffusions (species - dcst)
+A - 1.e-10 
+B - 9.e-11
+C - 8.e-11
+D - 7.e-11
+E - 6.e-11
+F - 5.e-11
+G - 4.e-11
+H - 3.e-11
+I - 2.e-11
+J - 1.e-11

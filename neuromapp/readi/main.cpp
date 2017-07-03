@@ -1,7 +1,7 @@
 /*
  * Neuromapp - main.cpp, Copyright (c), 2015,
- * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
- * timothee.ewart@epfl.ch,
+ * Francesco Casalegno - Swiss Federal Institute of technology in Lausanne,
+ * francesco.casalegno@epfl.ch,
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +29,8 @@
 #include <boost/program_options.hpp>
 
 #include "readi/readi.h"
+#include "readi/Tets.h"
+
 #include "utils/error.h"
 
 /** namespace alias for boost::program_options **/
@@ -44,9 +46,9 @@ namespace po = boost::program_options;
 int readi_help(int argc, char* const argv[], po::variables_map& vm){
     po::options_description desc("Allowed options");
     desc.add_options()
-    ("help", "produce help message");
-//    ("name", po::value<std::string>()->default_value("world"), "who ?")
-//    ("numthread", po::value<int>()->default_value(1), "number of OMP thread");
+    ("help", "produce help message")
+    ("filename_mesh", po::value<std::string>(), "filename of mesh data")
+    ("filename_model", po::value<std::string>(), "filename of model data");
 
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
@@ -65,14 +67,7 @@ int readi_help(int argc, char* const argv[], po::variables_map& vm){
     \param vm encapsulate the command line and all needed informations
  */
 void readi_content(po::variables_map const& vm){
-/*    #pragma omp parallel
-    #pragma omp critical
-    {
-        std::cout << "Hello " << vm["name"].as<std::string>()
-                  << ", total thread: " << vm["numthread"].as<int>()
-                  << ", thread id: " << omp_get_thread_num() << "\n";
-    }
-*/
+    Tets<int, double> tets(vm["filename_mesh"].as<std::string>(), vm["filename_model"].as<std::string>());
     std::cout << "ca va ou bien ?" << std::endl;
 }
 
