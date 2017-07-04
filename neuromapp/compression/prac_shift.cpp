@@ -19,12 +19,9 @@ int main (void) {
     ifile >> b1;
     std::cout << b1 << std::endl;
     // not actually limited to the row otherwise
-    pointer row = &b1(0,0);
-    unsigned int * parts_of_row = neuromapp::convert_to_parts(row,b1.num_cols());
-    for (size_type i = 0 ; i < b1.num_cols() ; i++) {
-        size_type j;
-        for (  j = 0; j < 3; j++ ) {
-            std::cout << parts_of_row[i*3 + j]<< ", " << std::endl;
-        }
-    }
+    size_type cols_ = b1.dim0(), rows_ = b1.num_rows();
+    // copy has 3times as many columns and same number of rows
+    block<unsigned int, cstandard> parts_block(cols_*3,rows_);
+    neuromapp::populate_block_by_parts(parts_block,b1);
+    std::cout << "parts becomes \n" << parts_block << std::endl;
 }
