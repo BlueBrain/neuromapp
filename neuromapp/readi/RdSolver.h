@@ -26,6 +26,7 @@
 #ifndef MAPP_READ_RDSOLVER_
 #define MAPP_READ_RDSOLVER_
 
+#include "rng_utils.h"
 #include "Tets.h"
 #include <vector>
 #include <string>
@@ -53,8 +54,10 @@ public:
             diffusion_coefficients_.resize(n_species_);
             std::getline(f, discard); // read \n
             std::getline(f, discard); // read description line
+            IntType tot_mol_per_spec;
             for (IntType i=0; i<n_species_; ++i) {
-                f >> species_names_[i] >> discard; // read species name
+                f >> species_names_[i] >> tot_mol_per_spec; // read species name and total count
+                distribute_molecules(i, tot_mol_per_spec);// distribute these molecules in the mesh
             }
             std::getline(f, discard);       // skip '\n'
             
@@ -90,14 +93,33 @@ public:
     }
 
 
+
+    // distribute tot number of molecules on each tetrahedron
+    void distribute_molecules(IntType species_idx, IntType n_molecules_tot) {
+        IntType n_molecules_partial = 0; // molecules that have been placed until now
+        FloatType tot_volume = tets_.get_tot_volume();
+        std::random_device rd;
+        std::mt19937 g(rd());
+        for (IntType i=0; i<tets_.get_n_tets(); ++i) {
+            FloatType volume_ratio =  tets_.volume(i) / tot_volume;
+            IntType mols =  readi::rand_round<IntType, FloatType>(n_molecules_tot * volume_ratio, g);
+            n_molecules_partial += mols;
+            tets_.moelcule_count(species_idx, i) = mols;
+        }
+        printf("Molecule Tot: %15d\n", n_molecules_tot);
+        printf("Molecule Dis: %15d\n", n_molecules_partial);
+        printf("Count error percent: %3.5f\n\n", 100*(double(n_molecules_tot-n_molecules_partial)/n_molecules_tot));
+
+    }
+
+
+
     // compute update period, a.k.a. tau
     FloatType get_update_period() {
         FloatType max_diffusion_coeff = *std::max_element(diffusion_coefficients_.begin(), diffusion_coefficients_.end());
-        std::cout << "max diffusion coeff: " << max_diffusion_coeff << "\n";
         FloatType max_shape = tets_.get_max_shape();
-        std::cout << "max shape: " << max_shape << "\n";
-        std::cout << "tau = " << max_diffusion_coeff * max_shape << "\n";
-        return max_diffusion_coeff * max_shape ;
+        printf("computed update period tau = %1.15e\n", 1.0 / (max_diffusion_coeff * max_shape));
+        return 1.0 / (max_diffusion_coeff * max_shape) ;
     }
 
 

@@ -77,6 +77,7 @@ public:
         return shapes_[4*i+j];
     }
 
+
     // access sum of neigh shapes of i-th tetrahedron
     inline FloatType& shape_sum(IntType i) {
         assert(i>=0 && i<n_tets_);
@@ -85,6 +86,19 @@ public:
     inline FloatType shape_sum(IntType i) const {
         assert(i>=0 && i<n_tets_);
         return shapes_sums_[i];
+    }
+
+
+    // access molecule for s-th species in i-th tetrahedron
+    inline FloatType& moelcule_count(IntType s, IntType i) {
+        assert(s>=0 && s<n_species_);
+        assert(i>=0 && i<n_tets_);
+        return mol_counts_[n_tets_*s + i];
+    }
+    inline FloatType moelcule_count(IntType s, IntType i) const {
+        assert(s>=0 && s<n_species_);
+        assert(i>=0 && i<n_tets_);
+        return mol_counts_[n_tets_*s + i];
     }
 
 
@@ -99,6 +113,13 @@ public:
         return std::accumulate(volumes_.begin(), volumes_.end(), 0.);
     }
     
+
+    // get number of total tetrahedra
+    inline IntType get_n_tets() const {
+        return n_tets_;
+    }
+
+
 
     // read mesh + model and constructs internal objects
     void read_from_file(std::string const& filename_mesh, std::string const& filename_model) {
@@ -130,12 +151,8 @@ public:
                 for (IntType j=0; j<4; ++j) 
                    file_mesh >> neighbor(i, j);         // read idx of neighbors
                 for (IntType j=0; j<4; ++j) {
-                   double shape_times_vol;              // read shaoe of neighbors
-                   file_mesh >> shape_times_vol;
-                   if (neighbor(i,j) != -1) {
-                        shape(i, j) = shape_times_vol / volume(i);
-                   }
-                   else
+                   file_mesh >> shape(i, j);
+                   if (neighbor(i,j) == -1)
                        shape(i, j) = 0.;
                 }
                 shape_sum(i) = 0;
@@ -159,6 +176,8 @@ private:
     IntType n_species_;
     std::vector<FloatType> volumes_;
     std::vector<IntType> neighbors_;
+    // the shape(i,j) of tetrahedron i w.r.t to neighbor j=0..3 represent this geometrical value:
+    //      shape = surface_separating(i,j) / (volume(i) * distance_of_barycenters(i,j))
     std::vector<FloatType> shapes_;
     std::vector<FloatType> shapes_sums_;
     std::vector<FloatType> mol_counts_;
