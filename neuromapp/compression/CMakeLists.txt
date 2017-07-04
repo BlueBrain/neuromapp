@@ -15,10 +15,14 @@ if(NOT NEUROMAPP_DISABLE_COMPRESSION_MAPP)
     #add_executable(prac_compression prac_compression.cpp)
     set_source_files_properties(prac_sort.cpp COMPILE_FLAGS "-Wall -Wextra -pedantic-errors")
     add_executable(prac_sort prac_sort.cpp)
+    ##hana region
     set_source_files_properties(prac_hana.cpp COMPILE_FLAGS "-Wfatal-errors -I /home/lil/boost_1_64_0")
     ##hana needs c++14 so compile with this standard set
     add_executable(prac_hana prac_hana.cpp)
 	set_property(TARGET prac_hana PROPERTY CXX_STANDARD 14)	
+    ##shifting make region
+    add_executable(prac_shift prac_shift.cpp)
+    set_source_files_properties(prac_shift.cpp COMPILE_FLAGS "-Wall -Wextra -pedantic-errors -std=c++11")
 
     #target_link_libraries(prac_compression ${ZLIB_LIBRARIES})
 
