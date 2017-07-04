@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <cassert>
 
 namespace readi {
 
@@ -56,7 +57,6 @@ public:
                 f >> species_names_[i] >> discard; // read species name
             }
             std::getline(f, discard);       // skip '\n'
-               
             
             // Reaction is not implemented yet: readfile is skipped for this part
             std::getline(f, discard);       // skip empty line
@@ -66,15 +66,12 @@ public:
             reaction_coefficients_.resize(n_reactions_);
             reaction_lhs_.resize(n_reactions_);
             reaction_rhs_.resize(n_reactions_);
-            std::getline(f, discard);
             for (IntType i=0; i<n_reactions_; ++i) {
                 std::getline(f, discard); // read reaction lhs, rhs, and coeff
-                std::cout << "reac[i]: " << discard <<  "\n";
             }
 
 
             // Diffusion
-            std::getline(f, discard); // skip '\n'
             std::getline(f, discard); // skip empty line 
             std::getline(f, discard); // skip description line
             for (IntType i=0; i<n_species_; ++i) {
@@ -87,9 +84,22 @@ public:
             throw;
         }
 
+        // assert diffusion coefficients are correctely read
         for (auto d : diffusion_coefficients_) 
-            std::cout << "diff[i]: " << d << "\n"; 
+            assert(d!=0);
     }
+
+
+    // compute update period, a.k.a. tau
+    FloatType get_update_period() {
+        FloatType max_diffusion_coeff = *std::max_element(diffusion_coefficients_.begin(), diffusion_coefficients_.end());
+        std::cout << "max diffusion coeff: " << max_diffusion_coeff << "\n";
+        FloatType max_shape = tets_.get_max_shape();
+        std::cout << "max shape: " << max_shape << "\n";
+        std::cout << "tau = " << max_diffusion_coeff * max_shape << "\n";
+        return max_diffusion_coeff * max_shape ;
+    }
+
 
 private:
     readi::Tets<IntType, FloatType> tets_;

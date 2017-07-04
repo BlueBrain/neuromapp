@@ -70,6 +70,7 @@ int readi_help(int argc, char* const argv[], po::variables_map& vm){
 void readi_content(po::variables_map const& vm){
     readi::RdSolver<int, double> solver;
     solver.read_mesh_and_model(vm["filename_mesh"].as<std::string>(), vm["filename_model"].as<std::string>());
+    solver.get_update_period();
     std::cout << "ca va ou bien ?" << std::endl;
 }
 
