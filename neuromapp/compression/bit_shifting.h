@@ -3,15 +3,14 @@
 #include <algorithm>
 #include "block.h"
 //TODO remove std namespace
-//
 
 using namespace std;
 typedef size_t size_type;
+typedef float* pointer;
 
 namespace neuromapp {
-    template <typename T>
     typedef union {
-        T num;
+        float num;
         struct {
             unsigned int sign:1;
             unsigned int exponent:8;
@@ -23,14 +22,14 @@ namespace neuromapp {
     /*function for taking in an array of floats ( TODO make generic) 
      * and creating an unsigned int array that represents its parts
      */
-    template <typename T>
-    unsigned int[] convert_to_parts(T * row,size_type count){
-        unsigned int ret_arr[3*count];
+    unsigned int * convert_to_parts(pointer row,size_type count){
+        unsigned int *ret_arr = new unsigned int [3*count];
         for (size_type i = 0 ; i < count ; i++) {
-            type_parts parts = {.num = *row};
-            ret_arr[i] = parts.sign;
-            ret_arr[i+count] = parts.exponent;
-            ret_arr[i+count*2] = parts.mantissa;
+            type_parts conv_float;
+            conv_float.num = *row++;
+            ret_arr[i] = conv_float.parts.sign;
+            ret_arr[i+count] = conv_float.parts.exponent;
+            ret_arr[i+count*2] = conv_float.parts.mantissa;
         }
         return ret_arr;
     }
