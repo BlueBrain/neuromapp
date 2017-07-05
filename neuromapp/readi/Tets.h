@@ -32,6 +32,9 @@
 #include <algorithm>
 #include <numeric>
 
+#include "rng_utils.h"
+
+
 namespace readi {
 
 template<class IntType, class FloatType >
@@ -90,12 +93,12 @@ public:
 
 
     // access molecule for s-th species in i-th tetrahedron
-    inline FloatType& moelcule_count(IntType s, IntType i) {
+    inline FloatType& molecule_count(IntType s, IntType i) {
         assert(s>=0 && s<n_species_);
         assert(i>=0 && i<n_tets_);
         return mol_counts_[n_tets_*s + i];
     }
-    inline FloatType moelcule_count(IntType s, IntType i) const {
+    inline FloatType molecule_count(IntType s, IntType i) const {
         assert(s>=0 && s<n_species_);
         assert(i>=0 && i<n_tets_);
         return mol_counts_[n_tets_*s + i];
@@ -113,12 +116,6 @@ public:
         return std::accumulate(volumes_.begin(), volumes_.end(), 0.);
     }
     
-
-    // get number of total tetrahedra
-    inline IntType get_n_tets() const {
-        return n_tets_;
-    }
-
 
 
     // read mesh + model and constructs internal objects
@@ -143,7 +140,7 @@ public:
             std::cout << "N species: " <<  n_species_ << std::endl;
             file_model.close();
             mol_counts_.resize(n_tets_*n_species_); // each tet knows how many mol of each species it contains
-            mol_counts_bucket_.resize(n_tets_*n_species_); // bucket containing molecules received from diffusion 
+            mol_counts_bucket_.resize(n_tets_); // bucket containing molecules received from diffusion
             
             
             for (IntType i=0; i<n_tets_; ++i) {
@@ -168,6 +165,62 @@ public:
         }
 
     }        
+
+
+    // distribute tot number of molecules on each tetrahedron
+    void distribute_molecules(IntType species_idx, IntType n_molecules_tot) {
+        IntType n_molecules_partial = 0; // molecules that have been placed until now
+        FloatType tot_volume = get_tot_volume();
+        std::random_device rd;
+        std::mt19937 g(rd());
+        for (IntType i=0; i<n_tets_; ++i) {
+            FloatType volume_ratio =  volume(i) / tot_volume;
+            IntType mols =  readi::rand_round<IntType, FloatType>(n_molecules_tot * volume_ratio, g);
+            n_molecules_partial += mols;
+            molecule_count(species_idx, i) = mols;
+        }
+        printf("Molecule Tot: %15d\n", n_molecules_tot);
+        printf("Molecule Dis: %15d\n", n_molecules_partial);
+        printf("Count error: \t%5.2f%%\n\n", 100*(double(n_molecules_tot-n_molecules_partial)/n_molecules_tot));
+    }
+
+
+    // run diffusion of molecules of species s
+    void diffuse(FloatType tau, IntType s, FloatType diff_cnst) {
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+        // molecules of species s diffuse from each tetrahedron
+        for (IntType i=0; i<n_tets_; ++i) {
+            FloatType zeta_k = diff_cnst * shape_sum(i) * tau;
+            // TODO: actually the max number of leaving molecules should be based on occupancy...
+            IntType n_leaving_max = molecule_count(s, i);
+            readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
+            IntType tot_leaving_mols = binomial(g); // how many molecules leave K
+            molecule_count(s, i) -= tot_leaving_mols;
+            FloatType shapes_partial = shape_sum(i);
+            for (IntType j=0; j<3; ++j) { // select destinations with multinomial
+                readi::binomial_distribution<IntType> binomial_destination(tot_leaving_mols, shape(i,j)/shapes_partial);
+                IntType leaving_neighb = binomial_destination(g);
+                tot_leaving_mols -= leaving_neighb;
+                mol_counts_bucket_[neighbor(i,j)] += leaving_neighb;
+                shapes_partial -= shape(i,j);
+            }
+            // last destination: all the remaining
+            mol_counts_bucket_[neighbor(i,3)] += tot_leaving_mols;
+        }
+
+    }
+
+
+    // empty buckets after diffusion
+    void empty_buckets(IntType s) {
+        for (IntType i=0; i<n_tets_; ++i) {
+            molecule_count(s, i) += mol_counts_bucket_[i];
+            mol_counts_bucket_[i] = 0;
+        }
+        return;
+    }
 
 
 
