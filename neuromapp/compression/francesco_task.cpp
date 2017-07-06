@@ -6,7 +6,6 @@
 #include <bitset>
 #include "compression.h"
 #include "block.h"
-#include "bit_shifting.h"
 using namespace std;
 
 
@@ -25,11 +24,11 @@ double create_spike_time(int intensity) {
 }
 
 double calc_u(double u,double fraction,double d_time,double time_const_fac) {
-    return fraction + u(1-fraction)exp(-d_time/time_const_fac);
+    return fraction + u*(1-fraction)*exp(-d_time/time_const_fac);
 }
 
 double calc_x(double x,double u,double d_time,double time_const_rec) {
-    return 1+(x - x*u - 1)exp(-d_time/time_const_rec);
+    return 1+(x - x*u - 1)*exp(-d_time/time_const_rec);
 }
 /*TODO make little description, and show snippet of ro_block structure
  * to help clarify index use below 
@@ -37,8 +36,8 @@ double calc_x(double x,double u,double d_time,double time_const_rec) {
 void run_workflow() {
     //create the blocks
     expmt_block ro_block,ux_block;
-    ifstream read_only_file("francesco_data/readonly_block2017-07-06+11:08.dat");
-    ifstream dynamic_file("francesco_data/dynamic_block2017-07-0611:08.dat");
+    ifstream read_only_file("../compression/francesco_data/readonly_block2017-07-06-12:12.dat");
+    ifstream dynamic_file("../compression/francesco_data/dynamic_block2017-07-06-12:12.dat");
     read_only_file >> ro_block;
     dynamic_file >> ux_block;
     //close the files
@@ -56,7 +55,7 @@ void run_workflow() {
     for (size_type i = 0 ;i < cols_;i++) {
         // all time values for neurons
         int nth_spike = 0;
-        while (neuron_time[i] < max_time) {
+        while (neuron_times[i] < max_time) {
             //uncompress blocks
             ro_block.uncompress();
             ux_block.uncompress();
@@ -69,20 +68,21 @@ void run_workflow() {
             ux_block(i,1) = calc_u(u,ro_block(i,3),delta_t,ro_block(i,1));
             ux_block(i,0) = calc_x(x,u,delta_t,ro_block(i,2));
             //update the neuron time, and loop
-            neuron_time[i] += delta_t;
+            neuron_times[i] += delta_t;
             double PSP = ro_block(i,0)*ux_block(i,1)*ux_block(i,0); 
             nth_spike++;
             //do printout of calc
-            std::cout << "neuron: " << i << " time: " << neuron_time[i]
+            std::cout << "neuron: " << i << " time: " << neuron_times[i]
                 << " old u,x " << u << "," << x 
                 << " new u,x " << ux_block(i,1) << "," << ux_block(i,0)
                 << " PSP is " << PSP << " for " << nth_spike << "th spike "<< std::endl;
+            //recompress the blocks
+            ro_block.compress();
+            ux_block.compress();
         }
     }
-
-
-    
 }
     
 int main (int argc,char ** argv) {
+    run_workflow();
 }
