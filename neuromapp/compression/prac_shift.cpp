@@ -26,6 +26,7 @@ int main (void) {
         prac_block b1;
         ifstream ifile(fname);
         ifile >> b1;
+        ifile.close();
         // not actually limited to the row otherwise
         size_type cols_ = b1.dim0(), rows_ = b1.num_rows();
         out << "elements : "<< (cols_*rows_) << "\t";
