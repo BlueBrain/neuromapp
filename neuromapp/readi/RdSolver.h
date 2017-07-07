@@ -26,11 +26,15 @@
 #ifndef MAPP_READ_RDSOLVER_
 #define MAPP_READ_RDSOLVER_
 
-#include "Tets.h"
 #include <vector>
 #include <string>
+#include <sstream>
 #include <fstream>
 #include <cassert>
+
+#include "Reac.h"
+#include "Tets.h"
+
 
 namespace readi {
 
@@ -80,10 +84,24 @@ public:
             std::getline(f, discard);       // skip '\n'
             std::getline(f, discard);       // skip description
             reaction_coefficients_.resize(n_reactions_);
-            reaction_lhs_.resize(n_reactions_);
-            reaction_rhs_.resize(n_reactions_);
             for (IntType i=0; i<n_reactions_; ++i) {
                 std::getline(f, discard); // read reaction lhs, rhs, and coeff
+                std::cout << "+++ reac: " << discard << std::endl;
+                std::vector<std::string> lhs;
+                std::vector<std::string> rhs;
+                double k_reac;
+                std::stringstream sstr(discard);
+                std::string buf;
+                while (sstr >> buf) {
+                    if (buf == "-") break;
+                    lhs.push_back(buf);
+                }
+                while (sstr >> buf) {
+                    if (buf == "-") break;
+                    rhs.push_back(buf);
+                }
+                sstr >> k_reac;
+                reactions_.emplace_back(species_names_, lhs, rhs, k_reac);
             }
 
 
@@ -146,8 +164,7 @@ private:
     std::vector<std::string> species_names_;
     std::vector<FloatType> diffusion_coefficients_;
     std::vector<FloatType> reaction_coefficients_;
-    std::vector< std::vector<IntType> > reaction_lhs_;
-    std::vector< std::vector<IntType> > reaction_rhs_;
+    std::vector< readi::Reac<IntType,FloatType> > reactions_;
 };
 
 } // namespace readi

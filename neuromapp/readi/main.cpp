@@ -30,6 +30,7 @@
 
 #include "readi/readi.h"
 #include "readi/Tets.h"
+#include "readi/Reac.h"
 #include "readi/RdSolver.h"
 
 #include "utils/error.h"
