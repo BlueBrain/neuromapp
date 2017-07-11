@@ -32,16 +32,17 @@
 #include <fstream>
 #include <cassert>
 
+#include "CompRej.h"
 #include "Reac.h"
 #include "Tets.h"
 
 
 namespace readi {
 
+
 template <class IntType, class FloatType>
 class RdSolver {
 public:
-
 
 
     // access diffusion constant of s-th species
