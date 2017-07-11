@@ -61,6 +61,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     //TODO look up pragma omp vector initialization
     vector<block<value_type,allocator_type>> v_a (VECTOR_SIZE);
     vector<block<value_type,allocator_type>> v_b (VECTOR_SIZE);
+    #if COMPRESS
+    std::cout << "using compress" << std::endl;
+    #else
+    std::cout << "no compress" << std::endl;
+    #endif
+
     for(block<value_type,allocator_type> &b : v_a) {
         b.resize(BLOCK_SIZE);
         #if COMPRESS
