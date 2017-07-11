@@ -10,7 +10,8 @@
 #include <algorithm>
 #include <vector>
 #include <string>
-
+/*comment out the compress line to enable/disable the compression options*/
+#define COMPRESS yes
 #define BOOST_TEST_MODULE block_copy_of_stream
 /*this is the number of elements generated for filling the block*/
 #define BLOCK_SIZE 8000
@@ -62,15 +63,27 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     vector<block<value_type,allocator_type>> v_b (VECTOR_SIZE);
     for(block<value_type,allocator_type> &b : v_a) {
         b.resize(BLOCK_SIZE);
+        #if COMPRESS
+        b.compress();
+        #endif
     }
     for(block<value_type,allocator_type> &b : v_b) {
         b.resize(BLOCK_SIZE);
+        #if COMPRESS
+        b.compress();
+        #endif
     }
+    size_type mem_used = VECTOR_SIZE*v_a[0].memory_allocated()*3*pow(10,-6);
     //prepare for the copy operation
     double min_time;
+    #pragma omp parallel for
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
+        #if COMPRESS
+            v_a[i].uncompress();
+            v_b[i].uncompress();
+        #endif
             block<value_type,allocator_type> & a = v_a[i];
             block<value_type,allocator_type> & b = v_b[i];
             pointer  ptr_a = a.data();
@@ -78,15 +91,104 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = ptr_b[j];
             }
-
+        #if COMPRESS
+            v_a[i].compress();
+            v_b[i].compress();
+        #endif
         }
         time_it.end();
         if (round == 0) min_time = time_it.duration();
         else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
-    std::cout << "minimum time for copy operation: " << min_time << " ms" << std::endl;
-    
-    double bandwith = VECTOR_SIZE*v_a[0].memory_allocated()*3*pow(10,-6) / (1000/min_time); // this will be in MB/s
-    std::cout << "bandwith: " << bandwith << " MB/s" << std::endl;
+
+    double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MB/s
+    //prepare for the add operation
+    #pragma omp parallel for
+    for (int round = 0; round < NUM_ROUNDS ; round++) {
+        time_it.start();
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+        #if COMPRESS
+            v_a[i].uncompress();
+            v_b[i].uncompress();
+        #endif
+            block<value_type,allocator_type> & a = v_a[i];
+            block<value_type,allocator_type> & b = v_b[i];
+            pointer  ptr_a = a.data();
+            pointer  ptr_b = b.data();
+            for (int j=0; j < BLOCK_SIZE;j++) {
+                ptr_a[j] = ptr_b[j] + ptr_a[j];
+            }
+        #if COMPRESS
+            v_a[i].compress();
+            v_b[i].compress();
+        #endif
+        }
+        time_it.end();
+        if (round == 0) min_time = time_it.duration();
+        else if(min_time > time_it.duration()) min_time = time_it.duration();
+    }
+    double add_bandwith = mem_used*(1000/min_time) ; // this will be in MB/s
+    //scale operation
+    #pragma omp parallel for
+    for (int round = 0; round < NUM_ROUNDS ; round++) {
+        time_it.start();
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+        #if COMPRESS
+            v_a[i].uncompress();
+            v_b[i].uncompress();
+        #endif
+            block<value_type,allocator_type> & a = v_a[i];
+            block<value_type,allocator_type> & b = v_b[i];
+            pointer  ptr_a = a.data();
+            pointer  ptr_b = b.data();
+            value_type scale = 5;
+            for (int j=0; j < BLOCK_SIZE;j++) {
+                ptr_a[j] = scale*ptr_b[j];
+            }
+        #if COMPRESS
+            v_a[i].compress();
+            v_b[i].compress();
+        #endif
+        }
+        time_it.end();
+        if (round == 0) min_time = time_it.duration();
+        else if(min_time > time_it.duration()) min_time = time_it.duration();
+    }
+    double scale_bandwith = mem_used*(1000/min_time) ; // this will be in MB/s
+    //triad operation
+    #pragma omp parallel for
+    for (int round = 0; round < NUM_ROUNDS ; round++) {
+        time_it.start();
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+        #if COMPRESS
+            v_a[i].uncompress();
+            v_b[i].uncompress();
+        #endif
+            block<value_type,allocator_type> & a = v_a[i];
+            block<value_type,allocator_type> & b = v_b[i];
+            pointer  ptr_a = a.data();
+            pointer  ptr_b = b.data();
+            value_type scale = 5;
+            for (int j=0; j < BLOCK_SIZE;j++) {
+                ptr_a[j] = scale*ptr_b[j] + ptr_a[j];
+            }
+        #if COMPRESS
+            v_a[i].compress();
+            v_b[i].compress();
+        #endif
+        }
+        time_it.end();
+        if (round == 0) min_time = time_it.duration();
+        else if(min_time > time_it.duration()) min_time = time_it.duration();
+    }
+    double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MB/s
+    //print message
+    std::cout << left;
+    std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<  copy_bandwith << setw(5) << "MB/s" << std::endl;
+    std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<  add_bandwith << setw(5) << "MB/s" << std::endl;
+    std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) <<  scale_bandwith << setw(5) << "MB/s" << std::endl;
+    std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) <<  triad_bandwith << setw(5) << "MB/s" << std::endl;
+
+
 }
 
