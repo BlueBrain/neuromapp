@@ -126,15 +126,6 @@ public:
     }
 
 
-
-    // compute scaled reaction rate
-    inline void compute_c_mu(FloatType reaction_rate, FloatType volume, IntType order) const {
-        FloatType volume_scaled = 1.e3 * volume * N_avogadro;
-        return reaction_rate * std::pow(volume_scaled, -order+1);
-    }
-
-
-
     // apply this reaction on a tetrahedron
     inline void apply(IntType tet_idx, readi::Tets<IntType,FloatType>& tets) const {
         for(IntType i=0; i<upd_idxs_.size(); ++i) {
@@ -142,6 +133,12 @@ public:
         }
     }
 
+
+    // compute scaled reaction rate for propensity
+    inline void compute_c_mu(FloatType reaction_rate, FloatType volume, IntType order) const {
+        FloatType volume_scaled = 1.e3 * volume * N_avogadro;
+        return reaction_rate * std::pow(volume_scaled, -order+1);
+    }
 
     // compute propensity of this reaction on a tetrahedron
     FloatType compute_propensity(IntType tet_idx, readi::Tets<IntType,FloatType>const& tets) const {

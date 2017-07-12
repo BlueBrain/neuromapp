@@ -32,9 +32,9 @@
 #include <fstream>
 #include <cassert>
 
-#include "CompRej.h"
-#include "Reac.h"
+#include "Model.h"
 #include "Tets.h"
+#include "CompRej.h"
 
 
 namespace readi {
@@ -45,89 +45,16 @@ class RdSolver {
 public:
 
 
-    // access diffusion constant of s-th species
-    inline FloatType& diffusion_coeff(IntType s) {
-        assert(s>=0 && s<n_species_);
-        return diffusion_coefficients_[s];
-    }
-    inline FloatType diffusion_coeff(IntType s) const {
-        assert(s>=0 && s<n_species_);
-        return diffusion_coefficients_[s];
-    }
-
-
-    // read all data from files
+    // read from file both model and mesh
     void read_mesh_and_model(std::string const& filename_mesh, std::string const& filename_model) {
+        model_.read_from_file(filename_model);
         tets_.read_from_file(filename_mesh, filename_model);
-        
-        std::ifstream f;
-       
-        try {
-            f.open(filename_model);
-            std::string discard;
-            
-            // Read Species
-            f >> discard >> n_species_; // read how many species
-            species_names_.resize(n_species_);
-            diffusion_coefficients_.resize(n_species_);
-            std::getline(f, discard); // read \n
-            std::getline(f, discard); // read description line
-            IntType tot_mol_per_spec;
-            for (IntType i=0; i<n_species_; ++i) {
-                f >> species_names_[i] >> tot_mol_per_spec; // read species name and total count
-                tets_.distribute_molecules(i, tot_mol_per_spec);// distribute these molecules in the mesh
-            }
-            std::getline(f, discard);       // skip '\n'
-            
-            // Reaction is not implemented yet: readfile is skipped for this part
-            std::getline(f, discard);       // skip empty line
-            f >> discard >> n_reactions_;   // read how many reactions
-            std::getline(f, discard);       // skip '\n'
-            std::getline(f, discard);       // skip description
-            reaction_coefficients_.resize(n_reactions_);
-            for (IntType i=0; i<n_reactions_; ++i) {
-                std::getline(f, discard); // read reaction lhs, rhs, and coeff
-                std::cout << "+++ reac: " << discard << std::endl;
-                std::vector<std::string> lhs;
-                std::vector<std::string> rhs;
-                double k_reac;
-                std::stringstream sstr(discard);
-                std::string buf;
-                while (sstr >> buf) {
-                    if (buf == "-") break;
-                    lhs.push_back(buf);
-                }
-                while (sstr >> buf) {
-                    if (buf == "-") break;
-                    rhs.push_back(buf);
-                }
-                sstr >> k_reac;
-                reactions_.emplace_back(species_names_, lhs, rhs, k_reac);
-            }
-
-
-            // Diffusion
-            std::getline(f, discard); // skip empty line 
-            std::getline(f, discard); // skip description line
-            for (IntType s=0; s<n_species_; ++s) {
-                f >> discard >> diffusion_coeff(s);
-            }
-
-        }
-        catch(const std::exception& ex) {
-            f.close();
-            throw;
-        }
-
-        // assert diffusion coefficients are correctely read
-        for (auto d : diffusion_coefficients_) 
-            assert(d!=0);
     }
 
 
     // compute update period, a.k.a. tau
     FloatType get_update_period() {
-        FloatType max_diffusion_coeff = *std::max_element(diffusion_coefficients_.begin(), diffusion_coefficients_.end());
+        FloatType max_diffusion_coeff = model_.get_max_diff();
         FloatType max_shape = tets_.get_max_shape();
         printf("computed update period tau = %1.15e\n", 1.0 / (max_diffusion_coeff * max_shape));
         return 1.0 / (max_diffusion_coeff * max_shape) ;
@@ -143,6 +70,7 @@ public:
 
     // run reactions
     void run_reactions(FloatType tau) {
+        std::cout << "---> Running reactions.\n";
         // TODO: fill this function
         return;
     }
@@ -150,22 +78,54 @@ public:
 
     // run diffusions
     void run_diffusions(FloatType tau) {
-        for (IntType s=0; s<n_species_; ++s) {
-            tets_.diffuse(tau, s, diffusion_coeff(s));  // diffuse molecules of species s
-            tets_.empty_buckets(s);                      // empty buckets of species s
+        std::cout << "---> Running diffusions.\n";
+        for (IntType s=0; s<model_.get_n_species(); ++s) {
+            diffuse(tau, s, model_.diffusion_coeff(s));  // diffuse molecules of species s
+            tets_.empty_buckets(s);                     // empty buckets of species s
         }
 
     }
 
 
+    // run diffusion of molecules of species s
+    void diffuse(FloatType tau, IntType s, FloatType diff_cnst) {
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+
+        // diffuse molecule of s-th species from every tetrahedron
+        for (IntType i=0; i<tets_.get_n_tets(); ++i) {
+
+            FloatType zeta_k = diff_cnst * tets_.shape_sum(i) * tau;                // zeta_k = prob. of local diffusion
+            IntType n_leaving_max = tets_.molecule_count(s, i);                     // compute max n. of molecules that may leave
+
+            // TODO: n_leaving_max should be based on occupancy
+
+            readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
+            IntType tot_leaving_mols = binomial(g);                                 // compute n. of molecules that will actually leave
+            tets_.molecule_count(s, i) -= tot_leaving_mols;                         // remove from origin tet n. of molecules leaving
+
+            FloatType shapes_partial = tets_.shape_sum(i);                          // select destinations with multinomial
+            for (IntType j=0; j<3; ++j) {
+                readi::binomial_distribution<IntType> binomial_destination(tot_leaving_mols, tets_.shape(i,j)/shapes_partial);
+                IntType leaving_neighb = binomial_destination(g);
+                tot_leaving_mols -= leaving_neighb;
+                tets_.add_to_bucket(i, j, leaving_neighb);
+                shapes_partial -= tets_.shape(i,j);
+            }
+
+            tets_.add_to_bucket(i, 3, tot_leaving_mols);                            // last remaining direction possible: all the rest
+        }
+
+    }
+
+
+
+
 private:
+    readi::Model<IntType, FloatType> model_;
     readi::Tets<IntType, FloatType> tets_;
-    IntType n_species_;
-    IntType n_reactions_;
-    std::vector<std::string> species_names_;
-    std::vector<FloatType> diffusion_coefficients_;
-    std::vector<FloatType> reaction_coefficients_;
-    std::vector< readi::Reac<IntType,FloatType> > reactions_;
+    readi::CompRej<IntType, FloatType> comprej_;
 };
 
 } // namespace readi

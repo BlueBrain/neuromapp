@@ -43,6 +43,13 @@ public:
     using idx_type = IntType;
     using real_type = FloatType;
 
+
+
+    // get number of tetrahedra
+    inline IntType get_n_tets() const {
+        return n_tets_;
+    }
+
     
     // access volume of i-th tetrahedron
     inline FloatType& volume(IntType i) {
@@ -120,42 +127,52 @@ public:
 
     // read mesh + model and constructs internal objects
     void read_from_file(std::string const& filename_mesh, std::string const& filename_model) {
-            
+                 
         std::ifstream file_mesh(filename_mesh);
         std::ifstream file_model(filename_model);
         
         try {
+
             std::string discard;
 
-            file_mesh >> discard >> n_tets_;        // read
+            // --- [MESH_FILE] READ VOLUME + NEIGHBORS + SHAPES ---
+            file_mesh >> discard >> n_tets_;            // read
             std::cout << "N tets: " <<  n_tets_ << std::endl;
-            std::getline(file_mesh, discard);       // skip \n
-            std::getline(file_mesh, discard);       // skip headers
-            volumes_.resize(n_tets_);       // each tet has a volume
-            neighbors_.resize(n_tets_*4);   // each tet has (up to) 4 neighbors
-            shapes_.resize(n_tets_*4);      // each connect to neighb has a shape
-            shapes_sums_.resize(n_tets_);   // each tet has tot sum of neighb shapes
+            std::getline(file_mesh, discard);           // skip '\n'
+            std::getline(file_mesh, discard);           // skip headers
+            volumes_.resize(n_tets_);                   // each tet has a volume
+            neighbors_.resize(n_tets_*4);               // each tet has (up to) 4 neighbors
+            shapes_.resize(n_tets_*4);                  // each connect to neighb has a shape
+            shapes_sums_.resize(n_tets_);               // each tet has tot sum of neighb shapes
 
-            file_model >> discard >> n_species_;     // how many species?
-            std::cout << "N species: " <<  n_species_ << std::endl;
-            file_model.close();
-            mol_counts_.resize(n_tets_*n_species_); // each tet knows how many mol of each species it contains
-            mol_counts_bucket_.resize(n_tets_); // bucket containing molecules received from diffusion
-            
-            
             for (IntType i=0; i<n_tets_; ++i) {
                 file_mesh >> discard >> volume(i);      // read volume
-                for (IntType j=0; j<4; ++j) 
-                   file_mesh >> neighbor(i, j);         // read idx of neighbors
+                for (IntType j=0; j<4; ++j)
+                   file_mesh >> neighbor(i, j);         // read idxes of neighbors
                 for (IntType j=0; j<4; ++j) {
-                   file_mesh >> shape(i, j);
+                   file_mesh >> shape(i, j);            // read shapes of neighbors
                    if (neighbor(i,j) == -1)
                        shape(i, j) = 0.;
                 }
                 shape_sum(i) = 0;
-                for (IntType j=0; j<4; ++j)  
+                for (IntType j=0; j<4; ++j)
                     shape_sum(i) += shape(i, j);
             }
+
+
+            // --- [MODEL_FILE] READ N. SPECIES + N. INITIAL MOLECULES ---
+            file_model >> discard >> n_species_;                // read n. of species
+            std::cout << "N species: " <<  n_species_ << std::endl;
+            mol_counts_.resize(n_tets_*n_species_);             // each tet knows how many mol of each species it contains
+            mol_counts_bucket_.resize(n_tets_);                 // bucket containing molecules received from diffusion
+            std::getline(file_model, discard);                           // read \n
+            std::getline(file_model, discard);                           // read description line
+            IntType tot_mol_per_spec;
+            for (IntType i=0; i<n_species_; ++i) {
+                file_model >> discard >> tot_mol_per_spec;                        // read species name and total count
+                distribute_molecules(i, tot_mol_per_spec);      // distribute these molecules in the mesh
+            }
+            file_model.close();
 
         }
         catch(const std::exception& ex) {
@@ -167,7 +184,7 @@ public:
     }        
 
 
-    // distribute tot number of molecules on each tetrahedron
+    // distribute tot number of molecules on each tetrahedron, used at initialization of mol counts
     void distribute_molecules(IntType species_idx, IntType n_molecules_tot) {
         IntType n_molecules_partial = 0; // molecules that have been placed until now
         FloatType tot_volume = get_tot_volume();
@@ -185,33 +202,12 @@ public:
     }
 
 
-    // run diffusion of molecules of species s
-    void diffuse(FloatType tau, IntType s, FloatType diff_cnst) {
 
-        std::random_device rd;
-        std::mt19937 g(rd());
-        // molecules of species s diffuse from each tetrahedron
-        for (IntType i=0; i<n_tets_; ++i) {
-            FloatType zeta_k = diff_cnst * shape_sum(i) * tau;
-            // TODO: actually the max number of leaving molecules should be based on occupancy...
-            IntType n_leaving_max = molecule_count(s, i);
-            readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
-            IntType tot_leaving_mols = binomial(g); // how many molecules leave K
-            molecule_count(s, i) -= tot_leaving_mols;
-            FloatType shapes_partial = shape_sum(i);
-            for (IntType j=0; j<3; ++j) { // select destinations with multinomial
-                readi::binomial_distribution<IntType> binomial_destination(tot_leaving_mols, shape(i,j)/shapes_partial);
-                IntType leaving_neighb = binomial_destination(g);
-                tot_leaving_mols -= leaving_neighb;
-                mol_counts_bucket_[neighbor(i,j)] += leaving_neighb;
-                shapes_partial -= shape(i,j);
-            }
-            // last destination: all the remaining
-            mol_counts_bucket_[neighbor(i,3)] += tot_leaving_mols;
-        }
 
+    // add to buckets during diffusion
+    inline void add_to_bucket(IntType tet_idx, IntType neighb_idx, IntType diffusing_count) {
+        mol_counts_bucket_[neighbor(tet_idx, neighb_idx)] += diffusing_count;
     }
-
 
     // empty buckets after diffusion
     void empty_buckets(IntType s) {
@@ -221,7 +217,6 @@ public:
         }
         return;
     }
-
 
 
 private:

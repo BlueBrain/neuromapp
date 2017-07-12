@@ -30,12 +30,13 @@
 
 #include "rng_utils.h"
 #include <cmath>
+#include <vector>
+#include <set>
+#include <memory>
+#include <iterator>
+
 
 namespace readi {
-
-
-template<class IntType, class FloatType >
-class CompRejGroup;
 
 
 template<class IntType, class FloatType>
@@ -43,6 +44,13 @@ class CompRej{
 public:
     using idx_type = IntType;
     using real_type = FloatType;
+
+    struct CompRejGroup {
+        std::set<IntType> propensity_idxes;            // set of propensities within this range
+        inline IntType get_group_propensity() const {return ag_;}
+        FloatType ag_;
+    };
+
 
     // c-tor
     CompRej(IntType n_reacs, IntType n_tets) :
@@ -58,14 +66,20 @@ public:
     inline FloatType& propensity_val(IntType r, IntType i) {
         assert(r>=0 && r<n_reacs_);
         assert(i>=0 && i<n_tets_);
-        return propensity_values_[n_reacs_*i + r];
+        return propensity_values_[propensity_idx(r, i)];
     }
     inline FloatType propensity_val(IntType r, IntType i) const {
         assert(r>=0 && r<n_reacs_);
         assert(i>=0 && i<n_tets_);
-        return propensity_values_[n_reacs_*i + r];
+        return propensity_values_[propensity_idx(r, i)];
     }
 
+
+    inline IntType propensity_idx(IntType r, IntType i) const {
+        assert(r>=0 && r<n_reacs_);
+        assert(i>=0 && i<n_tets_);
+        return n_reacs_*i + r;
+    }
 
 
     // get total propensity
@@ -74,20 +88,19 @@ public:
     }
 
 
-    // select the group where reaction will happen, using a Categorical distribution
+    // CATEGORICAL SAMPLING TO CHOOSE GROUP OF PROPENSITIES
     template <class Generator>
     IntType select_group(Generator& g) const {
-        // TODO: test if this really works
         const FloatType unif = (g() - g.min())/double(g.max() - g.min());
         const FloatType discr = unif * get_total_propensity();
         FloatType part_sum = 0.;
-        for (int i=0; i<cr_groups_neg_.size(); ++i){
-            part_sum += cr_groups_neg_[i].get_group_propensity();
+        for (int i=cr_groups_neg_.size()-1; i>=0; --i){
+            part_sum += cr_groups_neg_[i]->get_group_propensity();
             if (discr <= part_sum)
-                return -(i+1);
+                return -i-1;
         }
         for (int i=0; i<cr_groups_pos_.size()-1; ++i){
-            part_sum += cr_groups_pos_[i].get_group_propensity();
+            part_sum += cr_groups_pos_[i]->get_group_propensity();
             if (discr <= part_sum)
                 return i;
         }
@@ -95,19 +108,84 @@ public:
     }
 
 
-
-    // insert a propensity in a group, given the idx of the group (negative values allowed here!)
-    void insert_prop_in_group(FloatType prop, IntType group_idx) {
-        // TODO
-        // - also check if enough elements in vector, resize if needed
-        // - pointer to groups, not groups!!
+    // REJECTION SAMPLING TO CHOOSE IDX WITHIN A GROUP (NEGATIVE GROUPS ALLOWED)
+    template <class Genenerator>
+    IntType select_propensity_in_group(Genenerator &g, IntType group_idx) const {
+        // REJECTION SAMPLING
+        // - would like to sample X ~ f  [f is a p.d.f.]
+        // - we know how to sample from Y ~ g [g is a p.d.f.]
+        // - we know a value M s.t. f(x) < M g(x)  [for every x]
+        // ALGORITHM
+        // 1. sample x ~ g, u ~ Unif(0,1)
+        // 2. if (f(x) > M g(x) u) accept x [as x ~ f]
+        //    else reject and goto 1.
+        // IN OUR CASE
+        // - f = Categorical{a_1/a_g, ..., a_N/a_g}
+        // - g = Uniform{1/N, ..., 1/N}
+        // - M = N * uppb/a_g  [uppb = upper bound of range (2^{i}, 2^{i+1})]
+        // ---> if (a_j/a_g > N * uppb/a_g * 1/N) <==> if (a_j > uppb)
+        IntType uppbd = (group_idx<0)?(std::pow(2.0, group_idx)):(std::pow(2.0, group_idx+1));
+        CompRejGroup& group = (group_idx<0)?(*cr_groups_neg_[group_idx+1]):(cr_groups_pos_[group_idx]);
+        while(true) {
+            FloatType u1 = (g() - g.min())/double(g.max() - g.min());
+            IntType local_idx = std::floor(u1 * group.size());            // index within the group
+            FloatType u2 = (g() - g.min())/double(g.max() - g.min());
+            IntType global_idx = *std::next(group.begin(), local_idx);            // global index of propensity
+            FloatType a_j = propensity_values_[global_idx];
+            if (a_j > uppbd * u2)
+                return global_idx;
+        }
 
     }
 
-    // erease a propensity from a group, given the idx of the group (negative values allowed here!)
-    void erease_prop_from_group(FloatType prop, IntType group_idx) {
-        // TODO
 
+
+    // insert a propensity in a group, given the idx of the group (negative values allowed here!)
+    void insert_propensity_in_group(IntType prop_idx, IntType group_idx) {
+        FloatType prop_val = propensity_values_[prop_idx];
+        assert(group_idx == std::logb(prop_val));
+        if (group_idx>=0) {
+            if (group_idx >= cr_groups_pos_->size()) {
+                cr_groups_pos_.reserve(group_idx);
+                IntType n_groups_to_add = group_idx - cr_groups_pos_->size() + 1;
+                for (IntType i=0; i<n_groups_to_add; ++i)
+                    cr_groups_pos_.emplace_back(new CompRejGroup);
+            }
+            cr_groups_pos_[group_idx]->propensity_idxes.insert(prop);
+            cr_groups_pos_[group_idx]->ag_ += prop_val;                             // update group propensity
+        }
+        else {
+            ++group_idx;
+            if (group_idx >= cr_groups_neg_->size()) {
+                cr_groups_neg_.reserve(group_idx);
+                IntType n_groups_to_add = group_idx - cr_groups_pos_->size() + 1;
+                for (IntType i=0; i<n_groups_to_add; ++i)
+                    cr_groups_neg_.emplace_back(new CompRejGroup);
+            }
+            cr_groups_neg_[group_idx]->propensity_idxes.insert(prop);
+            cr_groups_neg_[group_idx]->ag_ += prop;                                 // update group propensity
+        }
+        a0_ += prop;                                                                // update total propensity
+    }
+
+
+    // erease a propensity from a group, given the idx of the group (negative values allowed here!)
+    void erease_propensity_from_group(IntType prop_idx, IntType group_idx) {
+        assert(group_idx == std::logb(prop));
+        if (group_idx>=0) {
+            cr_groups_pos_[group_idx]->propensity_idxes.erase(prop);
+            cr_groups_pos_[group_idx]->ag_ -= prop;                                 // update group propensity
+            if (cr_groups_pos_[group_idx]->propensity_idxes.size() == 0)
+                cr_groups_pos_[group_idx]->ag_ = 0.;
+        }
+        else {
+            ++group_idx;
+            cr_groups_neg_[group_idx]->propensity_idxes.erase(prop);
+            cr_groups_neg_[group_idx]->ag_ -= prop;                                 // update group propensity
+            if (cr_groups_neg_[group_idx]->propensity_idxes.size() == 0)
+                cr_groups_neg_[group_idx]->ag_ = 0.;
+        }
+        a0_ -= prop;                                                                // update total propensity
     }
 
 
@@ -124,8 +202,15 @@ public:
         IntType old_prop_group = std::logb(propensity_val(r, i));
         IntType new_prop_group = std::logb(new_prop);
 
-        if (old_prop_group != new_prop_group)
-            // ...
+        //propensity_val(r, i) = new_prop;
+
+        if (old_prop_group != new_prop_group) {
+            erease_propensity_from_group(propensity_idx, old_prop_group);
+        }
+
+        // TODO: this funciton is wrong (mess up idx and val of old/new props)
+
+
     }
 
 
@@ -135,29 +220,11 @@ private:
     IntType n_tets_;
     std::vector<FloatType> propensity_values_;      // vector with all propensity values
     FloatType a0_;                                  // total propensity
-    std::vector<CompRejGroup<IntType,FloatType> > cr_groups_pos_; // i-th group, i=0.., covers range (2^{i}, 2^{i+1})
-    std::vector<CompRejGroup<IntType,FloatType> > cr_groups_neg_; // i-th group, i=0.., covers range (2^{-i-1}, 2^{-i})
+    std::vector<std::unique_ptr<CompRejGroup> > cr_groups_pos_; // i-th group, i=0.., covers range (2^{i}, 2^{i+1})
+    std::vector<std::unique_ptr<CompRejGroup> > cr_groups_neg_; // i-th group, i=0.., covers range (2^{-i-1}, 2^{-i})
 };
 
 
-
-template<class IntType, class FloatType>
-class CompRejGroup{
-public:
-    using idx_type = IntType;
-    using real_type = FloatType;
-
-
-    // get total propensity
-    inline FloatType get_group_propensity() {
-        return ag_;
-    }
-
-private:
-    FloatType a0_;                                  // total group propensity
-
-
-};
 
 }
 
