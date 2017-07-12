@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         v_b.push_back(bb);
         v_c.push_back(bc);
     }
-    size_type mem_used = v_a[0].memory_allocated()*3*pow(10,-3);
+    double mem_used = v_a[0].memory_allocated()*3*pow(10,-6);
     //prepare for the copy operation
     double min_time;
 #pragma omp parallel for
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
 
-    double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in KBs
+    double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
     //prepare for the add operation
 #pragma omp parallel for
     for (int round = 0; round < NUM_ROUNDS ; round++) {
@@ -138,8 +138,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         if (round == 0) min_time = time_it.duration();
         else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
-    mem_used = v_a[0].memory_allocated()*2*pow(10,-3);
-    double add_bandwith = mem_used*(1000/min_time) ; // this will be in KBs
+    mem_used = v_a[0].memory_allocated()*2*pow(10,-6);
+    double add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
 
     //scale operation
 #pragma omp parallel for
@@ -167,7 +167,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         if (round == 0) min_time = time_it.duration();
         else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
-    double scale_bandwith = mem_used*(1000/min_time) ; // this will be in KBs
+    double scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
 
     //triad operation
 #pragma omp parallel for
@@ -199,12 +199,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         if (round == 0) min_time = time_it.duration();
         else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
-    double triad_bandwith = mem_used*(1000/min_time) ; // this will be in KBs
+    double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
     //print message
   std::cout << left;
-  std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<  copy_bandwith << setw(5) << "KBs" << std::endl;
-    std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<  add_bandwith << setw(5) << "KBs" << std::endl;
-    std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) <<  scale_bandwith << setw(5) << "KBs" << std::endl;
-    std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) <<  triad_bandwith << setw(5) << "KBs" << std::endl;
+  std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
+    std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << add_bandwith << setw(5) << "MBs" << std::endl;
+    std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << scale_bandwith << setw(5) << "MBs" << std::endl;
+    std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << triad_bandwith << setw(5) << "MBs" << std::endl;
 }
 
