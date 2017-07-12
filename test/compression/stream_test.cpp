@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 /*comment out the compress line to enable/disable the compression options*/
-#define COMPRESS yes
+#define COMPRESS
 #define BOOST_TEST_MODULE block_copy_of_stream
 /*this is the number of elements generated for filling the block*/
 #define BLOCK_SIZE 8000
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     //TODO look up pragma omp vector initialization
     vector<block<value_type,allocator_type>> v_a (VECTOR_SIZE);
     vector<block<value_type,allocator_type>> v_b (VECTOR_SIZE);
-    #if COMPRESS
+    #if defined(COMPRESS)
     std::cout << "using compress" << std::endl;
     #else
     std::cout << "no compress" << std::endl;
@@ -69,13 +69,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
 
     for(block<value_type,allocator_type> &b : v_a) {
         b.resize(BLOCK_SIZE);
-        #if COMPRESS
+        #if defined(COMPRESS)
         b.compress();
         #endif
     }
     for(block<value_type,allocator_type> &b : v_b) {
         b.resize(BLOCK_SIZE);
-        #if COMPRESS
+        #if defined(COMPRESS)
         b.compress();
         #endif
     }
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
         #endif
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = ptr_b[j];
             }
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].compress();
             v_b[i].compress();
         #endif
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
         #endif
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = ptr_b[j] + ptr_a[j];
             }
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].compress();
             v_b[i].compress();
         #endif
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
         #endif
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = scale*ptr_b[j];
             }
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].compress();
             v_b[i].compress();
         #endif
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
         #endif
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = scale*ptr_b[j] + ptr_a[j];
             }
-        #if COMPRESS
+        #if defined(COMPRESS)
             v_a[i].compress();
             v_b[i].compress();
         #endif
