@@ -41,13 +41,13 @@ namespace neuromapp {
                 }
             }
 
-            template<typename data_type>
-                void compress_policy(data_type ** data_source, size_t *uncompressed_size) {
+            template<typename value_type>
+                void compress_policy(value_type ** data_source, size_t *uncompressed_size) {
                     //get the approximate size in memory of the data_source
                     uLong source_len = (uLong) *uncompressed_size;
                     uLong dest_len = compressBound(source_len);
                     //create void buffer holder dest for the compressed block
-                    data_type * dest = (data_type *) malloc(dest_len);// creates enough space for the compressed block
+                    value_type * dest = (value_type *) malloc(dest_len);// creates enough space for the compressed block
                     // assign Bytef* for source and dest
                     Bytef* source_ptr = (Bytef*) *data_source;// hopefully typedef pointer (data() return) can be coerced to Bytef*
                     Bytef* dest_ptr = (Bytef*) dest;
@@ -58,16 +58,17 @@ namespace neuromapp {
                     //update the size of the block
                     *uncompressed_size = dest_len;
                     // change the uncompressed data out for compressed
-                    *data_source = dest;
+                    swap(*data_source,dest);
+                    free(dest);
                 }
 
 
             //double pointer so we can change the upper_level within the function
-            template<typename data_type>
-                void uncompress_policy(data_type ** data_source, size_t *compressed_size, size_t uncompressed_size) {
+            template<typename value_type>
+                void uncompress_policy(value_type ** data_source, size_t *compressed_size, size_t uncompressed_size) {
                     //original amount of memory used is still discernable
                     uLong dest_len = (uLong) uncompressed_size;
-                    data_type * dest = (data_type *) std::malloc(dest_len);
+                    value_type * dest = (value_type *) std::malloc(dest_len);
                     //need to get the compressed source size to work with
                     uLong source_len = *compressed_size;
                     //set pointers for uncompress
@@ -78,7 +79,8 @@ namespace neuromapp {
                     check_compression_rc(rc);
                     //swap the data
                     *compressed_size = uncompressed_size;
-                    *data_source = dest;
+                    swap(*data_source,dest);
+                    free(dest);
                 }
     };
 
