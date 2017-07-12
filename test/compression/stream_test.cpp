@@ -14,7 +14,7 @@
 //#define COMPRESS
 #define BOOST_TEST_MODULE block_copy_of_stream
 /*this is the number of elements generated for filling the block*/
-#define BLOCK_SIZE 1953
+#define BLOCK_SIZE 8000
 #define VECTOR_SIZE 64
 /*this is the number of times that we run each benchmark computation before taking the minimum time*/
 #define NUM_ROUNDS 10
@@ -83,10 +83,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     double mem_used = v_a[0].memory_allocated()*3*pow(10,-6);
     //prepare for the copy operation
     double min_time;
-#pragma omp parallel for
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
+            time_it.start();
 #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
@@ -102,18 +101,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             v_a[i].compress();
             v_b[i].compress();
 #endif
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
-        time_it.end();
-        if (round == 0) min_time = time_it.duration();
-        else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
 
     double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
     //prepare for the add operation
-#pragma omp parallel for
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
+            time_it.start();
 #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
@@ -133,20 +131,19 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             v_b[i].compress();
             v_c[i].compress();
 #endif
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
-        time_it.end();
-        if (round == 0) min_time = time_it.duration();
-        else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
     mem_used = v_a[0].memory_allocated()*2*pow(10,-6);
     double add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
 
     //scale operation
-#pragma omp parallel for
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
 #if defined(COMPRESS)
+            time_it.start();
             v_a[i].uncompress();
             v_b[i].uncompress();
 #endif
@@ -162,18 +159,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             v_a[i].compress();
             v_b[i].compress();
 #endif
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
-        time_it.end();
-        if (round == 0) min_time = time_it.duration();
-        else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
     double scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
 
     //triad operation
-#pragma omp parallel for
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
+            time_it.start();
 #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
@@ -194,15 +190,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             v_b[i].compress();
             v_c[i].compress();
 #endif
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
-        time_it.end();
-        if (round == 0) min_time = time_it.duration();
-        else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
     double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
     //print message
-  std::cout << left;
-  std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
+    std::cout << left;
+    std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
     std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << add_bandwith << setw(5) << "MBs" << std::endl;
     std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << scale_bandwith << setw(5) << "MBs" << std::endl;
     std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << triad_bandwith << setw(5) << "MBs" << std::endl;
