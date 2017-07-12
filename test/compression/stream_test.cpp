@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 /*comment out the compress line to enable/disable the compression options*/
-#define COMPRESS
+//#define COMPRESS
 #define BOOST_TEST_MODULE block_copy_of_stream
 /*this is the number of elements generated for filling the block*/
 #define BLOCK_SIZE 1953
@@ -80,9 +80,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         v_b.push_back(bb);
         v_c.push_back(bc);
     }
-    size_type mem_used = VECTOR_SIZE*v_a[0].memory_allocated()*3*pow(10,-6);
+    size_type mem_used = v_a[0].memory_allocated()*3*pow(10,-3);
     //prepare for the copy operation
     double min_time;
+#pragma omp parallel for
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
         for (int i = 0; i < VECTOR_SIZE;i++) {
@@ -107,103 +108,103 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
 
-    double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MB/s
-//    //prepare for the add operation
-//#pragma omp parallel for
-//    for (int round = 0; round < NUM_ROUNDS ; round++) {
-//        time_it.start();
-//        for (int i = 0; i < VECTOR_SIZE;i++) {
-//#if defined(COMPRESS)
-//            v_a[i].uncompress();
-//            v_b[i].uncompress();
-//            v_c[i].uncompress();
-//#endif
-//            block<value_type,allocator_type> & a = v_a[i];
-//            block<value_type,allocator_type> & b = v_b[i];
-//            block<value_type,allocator_type> & c = v_c[i];
-//            pointer  ptr_a = a.data();
-//            pointer  ptr_b = b.data();
-//            pointer  ptr_c = c.data();
-//            for (int j=0; j < BLOCK_SIZE;j++) {
-//                ptr_a[j] = ptr_b[j] + ptr_c[j];
-//            }
-//#if defined(COMPRESS)
-//            v_a[i].compress();
-//            v_b[i].compress();
-//            v_c[i].compress();
-//#endif
-//        }
-//        time_it.end();
-//        if (round == 0) min_time = time_it.duration();
-//        else if(min_time > time_it.duration()) min_time = time_it.duration();
-//    }
-//    mem_used = VECTOR_SIZE*v_a[0].memory_allocated()*2*pow(10,-6);
-//    double add_bandwith = mem_used*(1000/min_time) ; // this will be in MB/s
-//
-//    //scale operation
-//#pragma omp parallel for
-//    for (int round = 0; round < NUM_ROUNDS ; round++) {
-//        time_it.start();
-//        for (int i = 0; i < VECTOR_SIZE;i++) {
-//#if defined(COMPRESS)
-//            v_a[i].uncompress();
-//            v_b[i].uncompress();
-//#endif
-//            block<value_type,allocator_type> & a = v_a[i];
-//            block<value_type,allocator_type> & b = v_b[i];
-//            pointer  ptr_a = a.data();
-//            pointer  ptr_b = b.data();
-//            value_type scale = 5;
-//            for (int j=0; j < BLOCK_SIZE;j++) {
-//                ptr_a[j] = scale*ptr_b[j];
-//            }
-//#if defined(COMPRESS)
-//            v_a[i].compress();
-//            v_b[i].compress();
-//#endif
-//        }
-//        time_it.end();
-//        if (round == 0) min_time = time_it.duration();
-//        else if(min_time > time_it.duration()) min_time = time_it.duration();
-//    }
-//    double scale_bandwith = mem_used*(1000/min_time) ; // this will be in MB/s
-//
-//    //triad operation
-//#pragma omp parallel for
-//    for (int round = 0; round < NUM_ROUNDS ; round++) {
-//        time_it.start();
-//        for (int i = 0; i < VECTOR_SIZE;i++) {
-//#if defined(COMPRESS)
-//            v_a[i].uncompress();
-//            v_b[i].uncompress();
-//            v_c[i].uncompress();
-//#endif
-//            block<value_type,allocator_type> & a = v_a[i];
-//            block<value_type,allocator_type> & b = v_b[i];
-//            block<value_type,allocator_type> & c = v_c[i];
-//            pointer  ptr_a = a.data();
-//            pointer  ptr_b = b.data();
-//            pointer  ptr_c = c.data();
-//            value_type scale = 5;
-//            for (int j=0; j < BLOCK_SIZE;j++) {
-//                ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
-//            }
-//#if defined(COMPRESS)
-//            v_a[i].compress();
-//            v_b[i].compress();
-//            v_c[i].compress();
-//#endif
-//        }
-//        time_it.end();
-//        if (round == 0) min_time = time_it.duration();
-//        else if(min_time > time_it.duration()) min_time = time_it.duration();
-//    }
-//    double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MB/s
-//    //print message
-    std::cout << left;
-    std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<  copy_bandwith << setw(5) << "MB/s" << std::endl;
-//    std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<  add_bandwith << setw(5) << "MB/s" << std::endl;
-//    std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) <<  scale_bandwith << setw(5) << "MB/s" << std::endl;
-//    std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) <<  triad_bandwith << setw(5) << "MB/s" << std::endl;
+    double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in KBs
+    //prepare for the add operation
+#pragma omp parallel for
+    for (int round = 0; round < NUM_ROUNDS ; round++) {
+        time_it.start();
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+#if defined(COMPRESS)
+            v_a[i].uncompress();
+            v_b[i].uncompress();
+            v_c[i].uncompress();
+#endif
+            block<value_type,allocator_type> & a = v_a[i];
+            block<value_type,allocator_type> & b = v_b[i];
+            block<value_type,allocator_type> & c = v_c[i];
+            pointer  ptr_a = a.data();
+            pointer  ptr_b = b.data();
+            pointer  ptr_c = c.data();
+            for (int j=0; j < BLOCK_SIZE;j++) {
+                ptr_a[j] = ptr_b[j] + ptr_c[j];
+            }
+#if defined(COMPRESS)
+            v_a[i].compress();
+            v_b[i].compress();
+            v_c[i].compress();
+#endif
+        }
+        time_it.end();
+        if (round == 0) min_time = time_it.duration();
+        else if(min_time > time_it.duration()) min_time = time_it.duration();
+    }
+    mem_used = v_a[0].memory_allocated()*2*pow(10,-3);
+    double add_bandwith = mem_used*(1000/min_time) ; // this will be in KBs
+
+    //scale operation
+#pragma omp parallel for
+    for (int round = 0; round < NUM_ROUNDS ; round++) {
+        time_it.start();
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+#if defined(COMPRESS)
+            v_a[i].uncompress();
+            v_b[i].uncompress();
+#endif
+            block<value_type,allocator_type> & a = v_a[i];
+            block<value_type,allocator_type> & b = v_b[i];
+            pointer  ptr_a = a.data();
+            pointer  ptr_b = b.data();
+            value_type scale = 5;
+            for (int j=0; j < BLOCK_SIZE;j++) {
+                ptr_a[j] = scale*ptr_b[j];
+            }
+#if defined(COMPRESS)
+            v_a[i].compress();
+            v_b[i].compress();
+#endif
+        }
+        time_it.end();
+        if (round == 0) min_time = time_it.duration();
+        else if(min_time > time_it.duration()) min_time = time_it.duration();
+    }
+    double scale_bandwith = mem_used*(1000/min_time) ; // this will be in KBs
+
+    //triad operation
+#pragma omp parallel for
+    for (int round = 0; round < NUM_ROUNDS ; round++) {
+        time_it.start();
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+#if defined(COMPRESS)
+            v_a[i].uncompress();
+            v_b[i].uncompress();
+            v_c[i].uncompress();
+#endif
+            block<value_type,allocator_type> & a = v_a[i];
+            block<value_type,allocator_type> & b = v_b[i];
+            block<value_type,allocator_type> & c = v_c[i];
+            pointer  ptr_a = a.data();
+            pointer  ptr_b = b.data();
+            pointer  ptr_c = c.data();
+            value_type scale = 5;
+            for (int j=0; j < BLOCK_SIZE;j++) {
+                ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
+            }
+#if defined(COMPRESS)
+            v_a[i].compress();
+            v_b[i].compress();
+            v_c[i].compress();
+#endif
+        }
+        time_it.end();
+        if (round == 0) min_time = time_it.duration();
+        else if(min_time > time_it.duration()) min_time = time_it.duration();
+    }
+    double triad_bandwith = mem_used*(1000/min_time) ; // this will be in KBs
+    //print message
+  std::cout << left;
+  std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<  copy_bandwith << setw(5) << "KBs" << std::endl;
+    std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<  add_bandwith << setw(5) << "KBs" << std::endl;
+    std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) <<  scale_bandwith << setw(5) << "KBs" << std::endl;
+    std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) <<  triad_bandwith << setw(5) << "KBs" << std::endl;
 }
 
