@@ -25,6 +25,7 @@
 #include "compression/block_sort.h"
 #include "compression/block.h"
 #include "compression/bit_shifting.h"
+#include "compression/timer_tool.h"
 
 /* make namespace alias for program options */
 using neuromapp::block;
@@ -34,6 +35,7 @@ namespace po = boost::program_options;
 // what type should we default to?
 using std_block = block<float,cstandard>;
 typedef size_t size_type;
+neuromapp::Timer timer;
 
 //todo include more boost program_options later on
 int comp_execute(int argc,char *const argv[])
@@ -106,29 +108,24 @@ int comp_execute(int argc,char *const argv[])
 
 void file_routine( std_block & b1, ostream & os ,po::variables_map & vm,size_type row_sort=0) {
     if(vm.count("split")) {
-        chrono::time_point<chrono::system_clock> start,end;
-        start = chrono::system_clock::now();
+        timer.start();
         block<unsigned int, cstandard> split_block = neuromapp::generate_split_block(b1);
-        end = chrono::system_clock::now();
-        chrono::duration<double,std::milli> split_time = end-start;
-        os << "split block timing took " <<  split_time.count() << " (ms) \n"; 
+        timer.end();
+        timer.print("splitting took");
         if (vm.count("compress")) {
-            chrono::time_point<chrono::system_clock> start,end;
-            start = chrono::system_clock::now();
+            timer.start();
             split_block.compress();
-            end = chrono::system_clock::now();
-            chrono::duration<double,std::milli> compress_time = end-start;
+            timer.end();
             os <<" SPLTcompressed memory size: " <<  split_block.get_current_size() 
                 << " SPLTstarting memory size: " <<  split_block.memory_allocated()
-                << "SPLTcompression speed: " << compress_time.count() << " (ms) to compress \n";
+                << "SPLTcompression speed: " << timer.duration() ;
 
-            start = chrono::system_clock::now();
+            timer.start();
             split_block.uncompress();
-            end = chrono::system_clock::now();
-            compress_time = end-start;
+            timer.end();
             os << " SPLTuncompressed memory size: " <<  split_block.get_current_size() 
                 << " SPLTstarting memory size: " <<  split_block.memory_allocated()
-                << " SPLTuncompression speed: " << compress_time.count()<< "\n";
+                << " SPLTuncompression speed: " <<timer.duration();
             return;
         }
         // renaming b1 will make the rest of the benchmark apply to the split, this output will just be compared to benchmark runs that don't include this 
@@ -142,22 +139,19 @@ void file_routine( std_block & b1, ostream & os ,po::variables_map & vm,size_typ
         neuromapp::col_sort(&b1,row_sort);
     }
     if ( vm.count("compress") ) {
-        chrono::time_point<chrono::system_clock> start,end;
-        start = chrono::system_clock::now();
+        timer.start();
         b1.compress();
-        end = chrono::system_clock::now();
-        chrono::duration<double,std::milli> compress_time = end-start;
+        timer.end();
         //compress into miliseconds
         os << " compressed memory size: " <<  b1.get_current_size() 
             << " starting memory size: " <<  b1.memory_allocated()
-            << " compression speed: " << compress_time.count() <<"\n";
-        start = chrono::system_clock::now();
+            << " compression speed: " <<timer.duration();
+        timer.start();
         b1.uncompress();
-        end = chrono::system_clock::now();
-        compress_time = end-start;
+        timer.end();
         os << " uncompressed memory size: " <<  b1.get_current_size() 
             << " starting memory size: " <<  b1.memory_allocated()
-            << " uncompression speed: " << compress_time.count()<< "\n";
+            << " uncompression speed: " << timer.duration();
     }
 }
 
