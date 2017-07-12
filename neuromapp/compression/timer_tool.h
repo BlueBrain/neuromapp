@@ -1,22 +1,24 @@
 #include <chrono>
 #include <string>
 #include <iostream>
+#include "compression.h"
 using namespace std;
 namespace neuromapp {
     class Timer {
         private:
-            chrono::time_point<chrono::system_clock> start,end;
-            chrono::duration<double,std::milli> duration = -1;
+            chrono::time_point<chrono::system_clock> start_,end_;
+            chrono::duration<double,std::milli> duration_;
         public:
             void start(string & message);
             void start();
-            void duration(string & message);
-            void duration();
+            void print(string && message);
+            double duration();
+            void end();
         class Exception {
             private:
-                string _message;
+                string message_;
             public:
-                Exception (string & creation_msg ) : _message{creation_message} {}
+                Exception (string & creation_msg ) : message_{creation_msg} {}
                 ~Exception () {};
 
         };
@@ -28,22 +30,20 @@ namespace neuromapp {
     }
 
     void Timer::start() {
-        start = chrono::system_clock::now();
+        start_ = chrono::system_clock::now();
     }
 
-    void Timer::duration() {
+    double Timer::duration() {
         //check to see if duration has been set
-        if ( duration == -1) throw (Exception("Duration not initialized, missing end()");
-        return duration;
+        return duration_.count();
     }
-178
-    void Timer::print(string & message) {
-        std::cout << message << " "<< "time: " << duration.count()<< "(ms)" << std::endl;
+    void Timer::print(string &&  message) {
+        std::cout << message << " "<< "time: " << duration_.count()<< "(ms)" << std::endl;
     }
 
     void Timer::end() {
-        end = chrono::system_clock::now();
-        duration = end-start;
+        end_ = chrono::system_clock::now();
+        duration_ = end_-start_;
     }
 }
 
