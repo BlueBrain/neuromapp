@@ -6,33 +6,36 @@
 #include <string>
 #include "compression.h"
 #include "block.h"
+#include "compressor.h"
 #include "block_sort.h"
+
+#define BLOCK_SIZE 8000
+//total bytes (type double) 64000000
 using namespace std;
-
-
 using neuromapp::block;
 using neuromapp::cstandard;
-// todo change to variable type, and allocation method
-typedef float value_type;
 typedef size_t size_type;
-using prac_block = block<value_type,cstandard>;
+
+
 
 int main (void) {
-    prac_block b1;
+    std::cout << "starting" << std::endl;
+    block<double,cstandard> b1(BLOCK_SIZE);
+    std::cout << "created block" << std::endl;
     //read data into block from file
-    //string fname= "trans_data/values_9_a8788trans_bulk.csv";
-    //string fname = "trans_data/8values.csv";
-    //string fname = "trans_data/16values.csv";
-    //string fname = "trans_data/4values.csv";
+    std::cout << "opening file" << std::endl;
     string fname = "trans_data/even_easier.csv";
-    //string fname= "data/csv/values_9_a10245bulk.csv";
     ifstream ifile(fname);
+    std::cout << "about to read into block" << std::endl;
     ifile >> b1;
+    std::cout << "finished read, now printing contents" << std::endl;
     std::cout << b1 << std::endl;
-    //std::cout << "block is " << b1  << std::endl;
     //perform sort
+    std::cout << "performing the sort" << std::endl;
     size_type row_sort = 0;
     neuromapp::col_sort(&b1,row_sort);
+    b1.compress();
+    b1.uncompress();
     std::cout << "PRINTING RESULT OF THE SORTING" << std::endl;
     std::cout << b1 << std::endl;
 }
