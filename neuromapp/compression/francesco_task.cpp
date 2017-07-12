@@ -5,11 +5,13 @@
 #include <fstream>
 #include <bitset>
 #include "compression.h"
+#include "timer_tool.h"
 #include "block.h"
 using namespace std;
 
 
 using neuromapp::block;
+using neuromapp::Timer;
 using neuromapp::cstandard;
 typedef double value_type;
 typedef size_t size_type;
@@ -36,8 +38,8 @@ double calc_x(double x,double u,double d_time,double time_const_rec) {
 void run_workflow() {
     //create the blocks
     expmt_block ro_block,ux_block;
-    ifstream read_only_file("../compression/francesco_data/readonly_block2017-07-06-12:12.dat");
-    ifstream dynamic_file("../compression/francesco_data/dynamic_block2017-07-06-12:12.dat");
+    ifstream read_only_file("../compression/francesco_data/readonly_block2017-07-10-13:51.dat");
+    ifstream dynamic_file("../compression/francesco_data/dynamic_block2017-07-10-13:52.dat");
     read_only_file >> ro_block;
     dynamic_file >> ux_block;
     //close the files
@@ -46,19 +48,22 @@ void run_workflow() {
     //cols is the same as # of neurons
     size_type cols_ = ro_block.dim0();
     //compress the blocks 
-    ro_block.compress();
-    ux_block.compress();
+    //ro_block.compress();
+    //ux_block.compress();
     //create the neuron time vector
     vector<double> neuron_times(cols_,0.0) ;
-    double max_time = 1000.0;
+    double max_time = 100.0;
     //start experiment by iterating through neuron ids
+    //time the experiment
+    Timer time_it;
+    time_it.start();
     for (size_type i = 0 ;i < cols_;i++) {
         // all time values for neurons
         int nth_spike = 0;
         while (neuron_times[i] < max_time) {
             //uncompress blocks
-            ro_block.uncompress();
-            ux_block.uncompress();
+            //ro_block.uncompress();
+            //ux_block.uncompress();
             //get last u,x
             double u = ux_block(i,1),x = ux_block(i,0);
             //get new spike time
@@ -77,10 +82,12 @@ void run_workflow() {
                 << " new u,x " << ux_block(i,1) << "," << ux_block(i,0)
                 << " PSP is " << PSP << " for " << nth_spike << "th spike "<< std::endl;
             //recompress the blocks
-            ro_block.compress();
-            ux_block.compress();
+            //ro_block.compress();
+            //ux_block.compress();
         }
     }
+    time_it.end();
+    std::cout << "experiment took " << time_it.duration() << " (ms) to run" << std::endl;
 }
     
 int main (int argc,char ** argv) {
