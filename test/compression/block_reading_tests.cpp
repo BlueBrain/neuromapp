@@ -18,7 +18,6 @@
 #include "compression/block.h"
 #include "compression/block_sort.h"
 using neuromapp::block;
-using neuromapp::Sorter;
 using neuromapp::cstandard;
 using namespace std;
 
@@ -272,7 +271,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
             block<value_type,allocator_type> b2(b1);// use the copy constructor
             //start compress
             //TESTING WITH SORT FOR VARIOUS IMPROVEMENTS
-            sort(b1.begin(),b1.end(),Sorter::sort_rule<value_type>);
             start = chrono::system_clock::now();
             b1.compress();
             end = chrono::system_clock::now();
@@ -284,7 +282,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
             chrono::duration<double> uncompress_time = end-start;
             out << b1.get_current_size() <<
                 ", " << compress_time.count() << ", " << uncompress_time.count() << ", " + csv_type[type_ind] << "\n";
-            sort(b2.begin(),b2.end(),Sorter::sort_rule<value_type>);
             // compare the two blocks should be equal
             BOOST_CHECK(b1==b2);
         }
