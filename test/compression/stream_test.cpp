@@ -84,12 +84,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     //prepare for the copy operation
     double min_time;
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        for (int i = 0; i < VECTOR_SIZE;i++) {
-            time_it.start();
 #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
 #endif
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+            time_it.start();
             block<value_type,allocator_type> & a = v_a[i];
             block<value_type,allocator_type> & b = v_b[i];
             pointer  ptr_a = a.data();
@@ -97,26 +97,26 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = ptr_b[j];
             }
-#if defined(COMPRESS)
-            v_a[i].compress();
-            v_b[i].compress();
-#endif
             time_it.end();
             if (round == 0) min_time = time_it.duration();
             else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
+#if defined(COMPRESS)
+            v_a[i].compress();
+            v_b[i].compress();
+#endif
     }
 
     double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
     //prepare for the add operation
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        for (int i = 0; i < VECTOR_SIZE;i++) {
-            time_it.start();
 #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
             v_c[i].uncompress();
 #endif
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+            time_it.start();
             block<value_type,allocator_type> & a = v_a[i];
             block<value_type,allocator_type> & b = v_b[i];
             block<value_type,allocator_type> & c = v_c[i];
@@ -126,27 +126,27 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = ptr_b[j] + ptr_c[j];
             }
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
+        }
 #if defined(COMPRESS)
             v_a[i].compress();
             v_b[i].compress();
             v_c[i].compress();
 #endif
-            time_it.end();
-            if (round == 0) min_time = time_it.duration();
-            else if(min_time > time_it.duration()) min_time = time_it.duration();
-        }
     }
     mem_used = v_a[0].memory_allocated()*2*pow(10,-6);
     double add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
 
     //scale operation
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        for (int i = 0; i < VECTOR_SIZE;i++) {
 #if defined(COMPRESS)
             time_it.start();
             v_a[i].uncompress();
             v_b[i].uncompress();
 #endif
+        for (int i = 0; i < VECTOR_SIZE;i++) {
             block<value_type,allocator_type> & a = v_a[i];
             block<value_type,allocator_type> & b = v_b[i];
             pointer  ptr_a = a.data();
@@ -155,26 +155,26 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = scale*ptr_b[j];
             }
-#if defined(COMPRESS)
-            v_a[i].compress();
-            v_b[i].compress();
-#endif
             time_it.end();
             if (round == 0) min_time = time_it.duration();
             else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
+#if defined(COMPRESS)
+            v_a[i].compress();
+            v_b[i].compress();
+#endif
     }
     double scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
 
     //triad operation
     for (int round = 0; round < NUM_ROUNDS ; round++) {
-        for (int i = 0; i < VECTOR_SIZE;i++) {
-            time_it.start();
 #if defined(COMPRESS)
             v_a[i].uncompress();
             v_b[i].uncompress();
             v_c[i].uncompress();
 #endif
+        for (int i = 0; i < VECTOR_SIZE;i++) {
+            time_it.start();
             block<value_type,allocator_type> & a = v_a[i];
             block<value_type,allocator_type> & b = v_b[i];
             block<value_type,allocator_type> & c = v_c[i];
@@ -185,15 +185,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
             }
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
+        }
 #if defined(COMPRESS)
             v_a[i].compress();
             v_b[i].compress();
             v_c[i].compress();
 #endif
-            time_it.end();
-            if (round == 0) min_time = time_it.duration();
-            else if(min_time > time_it.duration()) min_time = time_it.duration();
-        }
     }
     double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
     //print message
