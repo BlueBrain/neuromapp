@@ -47,8 +47,8 @@ public:
 
     // read from file both model and mesh
     void read_mesh_and_model(std::string const& filename_mesh, std::string const& filename_model) {
-        model_.read_from_file(filename_model);
-        tets_.read_from_file(filename_mesh, filename_model);
+        tets_.read_from_file(filename_mesh, filename_model);            // read mesh
+        model_.read_from_file(filename_model);                          // read model
     }
 
 
@@ -123,8 +123,8 @@ public:
 
 
 private:
-    readi::Model<IntType, FloatType> model_;
     readi::Tets<IntType, FloatType> tets_;
+    readi::Model<IntType, FloatType> model_;
     readi::CompRej<IntType, FloatType> comprej_;
 };
 

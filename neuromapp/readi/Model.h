@@ -125,7 +125,6 @@ public:
 
 
 private:
-    readi::Tets<IntType, FloatType> tets_;
     IntType n_species_;
     IntType n_reactions_;
     std::vector<std::string> species_names_;
