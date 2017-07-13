@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include "compression/compression.h"
 #include "compression/block.h"
-#include "/usr/include/zlib.h"
+#include <zlib.h>
 
 using namespace neuromapp;
 using prac_block = block<int,cstandard>;
