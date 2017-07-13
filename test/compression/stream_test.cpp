@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 /*comment out the compress line to enable/disable the compression options*/
-//#define COMPRESS
+#define COMPRESS
 #define BOOST_TEST_MODULE block_copy_of_stream
 /*this is the number of elements generated for filling the block*/
 #define BLOCK_SIZE 8000
@@ -69,6 +69,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
 #endif
     for(int mult = 1;mult < 244 ; mult++) {
         std::cout << "mult: " << mult << std::endl;
+#pragma omp parallel for
         for(int i = 0; i < VECTOR_SIZE;i++) {
             block<value_type,allocator_type> ba(BLOCK_SIZE);
             block<value_type,allocator_type> bb(BLOCK_SIZE);
@@ -112,6 +113,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
         //prepare for the add operation
         for (int round = 0; round < NUM_ROUNDS ; round++) {
+#pragma omp parallel for
             for (int i = 0; i < VECTOR_SIZE;i++) {
                 time_it.start();
 #if defined(COMPRESS)
@@ -143,6 +145,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
 
         //scale operation
         for (int round = 0; round < NUM_ROUNDS ; round++) {
+#pragma omp parallel for
             for (int i = 0; i < VECTOR_SIZE;i++) {
 #if defined(COMPRESS)
                 time_it.start();
@@ -170,6 +173,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
 
         //triad operation
         for (int round = 0; round < NUM_ROUNDS ; round++) {
+#pragma omp parallel for
             for (int i = 0; i < VECTOR_SIZE;i++) {
                 time_it.start();
 #if defined(COMPRESS)
