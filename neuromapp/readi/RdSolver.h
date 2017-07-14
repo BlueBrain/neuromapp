@@ -44,11 +44,28 @@ template <class IntType, class FloatType>
 class RdSolver {
 public:
 
+    // c-tor
+    RdSolver(IntType seed = 42) :
+        rand_engine_(seed)
+    {}
+
+
 
     // read from file both model and mesh
     void read_mesh_and_model(std::string const& filename_mesh, std::string const& filename_model) {
         tets_.read_from_file(filename_mesh, filename_model);            // read mesh
         model_.read_from_file(filename_model);                          // read model
+        comprej_.set_size(model_.get_n_reactions(), tets_.get_n_tets());
+    }
+
+    // recompute value of each propensity to initialize the whole composition-rejection structure
+    void recompute_all_propensities() {
+        for (IntType i=0; i<tets_.get_n_tets(); ++i)
+            for (IntType r=0; r<model_.get_n_reactions(); ++r) {
+                FloatType new_prop_val = model_.compute_reaction_propensity(r, i, tets_);
+                comprej_.update_propensity(r, i, new_prop_val);
+            }
+
     }
 
 
@@ -71,6 +88,20 @@ public:
     // run reactions
     void run_reactions(FloatType tau) {
         std::cout << "---> Running reactions.\n";
+        FloatType elapsed_time = 0.;
+        IntType n_reacs_run = 0;
+        while (true) {
+            // Exact SSA Algorithm:
+            // dt ~ Exp(lambda = a_0)           [select time of next reaction]
+            // j  ~ Categorical(p_i = a_i/a_0)  [select idx of next reaction]
+            FloatType u = (rand_engine_() - rand_engine_.min())/double(rand_engine_.max() - rand_engine_.min());
+            FloatType dt = - std::log(u) / comprej_.get_total_propensity();
+            if (elapsed_time + dt > tau)
+                break;
+            elapsed_time += dt;
+            ++n_reacs_run;
+        }
+        std::cout << "---> Generated " << n_reacs_run << " reactions\n";
         // TODO: fill this function
         return;
     }
@@ -90,9 +121,6 @@ public:
     // run diffusion of molecules of species s
     void diffuse(FloatType tau, IntType s, FloatType diff_cnst) {
 
-        std::random_device rd;
-        std::mt19937 g(rd());
-
         // diffuse molecule of s-th species from every tetrahedron
         for (IntType i=0; i<tets_.get_n_tets(); ++i) {
 
@@ -102,13 +130,13 @@ public:
             // TODO: n_leaving_max should be based on occupancy
 
             readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
-            IntType tot_leaving_mols = binomial(g);                                 // compute n. of molecules that will actually leave
+            IntType tot_leaving_mols = binomial(rand_engine_);                      // compute n. of molecules that will actually leave
             tets_.molecule_count(s, i) -= tot_leaving_mols;                         // remove from origin tet n. of molecules leaving
 
             FloatType shapes_partial = tets_.shape_sum(i);                          // select destinations with multinomial
             for (IntType j=0; j<3; ++j) {
                 readi::binomial_distribution<IntType> binomial_destination(tot_leaving_mols, tets_.shape(i,j)/shapes_partial);
-                IntType leaving_neighb = binomial_destination(g);
+                IntType leaving_neighb = binomial_destination(rand_engine_);
                 tot_leaving_mols -= leaving_neighb;
                 tets_.add_to_bucket(i, j, leaving_neighb);
                 shapes_partial -= tets_.shape(i,j);
@@ -123,6 +151,7 @@ public:
 
 
 private:
+    std::mt19937 rand_engine_;
     readi::Tets<IntType, FloatType> tets_;
     readi::Model<IntType, FloatType> model_;
     readi::CompRej<IntType, FloatType> comprej_;

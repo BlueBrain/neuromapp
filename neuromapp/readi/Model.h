@@ -40,6 +40,24 @@ public:
     }
 
 
+    // return number of reactions
+    inline FloatType get_n_reactions() const {
+        return n_reactions_;
+    }
+
+
+    // applies r-th reaction to i-th tetrahedron
+    inline void apply_reaction(IntType r, IntType i, readi::Tets<IntType,FloatType>& tets) const {
+        reactions_[r].apply(i, tets);
+    }
+
+
+    // computes propensity of r-th reaction in i-th tetrahedron
+    inline FloatType compute_reaction_propensity(IntType r, IntType i, readi::Tets<IntType,FloatType>& tets) const {
+        return reactions_[r].compute_propensity(i, tets);
+    }
+
+
     // return max diffusion coefficient
     inline FloatType get_max_diff() const {
         return *std::max_element(diffusion_coefficients_.begin(), diffusion_coefficients_.end());
@@ -85,7 +103,6 @@ public:
             reaction_coefficients_.resize(n_reactions_);
             for (IntType i=0; i<n_reactions_; ++i) {
                 std::getline(f, discard);               // read reaction lhs, rhs, and coeff
-                std::cout << "+++ reac: " << discard << std::endl;
                 std::vector<std::string> lhs;
                 std::vector<std::string> rhs;
                 double k_reac;
@@ -116,9 +133,14 @@ public:
             throw;
         }
 
+        printf("----  MODEL info --------------------------------------------\n");
+        printf("\t n. of species   :%10d\n", n_species_);
+        printf("\t n. of reactions :%10d\n", n_reactions_);
+        printf("-------------------------------------------------------------\n");
+
         // assert diffusion coefficients are correctely read
         for (IntType i=0; i<n_species_; ++i)
-            std::cout << "+++ diff: " << species_names_[i] << " - " << diffusion_coefficients_[i] << "\n";
+            assert(diffusion_coefficients_[i]);
     }
 
 

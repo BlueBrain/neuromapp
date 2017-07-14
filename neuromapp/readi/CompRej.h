@@ -56,7 +56,11 @@ public:
     void set_size(IntType n_reacs, IntType n_tets) {
         n_reacs_ = n_reacs;
         n_tets_ = n_tets;
-        propensity_values_.resize(n_reacs_*n_tets_, 1); // initialize all propensities to 1
+        propensity_values_.resize(n_reacs_*n_tets_, 0); // initialize all propensities to 0
+        cr_groups_pos_.emplace_back(new CompRejGroup);
+        cr_groups_neg_.emplace_back(new CompRejGroup);
+    //    for (IntType i=0; i<n_tets_; ++i)
+    //        cr_groups_pos_[0]->propensity_idxes.insert(i);
 
         // TODO: here we should call update_propensity on each reac, on each tet
     }
@@ -149,6 +153,76 @@ public:
 
     // update the propensity relative to r-th reaction inside i-th tetrahedron
     void update_propensity(IntType r, IntType i, FloatType new_prop){
+
+        assert(propensity_val(r, i)>=0.0);
+        assert(new_prop>=0.0);
+
+        // CASE 0: OLD_GROUP=-IFTY / NEW_GROUP=-IFTY
+        // CASE 0.1: OLD == NEW == 0
+        if (propensity_val(r, i) == 0.0 && new_prop == 0.0)
+            return;
+        // CASE 0.2: OLD == 0, NEW != 0
+        if (propensity_val(r, i) == 0.0) {
+             IntType new_group_idx = std::logb(new_prop);
+             if (new_group_idx >= 0) {
+                 // B- handle case where not enuough groups
+                 if (new_group_idx >= cr_groups_pos_.size()) {
+                     cr_groups_pos_.reserve(new_group_idx+1);  // or should we make this O(1)?
+                     while(cr_groups_pos_.size() < new_group_idx+1)
+                         cr_groups_pos_.emplace_back(new CompRejGroup);
+                 }
+                 // C- insert idx of a_j in new group + update value of a_g in new group
+                 cr_groups_pos_[new_group_idx]->propensity_idxes.insert(propensity_idx(r, i));
+                 cr_groups_pos_[new_group_idx]->ag_ = new_prop;
+             }
+             else {
+                 new_group_idx = -new_group_idx-1;
+                 // B- handle case where not enuough groups
+                 if (new_group_idx >= cr_groups_neg_.size()) {
+                     cr_groups_neg_.reserve(new_group_idx+1);  // or should we make this O(1)?
+                     while(cr_groups_neg_.size() < new_group_idx+1)
+                         cr_groups_neg_.emplace_back(new CompRejGroup);
+                 }
+                 // C- insert idx of a_j in new group + update value of a_g in new group
+                 cr_groups_neg_[new_group_idx]->propensity_idxes.insert(propensity_idx(r, i));
+                 cr_groups_neg_[new_group_idx]->ag_ = new_prop;
+             }
+             // D- update value of a_0
+             // E- update value of a_j in the vector of propensities
+             a0_ += new_prop;
+             propensity_val(r, i) = new_prop;
+             return;
+        }
+        // CASE 0.3: OLD != 0, NEW == 0
+        if (new_prop == 0.0) {
+            IntType old_group_idx = std::logb(propensity_val(r, i));                // group where a_j was until now
+            // A- remove idx of a_j in old_group + update value of a_g in old_group
+            if (old_group_idx >= 0) {
+                cr_groups_pos_[old_group_idx]->propensity_idxes.erase(propensity_idx(r, i));
+                if (cr_groups_pos_[old_group_idx]->propensity_idxes.empty())        // if no more idxes in group, set exactely to 0.
+                    cr_groups_pos_[old_group_idx]->ag_ = 0.;
+                else
+                    cr_groups_pos_[old_group_idx]->ag_ -= propensity_val(r, i);
+            }
+            else {
+                old_group_idx = -old_group_idx-1;
+                cr_groups_neg_[old_group_idx]->propensity_idxes.erase(propensity_idx(r, i));
+                if (cr_groups_neg_[old_group_idx]->propensity_idxes.empty())        // if no more idxes in group, set exactely to 0.
+                    cr_groups_neg_[old_group_idx]->ag_ = 0.;
+                else
+                    cr_groups_neg_[old_group_idx]->ag_ -= propensity_val(r, i);
+            }
+            // D- update value of a_0
+            // E- update value of a_j in the vector of propensities
+            a0_ -= propensity_val(r, i);
+            propensity_val(r, i) = 0;
+            return;
+        }
+
+
+
+        // If we arrived until here, then OLD>0, NEW>0
+
         IntType old_group_idx = std::logb(propensity_val(r, i));                // group where a_j was until now
         IntType new_group_idx = std::logb(new_prop);                            // group where a_j will go
 

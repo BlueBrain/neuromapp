@@ -100,12 +100,12 @@ public:
 
 
     // access molecule for s-th species in i-th tetrahedron
-    inline FloatType& molecule_count(IntType s, IntType i) {
+    inline IntType& molecule_count(IntType s, IntType i) {
         assert(s>=0 && s<n_species_);
         assert(i>=0 && i<n_tets_);
         return mol_counts_[n_tets_*s + i];
     }
-    inline FloatType molecule_count(IntType s, IntType i) const {
+    inline IntType molecule_count(IntType s, IntType i) const {
         assert(s>=0 && s<n_species_);
         assert(i>=0 && i<n_tets_);
         return mol_counts_[n_tets_*s + i];
@@ -137,7 +137,6 @@ public:
 
             // --- [MESH_FILE] READ VOLUME + NEIGHBORS + SHAPES ---
             file_mesh >> discard >> n_tets_;            // read
-            std::cout << "N tets: " <<  n_tets_ << std::endl;
             std::getline(file_mesh, discard);           // skip '\n'
             std::getline(file_mesh, discard);           // skip headers
             volumes_.resize(n_tets_);                   // each tet has a volume
@@ -162,7 +161,6 @@ public:
 
             // --- [MODEL_FILE] READ N. SPECIES + N. INITIAL MOLECULES ---
             file_model >> discard >> n_species_;                // read n. of species
-            std::cout << "N species: " <<  n_species_ << std::endl;
             mol_counts_.resize(n_tets_*n_species_);             // each tet knows how many mol of each species it contains
             mol_counts_bucket_.resize(n_tets_);                 // bucket containing molecules received from diffusion
             std::getline(file_model, discard);                           // read \n
@@ -173,6 +171,11 @@ public:
                 distribute_molecules(i, tot_mol_per_spec);      // distribute these molecules in the mesh
             }
             file_model.close();
+
+            printf("----  TETS info ---------------------------------------------\n");
+            printf("\t n. of tetrahedra :%10d\n", n_tets_);
+            printf("\t n. of species    :%10d\n", n_species_);
+            printf("-------------------------------------------------------------\n");
 
         }
         catch(const std::exception& ex) {
@@ -196,9 +199,11 @@ public:
             n_molecules_partial += mols;
             molecule_count(species_idx, i) = mols;
         }
-        printf("Molecule Tot: %15d\n", n_molecules_tot);
-        printf("Molecule Dis: %15d\n", n_molecules_partial);
-        printf("Count error: \t%5.2f%%\n\n", 100*(double(n_molecules_tot-n_molecules_partial)/n_molecules_tot));
+        printf("---- Distribution of molecules for species %d ---------------\n", species_idx);
+        FloatType err_distr = 100*(double(n_molecules_tot-n_molecules_partial)/n_molecules_tot);
+        printf("\t Theoretical:%d,  Distributed:%d, Error:%5.2f%%\n", n_molecules_tot, n_molecules_partial, err_distr);
+        printf("-------------------------------------------------------------\n");
+
     }
 
 
@@ -228,8 +233,8 @@ private:
     //      shape = surface_separating(i,j) / (volume(i) * distance_of_barycenters(i,j))
     std::vector<FloatType> shapes_;
     std::vector<FloatType> shapes_sums_;
-    std::vector<FloatType> mol_counts_;
-    std::vector<FloatType> mol_counts_bucket_; 
+    std::vector<IntType> mol_counts_;
+    std::vector<IntType> mol_counts_bucket_;
 
 };
 

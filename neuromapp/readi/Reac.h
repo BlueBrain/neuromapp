@@ -135,7 +135,7 @@ public:
 
 
     // compute scaled reaction rate for propensity
-    inline void compute_c_mu(FloatType reaction_rate, FloatType volume, IntType order) const {
+    inline FloatType compute_c_mu(FloatType reaction_rate, FloatType volume, IntType order) const {
         FloatType volume_scaled = 1.e3 * volume * N_avogadro;
         return reaction_rate * std::pow(volume_scaled, -order+1);
     }
@@ -143,7 +143,7 @@ public:
     // compute propensity of this reaction on a tetrahedron
     FloatType compute_propensity(IntType tet_idx, readi::Tets<IntType,FloatType>const& tets) const {
         FloatType propensity = compute_c_mu(reaction_rate_, tets.volume(tet_idx), order_);
-        for(int i=0; i<lhs_idxs_; ++i) {
+        for(int i=0; i<lhs_idxs_.size(); ++i) {
             IntType X_i = tets.molecule_count(lhs_idxs_[i], tet_idx); // number of molecules of i-th species inside tet
             for (int j=0; j<lhs_counts_[i]; ++j) {
                 propensity *= X_i -j;
