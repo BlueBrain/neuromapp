@@ -22,8 +22,9 @@ of coreneuron, 3 miniapps are available: kernel and solver
 * cstep: It combines the kernel and the solver to mimic a step time of neuron simulator
 
 * queue: This miniapp simulates the queueing system of CoreNeuron.
+
  
-##hello
+## neuromapp/hello
 
 This directory provides an example of how could be design a miniapp (C++)
 
@@ -54,6 +55,20 @@ For more information, run the mini-app with the --help argument.
 
 You can disable the compilation of this mini-app by using the following variable in cmake
 command: '-DNEUROMAPP_DISABLE_KEYVALUE=TRUE'
+
+## neuromapp/readi
+
+This directory contains a miniapp implementing a reaction-diffusion simulator
+based on operator splitting, as in TetOpSplit solver of STEPS software package.
+To run the simulation on a simple model with 10 species and 8 reactions, go to
+the `build` directory and execute the mini-app with the following arguments:
+
+`./neuromapp/app/app readi --filename_mesh ../neuromapp/readi/dataset/data_mesh --filename_model ../neuromapp/readi/dataset/data_model`
+
+For more information, run the mini-app with the `--help` argument.
+
+You can disable the compilation of this mini-app by setting
+`-DNEUROMAPP_DISABLE_READI=TRUE` when running cmake.
 
 ## neuromapp/replib
 
