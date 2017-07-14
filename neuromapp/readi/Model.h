@@ -46,6 +46,11 @@ public:
     }
 
 
+    // return species name
+    inline std::string get_species_name(IntType s) const {
+        return species_names_[s];
+    }
+
     // applies r-th reaction to i-th tetrahedron
     inline void apply_reaction(IntType r, IntType i, readi::Tets<IntType,FloatType>& tets) const {
         reactions_[r].apply(i, tets);

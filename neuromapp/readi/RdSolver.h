@@ -73,21 +73,23 @@ public:
     FloatType get_update_period() {
         FloatType max_diffusion_coeff = model_.get_max_diff();
         FloatType max_shape = tets_.get_max_shape();
-        printf("computed update period tau = %1.15e\n", 1.0 / (max_diffusion_coeff * max_shape));
         return 1.0 / (max_diffusion_coeff * max_shape) ;
     }
 
 
     // run simulation for a tau period
     void run_period_ssa(FloatType tau) {
+        printf("----  REAC-DIFF info ----------------------------------------\n");
+        printf("\t computed tau : %1.5e\n", tau);
         run_reactions(tau);
         run_diffusions(tau);
+        printf("-------------------------------------------------------------\n");
+
     }
 
 
     // run reactions
     void run_reactions(FloatType tau) {
-        std::cout << "---> Running reactions.\n";
         FloatType elapsed_time = 0.;
         IntType n_reacs_run = 0;
         while (true) {
@@ -101,7 +103,7 @@ public:
             elapsed_time += dt;
             ++n_reacs_run;
         }
-        std::cout << "---> Generated " << n_reacs_run << " reactions\n";
+        printf("\t completed reactions (n. of events=%d)\n", n_reacs_run);
         // TODO: fill this function
         return;
     }
@@ -109,17 +111,17 @@ public:
 
     // run diffusions
     void run_diffusions(FloatType tau) {
-        std::cout << "---> Running diffusions.\n";
         for (IntType s=0; s<model_.get_n_species(); ++s) {
-            diffuse(tau, s, model_.diffusion_coeff(s));  // diffuse molecules of species s
+            run_diffusion_for_species(tau, s, model_.diffusion_coeff(s));  // diffuse molecules of species s
             tets_.empty_buckets(s);                     // empty buckets of species s
         }
+        printf("\t completed diffusions\n");
 
     }
 
 
     // run diffusion of molecules of species s
-    void diffuse(FloatType tau, IntType s, FloatType diff_cnst) {
+    void run_diffusion_for_species(FloatType tau, IntType s, FloatType diff_cnst) {
 
         // diffuse molecule of s-th species from every tetrahedron
         for (IntType i=0; i<tets_.get_n_tets(); ++i) {
