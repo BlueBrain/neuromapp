@@ -80,7 +80,7 @@ public:
     // recompute propensities affected by r-th reaction in i-th tetrahedron
     void recompute_propensities_after_reac(IntType r, IntType i) {
         std::vector<IntType>& dependencies_idxs = model_.get_reaction_dependencies(r);
-        for (IntType r_idx=0; r_idx<dependencies_idxs.size(); ++r_idx) {
+        for (auto r_idx : dependencies_idxs) {
             FloatType new_prop_val = model_.compute_reaction_propensity(r_idx, i, tets_);
             comprej_.update_propensity(r_idx, i, new_prop_val);
         }
@@ -89,7 +89,7 @@ public:
     // recompute propensities affected by diffusion of s-th species in i-th tetrahedron
     void recompute_propensities_after_diff(IntType s, IntType i) {
         std::vector<IntType>& dependencies_idxs = model_.get_diffusion_dependencies(s);
-        for (IntType r_idx=0; r_idx<dependencies_idxs.size(); ++r_idx) {
+        for (auto r_idx : dependencies_idxs) {
             FloatType new_prop_val = model_.compute_reaction_propensity(r_idx, i, tets_);
             comprej_.update_propensity(r_idx, i, new_prop_val);
         }

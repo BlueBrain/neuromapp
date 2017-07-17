@@ -153,6 +153,7 @@ public:
                 propensity *= X_i -j;
             }
         }
+        return propensity;
     }
 
     friend class readi::Model<IntType,FloatType>; // why? because Model needs to access lhs and rhs
