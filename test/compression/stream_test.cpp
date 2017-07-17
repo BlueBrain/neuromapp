@@ -58,37 +58,37 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     typedef pointer iterator;
     typedef size_t size_type;
     Timer time_it;
-    //TODO look up pragma omp vector initialization
-    vector<block<value_type,allocator_type>> v_a(VECTOR_SIZE) ;
-    vector<block<value_type,allocator_type>> v_b(VECTOR_SIZE) ;
-    vector<block<value_type,allocator_type>> v_c(VECTOR_SIZE) ;
-#if defined(COMPRESS)
+    vector<block<value_type,allocator_type>> v_a((size_type)VECTOR_SIZE) ;
+    vector<block<value_type,allocator_type>> v_b((size_type)VECTOR_SIZE) ;
+    vector<block<value_type,allocator_type>> v_c((size_type)VECTOR_SIZE) ;
+#ifdef COMPRESS
     std::cout << "using compress" << std::endl;
 #else
     std::cout << "no compress" << std::endl;
 #endif
 #pragma omp parallel for
     for(int i = 0; i < VECTOR_SIZE;i++) {
-        block<value_type,allocator_type> ba(BLOCK_SIZE);
-        block<value_type,allocator_type> bb(BLOCK_SIZE);
-        block<value_type,allocator_type> bc(BLOCK_SIZE);
-#if defined(COMPRESS)
+        block<value_type,allocator_type> ba((size_type)BLOCK_SIZE);
+        block<value_type,allocator_type> bb((size_type)BLOCK_SIZE);
+        block<value_type,allocator_type> bc((size_type)BLOCK_SIZE);
+#ifdef COMPRESS
         ba.compress();
         bb.compress();
         bc.compress();
 #endif
-        v_a.insert(v_a.begin() +i,ba);
-        v_b.insert(v_b.begin() +i,bb);
-        v_c.insert(v_c.begin() +i,bc);
+        v_a[i] = ba;
+        v_b[i] = bb;
+        v_c[i] = bc;
     }
     double mem_used = VECTOR_SIZE*v_a[0].memory_allocated()*2*pow(10,-6);
+    std::cout << "begin copy benchmark" << std::endl;
     //prepare for the copy operation
     double min_time;
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
 #pragma omp parallel for
         for (int i = 0; i < VECTOR_SIZE;i++) {
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].uncompress();
             v_b[i].uncompress();
 #endif
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = ptr_b[j];
             }
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].compress();
             v_b[i].compress();
 #endif
@@ -111,12 +111,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
 
     double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
 
+    std::cout << "begin scale benchmark" << std::endl;
     //scale operation
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
 #pragma omp parallel for
         for (int i = 0; i < VECTOR_SIZE;i++) {
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].uncompress();
             v_b[i].uncompress();
 #endif
@@ -128,7 +129,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = scale*ptr_b[j];
             }
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].compress();
             v_b[i].compress();
 #endif
@@ -139,13 +140,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
     }
     double scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
 
+    std::cout << "begin add benchmark" << std::endl;
     //prepare for the add operation
     mem_used = v_a[0].memory_allocated()*3*pow(10,-6);
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
 #pragma omp parallel for
         for (int i = 0; i < VECTOR_SIZE;i++) {
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].uncompress();
             v_b[i].uncompress();
             v_c[i].uncompress();
@@ -159,7 +161,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = ptr_b[j] + ptr_c[j];
             }
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].compress();
             v_b[i].compress();
             v_c[i].compress();
@@ -170,12 +172,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
         else if(min_time > time_it.duration()) min_time = time_it.duration();
     }
     double add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+
+    std::cout << "begin triad benchmark" << std::endl;
     //triad operation
     for (int round = 0; round < NUM_ROUNDS ; round++) {
         time_it.start();
 #pragma omp parallel for
         for (int i = 0; i < VECTOR_SIZE;i++) {
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].uncompress();
             v_b[i].uncompress();
             v_c[i].uncompress();
@@ -190,7 +194,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(stream_test,T,test_allocator_types){
             for (int j=0; j < BLOCK_SIZE;j++) {
                 ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
             }
-#if defined(COMPRESS)
+#ifdef COMPRESS
             v_a[i].compress();
             v_b[i].compress();
             v_c[i].compress();
