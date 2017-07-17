@@ -126,7 +126,8 @@ public:
 
 
     // read mesh + model and constructs internal objects
-    void read_from_file(std::string const& filename_mesh, std::string const& filename_model) {
+    template <class Generator>
+    void read_from_file(std::string const& filename_mesh, std::string const& filename_model, Generator& g) {
                  
         std::ifstream file_mesh(filename_mesh);
         std::ifstream file_model(filename_model);
@@ -168,7 +169,7 @@ public:
             IntType tot_mol_per_spec;
             for (IntType i=0; i<n_species_; ++i) {
                 file_model >> discard >> tot_mol_per_spec;                        // read species name and total count
-                distribute_molecules(i, tot_mol_per_spec);      // distribute these molecules in the mesh
+                distribute_molecules(i, tot_mol_per_spec, g);      // distribute these molecules in the mesh
             }
             file_model.close();
 
@@ -188,11 +189,10 @@ public:
 
 
     // distribute tot number of molecules on each tetrahedron, used at initialization of mol counts
-    void distribute_molecules(IntType species_idx, IntType n_molecules_tot) {
+    template <class Generator>
+    void distribute_molecules(IntType species_idx, IntType n_molecules_tot, Generator& g) {
         IntType n_molecules_partial = 0; // molecules that have been placed until now
         FloatType tot_volume = get_tot_volume();
-        std::random_device rd;
-        std::mt19937 g(rd());
         for (IntType i=0; i<n_tets_; ++i) {
             FloatType volume_ratio =  volume(i) / tot_volume;
             IntType mols =  readi::rand_round<IntType, FloatType>(n_molecules_tot * volume_ratio, g);

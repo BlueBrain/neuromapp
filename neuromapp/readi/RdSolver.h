@@ -31,6 +31,7 @@
 #include <sstream>
 #include <fstream>
 #include <cassert>
+#include <unordered_set>
 
 #include "Model.h"
 #include "Tets.h"
@@ -53,9 +54,17 @@ public:
 
     // read from file both model and mesh
     void read_mesh_and_model(std::string const& filename_mesh, std::string const& filename_model) {
-        tets_.read_from_file(filename_mesh, filename_model);            // read mesh
-        model_.read_from_file(filename_model);                          // read model
+
+        // Initialize mesh structure
+        tets_.read_from_file(filename_mesh, filename_model, rand_engine_);
+
+        // Initialize model structure
+        model_.read_from_file(filename_model);
+
+        // Initialize composition-rejection structure (holding and handling propensity values)
         comprej_.set_size(model_.get_n_reactions(), tets_.get_n_tets());
+        recompute_all_propensities();
+
     }
 
     // recompute value of each propensity to initialize the whole composition-rejection structure
@@ -65,7 +74,25 @@ public:
                 FloatType new_prop_val = model_.compute_reaction_propensity(r, i, tets_);
                 comprej_.update_propensity(r, i, new_prop_val);
             }
+    }
 
+
+    // recompute propensities affected by r-th reaction in i-th tetrahedron
+    void recompute_propensities_after_reac(IntType r, IntType i) {
+        std::vector<IntType>& dependencies_idxs = model_.get_reaction_dependencies(r);
+        for (IntType r_idx=0; r_idx<dependencies_idxs.size(); ++r_idx) {
+            FloatType new_prop_val = model_.compute_reaction_propensity(r_idx, i, tets_);
+            comprej_.update_propensity(r_idx, i, new_prop_val);
+        }
+    }
+
+    // recompute propensities affected by diffusion of s-th species in i-th tetrahedron
+    void recompute_propensities_after_diff(IntType s, IntType i) {
+        std::vector<IntType>& dependencies_idxs = model_.get_diffusion_dependencies(s);
+        for (IntType r_idx=0; r_idx<dependencies_idxs.size(); ++r_idx) {
+            FloatType new_prop_val = model_.compute_reaction_propensity(r_idx, i, tets_);
+            comprej_.update_propensity(r_idx, i, new_prop_val);
+        }
     }
 
 
@@ -101,6 +128,12 @@ public:
             if (elapsed_time + dt > tau)
                 break;
             elapsed_time += dt;
+            IntType next_reac_i; // idx of tet where next reaction takes place
+            IntType next_reac_r; // idx of next reaction that takes place
+            comprej_.select_next_reaction(rand_engine_, &next_reac_r, &next_reac_i);
+            model_.apply_reaction(next_reac_r, next_reac_i, tets_);
+            recompute_propensities_after_reac(next_reac_r, next_reac_i);
+
             ++n_reacs_run;
         }
         printf("\t completed reactions (n. of events=%d)\n", n_reacs_run);
@@ -122,6 +155,7 @@ public:
 
     // run diffusion of molecules of species s
     void run_diffusion_for_species(FloatType tau, IntType s, FloatType diff_cnst) {
+        std::unordered_set<IntType> update_tet_idxs;                            // set where we insert all idxes of tets affected by diffusion
 
         // diffuse molecule of s-th species from every tetrahedron
         for (IntType i=0; i<tets_.get_n_tets(); ++i) {
@@ -134,18 +168,27 @@ public:
             readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
             IntType tot_leaving_mols = binomial(rand_engine_);                      // compute n. of molecules that will actually leave
             tets_.molecule_count(s, i) -= tot_leaving_mols;                         // remove from origin tet n. of molecules leaving
+            if (tot_leaving_mols)
+                update_tet_idxs.insert(i);
 
             FloatType shapes_partial = tets_.shape_sum(i);                          // select destinations with multinomial
             for (IntType j=0; j<3; ++j) {
                 readi::binomial_distribution<IntType> binomial_destination(tot_leaving_mols, tets_.shape(i,j)/shapes_partial);
                 IntType leaving_neighb = binomial_destination(rand_engine_);
                 tot_leaving_mols -= leaving_neighb;
+                if (leaving_neighb)
+                    update_tet_idxs.insert(tets_.neighbor(i, j));
                 tets_.add_to_bucket(i, j, leaving_neighb);
                 shapes_partial -= tets_.shape(i,j);
             }
 
             tets_.add_to_bucket(i, 3, tot_leaving_mols);                            // last remaining direction possible: all the rest
+            if (tot_leaving_mols)
+                update_tet_idxs.insert(tets_.neighbor(i, 3));
         }
+
+        for (auto i : update_tet_idxs)
+            recompute_propensities_after_diff(s, i);                                // update propensity of reacs in tets affected by diffusion
 
     }
 

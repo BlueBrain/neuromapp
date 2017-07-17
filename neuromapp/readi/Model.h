@@ -26,6 +26,8 @@
 #ifndef MAPP_READI_MODEL_
 #define MAPP_READI_MODEL_
 
+#include <algorithm>
+#include "Reac.h"
 
 namespace readi {
 
@@ -125,12 +127,17 @@ public:
                 reactions_.emplace_back(species_names_, lhs, rhs, k_reac);  // create new reaction with such lhs, rhs, and coeff
             }
 
+
             // --- READ DIFFUSIONS ---
             std::getline(f, discard);                   // skip empty line
             std::getline(f, discard);                   // skip description line
             for (IntType s=0; s<n_species_; ++s) {
                 f >> discard >> diffusion_coeff(s);     // read coefficients of diffusion
             }
+
+            // --- COMPUTE DEPENDENCY GRAPHS FOR REACTIONS AND DIFFUSIONS
+            compute_dependencies_of_reactions();
+            compute_dependencies_of_diffusions();
 
         }
         catch(const std::exception& ex) {
@@ -149,6 +156,50 @@ public:
     }
 
 
+    // compute graph of dependencies for reactions-reactions
+    void compute_dependencies_of_reactions(){
+        for (IntType r=0; r<n_reactions_; ++r) {
+            std::vector<IntType> dependencies = {};
+            for (IntType r_dep=0; r_dep<n_reactions_; ++r_dep) {
+                // r_dep is a reaction that may be affected by r.
+                // To decide if r_dep is really affected, we check if any of the elements in the upd_idxs of r is present in the lhs of r_dep
+                if (std::find_first_of(reactions_[r_dep].lhs_idxs_.begin(),
+                                       reactions_[r_dep].lhs_idxs_.end(),
+                                       reactions_[r].upd_idxs_.begin(),
+                                       reactions_[r].upd_idxs_.end())
+                        != reactions_[r_dep].lhs_idxs_.end())
+                    dependencies.push_back(r_dep);
+            }
+            reac_idxs_affected_by_r_.push_back(dependencies);
+        }
+    }
+
+    // compute graph of dependencies for diffusion-reactions
+    void compute_dependencies_of_diffusions(){
+        for(IntType s=0; s<n_species_; ++s) {
+            std::vector<IntType> dependencies = {};
+            for (IntType r_dep=0; r_dep<n_reactions_; ++r_dep) {
+                if (std::find(reactions_[r_dep].lhs_idxs_.begin(),
+                              reactions_[r_dep].lhs_idxs_.end(),
+                              s)
+                        != reactions_[r_dep].lhs_idxs_.end())
+                    dependencies.push_back(r_dep);
+            }
+            reac_idxs_affected_by_d_.push_back(dependencies);
+        }
+    }
+
+
+    // Get vector with all reaction idxs affected by r-th reaction
+    std::vector<IntType>& get_reaction_dependencies(IntType r) {
+        return reac_idxs_affected_by_r_[r];
+    }
+
+    // Get vector with all diffusion idxs affected by s-th reaction
+    std::vector<IntType>& get_diffusion_dependencies(IntType s) {
+        return reac_idxs_affected_by_d_[s];
+    }
+
 
 
 private:
@@ -158,6 +209,9 @@ private:
     std::vector<FloatType> diffusion_coefficients_;
     std::vector<FloatType> reaction_coefficients_;
     std::vector< readi::Reac<IntType,FloatType> > reactions_;
+    std::vector< std::vector<IntType> > reac_idxs_affected_by_r_; // the r-th element of this vector contains a vector with all the reaction idxs affected by the r-th reaction
+    std::vector< std::vector<IntType> > reac_idxs_affected_by_d_; // the s-th element of this vector contains a vector with all the reaction idxs affected by the d-th diffusion
+
 };
 
 

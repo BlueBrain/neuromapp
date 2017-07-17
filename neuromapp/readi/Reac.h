@@ -40,6 +40,9 @@ static constexpr double N_avogadro = 6.022140857e+23;
 
 namespace readi {
 
+template <class IntType, class FloatType>
+class Model;
+
 template<class IntType, class FloatType >
 class Reac{
 public:
@@ -129,6 +132,7 @@ public:
     // apply this reaction on a tetrahedron
     inline void apply(IntType tet_idx, readi::Tets<IntType,FloatType>& tets) const {
         for(IntType i=0; i<upd_idxs_.size(); ++i) {
+            assert(tets.molecule_count(upd_idxs_[i], tet_idx) >= -upd_counts_[i]);
             tets.molecule_count(upd_idxs_[i], tet_idx) += upd_counts_[i];
         }
     }
@@ -151,6 +155,7 @@ public:
         }
     }
 
+    friend class readi::Model<IntType,FloatType>; // why? because Model needs to access lhs and rhs
 
 
 private:

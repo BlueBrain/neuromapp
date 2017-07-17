@@ -34,6 +34,7 @@
 #include <set>
 #include <memory>
 #include <iterator>
+#include <cstdlib>
 
 
 namespace readi {
@@ -48,6 +49,7 @@ public:
     struct CompRejGroup {
         std::set<IntType> propensity_idxes;            // set of propensities within this range
         inline IntType get_group_propensity() const {return ag_;}
+        inline IntType size() const {return propensity_idxes.size();}
         FloatType ag_;
     };
 
@@ -87,7 +89,7 @@ public:
 
 
     // get total propensity
-    inline FloatType get_total_propensity() {
+    inline FloatType get_total_propensity() const {
         return a0_;
     }
 
@@ -95,8 +97,8 @@ public:
     // CATEGORICAL SAMPLING TO CHOOSE GROUP OF PROPENSITIES
     template <class Generator>
     IntType select_group(Generator& g) const {
-        const FloatType unif = (g() - g.min())/double(g.max() - g.min());
-        const FloatType discr = unif * get_total_propensity();
+        FloatType unif = (g() - g.min())/double(g.max() - g.min());
+        FloatType discr = unif * get_total_propensity();
         FloatType part_sum = 0.;
         for (int i=cr_groups_neg_.size()-1; i>=0; --i){
             part_sum += cr_groups_neg_[i]->get_group_propensity();
@@ -129,12 +131,12 @@ public:
         // - M = N * uppb/a_g  [uppb = upper bound of range (2^{i}, 2^{i+1})]
         // ---> if (a_j/a_g > N * uppb/a_g * 1/N) <==> if (a_j > uppb)
         IntType uppbd = (group_idx<0)?(std::pow(2.0, group_idx)):(std::pow(2.0, group_idx+1));
-        CompRejGroup& group = (group_idx<0)?(*cr_groups_neg_[group_idx+1]):(cr_groups_pos_[group_idx]);
+        CompRejGroup& group = (group_idx<0)?(*cr_groups_neg_[group_idx+1]):(*cr_groups_pos_[group_idx]);
         while(true) {
             FloatType u1 = (g() - g.min())/double(g.max() - g.min());
-            IntType local_idx = std::floor(u1 * group.size());                      // index within the group
+            IntType local_idx = std::floor(u1 * group.size());                          // index within the group
             FloatType u2 = (g() - g.min())/double(g.max() - g.min());
-            IntType global_idx = *std::next(group.begin(), local_idx);              // global index of propensity
+            IntType global_idx = *std::next(group.propensity_idxes.begin(), local_idx); // global index of propensity
             FloatType a_j = propensity_values_[global_idx];
             if (a_j > uppbd * u2)
                 return global_idx;
@@ -145,9 +147,12 @@ public:
 
     // COMPOSITION-REJECTION ALGORITHM
     template <class Generator>
-    IntType select_next_reaction(Generator& g) const {
+    void select_next_reaction(Generator& g, IntType* r, IntType* i) const {
         IntType group_idx = select_group(g);
-        return select_propensity_in_group(g, group_idx);
+        IntType global_idx = select_propensity_in_group(g, group_idx);
+        auto div_result = std::div(global_idx, n_reacs_);
+        *i = div_result.quot;
+        *r = div_result.rem;
     }
 
 
