@@ -7,20 +7,29 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "compression/compression.h"
-#include "/usr/include/zlib.h"
-#include "compression/zlib_fns.h"
-#include "compression/allocator.h"
-#include "compression/exception.h"
-#include "compression/block.h"
+#include "zlib.h"
+#include "compressor.h"
+#include "allocator.h"
+#include "exception.h"
+#include "block.h"
 
-
+#define BLOCK_SIZE 5000
+#define ARRAY_SIZE 10
 using neuromapp::block;
 using neuromapp::cstandard;
 // todo change to variable type, and allocation method
 using prac_block = block<int,cstandard>;
+typedef size_t size_type;
 
-int main (void) {
-    //do call rom the zlib_funs
-    zlib::block_compress();
+// testing the pragma_omp for with compression just in general
+//
+int main () {
+    vector<prac_block> set_of_blocks(ARRAY_SIZE);
+//#pragma omp parallel for
+    for (int i = 0; i < ARRAY_SIZE;i++) {
+        prac_block b((size_type) BLOCK_SIZE);
+        b.compress();
+        set_of_blocks[i] = b;
+        std::cout << i <<"\n" << std::flush;
+    }
 }
