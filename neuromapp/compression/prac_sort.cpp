@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include "zlib.h"
 #include <iostream>
 #include <string>
 #include "compression.h"
