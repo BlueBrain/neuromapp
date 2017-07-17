@@ -37,9 +37,13 @@ namespace readi {
 template <class IntType, class FloatType, class Generator>
 IntType rand_round(FloatType x, Generator& g) {
 
-    FloatType x_int = std::floor(x);
-    std::bernoulli_distribution bd(x - x_int);
-    return static_cast<IntType>(x_int)  + bd(g);
+    FloatType x_floor = std::floor(x);
+    FloatType prob_roundup = x-x_floor;
+
+    if ( (g()-g.min()) < prob_roundup*(g.max()-g.min()) )
+        return static_cast<IntType>(x_floor)+1;
+    else
+        return static_cast<IntType>(x_floor);
 
 }
 
