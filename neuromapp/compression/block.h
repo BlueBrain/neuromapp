@@ -87,6 +87,20 @@ namespace neuromapp {
                 copy_policy(data_, other.data_, current_size);
             }
 
+            //include more standard assignment operator
+            block & operator=(block &rhs) {
+                rows_ = rhs.rows_;
+                cols_ = rhs.cols_;
+                dim0_ = rhs.dim0_;
+                data_ = rhs.data_;
+                current_size = rhs.current_size;
+                rhs.rows_ = 0;
+                rhs.cols_ = 0;
+                rhs.dim0_ = 0;
+                rhs.data_ = nullptr;
+                return *this;
+            }
+
 
             //copy = operator
             block &operator=(block &&rhs) {
