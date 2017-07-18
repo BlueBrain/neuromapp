@@ -132,7 +132,7 @@ public:
         // - M = N * uppb/a_g  [uppb = upper bound of range (2^{i}, 2^{i+1})]
         // ---> if (a_j/a_g > N * uppb/a_g * 1/N) <==> if (a_j > uppb)
         IntType uppbd = (group_idx<0)?(std::pow(2.0, group_idx)):(std::pow(2.0, group_idx+1));
-        CompRejGroup& group = (group_idx<0)?(*cr_groups_neg_[group_idx+1]):(*cr_groups_pos_[group_idx]);
+        CompRejGroup& group = (group_idx<0)?(*cr_groups_neg_[-group_idx-1]):(*cr_groups_pos_[group_idx]);
         while(true) {
             FloatType u1 = (g() - g.min())/double(g.max() - g.min());
             IntType local_idx = std::floor(u1 * group.size());                          // index within the group
