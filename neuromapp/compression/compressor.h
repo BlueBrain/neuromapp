@@ -42,7 +42,7 @@ namespace neuromapp {
                 }
 
                 template<typename value_type>
-                void compress_policy(value_type ** data_source, size_t *uncompressed_size,bool free_on_end=false) {
+                void compress_policy(value_type ** data_source, size_t *uncompressed_size,bool free_on_end) {
                     //get the approximate size in memory of the data_source
                     uLong source_len = (uLong) *uncompressed_size;
                     uLong dest_len = compressBound(source_len);
@@ -65,7 +65,7 @@ namespace neuromapp {
 
                 //double pointer so we can change the upper_level within the function
                 template<typename value_type>
-                void uncompress_policy(value_type ** data_source, size_t *compressed_size, size_t uncompressed_size,bool free_on_end=false) {
+                void uncompress_policy(value_type ** data_source, size_t *compressed_size, size_t uncompressed_size,bool free_on_end) {
                     //original amount of memory used is still discernable
                     uLong dest_len = (uLong) uncompressed_size;
                     value_type * dest = (value_type *) std::malloc(dest_len);
