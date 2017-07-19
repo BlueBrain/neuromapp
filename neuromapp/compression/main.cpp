@@ -30,10 +30,9 @@
 
 /* make namespace alias for program options */
 using neuromapp::block;
-using neuromapp::cstandard;
 namespace po = boost::program_options;
 /*mpl typedef area */
-typedef boost::mpl::vector<block<float,cstandard>, block<float,align>, block<double,cstandard>, block<double,align>, block<int,cstandard>, block<int,align>> block_list;
+typedef boost::mpl::vector<block<float,cstandard>, block<float,neuromapp::align>, block<double,cstandard>, block<double,neuromapp::align>, block<int,cstandard>, block<int,neuromapp::align>> block_list;
 // TODO change to variable type, and allocation method
 // what type should we default to?
 using std_block = block<float,cstandard>;
@@ -44,7 +43,9 @@ neuromapp::Timer timer;
 /* create functor for benchmarking on the block list */
 struct bench_block_list {
     template<class Block>
-        void operator() (Block & const) {
+        void operator() (Block &,po::variables & vm) {
+            void file_routine( std_block & b1, ostream & os ,po::variables_map & vm,size_type row_sort=0) ;
+            //prototype line 
             vector<std::string> csv_solo_fnames { "../compression/trans_data/values_10_a8214trans_solo.csv", "../compression/trans_data/values_10_a8215trans_solo.csv", "../compression/trans_data/values_10_a8216trans_solo.csv", "../compression/trans_data/values_10_a8217trans_solo.csv", "../compression/trans_data/values_10_a8218trans_solo.csv", "../compression/trans_data/values_10_a8219trans_solo.csv", "../compression/trans_data/values_10_a8220trans_solo.csv", "../compression/trans_data/values_10_a8749trans_solo.csv", "../compression/trans_data/values_10_a8750trans_solo.csv", "../compression/trans_data/values_10_a8751trans_solo.csv", "../compression/trans_data/values_10_a8752trans_solo.csv", "../compression/trans_data/values_10_a8761trans_solo.csv", "../compression/trans_data/values_8_a10249trans_solo.csv", "../compression/trans_data/values_8_a10250trans_solo.csv", "../compression/trans_data/values_8_a10251trans_solo.csv", "../compression/trans_data/values_8_a10252trans_solo.csv", "../compression/trans_data/values_8_a10256trans_solo.csv", "../compression/trans_data/values_8_a10261trans_solo.csv", "../compression/trans_data/values_8_a10262trans_solo.csv", "../compression/trans_data/values_8_a10263trans_solo.csv", "../compression/trans_data/values_8_a10264trans_solo.csv", "../compression/trans_data/values_8_a8780trans_solo.csv", "../compression/trans_data/values_8_a8781trans_solo.csv", "../compression/trans_data/values_8_a8801trans_solo.csv", "../compression/trans_data/values_8_a8802trans_solo.csv", "../compression/trans_data/values_8_a8803trans_solo.csv", "../compression/trans_data/values_8_a8804trans_solo.csv", "../compression/trans_data/values_9_a10237trans_solo.csv", "../compression/trans_data/values_9_a10238trans_solo.csv", "../compression/trans_data/values_9_a10239trans_solo.csv", "../compression/trans_data/values_9_a10240trans_solo.csv", "../compression/trans_data/values_9_a10245trans_solo.csv", "../compression/trans_data/values_9_a10257trans_solo.csv", "../compression/trans_data/values_9_a10258trans_solo.csv", "../compression/trans_data/values_9_a10259trans_solo.csv", "../compression/trans_data/values_9_a10260trans_solo.csv", "../compression/trans_data/values_9_a513trans_solo.csv", "../compression/trans_data/values_9_a514trans_solo.csv", "../compression/trans_data/values_9_a515trans_solo.csv", "../compression/trans_data/values_9_a516trans_solo.csv", "../compression/trans_data/values_9_a8737trans_solo.csv", "../compression/trans_data/values_9_a8738trans_solo.csv", "../compression/trans_data/values_9_a8739trans_solo.csv", "../compression/trans_data/values_9_a8740trans_solo.csv", "../compression/trans_data/values_9_a8782trans_solo.csv", "../compression/trans_data/values_9_a8783trans_solo.csv", "../compression/trans_data/values_9_a8784trans_solo.csv", "../compression/trans_data/values_9_a8785trans_solo.csv", "../compression/trans_data/values_9_a8786trans_solo.csv", "../compression/trans_data/values_9_a8787trans_solo.csv", "../compression/trans_data/values_9_a8788trans_solo.csv", "../compression/trans_data/values_9_a8789trans_solo.csv", "../compression/trans_data/values_9_a8790trans_solo.csv", "../compression/trans_data/values_9_a8791trans_solo.csv", "../compression/trans_data/values_9_a8792trans_solo.csv", "../compression/trans_data/values_9_a8825trans_solo.csv", "../compression/trans_data/values_9_a8826trans_solo.csv", "../compression/trans_data/values_9_a8827trans_solo.csv", "../compression/trans_data/values_9_a8828trans_solo.csv" };
 
             vector<std::string> csv_bulk_fnames {
@@ -109,7 +110,7 @@ int comp_execute(int argc,char *const argv[])
             file_routine(b1,std::cout,vm);
         }
         if(vm.count("benchmark") && ! vm.count("file")) {
-            boost::mpl::for_each<block_list>(bench_block_list());
+            boost::mpl::for_each<block_list>(bench_block_list(),vm);
         }
         } catch (po::error &e) {
             std::cerr << e.what()  << std::endl;
