@@ -137,7 +137,6 @@ public:
             ++n_reacs_run;
         }
         printf("\t completed reactions (n. of events=%d)\n", n_reacs_run);
-        // TODO: fill this function
         return;
     }
 

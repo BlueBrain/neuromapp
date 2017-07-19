@@ -31,7 +31,7 @@
 #include "rng_utils.h"
 #include <cmath>
 #include <vector>
-#include <set>
+#include <unordered_set>
 #include <memory>
 #include <iterator>
 #include <cstdlib>
@@ -48,7 +48,7 @@ public:
 
     struct CompRejGroup {
         CompRejGroup() : ag_(0.) {}
-        std::set<IntType> propensity_idxes;            // set of propensities within this range
+        std::unordered_set<IntType> propensity_idxes;            // set of propensities within this range
         inline FloatType get_group_propensity() const {return ag_;}
         inline IntType size() const {return propensity_idxes.size();}
         FloatType ag_;
