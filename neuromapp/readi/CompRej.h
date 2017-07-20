@@ -46,6 +46,8 @@ public:
     using idx_type = IntType;
     using real_type = FloatType;
 
+    CompRej() : a0_(0.) {}
+
     struct CompRejGroup {
         CompRejGroup() : ag_(0.) {}
         std::unordered_set<IntType> propensity_idxes;            // set of propensities within this range
@@ -159,7 +161,8 @@ public:
 
     // update the propensity relative to r-th reaction inside i-th tetrahedron
     void update_propensity(IntType r, IntType i, FloatType new_prop){
-
+        assert(r>=0 && r<n_reacs_);
+        assert(i>=0 && r<n_tets_);
         assert(propensity_val(r, i)>=0.0);
         assert(new_prop>=0.0);
 

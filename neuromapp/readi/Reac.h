@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <set>
+#include <map>
 
 #include "Tets.h"
 #include "rng_utils.h"
@@ -139,14 +140,14 @@ public:
 
 
     // compute scaled reaction rate for propensity
-    inline FloatType compute_c_mu(FloatType reaction_rate, FloatType volume, IntType order) const {
+    inline FloatType compute_c_mu(FloatType reaction_rate, FloatType volume) const {
         FloatType volume_scaled = 1.e3 * volume * N_avogadro;
-        return reaction_rate * std::pow(volume_scaled, -order+1);
+        return reaction_rate * std::pow(volume_scaled, -order_+1);
     }
 
     // compute propensity of this reaction on a tetrahedron
     FloatType compute_propensity(IntType tet_idx, readi::Tets<IntType,FloatType>const& tets) const {
-        FloatType propensity = compute_c_mu(reaction_rate_, tets.volume(tet_idx), order_);
+        FloatType propensity = compute_c_mu(reaction_rate_, tets.volume(tet_idx));
         for(int i=0; i<lhs_idxs_.size(); ++i) {
             IntType X_i = tets.molecule_count(lhs_idxs_[i], tet_idx); // number of molecules of i-th species inside tet
             for (int j=0; j<lhs_counts_[i]; ++j) {
@@ -157,6 +158,35 @@ public:
     }
 
     friend class readi::Model<IntType,FloatType>; // why? because Model needs to access lhs and rhs
+
+
+    inline std::vector<IntType> get_lhs_idxs() const {
+        return lhs_idxs_;
+    }
+
+    inline std::vector<IntType> get_lhs_counts() const {
+        return lhs_counts_;
+    }
+
+    inline std::vector<IntType> get_rhs_idxs() const {
+        return rhs_idxs_;
+    }
+
+    inline std::vector<IntType> get_rhs_counts() const {
+        return rhs_counts_;
+    }
+
+    inline std::vector<IntType> get_upd_idxs() const {
+        return upd_idxs_;
+    }
+
+    inline std::vector<IntType> get_upd_counts() const {
+        return upd_counts_;
+    }
+
+    inline FloatType get_rate() const {
+        return reaction_rate_;
+    }
 
 
 private:

@@ -28,10 +28,10 @@
 
 #include <boost/program_options.hpp>
 
-#include "readi/readi.h"
-#include "readi/Tets.h"
-#include "readi/Reac.h"
-#include "readi/RdSolver.h"
+#include "readi.h"
+#include "Tets.h"
+#include "Reac.h"
+#include "RdSolver.h"
 
 #include "utils/error.h"
 
