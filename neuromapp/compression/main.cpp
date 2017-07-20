@@ -31,55 +31,12 @@
 /* make namespace alias for program options */
 using neuromapp::block;
 namespace po = boost::program_options;
-/*mpl typedef area */
-typedef boost::mpl::vector<block<float,cstandard>, block<float,neuromapp::align>, block<double,cstandard>, block<double,neuromapp::align>, block<int,cstandard>, block<int,neuromapp::align>> block_list;
-// TODO change to variable type, and allocation method
-// what type should we default to?
-using std_block = block<float,cstandard>;
 typedef size_t size_type;
 neuromapp::Timer timer;
-
-
-/* create functor for benchmarking on the block list */
-struct bench_block_list {
-    template<class Block>
-        void operator() (Block &,po::variables & vm) {
-            void file_routine( std_block & b1, ostream & os ,po::variables_map & vm,size_type row_sort=0) ;
-            //prototype line 
-            vector<std::string> csv_solo_fnames { "../compression/trans_data/values_10_a8214trans_solo.csv", "../compression/trans_data/values_10_a8215trans_solo.csv", "../compression/trans_data/values_10_a8216trans_solo.csv", "../compression/trans_data/values_10_a8217trans_solo.csv", "../compression/trans_data/values_10_a8218trans_solo.csv", "../compression/trans_data/values_10_a8219trans_solo.csv", "../compression/trans_data/values_10_a8220trans_solo.csv", "../compression/trans_data/values_10_a8749trans_solo.csv", "../compression/trans_data/values_10_a8750trans_solo.csv", "../compression/trans_data/values_10_a8751trans_solo.csv", "../compression/trans_data/values_10_a8752trans_solo.csv", "../compression/trans_data/values_10_a8761trans_solo.csv", "../compression/trans_data/values_8_a10249trans_solo.csv", "../compression/trans_data/values_8_a10250trans_solo.csv", "../compression/trans_data/values_8_a10251trans_solo.csv", "../compression/trans_data/values_8_a10252trans_solo.csv", "../compression/trans_data/values_8_a10256trans_solo.csv", "../compression/trans_data/values_8_a10261trans_solo.csv", "../compression/trans_data/values_8_a10262trans_solo.csv", "../compression/trans_data/values_8_a10263trans_solo.csv", "../compression/trans_data/values_8_a10264trans_solo.csv", "../compression/trans_data/values_8_a8780trans_solo.csv", "../compression/trans_data/values_8_a8781trans_solo.csv", "../compression/trans_data/values_8_a8801trans_solo.csv", "../compression/trans_data/values_8_a8802trans_solo.csv", "../compression/trans_data/values_8_a8803trans_solo.csv", "../compression/trans_data/values_8_a8804trans_solo.csv", "../compression/trans_data/values_9_a10237trans_solo.csv", "../compression/trans_data/values_9_a10238trans_solo.csv", "../compression/trans_data/values_9_a10239trans_solo.csv", "../compression/trans_data/values_9_a10240trans_solo.csv", "../compression/trans_data/values_9_a10245trans_solo.csv", "../compression/trans_data/values_9_a10257trans_solo.csv", "../compression/trans_data/values_9_a10258trans_solo.csv", "../compression/trans_data/values_9_a10259trans_solo.csv", "../compression/trans_data/values_9_a10260trans_solo.csv", "../compression/trans_data/values_9_a513trans_solo.csv", "../compression/trans_data/values_9_a514trans_solo.csv", "../compression/trans_data/values_9_a515trans_solo.csv", "../compression/trans_data/values_9_a516trans_solo.csv", "../compression/trans_data/values_9_a8737trans_solo.csv", "../compression/trans_data/values_9_a8738trans_solo.csv", "../compression/trans_data/values_9_a8739trans_solo.csv", "../compression/trans_data/values_9_a8740trans_solo.csv", "../compression/trans_data/values_9_a8782trans_solo.csv", "../compression/trans_data/values_9_a8783trans_solo.csv", "../compression/trans_data/values_9_a8784trans_solo.csv", "../compression/trans_data/values_9_a8785trans_solo.csv", "../compression/trans_data/values_9_a8786trans_solo.csv", "../compression/trans_data/values_9_a8787trans_solo.csv", "../compression/trans_data/values_9_a8788trans_solo.csv", "../compression/trans_data/values_9_a8789trans_solo.csv", "../compression/trans_data/values_9_a8790trans_solo.csv", "../compression/trans_data/values_9_a8791trans_solo.csv", "../compression/trans_data/values_9_a8792trans_solo.csv", "../compression/trans_data/values_9_a8825trans_solo.csv", "../compression/trans_data/values_9_a8826trans_solo.csv", "../compression/trans_data/values_9_a8827trans_solo.csv", "../compression/trans_data/values_9_a8828trans_solo.csv" };
-
-            vector<std::string> csv_bulk_fnames {
-                "../compression/trans_data/values_10_a8213trans_bulk.csv", "../compression/trans_data/values_10_a8214trans_bulk.csv", "../compression/trans_data/values_10_a8215trans_bulk.csv", "../compression/trans_data/values_10_a8216trans_bulk.csv", "../compression/trans_data/values_10_a8217trans_bulk.csv", "../compression/trans_data/values_10_a8218trans_bulk.csv", "../compression/trans_data/values_10_a8219trans_bulk.csv", "../compression/trans_data/values_10_a8220trans_bulk.csv", "../compression/trans_data/values_10_a8749trans_bulk.csv", "../compression/trans_data/values_10_a8750trans_bulk.csv", "../compression/trans_data/values_10_a8751trans_bulk.csv", "../compression/trans_data/values_10_a8752trans_bulk.csv", "../compression/trans_data/values_10_a8761trans_bulk.csv", "../compression/trans_data/values_8_a10249trans_bulk.csv", "../compression/trans_data/values_8_a10250trans_bulk.csv", "../compression/trans_data/values_8_a10251trans_bulk.csv", "../compression/trans_data/values_8_a10252trans_bulk.csv", "../compression/trans_data/values_8_a10256trans_bulk.csv", "../compression/trans_data/values_8_a10261trans_bulk.csv", "../compression/trans_data/values_8_a10262trans_bulk.csv", "../compression/trans_data/values_8_a10263trans_bulk.csv", "../compression/trans_data/values_8_a10264trans_bulk.csv", "../compression/trans_data/values_8_a8780trans_bulk.csv", "../compression/trans_data/values_8_a8781trans_bulk.csv", "../compression/trans_data/values_8_a8801trans_bulk.csv", "../compression/trans_data/values_8_a8802trans_bulk.csv", "../compression/trans_data/values_8_a8803trans_bulk.csv", "../compression/trans_data/values_8_a8804trans_bulk.csv", "../compression/trans_data/values_9_a10237trans_bulk.csv", "../compression/trans_data/values_9_a10238trans_bulk.csv", "../compression/trans_data/values_9_a10239trans_bulk.csv", "../compression/trans_data/values_9_a10240trans_bulk.csv", "../compression/trans_data/values_9_a10245trans_bulk.csv", "../compression/trans_data/values_9_a10257trans_bulk.csv", "../compression/trans_data/values_9_a10258trans_bulk.csv", "../compression/trans_data/values_9_a10259trans_bulk.csv", "../compression/trans_data/values_9_a10260trans_bulk.csv", "../compression/trans_data/values_9_a513trans_bulk.csv", "../compression/trans_data/values_9_a514trans_bulk.csv", "../compression/trans_data/values_9_a515trans_bulk.csv", "../compression/trans_data/values_9_a516trans_bulk.csv", "../compression/trans_data/values_9_a8737trans_bulk.csv", "../compression/trans_data/values_9_a8738trans_bulk.csv", "../compression/trans_data/values_9_a8739trans_bulk.csv", "../compression/trans_data/values_9_a8740trans_bulk.csv", "../compression/trans_data/values_9_a8782trans_bulk.csv", "../compression/trans_data/values_9_a8783trans_bulk.csv", "../compression/trans_data/values_9_a8784trans_bulk.csv", "../compression/trans_data/values_9_a8785trans_bulk.csv", "../compression/trans_data/values_9_a8786trans_bulk.csv", "../compression/trans_data/values_9_a8787trans_bulk.csv", "../compression/trans_data/values_9_a8788trans_bulk.csv", "../compression/trans_data/values_9_a8789trans_bulk.csv", "../compression/trans_data/values_9_a8790trans_bulk.csv", "../compression/trans_data/values_9_a8791trans_bulk.csv", "../compression/trans_data/values_9_a8792trans_bulk.csv", "../compression/trans_data/values_9_a8825trans_bulk.csv", "../compression/trans_data/values_9_a8826trans_bulk.csv", "../compression/trans_data/values_9_a8827trans_bulk.csv", "../compression/trans_datavalues_9_a8828trans_bulk.csv" };
-            std::ofstream out("benchmark_res.log");
-            for (std::string fname : csv_solo_fnames) {
-                out << "fname is : " << fname << std::endl;
-
-                std_block block_from_file(std::string);
-                //prototype line above
-                std_block b1 =  block_from_file(fname);
-                for (size_type row = 0 ; row < b1.num_rows() ;row++) {
-                    out << "sorting row " << row << "\n";
-                    file_routine(b1,out,vm,row);
-                }
-            }
-            for(std::string fname : csv_bulk_fnames) {
-                out << "fname is : " << fname << std::endl;
-                std_block block_from_file(std::string);
-                //prototype line above
-                std_block b1 =  block_from_file(fname);
-                for (size_type row = 0 ; row < b1.num_rows() ;row++) {
-                    out << "sorting row " << row << "\n";
-                    file_routine(b1,out,vm,row);
-                }
-            }
-        }
-
-};
 
 //todo include more boost program_options later on
 int comp_execute(int argc,char *const argv[])
 {
-    void file_routine(std_block&,std::ostream &,po::variables_map &,size_type = 0 ) ;
     //prototype line above
     //now the program options section
     try {
@@ -98,85 +55,89 @@ int comp_execute(int argc,char *const argv[])
         po::store(po::parse_command_line(argc,argv,desc),vm);
         //finish function registration with notify
         po::notify(vm);
-        //loop over reasonable options
+        /*consider top level options
+         *  within the file vs benchmark the other options will be checked */
         if (vm.count("help")) {
             std::cout << desc << std::endl;
         }
         if(vm.count("file") && ! vm.count("benchmark")){
-            std::string fname = vm["file"].as<std::string>();
-            std_block block_from_file(std::string);
-            //prototype line above
-            std_block b1 =  block_from_file(fname);
-            file_routine(b1,std::cout,vm);
+            string fname = vm["file"].as<std::string>();
+            ifstream ifile(fname);
+            if (vm.count("align")) {
+                block<double,align> b1;
+                ifile >> b1;
+                file_routine(b1,vm);
+            } else {
+                block<double,cstandard> b1;
+                ifile >> b1;
+                file_routine(b1,vm);
+            }
+
         }
         if(vm.count("benchmark") && ! vm.count("file")) {
-            boost::mpl::for_each<block_list>(bench_block_list(),vm);
-        }
-        } catch (po::error &e) {
-            std::cerr << e.what()  << std::endl;
-        }
-        // not quite sure what the return should be in this scenario
-        return 0;
-    }
-
-    void file_routine( std_block & b1, ostream & os ,po::variables_map & vm,size_type row_sort=0) {
-        if(vm.count("split")) {
-            timer.start();
-            block<unsigned int, cstandard> split_block = neuromapp::generate_split_block(b1);
-            timer.end();
-            timer.print("splitting took");
-            if (vm.count("compress")) {
-                timer.start();
-                split_block.compress();
-                timer.end();
-                os <<" SPLTcompressed memory size: " <<  split_block.get_current_size() 
-                    << " SPLTstarting memory size: " <<  split_block.memory_allocated()
-                    << "SPLTcompression speed: " << timer.duration() ;
-
-                timer.start();
-                split_block.uncompress();
-                timer.end();
-                os << " SPLTuncompressed memory size: " <<  split_block.get_current_size() 
-                    << " SPLTstarting memory size: " <<  split_block.memory_allocated()
-                    << " SPLTuncompression speed: " <<timer.duration();
-                return;
+            /* gett more info about how to access files, and iterate over the directory of entries */
+            for (string fname : fname_vect) {
+                block<double,cstandard> std_block;
+                block<double,align> align_block;
+                /* now pass both versions through the file routine separately */
+                file_routine(std_block,vm);
+                file_routine(align_block,vm);
             }
-            // renaming b1 will make the rest of the benchmark apply to the split, this output will just be compared to benchmark runs that don't include this 
-        } else {
-            os << "non split, timing included to balance data 0.0\n";
-        }
 
-        if ( vm.count("sort") ) {
-            //sort the block before continuing
-            //TODO change from hardcoded for 0 row as sort
-            neuromapp::col_sort(&b1,row_sort);
         }
-        if ( vm.count("compress") ) {
-            timer.start();
-            b1.compress();
-            timer.end();
-            //compress into miliseconds
-            os << " compressed memory size: " <<  b1.get_current_size() 
-                << " starting memory size: " <<  b1.memory_allocated()
-                << " compression speed: " <<timer.duration();
-            timer.start();
-            b1.uncompress();
-            timer.end();
-            os << " uncompressed memory size: " <<  b1.get_current_size() 
-                << " starting memory size: " <<  b1.memory_allocated()
-                << " uncompression speed: " << timer.duration();
-        }
+    } catch (po::error &e) {
+        std::cerr << e.what()  << std::endl;
     }
+    // not quite sure what the return should be in this scenario
+    return 0;
+}
 
-
-    std_block block_from_file(std::string fname)
-    {
-        //check file
-        neuromapp::check_file(fname);
-        std::ifstream i_file(fname);// use the filename given as argument to create block
-        std_block file_block;
-        i_file >> file_block;
-        return file_block;
+template <typename allocator_type>
+void file_routine( block<double,allocator_type> & b1,po::variables_map & vm) {
+    ofstream out("compress_app_run.log");
+    if(vm.count("split")) {
+        split_routine(b1,out,timer);
+        return;// the split block doesn't get returned so don't proceed even if the options are given
+    } 
+    if ( vm.count("sort") ) {
+        sort_routine(b1,out,timer);
     }
+    if ( vm.count("compress") ) {
+        compress_routine(b1,out,timer);
+    }
+}
+
+/* so the routines can have a block that is either cstandard or align */
+template <typename allocator_type>
+void split_routine ( block<double,allocator_type> & block,ostream & os, Timer & time_it) {
+        time_it.start();
+        block<unsigned int, allocator_type> split_block = neuromapp::generate_split_block(block);
+        time_it.end();
+        os << "splitting took " << time_it.duration() << " ms" << std::endl;
+        compress_routine(split_block,os,time_it);
+}
+template <typename allocator_type>
+void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & time_it) {
+    time_it.start();
+    neuromapp::col_sort(block);
+    time_it.end();
+    os << "sorting took " << time_it.duration () << " ms " << std::endl;
+}
+template <typename value_type,typename allocator_type>
+void compress_routine ( block<value_type,allocator_type> & block,ostream & os, Timer & time_it) {
+        time_it.start();
+        block.compress();
+        time_it.end();
+        //compress into miliseconds
+        os << " compressed memory size: " <<  block.get_current_size() 
+            << " starting memory size: " <<  block.memory_allocated()
+            << " compression speed: " <<time_it.duration();
+        time_it.start();
+        block.uncompress();
+        time_it.end();
+        os << " uncompressed memory size: " <<  block.get_current_size() 
+            << " starting memory size: " <<  block.memory_allocated()
+            << " uncompression speed: " << time_it.duration();
+}
 
 
