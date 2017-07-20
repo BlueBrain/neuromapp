@@ -1,3 +1,9 @@
+/* Filename : francesco_task.cpp
+ * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, EPFL
+ * Purpose : xxx
+ * Date : 2017-07-20 
+ */
 
 #include <iostream>
 #include <chrono>

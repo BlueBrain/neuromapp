@@ -1,3 +1,9 @@
+/* Filename : compressor.h
+ * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, EPFL
+ * Purpose : xxx
+ * Date : 2017-07-20 
+ */
 /*this is the compression policy file to be used by the block*/
 #ifndef neuromapp_COMPRESSOR
 #define neuromapp_COMPRESSOR

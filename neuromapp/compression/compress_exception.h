@@ -1,3 +1,9 @@
+/* Filename : compress_exception.h
+ * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, EPFL
+ * Purpose : xxx
+ * Date : 2017-07-20 
+ */
 #ifndef compress_exception_h
 #define compress_exception_h
 #include <string>
