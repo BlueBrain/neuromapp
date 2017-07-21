@@ -4,10 +4,11 @@
  * Purpose : xxx
  * Date : 2017-07-20 
  */
+#ifndef TIMER_INCLUDE_H
+#define TIMER_INCLUDE_H
 #include <chrono>
 #include <string>
 #include <iostream>
-#include "compression.h"
 using namespace std;
 namespace neuromapp {
     class Timer {
@@ -26,7 +27,6 @@ namespace neuromapp {
             public:
                 Exception (string & creation_msg ) : message_{creation_msg} {}
                 ~Exception () {};
-
         };
     };
 
@@ -52,8 +52,4 @@ namespace neuromapp {
         duration_ = end_-start_;
     }
 }
-
-
-
-
-
+#endif
