@@ -4,6 +4,8 @@
  * Purpose : xxx
  * Date : 2017-07-20 
  */
+#ifndef BIT_SHIFTING_H
+#define BIT_SHIFTING_H
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -42,11 +44,11 @@ namespace neuromapp {
     template<class T>
         union conversion_parts {
             T num;
-            struct parts{
+            struct {
                 unsigned int mantissa = trait_mantissa<T>::value;
                 unsigned int exponent = trait_exponent<T>::value;
                 unsigned int sign:1;
-            } ;
+            } parts;
         } ;
 
 
@@ -57,8 +59,7 @@ namespace neuromapp {
         void convert_to_parts(value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num){
             size_type count = split_block.dim0()/3;
             for (size_type i = 0 ; i < count ; i++) {
-                conversion_parts<value_type> conv_float;
-                conv_float.num = *row_ptr++;
+                conversion_parts<value_type> conv_float{*row_ptr++};
                 split_block(i,row_num) = conv_float.parts.sign;
                 split_block(i+count,row_num) = conv_float.parts.exponent;
                 split_block(i+count*2,row_num) = conv_float.parts.mantissa;
@@ -114,3 +115,4 @@ namespace neuromapp {
         }
 }
 
+#endif
