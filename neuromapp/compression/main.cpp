@@ -25,7 +25,6 @@
 #include "compression/util.h"
 #include "compression/compression.h"
 #include "compression/compressor.h"
-#include "compression/zlib_fns.h"
 #include "compression/allocator.h"
 #include "compression/exception.h"
 #include "compression/block_sort.h"
@@ -38,14 +37,14 @@
 using neuromapp::block;
 namespace po = boost::program_options;
 typedef size_t size_type;
-neuromapp::Timer timer;
 
 //todo include more boost program_options later on
 int comp_execute(int argc,char *const argv[])
 {
-    //prototype line above
     //now the program options section
     try {
+        // create the timer 
+        neuromapp::Timer timer;
         //make desc
         po::options_description desc{"Allowed options"};
         //add options
@@ -70,24 +69,25 @@ int comp_execute(int argc,char *const argv[])
             string fname = vm["file"].as<std::string>();
             ifstream ifile(fname);
             if (vm.count("align")) {
-                block<double,align> b1;
+                block<double,neuromapp::align> b1;
                 ifile >> b1;
-                file_routine(b1,vm);
+                file_routine(b1,vm,timer);
             } else {
-                block<double,cstandard> b1;
+                block<double,neuromapp::cstandard> b1;
                 ifile >> b1;
-                file_routine(b1,vm);
+                file_routine(b1,vm,timer);
             }
 
         }
         if(vm.count("benchmark") && ! vm.count("file")) {
             /* gett more info about how to access files, and iterate over the directory of entries */
+            vector<string> fname_vect {"../compression/trans_data/values_10_a8213trans_bulk.csv"};
             for (string fname : fname_vect) {
-                block<double,cstandard> std_block;
-                block<double,align> align_block;
+                block<double,neuromapp::cstandard> std_block;
+                block<double,neuromapp::align> align_block;
                 /* now pass both versions through the file routine separately */
-                file_routine(std_block,vm);
-                file_routine(align_block,vm);
+                file_routine(std_block,vm,timer);
+                file_routine(align_block,vm,timer);
             }
 
         }
@@ -97,53 +97,4 @@ int comp_execute(int argc,char *const argv[])
     // not quite sure what the return should be in this scenario
     return 0;
 }
-
-template <typename allocator_type>
-void file_routine( block<double,allocator_type> & b1,po::variables_map & vm) {
-    ofstream out("compress_app_run.log");
-    if(vm.count("split")) {
-        split_routine(b1,out,timer);
-        return;// the split block doesn't get returned so don't proceed even if the options are given
-    } 
-    if ( vm.count("sort") ) {
-        sort_routine(b1,out,timer);
-    }
-    if ( vm.count("compress") ) {
-        compress_routine(b1,out,timer);
-    }
-}
-
-/* so the routines can have a block that is either cstandard or align */
-template <typename allocator_type>
-void split_routine ( block<double,allocator_type> & block,ostream & os, Timer & time_it) {
-        time_it.start();
-        block<unsigned int, allocator_type> split_block = neuromapp::generate_split_block(block);
-        time_it.end();
-        os << "splitting took " << time_it.duration() << " ms" << std::endl;
-        compress_routine(split_block,os,time_it);
-}
-template <typename allocator_type>
-void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & time_it) {
-    time_it.start();
-    neuromapp::col_sort(block);
-    time_it.end();
-    os << "sorting took " << time_it.duration () << " ms " << std::endl;
-}
-template <typename value_type,typename allocator_type>
-void compress_routine ( block<value_type,allocator_type> & block,ostream & os, Timer & time_it) {
-        time_it.start();
-        block.compress();
-        time_it.end();
-        //compress into miliseconds
-        os << " compressed memory size: " <<  block.get_current_size() 
-            << " starting memory size: " <<  block.memory_allocated()
-            << " compression speed: " <<time_it.duration();
-        time_it.start();
-        block.uncompress();
-        time_it.end();
-        os << " uncompressed memory size: " <<  block.get_current_size() 
-            << " starting memory size: " <<  block.memory_allocated()
-            << " uncompression speed: " << time_it.duration();
-}
-
 
