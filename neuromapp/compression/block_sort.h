@@ -1,3 +1,5 @@
+#ifndef BLOCK_SORT_H
+#define BLOCK_SORT_H
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -43,4 +45,4 @@ namespace neuromapp {
         }
     }
 }
-
+#endif
