@@ -20,7 +20,7 @@ namespace neuromapp {
 
             virtual const char * what() const throw() { return message_.c_str() ; }
 
-            int const get_error_code () {return error_code_;}
+            int get_error_code () {return error_code_;}
 
         private:
             std::string message_;

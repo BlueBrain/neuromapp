@@ -1,16 +1,9 @@
 /* Filename : main.cpp
  * Authors : Devin Bayly, Tim Ewart
  * Organization : University of Arizona, EPFL
- * Purpose : xxx
+ * Purpose:  this program establishes the command line argument parsing loop
  * Date : 2017-07-20 
  */
-/*
- * File: main.cpp aka execute compression app
- * Author: Devin Bayly
- * Purpose:  this program establishes the command line argument parsing loop
- * used for the neuromapp when compression is typed out as option. 
- */
-
 #include <sys/stat.h>
 #include <chrono>
 #include <stdexcept>
@@ -23,7 +16,6 @@
 #include <boost/program_options.hpp>
 // the includes are relative to the directory above
 #include "compression/util.h"
-#include "compression/compression.h"
 #include "compression/compressor.h"
 #include "compression/allocator.h"
 #include "compression/exception.h"
@@ -31,10 +23,13 @@
 #include "compression/block.h"
 #include "compression/bit_shifting.h"
 #include "compression/timer_tool.h"
+#include "compression/compression.h"
+#include "compression/main_functions.h"
 #include <boost/mpl/list.hpp>
 
 /* make namespace alias for program options */
 using neuromapp::block;
+using neuromapp::Timer;
 namespace po = boost::program_options;
 typedef size_t size_type;
 
@@ -44,7 +39,7 @@ int comp_execute(int argc,char *const argv[])
     //now the program options section
     try {
         // create the timer 
-        neuromapp::Timer timer;
+        Timer timer;
         //make desc
         po::options_description desc{"Allowed options"};
         //add options
