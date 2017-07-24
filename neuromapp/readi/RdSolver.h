@@ -78,8 +78,8 @@ public:
 
 
     // recompute propensities affected by r-th reaction in i-th tetrahedron
-    void recompute_propensities_after_reac(IntType r, IntType i) {
-        std::vector<IntType>& dependencies_idxs = model_.get_reaction_dependencies(r);
+    inline void recompute_propensities_after_reac(IntType r, IntType i) {
+        std::vector<IntType> dependencies_idxs = model_.get_reaction_dependencies(r);
         for (auto r_idx : dependencies_idxs) {
             FloatType new_prop_val = model_.compute_reaction_propensity(r_idx, i, tets_);
             comprej_.update_propensity(r_idx, i, new_prop_val);
@@ -87,8 +87,8 @@ public:
     }
 
     // recompute propensities affected by diffusion of s-th species in i-th tetrahedron
-    void recompute_propensities_after_diff(IntType s, IntType i) {
-        std::vector<IntType>& dependencies_idxs = model_.get_diffusion_dependencies(s);
+    inline void recompute_propensities_after_diff(IntType s, IntType i) {
+        std::vector<IntType> dependencies_idxs = model_.get_diffusion_dependencies(s);
         for (auto r_idx : dependencies_idxs) {
             FloatType new_prop_val = model_.compute_reaction_propensity(r_idx, i, tets_);
             comprej_.update_propensity(r_idx, i, new_prop_val);
@@ -97,7 +97,7 @@ public:
 
 
     // compute update period, a.k.a. tau
-    FloatType get_update_period() {
+    inline FloatType get_update_period() {
         FloatType max_diffusion_coeff = model_.get_max_diff();
         FloatType max_shape = tets_.get_max_shape();
         return 1.0 / (max_diffusion_coeff * max_shape) ;
@@ -108,17 +108,18 @@ public:
     void run_period_ssa(FloatType tau) {
         printf("----  REAC-DIFF info ----------------------------------------\n");
         printf("\t computed tau : %1.5e\n", tau);
-        run_reactions(tau);
+        auto vec_occurred_reacs = run_reactions(tau);
         run_diffusions(tau);
+        zero_occupancies(vec_occurred_reacs);
         printf("-------------------------------------------------------------\n");
 
     }
 
 
     // run reactions
-    void run_reactions(FloatType tau) {
+    std::vector<std::pair<IntType,IntType> > run_reactions(FloatType tau) {
+        std::vector<std::pair<IntType,IntType> > vec_occurred_reacs;
         FloatType elapsed_time = 0.;
-        IntType n_reacs_run = 0;
         while (true) {
             // Exact SSA Algorithm:
             // dt ~ Exp(lambda = a_0)           [select time of next reaction]
@@ -131,13 +132,13 @@ public:
             IntType next_reac_i; // idx of tet where next reaction takes place
             IntType next_reac_r; // idx of next reaction that takes place
             comprej_.select_next_reaction(rand_engine_, &next_reac_r, &next_reac_i);
+            update_occupancies_at_reac(next_reac_r, next_reac_i, elapsed_time);
             model_.apply_reaction(next_reac_r, next_reac_i, tets_);
             recompute_propensities_after_reac(next_reac_r, next_reac_i);
-
-            ++n_reacs_run;
+            vec_occurred_reacs.emplace_back(next_reac_r, next_reac_i);
         }
-        printf("\t completed reactions (n. of events=%d)\n", n_reacs_run);
-        return;
+        printf("\t completed reactions (n. of events=%lu)\n", vec_occurred_reacs.size());
+        return vec_occurred_reacs;
     }
 
 
@@ -148,8 +149,10 @@ public:
             std::unordered_set<IntType> update_tet_idxs;                            // set with idxes of tets affected by diffusion
 
             for (IntType i=0; i<tets_.get_n_tets(); ++i) {
-                FloatType zeta_k = model_.diffusion_coeff(s) * tets_.shape_sum(i) * tau;                // zeta_k = prob. of local diffusion
-                IntType n_leaving_max = tets_.molecule_count(s, i);                     // compute max n. of molecules that may leave
+                FloatType zeta_k = model_.diffusion_coeff(s) * tets_.shape_sum(i) * tau;// zeta_k = prob. of local diffusion
+                                                                                        // compute max n. of molecules that may leave based on occupancy
+                FloatType n_average = (tets_.molecule_occupancy_count(s,i) + (tau-tets_.molecule_occupancy_last_update_time(s,i))*tets_.molecule_count(s,i))/tau;
+                IntType n_leaving_max = std::min(readi::rand_round<IntType>(n_average, rand_engine_), tets_.molecule_count(s,i));
                 readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
                 IntType tot_leaving_mols = binomial(rand_engine_);                      // compute n. of molecules that will actually leave
                 tets_.molecule_count(s, i) -= tot_leaving_mols;                         // remove from origin tet n. of molecules leaving
@@ -181,6 +184,26 @@ public:
     }
 
 
+    // update occupancies after reaction
+    inline void update_occupancies_at_reac(IntType r, IntType i, FloatType t_now) {
+        std::vector<IntType> affected_species = model_.get_update_idxs(r);
+        for (auto s : affected_species) {
+            tets_.molecule_occupancy_count(s,i) += tets_.molecule_count(s,i)*(t_now - tets_.molecule_occupancy_last_update_time(s,i)) ;
+            tets_.molecule_occupancy_last_update_time(s,i) = t_now;
+
+        }
+    }
+
+
+    inline void zero_occupancies(std::vector<std::pair<IntType,IntType> > vec_occurred_reacs) {
+        for (auto& p: vec_occurred_reacs) {
+            std::vector<IntType> affected_species = model_.get_update_idxs(p.first);
+            for (auto s : affected_species) {
+                tets_.molecule_occupancy_count(s, p.second) = 0.;
+                tets_.molecule_occupancy_last_update_time(s, p.second) = 0.;
+            }
+        }
+    }
 
 
 

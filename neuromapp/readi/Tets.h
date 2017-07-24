@@ -112,6 +112,32 @@ public:
     }
 
 
+    // access occupancy of s-th species in i-th tetrahedron
+    inline FloatType& molecule_occupancy_count(IntType s, IntType i) {
+        assert(s>=0 && s<n_species_);
+        assert(i>=0 && i<n_tets_);
+        return mol_occupancy_counts_[n_tets_*s + i];
+    }
+    inline FloatType molecule_occupancy_count(IntType s, IntType i) const {
+        assert(s>=0 && s<n_species_);
+        assert(i>=0 && i<n_tets_);
+        return mol_occupancy_counts_[n_tets_*s + i];
+    }
+
+
+    // access last update time of s-th species in i-th tetrahedron
+    inline FloatType& molecule_occupancy_last_update_time(IntType s, IntType i) {
+        assert(s>=0 && s<n_species_);
+        assert(i>=0 && i<n_tets_);
+        return mol_occupancy_lastupdtime_[n_tets_*s + i];
+    }
+    inline FloatType molecule_occupancy_last_update_time(IntType s, IntType i) const {
+        assert(s>=0 && s<n_species_);
+        assert(i>=0 && i<n_tets_);
+        return mol_occupancy_lastupdtime_[n_tets_*s + i];
+    }
+
+
     // compute max shape d_K, so that tau = D_max * d_K
     FloatType get_max_shape() {
         return *std::max_element(shapes_sums_.begin(),shapes_sums_.end());
@@ -163,6 +189,8 @@ public:
             // --- [MODEL_FILE] READ N. SPECIES + N. INITIAL MOLECULES ---
             file_model >> discard >> n_species_;                // read n. of species
             mol_counts_.resize(n_tets_*n_species_);             // each tet knows how many mol of each species it contains
+            mol_occupancy_counts_.resize(n_tets_*n_species_);
+            mol_occupancy_lastupdtime_.resize(n_tets_*n_species_);
             mol_counts_bucket_.resize(n_tets_);                 // bucket containing molecules received from diffusion
             std::getline(file_model, discard);                           // read \n
             std::getline(file_model, discard);                           // read description line
@@ -235,7 +263,8 @@ private:
     std::vector<FloatType> shapes_sums_;
     std::vector<IntType> mol_counts_;
     std::vector<IntType> mol_counts_bucket_;
-
+    std::vector<FloatType> mol_occupancy_counts_;
+    std::vector<FloatType> mol_occupancy_lastupdtime_;
 };
 
 }

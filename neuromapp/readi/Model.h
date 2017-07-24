@@ -200,6 +200,11 @@ public:
         return reac_idxs_affected_by_d_[s];
     }
 
+    // Get update idxs for r-th reaction
+    std::vector<IntType> get_update_idxs(IntType r) {
+        return reactions_[r].get_upd_idxs();
+    }
+
 
 
 private:
