@@ -64,10 +64,6 @@ public:
         propensity_values_.resize(n_reacs_*n_tets_, 0); // initialize all propensities to 0
         cr_groups_pos_.emplace_back(new CompRejGroup);
         cr_groups_neg_.emplace_back(new CompRejGroup);
-    //    for (IntType i=0; i<n_tets_; ++i)
-    //        cr_groups_pos_[0]->propensity_idxes.insert(i);
-
-        // TODO: here we should call update_propensity on each reac, on each tet
     }
 
 

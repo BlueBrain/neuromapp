@@ -219,6 +219,9 @@ public:
     // distribute tot number of molecules on each tetrahedron, used at initialization of mol counts
     template <class Generator>
     void distribute_molecules(IntType species_idx, IntType n_molecules_tot, Generator& g) {
+        // TODO: actually the distribution of molecules should be done by implementing an adjusted Pareto sampler in two phases:
+        //  1. attribute to each tet the relative rounded down fraction of molecules
+        //  2. attribute the remaining molecules through Pareto sampling
         IntType n_molecules_partial = 0; // molecules that have been placed until now
         FloatType tot_volume = get_tot_volume();
         for (IntType i=0; i<n_tets_; ++i) {
@@ -227,10 +230,10 @@ public:
             n_molecules_partial += mols;
             molecule_count(species_idx, i) = mols;
         }
-        printf("---- Distribution of molecules for species %d ---------------\n", species_idx);
-        FloatType err_distr = 100*(double(n_molecules_tot-n_molecules_partial)/n_molecules_tot);
-        printf("\t Theoretical:%d,  Distributed:%d, Error:%5.2f%%\n", n_molecules_tot, n_molecules_partial, err_distr);
-        printf("-------------------------------------------------------------\n");
+//        printf("---- Distribution of molecules for species %d ---------------\n", species_idx);
+//        FloatType err_distr = 100*(double(n_molecules_tot-n_molecules_partial)/n_molecules_tot);
+//        printf("\t Theoretical:%d,  Distributed:%d, Error:%5.2f%%\n", n_molecules_tot, n_molecules_partial, err_distr);
+//        printf("-------------------------------------------------------------\n");
 
     }
 
