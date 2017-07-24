@@ -143,53 +143,43 @@ public:
 
     // run diffusions
     void run_diffusions(FloatType tau) {
-        for (IntType s=0; s<model_.get_n_species(); ++s) {
-            run_diffusion_for_species(tau, s, model_.diffusion_coeff(s));  // diffuse molecules of species s
-            tets_.empty_buckets(s);                     // empty buckets of species s
-        }
-        printf("\t completed diffusions\n");
 
-    }
+        for (IntType s=0; s<model_.get_n_species(); ++s) {                          // iterate through each species that has to diffuse
+            std::unordered_set<IntType> update_tet_idxs;                            // set with idxes of tets affected by diffusion
 
+            for (IntType i=0; i<tets_.get_n_tets(); ++i) {
+                FloatType zeta_k = model_.diffusion_coeff(s) * tets_.shape_sum(i) * tau;                // zeta_k = prob. of local diffusion
+                IntType n_leaving_max = tets_.molecule_count(s, i);                     // compute max n. of molecules that may leave
+                readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
+                IntType tot_leaving_mols = binomial(rand_engine_);                      // compute n. of molecules that will actually leave
+                tets_.molecule_count(s, i) -= tot_leaving_mols;                         // remove from origin tet n. of molecules leaving
+                if (tot_leaving_mols)
+                    update_tet_idxs.insert(i);
 
-    // run diffusion of molecules of species s
-    void run_diffusion_for_species(FloatType tau, IntType s, FloatType diff_cnst) {
-        std::unordered_set<IntType> update_tet_idxs;                            // set where we insert all idxes of tets affected by diffusion
+                FloatType shapes_partial = tets_.shape_sum(i);                          // select destinations with multinomial
+                for (IntType j=0; j<3; ++j) {
+                    readi::binomial_distribution<IntType> binomial_destination(tot_leaving_mols, tets_.shape(i,j)/shapes_partial);
+                    IntType leaving_neighb = binomial_destination(rand_engine_);
+                    tot_leaving_mols -= leaving_neighb;
+                    if (leaving_neighb)
+                        update_tet_idxs.insert(tets_.neighbor(i, j));
+                    tets_.add_to_bucket(i, j, leaving_neighb);
+                    shapes_partial -= tets_.shape(i,j);
+                }
 
-        // diffuse molecule of s-th species from every tetrahedron
-        for (IntType i=0; i<tets_.get_n_tets(); ++i) {
-
-            FloatType zeta_k = diff_cnst * tets_.shape_sum(i) * tau;                // zeta_k = prob. of local diffusion
-            IntType n_leaving_max = tets_.molecule_count(s, i);                     // compute max n. of molecules that may leave
-
-            // TODO: n_leaving_max should be based on occupancy
-
-            readi::binomial_distribution<IntType> binomial(n_leaving_max, zeta_k);
-            IntType tot_leaving_mols = binomial(rand_engine_);                      // compute n. of molecules that will actually leave
-            tets_.molecule_count(s, i) -= tot_leaving_mols;                         // remove from origin tet n. of molecules leaving
-            if (tot_leaving_mols)
-                update_tet_idxs.insert(i);
-
-            FloatType shapes_partial = tets_.shape_sum(i);                          // select destinations with multinomial
-            for (IntType j=0; j<3; ++j) {
-                readi::binomial_distribution<IntType> binomial_destination(tot_leaving_mols, tets_.shape(i,j)/shapes_partial);
-                IntType leaving_neighb = binomial_destination(rand_engine_);
-                tot_leaving_mols -= leaving_neighb;
-                if (leaving_neighb)
-                    update_tet_idxs.insert(tets_.neighbor(i, j));
-                tets_.add_to_bucket(i, j, leaving_neighb);
-                shapes_partial -= tets_.shape(i,j);
+                tets_.add_to_bucket(i, 3, tot_leaving_mols);                            // last remaining direction possible: all the rest
+                if (tot_leaving_mols)
+                    update_tet_idxs.insert(tets_.neighbor(i, 3));
             }
 
-            tets_.add_to_bucket(i, 3, tot_leaving_mols);                            // last remaining direction possible: all the rest
-            if (tot_leaving_mols)
-                update_tet_idxs.insert(tets_.neighbor(i, 3));
+            for (auto i : update_tet_idxs)
+                recompute_propensities_after_diff(s, i);                                // update props in tets affected by diffusion
+            tets_.empty_buckets(s);                                                     // empty buckets into actual mol counter for species s
         }
 
-        for (auto i : update_tet_idxs)
-            recompute_propensities_after_diff(s, i);                                // update propensity of reacs in tets affected by diffusion
-
+        printf("\t completed diffusions\n");
     }
+
 
 
 
