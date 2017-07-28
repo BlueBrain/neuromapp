@@ -5,12 +5,19 @@
 #include "block.h"
 #include "bit_shifting.h"
 #include "timer_tool.h"
+#include "kernel_measurements.h"
 
 namespace po = boost::program_options;
 using neuromapp::Timer;
 using neuromapp::block;
 typedef size_t size_type;
 
+template<typename allocator_type>
+void k_m_routine(string fname,Timer & time_it) {
+    ofstream os(fname);
+    os << "kernel_measure results" << std::endl;
+    neuromapp::run_km<allocator_type>(fname);
+}
 
 template <typename allocator_type>
 void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & time_it) {
@@ -20,6 +27,17 @@ void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & t
     neuromapp::col_sort(&block,sorting_row);
     time_it.end();
     os << "sorting took " << time_it.duration () << " ms " << std::endl;
+}
+
+template <typename value_type,typename allocator_type>
+void stream_bench_routine() {
+    //create two different stream_bench objects, one compress one not
+    stream_bench<value_type,allocator_type> comp_str_bench(true);
+    stream_bench<value_type,allocator_type> non_str_bench(false);
+    comp_str_bench.run_stream_benchmark();
+    comp_str_bench.output_results();
+    non_str_bench.run_stream_benchmark();
+    non_str_bench.output_results();
 }
 
 template <typename value_type,typename allocator_type>

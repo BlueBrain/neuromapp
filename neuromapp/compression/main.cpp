@@ -49,6 +49,8 @@ int comp_execute(int argc,char *const argv[])
             ("compress","perform a compress&uncompress on file specific block (prints out results)")
             ("sort","perform a sort on the block before any other operations")
             ("split","create new block of floating points split into their sign exponent mantissa repsentations")
+            ("kernel_measure","run increasingly complex calculations on block comparing timing performance tradeoff for compression")
+            ("stream_benchmark","use a McCalpin STREAM inspired set of benchmarks to measure bandwith on the computer")
             ("benchmark","run all of the files in data directory, create csv with output stats");
         //create variable map
         po::variables_map vm;
@@ -60,7 +62,7 @@ int comp_execute(int argc,char *const argv[])
         if (vm.count("help")) {
             std::cout << desc << std::endl;
         }
-        if(vm.count("file") && ! vm.count("benchmark")){
+        if(vm.count("file") && ! vm.count("benchmark") && ! vm.count("kernel_measure")){
             string fname = vm["file"].as<std::string>();
             ifstream ifile(fname);
             if (vm.count("align")) {
@@ -74,7 +76,7 @@ int comp_execute(int argc,char *const argv[])
             }
 
         }
-        if(vm.count("benchmark") && ! vm.count("file")) {
+        if(vm.count("benchmark")) {
             /* gett more info about how to access files, and iterate over the directory of entries */
             vector<string> fname_vect {"../compression/trans_data/values_10_a8213trans_bulk.csv"};
             for (string fname : fname_vect) {
@@ -86,6 +88,30 @@ int comp_execute(int argc,char *const argv[])
             }
 
         }
+
+        if (vm.count("stream_benchmark")) {
+            if (vm.count("align")) {
+                stream_bench_routine<double,neuromapp::align>();
+            } else {
+                stream_bench_routine<double,neuromapp::cstandard>();
+            }
+        }
+
+
+
+        if (vm.count("kernel_measure")) {
+            string fname = vm["kernel_measure"].as<string>();
+            if (vm.count("align")) {
+                k_m_routine<neuromapp::align>(fname,timer);
+            } else {
+                k_m_routine<neuromapp::cstandard>(fname,timer);
+            }
+        }
+
+
+
+
+
     } catch (po::error &e) {
         std::cerr << e.what()  << std::endl;
     }
