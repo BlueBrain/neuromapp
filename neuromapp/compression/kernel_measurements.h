@@ -62,18 +62,32 @@ namespace neuromapp {
 
     template <typename allocator_type>
         struct level2_compute {
-            double * ptr, coef, step, * end;
+            double coef, step, * end;
+            vector<double* > row_ptrs;
             size_type cols;
+            double u_init = 1.0,x_init = 2.0;
+            block<double ,allocator_type> u_block,x_block;
             public:
-            level2_compute(double * ptr_arg,double coef_arg,double step_arg,size_type cols_arg,double * end_arg) 
-                :  ptr{ptr_arg}, coef{coef_arg}, step{step_arg}, cols{cols_arg}, end {end_arg} {}
+            level2_compute(vector<double *> row_ptrs_arg,double coef_arg,double step_arg,size_type cols_arg,double * end_arg) 
+                :  row_ptrs{row_ptrs_arg}, coef{coef_arg}, step{step_arg}, cols{cols_arg}, end {end_arg} {
+                    //the +1's allow us to keep a "previous" value to refer to which is the dynamic blocks initial values
+                    u_block.resize(cols+1);
+                    x_block.resize(cols+1);
+                    //initializing values
+                    u_block(0) = u_init;
+                    x_block(0) = x_init;
+                }
             void operator () (ostream & os) {
                 os << " running lvl2 compute ";
-                while (ptr != end) {
+                //each ptr here is a row in the 2d block
+                double * ptr1 = row_ptrs[0],ptr2 = row_ptrs[2],ptr3 = row_ptrs[2],ptr4 = row_ptrs[3];
+                double * u_ptr = u_block.begin()+1,* x_ptr = x_block.begin()+1;
+
+                for(;ptr1 != end;ptr1++,ptr2++,ptr3++,ptr4++,u_ptr++,x_ptr++) {
                     /* now run the computation function on each element */
-                    double U = *ptr,tau_fac = *ptr + 3*cols;
-                    double value= U + coef*(1-U)*exp(-step/tau_fac);
-                    ptr++;
+                    double U = *ptr,tau_fac = *ptr3,tau_rec = *ptr2,u_last = *(u_ptr-1) ,x_last = *(x_ptr-1);
+                    *u_ptr= U + u_last*(1-U)*exp(-step/tau_fac);
+                    *x_ptr = 1+(x_last - x_last*u_last -1)*exp(-step/tau_rec);
                 }
             }
         };
