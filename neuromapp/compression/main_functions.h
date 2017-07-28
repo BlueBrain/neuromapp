@@ -6,6 +6,7 @@
 #include "bit_shifting.h"
 #include "timer_tool.h"
 #include "kernel_measurements.h"
+#include "stream_benchmark.h"
 
 namespace po = boost::program_options;
 using neuromapp::Timer;
