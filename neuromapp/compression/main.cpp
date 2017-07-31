@@ -74,7 +74,6 @@ int comp_execute(int argc,char *const argv[])
                 ifile >> b1;
                 file_routine(b1,vm,timer);
             }
-
         }
         if(vm.count("benchmark")) {
             /* gett more info about how to access files, and iterate over the directory of entries */
@@ -97,19 +96,18 @@ int comp_execute(int argc,char *const argv[])
             }
         }
 
-
-
         if (vm.count("kernel_measure")) {
-            string fname = vm["kernel_measure"].as<string>();
+            if ( vm.count("file")) {
+                string fname = vm["file"].as<string>();
+            } else {
+                string fname = "../compression/trans_data/values_10_a8213trans_both.csv";
+            }
             if (vm.count("align")) {
                 k_m_routine<neuromapp::align>(fname,timer);
             } else {
                 k_m_routine<neuromapp::cstandard>(fname,timer);
             }
         }
-
-
-
 
 
     } catch (po::error &e) {

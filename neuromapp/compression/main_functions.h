@@ -11,6 +11,7 @@
 namespace po = boost::program_options;
 using neuromapp::Timer;
 using neuromapp::block;
+using neuromapp::stream_bench;
 typedef size_t size_type;
 
 template<typename allocator_type>
@@ -33,12 +34,12 @@ void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & t
 template <typename value_type,typename allocator_type>
 void stream_bench_routine() {
     //create two different stream_bench objects, one compress one not
-    stream_bench<value_type,allocator_type> comp_str_bench(true);
     stream_bench<value_type,allocator_type> non_str_bench(false);
-    comp_str_bench.run_stream_benchmark();
-    comp_str_bench.output_results();
     non_str_bench.run_stream_benchmark();
     non_str_bench.output_results();
+    stream_bench<value_type,allocator_type> comp_str_bench(true);
+    comp_str_bench.run_stream_benchmark();
+    comp_str_bench.output_results();
 }
 
 template <typename value_type,typename allocator_type>
