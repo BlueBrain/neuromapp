@@ -1,3 +1,9 @@
+/* Filename : type_definition.h
+ * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, Blue Brain Project
+ * Purpose : xxx
+ * Date : 2017-08-01 
+ */
 #pragma once
 
 #pragma once

@@ -1,5 +1,11 @@
 /* Filename : compressor.h
  * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, Blue Brain Project
+ * Purpose : xxx
+ * Date : 2017-08-01 
+ */
+/* Filename : compressor.h
+ * Authors : Devin Bayly, Tim Ewart
  * Organization : University of Arizona, EPFL
  * Purpose : xxx
  * Date : 2017-07-20 
@@ -21,10 +27,30 @@ namespace neuromapp {
 
     class no_compress {
         public:
+        /**
+        * compress_policy 
+        *
+        *
+        * @brief
+        *
+        * @param void * data_source, size_type uncompressed_size 
+        *
+        * @return void
+        */
             void compress_policy(void * data_source, size_type uncompressed_size ){ 
                 std::cout << "compression library not found, can't compress, leaving the same size as before" << std::endl;
             }
 
+        /**
+        * uncompress_policy 
+        *
+        *
+        * @brief
+        *
+        * @param void * data_source,size_type compressed_size,size_type uncompressed_size
+        *
+        * @return void
+        */
             void uncompress_policy(void * data_source,size_type compressed_size,size_type uncompressed_size) {
                 std::cout << "no compression library found" << std::endl;
             }
@@ -34,6 +60,16 @@ namespace neuromapp {
             public:
                 //double pointer so we can change the upper_level within the function
                 // helper function for checking compression return codes
+        /**
+        * check_compression_rc 
+        *
+        *
+        * @brief
+        *
+        * @param int rc
+        *
+        * @return void
+        */
                 void check_compression_rc (int rc) {
                     switch (rc) {
                         case Z_OK:
@@ -49,6 +85,16 @@ namespace neuromapp {
                 }
 
                 template<typename value_type>
+        /**
+        * compress_policy 
+        *
+        *
+        * @brief
+        *
+        * @param value_type ** data_source, size_type *uncompressed_size
+        *
+        * @return void
+        */
                 void compress_policy(value_type ** data_source, size_type *uncompressed_size) {
                     //get the approximate size in memory of the data_source
                     uLong source_len = (uLong) *uncompressed_size;
@@ -72,6 +118,16 @@ namespace neuromapp {
 
                 //double pointer so we can change the upper_level within the function
                 template<typename value_type>
+        /**
+        * uncompress_policy 
+        *
+        *
+        * @brief
+        *
+        * @param value_type ** data_source, size_type *compressed_size, size_type uncompressed_size
+        *
+        * @return void
+        */
                 void uncompress_policy(value_type ** data_source, size_type *compressed_size, size_type uncompressed_size) {
                     //original amount of memory used is still discernable
                     uLong dest_len = (uLong) uncompressed_size;

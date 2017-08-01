@@ -1,3 +1,9 @@
+/* Filename : block_sort.h
+ * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, Blue Brain Project
+ * Purpose : xxx
+ * Date : 2017-08-01 
+ */
 #ifndef BLOCK_SORT_H
 #define BLOCK_SORT_H
 #include <iostream>
@@ -14,6 +20,16 @@ namespace neuromapp {
     // and specialized versions for 1 dim and 2 dims
     typedef std::size_t size_type;
     template<typename V,typename A>
+        /**
+        * col_sort 
+        *
+        *
+        * @brief
+        *
+        * @param block<V,A> * block_arg, const size_type & sort_row
+        *
+        * @return void
+        */
     void col_sort (block<V,A> * block_arg, const size_type & sort_row) {
         using iter = typename block<V,A>::iter;
         size_type dim0_ = block_arg->dim0();

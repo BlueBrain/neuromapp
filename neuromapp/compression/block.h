@@ -1,3 +1,9 @@
+/* Filename : block.h
+ * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, Blue Brain Project
+ * Purpose : xxx
+ * Date : 2017-08-01 
+ */
 #ifndef NEUROMAPP_BLOCK
 #define NEUROMAPP_BLOCK
 
@@ -34,6 +40,16 @@ namespace neuromapp {
      * @return 
      */
     template <class Allocator>
+        /**
+        * resize_helper 
+        *
+        *
+        * @brief
+        *
+        * @param std::size_t n, std::size_t sizeof_T
+        *
+        * @return inline std::size_t
+        */
         inline std::size_t resize_helper(std::size_t n, std::size_t sizeof_T) {
             return n;
         }
@@ -84,6 +100,16 @@ namespace neuromapp {
              * @param m
              */
             // constructor given dimensions
+        /**
+        * rows_ 
+        *
+        *
+        * @brief
+        *
+        * @param m
+        *
+        * @return block(size_type n = 1, size_type m = 1) :
+        */
             block(size_type n = 1, size_type m = 1) : rows_(m) {
                 dim0_ = n;                                      // dim0 not necessary = num_cols due to the resize
                 cols_ = resize_helper<allocator>(n, sizeof(T)); // some policy will resize the col, needs for 2D !
@@ -96,6 +122,16 @@ namespace neuromapp {
              * @param other
              */
             //constructor given rval to another block
+        /**
+        * data_ 
+        *
+        *
+        * @brief
+        *
+        * @param other.data_
+        *
+        * @return block(block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_),
+        */
             block(block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_) {
                 // std::move is not needed on basic type
                 other.rows_ = 0;
@@ -180,8 +216,28 @@ namespace neuromapp {
              * @param n
              * @param m
              */
+        /**
+        * resize 
+        *
+        *
+        * @brief
+        *
+        * @param size_type n = 1, size_type m = 1
+        *
+        * @return void
+        */
             void resize(size_type n = 1, size_type m = 1) {
                 // essentially just getting which is smaller the resize or the current
+        /**
+        * dim1 
+        *
+        *
+        * @brief
+        *
+        * @param )
+        *
+        * @return if (n != dim0() || m !=
+        */
                 if (n != dim0() || m != dim1()) {
                     const auto copy_cols = n < dim0() ? n : dim0();
                     const auto copy_rows = m < dim1() ? m : dim1();
@@ -202,7 +258,27 @@ namespace neuromapp {
 
 
 
+        /**
+        * begin 
+        *
+        *
+        * @brief
+        *
+        * @param 
+        *
+        * @return iterator
+        */
             iterator begin() { return data_;}
+        /**
+        * end 
+        *
+        *
+        * @brief
+        *
+        * @param 
+        *
+        * @return iterator
+        */
             iterator end() { return data_ + dim0_ * rows_;}
 
 
@@ -232,6 +308,16 @@ namespace neuromapp {
                  *
                  * @param col
                  */
+        /**
+        * set_col 
+        *
+        *
+        * @brief
+        *
+        * @param const size_type & col
+        *
+        * @return void
+        */
                 void set_col (const size_type & col) {
                     col_ind = col;
                 }
@@ -406,6 +492,16 @@ namespace neuromapp {
              * @param mesg
              * @param cols
              */
+        /**
+        * print_row 
+        *
+        *
+        * @brief
+        *
+        * @param size_type row,std::string && mesg,size_type cols
+        *
+        * @return void
+        */
             void print_row(size_type row,std::string && mesg,size_type cols) {
                 for (size_type i = 0 ; i < cols ;i++) {
                     std::cout << (*this)(i,row) << ",";
@@ -422,12 +518,42 @@ namespace neuromapp {
             //difference between memory_allocated and size is that allocated relies on construction size, where size depends on compression
             size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
 
+        /**
+        * is_compressed 
+        *
+        *
+        * @brief
+        *
+        * @param 
+        *
+        * @return bool
+        */
             bool is_compressed() {return compression_state;}
 
+        /**
+        * get_current_size 
+        *
+        *
+        * @brief
+        *
+        * @param 
+        *
+        * @return size_type
+        */
             size_type get_current_size() {return current_size;}
 
             const_pointer data() const { return data_; };
 
+        /**
+        * data 
+        *
+        *
+        * @brief
+        *
+        * @param 
+        *
+        * @return pointer
+        */
             pointer data() { return data_; };
 
             size_type dim0() const { return dim0_; }
@@ -547,10 +673,30 @@ namespace neuromapp {
             // block access to compression functions included via policy
             // make into data ref and size as arguments
             //
+        /**
+        * compress 
+        *
+        *
+        * @brief
+        *
+        * @param 
+        *
+        * @return void
+        */
             void compress() {
                 compress_policy(&data_,&current_size);
                 compression_state = true;
             }
+        /**
+        * uncompress 
+        *
+        *
+        * @brief
+        *
+        * @param 
+        *
+        * @return void
+        */
             void uncompress() {
                 uncompress_policy(&data_,&current_size,this->memory_allocated());
                 compression_state = false;

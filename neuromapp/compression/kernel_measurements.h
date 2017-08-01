@@ -1,3 +1,9 @@
+/* Filename : kernel_measurements.h
+ * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, Blue Brain Project
+ * Purpose : xxx
+ * Date : 2017-08-01 
+ */
 /* Filename : kernel_measurements.cpp
  * Authors : Devin Bayly, Tim Ewart
  * Organization : University of Arizona, EPFL
@@ -101,6 +107,16 @@ namespace neuromapp {
             level3_compute (double y_initial_arg, double t_initial_arg,double step_arg,double t_limit_arg) :
                 y_initial {y_initial_arg},  t_initial {t_initial_arg}, step {step_arg}, t_limit {t_limit_arg} {}
             /* this is the function that you should edit if you want a different solution */
+        /**
+        * differential 
+        *
+        *
+        * @brief
+        *
+        * @param double y,double t
+        *
+        * @return double
+        */
             double differential (double y,double t) {
                 return pow(y,2) + t*30;// totally arbitrary for the moment
             }
@@ -118,6 +134,16 @@ namespace neuromapp {
     /* Section for sampling strategies */
 
     template< typename allocator_type >
+        /**
+        * init_array 
+        *
+        *
+        * @brief
+        *
+        * @param block<double,allocator_type> * block_array
+        *
+        * @return void
+        */
         void init_array (block<double,allocator_type> * block_array) {
             ifstream blk_file;
             for (int i = 0; i < (int) ARRAY_SIZE; i++) {
@@ -158,6 +184,16 @@ namespace neuromapp {
 
     /* section for the these things combined */
     template <typename allocator_type,typename fun_ob>
+        /**
+        * kernel_measure 
+        *
+        *
+        * @brief
+        *
+        * @param fun_ob & f,ostream & os,block<double,allocator_type> & blk
+        *
+        * @return void
+        */
         void kernel_measure(fun_ob & f,ostream & os,block<double,allocator_type> & blk) {
             /*create and start the timer,compress run first */
             Timer time_it; time_it.start();
@@ -179,6 +215,16 @@ namespace neuromapp {
 
     /* this function allows us to capture compress and non-compress runs using kernel_measure and the different levels of compute complexity */
     template <typename allocator_type>
+        /**
+        * option_coordinator 
+        *
+        *
+        * @brief
+        *
+        * @param ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit
+        *
+        * @return void
+        */
         void option_coordinator(ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit) {
             Block_selector<(size_type) ARRAY_SIZE> bs;
             block<double,allocator_type> block_array[ARRAY_SIZE];
@@ -202,6 +248,16 @@ namespace neuromapp {
         }
 
     template<typename allocator_type>
+        /**
+        * run_km 
+        *
+        *
+        * @brief
+        *
+        * @param string & fname_arg
+        *
+        * @return void
+        */
         void run_km (string & fname_arg) {
             ofstream out("kernel_measure.log");
             out << " Starting Kernel Measure " << std::endl;

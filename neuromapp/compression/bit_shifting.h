@@ -1,5 +1,11 @@
 /* Filename : bit_shifting.h
  * Authors : Devin Bayly, Tim Ewart
+ * Organization : University of Arizona, Blue Brain Project
+ * Purpose : xxx
+ * Date : 2017-08-01 
+ */
+/* Filename : bit_shifting.h
+ * Authors : Devin Bayly, Tim Ewart
  * Organization : University of Arizona, EPFL
  * Purpose : xxx
  * Date : 2017-07-20 
@@ -56,6 +62,16 @@ namespace neuromapp {
         /*function for taking in an array of floats ( TODO make generic) 
          * and creating an unsigned int array that represents its parts
          */
+        /**
+        * convert_to_parts 
+        *
+        *
+        * @brief
+        *
+        * @param value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num
+        *
+        * @return void
+        */
         void convert_to_parts(value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num){
             size_type count = split_block.dim0()/3;
             for (size_type i = 0 ; i < count ; i++) {
@@ -70,6 +86,16 @@ namespace neuromapp {
         /*reciprocal function to teh one above, take values from the split block, and convert them back to their floating point representation
          * and store them back in the unsplit block row value_type *
          */
+        /**
+        * convert_from_parts 
+        *
+        *
+        * @brief
+        *
+        * @param value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num
+        *
+        * @return void
+        */
         void convert_from_parts(value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num){
             size_type count = split_block.dim0()/3;
             for (size_type i = 0 ; i < count ; i++) {
@@ -82,6 +108,16 @@ namespace neuromapp {
         }
 
     template<typename value_type,typename allocator_type>
+        /**
+        * populate_split_block 
+        *
+        *
+        * @brief
+        *
+        * @param  block<unsigned int,allocator_type> & split_block,block<value_type,allocator_type>& unsplit_block
+        *
+        * @return void
+        */
         void populate_split_block( block<unsigned int,allocator_type> & split_block,block<value_type,allocator_type>& unsplit_block) {
             size_type row_limit = unsplit_block.num_rows();
             for (size_type row_num = 0; row_num < row_limit;row_num++) {
@@ -90,6 +126,16 @@ namespace neuromapp {
         }
 
     template<typename value_type,typename allocator_type>
+        /**
+        * populate_unsplit_block 
+        *
+        *
+        * @brief
+        *
+        * @param  block<unsigned int,allocator_type> & split_block,block<value_type,allocator_type>& unsplit_block
+        *
+        * @return void
+        */
         void populate_unsplit_block( block<unsigned int,allocator_type> & split_block,block<value_type,allocator_type>& unsplit_block) {
             size_type row_limit = unsplit_block.num_rows();
             for (size_type row_num = 0; row_num < row_limit;row_num++) {
@@ -99,6 +145,16 @@ namespace neuromapp {
 
 
     template<typename value_type,typename allocator_type>
+        /**
+        * generate_split_block 
+        *
+        *
+        * @brief
+        *
+        * @param block<value_type,allocator_type> & unsplit_block
+        *
+        * @return block<unsigned int, allocator_type>
+        */
         block<unsigned int, allocator_type> generate_split_block(block<value_type,allocator_type> & unsplit_block) {
             size_type rows_ = unsplit_block.num_rows(),cols_=unsplit_block.dim0();
             block<unsigned int,allocator_type> split_block(cols_,rows_);
@@ -107,6 +163,16 @@ namespace neuromapp {
         }
 
     template<typename value_type,typename allocator_type>
+        /**
+        * generate_unsplit_block 
+        *
+        *
+        * @brief
+        *
+        * @param block<unsigned int,allocator_type> & split_block
+        *
+        * @return block<value_type,allocator_type>
+        */
         block<value_type,allocator_type> generate_unsplit_block(block<unsigned int,allocator_type> & split_block) {
             size_type rows_ = split_block.num_rows(),cols_=split_block.dim0();
             block<value_type,allocator_type> unsplit_block(cols_/3,rows_);

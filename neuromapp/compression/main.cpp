@@ -34,9 +34,17 @@ using neuromapp::Timer;
 namespace po = boost::program_options;
 typedef size_t size_type;
 
-//todo include more boost program_options later on
-int comp_execute(int argc,char *const argv[])
-{
+/**
+ * comp_execute 
+ *
+ *
+ * @brief
+ *
+ * @param int argc,char *const argv[]
+ *
+ * @return int
+ */
+int comp_execute(int argc,char *const argv[]) {
     //now the program options section
     try {
         // create the timer 
