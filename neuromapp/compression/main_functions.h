@@ -15,9 +15,7 @@ using neuromapp::stream_bench;
 typedef size_t size_type;
 
 template<typename allocator_type>
-void k_m_routine(string fname,Timer & time_it) {
-    ofstream os(fname);
-    os << "kernel_measure results" << std::endl;
+void k_m_routine(string & fname) {
     neuromapp::run_km<allocator_type>(fname);
 }
 

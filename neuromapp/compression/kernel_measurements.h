@@ -80,12 +80,12 @@ namespace neuromapp {
             void operator () (ostream & os) {
                 os << " running lvl2 compute ";
                 //each ptr here is a row in the 2d block
-                double * ptr1 = row_ptrs[0],ptr2 = row_ptrs[2],ptr3 = row_ptrs[2],ptr4 = row_ptrs[3];
+                double * ptr1 = row_ptrs[0],* ptr2 = row_ptrs[2],* ptr3 = row_ptrs[2],* ptr4 = row_ptrs[3];
                 double * u_ptr = u_block.begin()+1,* x_ptr = x_block.begin()+1;
 
                 for(;ptr1 != end;ptr1++,ptr2++,ptr3++,ptr4++,u_ptr++,x_ptr++) {
                     /* now run the computation function on each element */
-                    double U = *ptr,tau_fac = *ptr3,tau_rec = *ptr2,u_last = *(u_ptr-1) ,x_last = *(x_ptr-1);
+                    double U = *ptr1,tau_fac = *ptr3,tau_rec = *ptr2,u_last = *(u_ptr-1) ,x_last = *(x_ptr-1);
                     *u_ptr= U + u_last*(1-U)*exp(-step/tau_fac);
                     *x_ptr = 1+(x_last - x_last*u_last -1)*exp(-step/tau_rec);
                 }
@@ -190,9 +190,10 @@ namespace neuromapp {
                 out << " position is : " << pos<< std::endl; 
                 size_type cols = block_array[pos].dim0();
                 double * block_ptr = block_array[pos].begin(), * end = block_ptr + cols;
+                vector<double * > ptr_vec{block_ptr,block_ptr+cols,block_ptr+2*cols,block_ptr+3*cols};
                 /* generate the initial computation states for functions */
                 level1_compute<allocator_type> f_lvl1(block_ptr,coef,end);
-                level2_compute<allocator_type> f_lvl2(block_ptr,coef,step,cols,end);
+                level2_compute<allocator_type> f_lvl2(ptr_vec,coef,step,cols,end);
                 level3_compute<allocator_type> f_lvl3(y_initial,t_initial,step,t_limit);
                 kernel_measure(f_lvl1,out,block_array[pos]);
                 kernel_measure(f_lvl2,out,block_array[pos]);
@@ -201,8 +202,9 @@ namespace neuromapp {
         }
 
     template<typename allocator_type>
-        int run_km (string fname_arg) {
+        void run_km (string & fname_arg) {
             ofstream out("kernel_measure.log");
+            out << " Starting Kernel Measure " << std::endl;
             fname=fname_arg;
             double coef = 2.0,
                    step = 1.0,

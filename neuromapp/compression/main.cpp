@@ -1,7 +1,7 @@
 /* Filename : main.cpp
  * Authors : Devin Bayly, Tim Ewart
  * Organization : University of Arizona, EPFL
- * Purpose:  this program establishes the command line argument parsing loop
+ * Purpose:  this program establishes the command line argument parsing tool
  * Date : 2017-07-20 
  */
 #include <sys/stat.h>
@@ -28,6 +28,7 @@
 #include <boost/mpl/list.hpp>
 
 /* make namespace alias for program options */
+using namespace std;
 using neuromapp::block;
 using neuromapp::Timer;
 namespace po = boost::program_options;
@@ -49,6 +50,7 @@ int comp_execute(int argc,char *const argv[])
             ("compress","perform a compress&uncompress on file specific block (prints out results)")
             ("sort","perform a sort on the block before any other operations")
             ("split","create new block of floating points split into their sign exponent mantissa repsentations")
+            ("align","use non-standard allocator for block process")
             ("kernel_measure","run increasingly complex calculations on block comparing timing performance tradeoff for compression")
             ("stream_benchmark","use a McCalpin STREAM inspired set of benchmarks to measure bandwith on the computer")
             ("benchmark","run all of the files in data directory, create csv with output stats");
@@ -97,15 +99,16 @@ int comp_execute(int argc,char *const argv[])
         }
 
         if (vm.count("kernel_measure")) {
+            string fname ;
             if ( vm.count("file")) {
-                string fname = vm["file"].as<string>();
+                fname = vm["file"].as<std::string>();
             } else {
-                string fname = "../compression/trans_data/values_10_a8213trans_both.csv";
+                fname = "../compression/trans_data/values_10_a8213trans_both.csv";
             }
             if (vm.count("align")) {
-                k_m_routine<neuromapp::align>(fname,timer);
+                k_m_routine<neuromapp::align>(fname);
             } else {
-                k_m_routine<neuromapp::cstandard>(fname,timer);
+                k_m_routine<neuromapp::cstandard>(fname);
             }
         }
 
