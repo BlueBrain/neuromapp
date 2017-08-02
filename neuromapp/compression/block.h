@@ -1,9 +1,3 @@
-/* Filename : block.h
- * Authors : Devin Bayly, Tim Ewart
- * Organization : University of Arizona, Blue Brain Project
- * Purpose : xxx
- * Date : 2017-08-01 
- */
 #ifndef NEUROMAPP_BLOCK
 #define NEUROMAPP_BLOCK
 
@@ -30,38 +24,11 @@
 namespace neuromapp {
 
     // other allocator nothing special col is not modify
-    /**
-     * @brief 
-     *
-     * @tparam Allocator
-     * @param n
-     * @param sizeof_T
-     *
-     * @return 
-     */
     template <class Allocator>
-        /**
-        * resize_helper 
-        *
-        *
-        * @brief
-        *
-        * @param std::size_t n, std::size_t sizeof_T
-        *
-        * @return inline std::size_t
-        */
         inline std::size_t resize_helper(std::size_t n, std::size_t sizeof_T) {
             return n;
         }
 
-    /**
-     * @brief 
-     *
-     * @param n
-     * @param sizeof_T
-     *
-     * @return 
-     */
     // specific to align allocator
     template <>
         inline std::size_t resize_helper<align>(std::size_t n, std::size_t sizeof_T) {
@@ -85,53 +52,18 @@ namespace neuromapp {
             typedef allocator allocator_type;
             // seems like T was only typedef'd for use in other typedefs, interesting
             typedef T value_type;
-            typedef value_type *pointer;
             typedef pointer iterator;
-            typedef iterator * col_iterator;
-            typedef const value_type *const_pointer;
             typedef value_type &reference;
             typedef const value_type &const_reference;
 
             // m = 1 one instance only !
-            /**
-             * @brief 
-             *
-             * @param n
-             * @param m
-             */
             // constructor given dimensions
-        /**
-        * rows_ 
-        *
-        *
-        * @brief
-        *
-        * @param m
-        *
-        * @return block(size_type n = 1, size_type m = 1) :
-        */
             block(size_type n = 1, size_type m = 1) : rows_(m) {
                 dim0_ = n;                                      // dim0 not necessary = num_cols due to the resize
                 cols_ = resize_helper<allocator>(n, sizeof(T)); // some policy will resize the col, needs for 2D !
-                current_size = sizeof(T) * cols_ * rows_;
                 data_ = (pointer)allocate_policy(current_size);
             }
-            /**
-             * @brief 
-             *
-             * @param other
-             */
             //constructor given rval to another block
-        /**
-        * data_ 
-        *
-        *
-        * @brief
-        *
-        * @param other.data_
-        *
-        * @return block(block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_),
-        */
             block(block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_) {
                 // std::move is not needed on basic type
                 other.rows_ = 0;
@@ -141,28 +73,15 @@ namespace neuromapp {
                 other.data_ = nullptr;
             }
 
-            /**
-             * @brief 
-             *
-             * @param other
-             */
             block(const block &other) {
                 // std::move is not needed on basic type
                 rows_ = other.rows_;
                 cols_ = other.cols_;
                 dim0_ = other.dim0_;
-                current_size = sizeof(T) * cols_ * rows_;
                 data_ = (pointer)allocate_policy(current_size);
                 copy_policy(data_, other.data_, current_size);
             }
 
-            /**
-             * @brief 
-             *
-             * @param rhs
-             *
-             * @return 
-             */
             //include more standard assignment operator
             block & operator=(block &rhs) {
                 rows_ = rhs.rows_;
@@ -174,17 +93,9 @@ namespace neuromapp {
                 rhs.cols_ = 0;
                 rhs.dim0_ = 0;
                 rhs.data_ = nullptr;
-                return *this;
             }
 
 
-            /**
-             * @brief 
-             *
-             * @param rhs
-             *
-             * @return 
-             */
             //copy = operator
             block &operator=(block &&rhs) {
                 rows_ = rhs.rows_;
@@ -201,7 +112,6 @@ namespace neuromapp {
 
 
 
-                return *this;
             }
 
             ~block() {
@@ -210,34 +120,8 @@ namespace neuromapp {
             }
 
 
-            /**
-             * @brief 
-             *
-             * @param n
-             * @param m
-             */
-        /**
-        * resize 
-        *
-        *
-        * @brief
-        *
-        * @param size_type n = 1, size_type m = 1
-        *
-        * @return void
-        */
             void resize(size_type n = 1, size_type m = 1) {
                 // essentially just getting which is smaller the resize or the current
-        /**
-        * dim1 
-        *
-        *
-        * @brief
-        *
-        * @param )
-        *
-        * @return if (n != dim0() || m !=
-        */
                 if (n != dim0() || m != dim1()) {
                     const auto copy_cols = n < dim0() ? n : dim0();
                     const auto copy_rows = m < dim1() ? m : dim1();
@@ -247,9 +131,7 @@ namespace neuromapp {
                     block new_block(n, m); // function probably lives in allocator
 
                     for (size_type r(0); r < copy_rows; ++r)
-                        copy_policy(&new_block[r], &(*this)[r], sizeof(T) * copy_cols);
 
-                    *this = std::move(new_block);
                 }
             }
 
@@ -258,41 +140,17 @@ namespace neuromapp {
 
 
 
-        /**
-        * begin 
-        *
-        *
-        * @brief
-        *
-        * @param 
-        *
-        * @return iterator
-        */
             iterator begin() { return data_;}
-        /**
-        * end 
-        *
-        *
-        * @brief
-        *
-        * @param 
-        *
-        * @return iterator
-        */
-            iterator end() { return data_ + dim0_ * rows_;}
 
 
             class iter : public std::iterator<std::bidirectional_iterator_tag,value_type,size_type> {
-                block<value_type, allocator_type> * blk;
                 size_type row_limit = blk->num_rows();
                 size_type col_limit = blk->dim0();
                 size_type col_ind,row_mult;
                 value_type comp_val;
                 public:
                 //TODO add it ctor argument value checks for range and column
-                iter (block<value_type,allocator_type>*  blk_in, size_type col,size_type comp_row,size_type row) 
                     : blk {blk_in} ,col_ind {col}, row_mult{row} {
-                        comp_val = (*blk)(col_ind,comp_row);
                     }
 
                 const value_type& get_value() const {
@@ -303,32 +161,10 @@ namespace neuromapp {
                     return col_ind;
                 }
 
-                /**
-                 * @brief 
-                 *
-                 * @param col
-                 */
-        /**
-        * set_col 
-        *
-        *
-        * @brief
-        *
-        * @param const size_type & col
-        *
-        * @return void
-        */
                 void set_col (const size_type & col) {
                     col_ind = col;
                 }
 
-                /**
-                 * @brief 
-                 *
-                 * @param int
-                 *
-                 * @return 
-                 */
                 iter operator ++ (int) {
                     iter temp(blk,col_ind,row_mult);
                     row_mult++;
@@ -337,16 +173,8 @@ namespace neuromapp {
 
                 iter& operator -- () {
                     row_mult--;
-                    return *this;
                 }
 
-                /**
-                 * @brief 
-                 *
-                 * @param int
-                 *
-                 * @return 
-                 */
                 iter operator--  (int) {
                     iter temp(blk,col_ind,row_mult);
                     row_mult--;
@@ -357,27 +185,15 @@ namespace neuromapp {
                     if (row_mult > row_limit) throw std::out_of_range("row mult too hi");
 
                     row_mult++;
-                    return *this;
                 }
 
-                value_type& operator* () {
                     // make use of the () operator from block
-                    return (*blk)(col_ind,row_mult);
                 }
 
-                const value_type& operator* () const {
                     // make use of the () operator from block
-                    return (*blk)(col_ind,row_mult);
                 }
 
 
-                /**
-                 * @brief 
-                 *
-                 * @param rhs
-                 *
-                 * @return 
-                 */
                 bool operator == (const iter &rhs) {
                     return row_mult == rhs.row_mult;
                 }
@@ -389,73 +205,37 @@ namespace neuromapp {
                     row_mult = rhs.row_mult;
                     col_ind = rhs.col_ind;
                     comp_val = rhs.comp_val;
-                    return *this;
                 }
 
                 // last things needed by a bidirectional iterator
                 iter & operator += (const iter & rhs) {
                     if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
                     row_mult += rhs.row_mult;
-                    return *this;
                 }
 
                 template<typename num_t>
                     iter & operator += (const num_t & rhs) {
                         if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
                         row_mult += (size_type) rhs;
-                        return *this;
                     }
 
-                /**
-                 * @brief 
-                 *
-                 * @tparam num_t
-                 * @param rhs
-                 *
-                 * @return 
-                 */
                 template<typename num_t>
                     iter & operator -= (const num_t & rhs) {
                         row_mult -= (size_type) rhs;
-                        return *this;
                     }
 
-                /**
-                 * @brief 
-                 *
-                 * @param rhs
-                 *
-                 * @return 
-                 */
                 size_type operator - (const iter &rhs) {
                     return row_mult - rhs.row_mult;
                 }
 
-                /**
-                 * @brief 
-                 *
-                 * @param rhs
-                 *
-                 * @return 
-                 */
                 size_type operator +( const iter & rhs) {
                     return row_mult - rhs.row_mult;
                 }
 
-                /**
-                 * @brief 
-                 *
-                 * @param row_ind
-                 *
-                 * @return 
-                 */
                 value_type operator [] (const size_type & row_ind) {
-                    // make use of the existing + operator and *
-                    return (*blk)(col_ind,row_ind);
                 }
 
                 pointer operator -> () const {
-                    return &(*blk)[row_mult];
                 }
 
                 // commutative + operators for the iterator
@@ -485,26 +265,8 @@ namespace neuromapp {
                 }
             };
 
-            /**
-             * @brief 
-             *
-             * @param row
-             * @param mesg
-             * @param cols
-             */
-        /**
-        * print_row 
-        *
-        *
-        * @brief
-        *
-        * @param size_type row,std::string && mesg,size_type cols
-        *
-        * @return void
-        */
             void print_row(size_type row,std::string && mesg,size_type cols) {
                 for (size_type i = 0 ; i < cols ;i++) {
-                    std::cout << (*this)(i,row) << ",";
                 }
                 std::cout << mesg << std::endl;
 
@@ -516,44 +278,13 @@ namespace neuromapp {
 
 
             //difference between memory_allocated and size is that allocated relies on construction size, where size depends on compression
-            size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
 
-        /**
-        * is_compressed 
-        *
-        *
-        * @brief
-        *
-        * @param 
-        *
-        * @return bool
-        */
             bool is_compressed() {return compression_state;}
 
-        /**
-        * get_current_size 
-        *
-        *
-        * @brief
-        *
-        * @param 
-        *
-        * @return size_type
-        */
             size_type get_current_size() {return current_size;}
 
             const_pointer data() const { return data_; };
 
-        /**
-        * data 
-        *
-        *
-        * @brief
-        *
-        * @param 
-        *
-        * @return pointer
-        */
             pointer data() { return data_; };
 
             size_type dim0() const { return dim0_; }
@@ -562,36 +293,17 @@ namespace neuromapp {
             size_type num_cols() const { return cols_; }
             size_type num_rows() const { return rows_; }
 
-            /**
-             * @brief 
-             *
-             * @param i
-             *
-             * @return 
-             */
-            reference operator[](size_type i) { return (*this)(0, i); }
 
-            const_reference operator[](size_type i) const { return (*this)(0, i); }
 
-            /**
-             * @brief 
-             *
-             * @param i
-             * @param j
-             *
-             * @return 
-             */
             reference operator()(size_type i, size_type j = 0) {
                 // determines if i j are legal
                 assert(i <= cols_);
                 assert(j <= rows_);
-                return data_[i + j * cols_];
             }
 
             const_reference operator()(size_type i, size_type j = 0) const {
                 assert(i <= cols_);
                 assert(j <= rows_);
-                return data_[i + j * cols_];
             }
 
             //when given the std::cout for the standard operator we add to its stream
@@ -599,7 +311,6 @@ namespace neuromapp {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
                         //precision defines accuracy for testing comparison
-                        os <<std::setprecision(15) << (*this)(j, i);
                         os << (j != dim0()-1 ? " " : "");// prevent trailing whitespace in output
                     }
                     os << (i != dim1() -1? "\n": "") ;
@@ -607,25 +318,11 @@ namespace neuromapp {
                 return os;
             }
 
-            /**
-             * @brief 
-             *
-             * @param other
-             *
-             * @return 
-             */
             bool operator == (const block & other) {
                 //check size matches first
                 return compare_policy(this->data(),other.data(),current_size);
             }
 
-            /**
-             * @brief 
-             *
-             * @param other
-             *
-             * @return 
-             */
             bool operator != (const block & other) {
                 //should just be the opposite of the existing compare_policy
                 return ! compare_policy(this->data(),other.data(),current_size);
@@ -667,36 +364,15 @@ namespace neuromapp {
                     row++;
                 }
                 // now we have to swap the data in this block with the calling object block data
-                std::swap(*this,b);
             }
 
             // block access to compression functions included via policy
             // make into data ref and size as arguments
             //
-        /**
-        * compress 
-        *
-        *
-        * @brief
-        *
-        * @param 
-        *
-        * @return void
-        */
             void compress() {
                 compress_policy(&data_,&current_size);
                 compression_state = true;
             }
-        /**
-        * uncompress 
-        *
-        *
-        * @brief
-        *
-        * @param 
-        *
-        * @return void
-        */
             void uncompress() {
                 uncompress_policy(&data_,&current_size,this->memory_allocated());
                 compression_state = false;
@@ -712,16 +388,6 @@ namespace neuromapp {
             bool compression_state = false;
         };
 
-    /**
-     * @brief 
-     *
-     * @tparam T
-     * @tparam A
-     * @param out
-     * @param b
-     *
-     * @return 
-     */
     template <class T, class A>
         std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
             b.print(out);
@@ -729,16 +395,6 @@ namespace neuromapp {
         }
 
     //follow Tim's pattern with the outbound ostream above
-    /**
-     * @brief 
-     *
-     * @tparam T
-     * @tparam A
-     * @param in
-     * @param b
-     *
-     * @return 
-     */
     template <class T, class A>
         std::istream & operator >> (std::istream & in, block<T,A> &b ) {
             b.read(in);// create contents of block based on data in inputstream
