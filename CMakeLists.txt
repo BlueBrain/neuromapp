@@ -90,7 +90,10 @@ execute_process(COMMAND unzip -o ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/
 #prepare the ref solution for the test
 execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/rhs_d_ref.tar.gz
                             -C    ${PROJECT_BINARY_DIR}/test/)
-                            
+#get compression csvs included correctly
+execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/compression/common/data/block_csvs.tar.gz
+                            -C    ${PROJECT_BINARY_DIR}/block_data/)
+
 file(COPY ${PROJECT_SOURCE_DIR}/neuromapp/hdf5/data/syn_test_126_comp.h5 DESTINATION ${PROJECT_BINARY_DIR}/test/)
 
 find_package(Doxygen)
