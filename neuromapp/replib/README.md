@@ -2,11 +2,12 @@
 
 This mini-app simulates the process of writing a simulation report with ReportingLib 
 library, used by Neuron.
-Being aware of the characteristics of a real simulation report, it creates random 
-data that match these characteristics. Then, MPI I/O collective calls 
-(``` MPI_File_write_all() ```) are used to write a single, shared file between all 
-the MPI processes. The mini-app reports the average bandwidth achieved in the 
-``` MPI_File_write_all() ``` call.
+Being aware of the characteristics of a real simulation report, it can recreate 
+different access patterns that are configurable by the user.
+Then, by default, MPI I/O collective calls (``` MPI_File_write_all() ```) are used to
+write a single, shared file between all the MPI processes. However, it can be extended
+to test the performance of other I/O backends, like ADIOS. The mini-app reports the
+average bandwidth achieved in the ``` MPI_File_write_all() ``` call.
 
 replib is able to write the report using different I/O patterns:
 * Each process writes a single, contiguous block of data
@@ -64,6 +65,8 @@ parameters and a short description.
 Here's a more detailed description:
 * --help, -h: Produce the help message
 * --numproc, -p [int]: Number of MPI processes to use (default, 1)
+* --backend, -b [string]: Specify the I/O backend. Supported options are:
+ * mpiio: Use MPI I/O to write the file (default)
 * --write, -w [string]: Specify how processes write to file. Supported options are:
  * rnd1b: create random blocks of data for each process, write 1 contiguous 
      block per process (default)
@@ -200,7 +203,7 @@ beware that parameter checking is ONLY done when running through the driver!
 
 ### Random distribution ###
 
-``` $ srun -N 1 -n 8 install.viz/bin/MPI_Exec_rl -w rnd1b -o ./currents.bbp -r 9 -c 10 -s 11 ```
+``` $ srun -N 1 -n 8 $INSTALL_DIR/bin/MPI_Exec_rl -w rnd1b -o ./currents.bbp -r 9 -c 10 -s 11 ```
 
 Launch 8 ranks on the same node, using one single, continuous block per process with 
 random sizes (``` -w rnd1b ```), run the simulation for 9 reporting steps (``` -r 9 ```), 
@@ -230,7 +233,7 @@ data written by each process. However, we can calculate lower and upper bounds:
 
 ```
 $ $INSTALL_DIR/bin/replib_input_distr_generator.sh 8 > data_distr.csv
-$ srun -N 1 -n 8 install.viz/bin/MPI_Exec_rl -w file1b -f ./data_distr.csv -o /tmp/currents.bbp -r 7 -s 5
+$ srun -N 1 -n 8 $INSTALL_DIR/bin/MPI_Exec_rl -w file1b -f ./data_distr.csv -o /tmp/currents.bbp -r 7 -s 5
 ```
 
 Launch 8 ranks on the same node, using one single, continuous block per process using the 
