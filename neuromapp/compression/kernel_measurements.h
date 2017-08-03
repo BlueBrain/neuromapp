@@ -70,9 +70,8 @@ namespace neuromapp {
             public:
             level2_compute(vector<double *> row_ptrs_arg,double coef_arg,double step_arg,size_type cols_arg,double * end_arg) 
                 :  row_ptrs{row_ptrs_arg}, coef{coef_arg}, step{step_arg}, cols{cols_arg}, end {end_arg} {
-                    //the +1's allow us to keep a "previous" value to refer to which is the dynamic blocks initial values
-                    u_block.resize(cols+1);
-                    x_block.resize(cols+1);
+                    u_block.resize(cols);
+                    x_block.resize(cols);
                     //initializing values
                     u_block(0) = u_init;
                     x_block(0) = x_init;
@@ -80,14 +79,14 @@ namespace neuromapp {
             void operator () (ostream & os) {
                 os << " running lvl2 compute ";
                 //each ptr here is a row in the 2d block
-                double * ptr1 = row_ptrs[0],* ptr2 = row_ptrs[2],* ptr3 = row_ptrs[2],* ptr4 = row_ptrs[3];
-                double * u_ptr = u_block.begin()+1,* x_ptr = x_block.begin()+1;
+                double * ptr1 = row_ptrs[0],* ptr2 = row_ptrs[1],* ptr3 = row_ptrs[2],* ptr4 = row_ptrs[3];
+                double * u_ptr = u_block.begin(),* x_ptr = x_block.begin();
 
-                for(;ptr1 != end;ptr1++,ptr2++,ptr3++,ptr4++,u_ptr++,x_ptr++) {
+                for(int i(0);i < (int) cols;i++) {
                     /* now run the computation function on each element */
-                    double U = *ptr1,tau_fac = *ptr3,tau_rec = *ptr2,u_last = *(u_ptr-1) ,x_last = *(x_ptr-1);
-                    *u_ptr= U + u_last*(1-U)*exp(-step/tau_fac);
-                    *x_ptr = 1+(x_last - x_last*u_last -1)*exp(-step/tau_rec);
+                    double U = ptr4[i],tau_fac = ptr3[i],tau_rec =ptr2[i];
+                    u_ptr[i]= U + u_ptr[i]*(1-U)*exp(-step/tau_fac);
+                    x_ptr[i] = 1+(x_ptr[i] - x_ptr[i]*u_ptr[i] -1)*exp(-step/tau_rec);
                 }
             }
         };
