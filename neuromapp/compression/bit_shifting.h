@@ -1,16 +1,31 @@
-/* Filename : bit_shifting.h
- * Authors : Devin Bayly, Tim Ewart
- * Organization : University of Arizona, EPFL
- * Purpose : xxx
- * Date : 2017-07-20 
+/*
+ * Neuromapp - bit_shifting.h, Copyright (c), 2015,
+ * Devin Bayly - University of Arizona
+ * baylyd@email.arizona.edu,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
  */
 #ifndef BIT_SHIFTING_H
 #define BIT_SHIFTING_H
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include "block.h"
-//TODO remove std namespace
+#include "compression/block.h"
+
 
 using namespace std;
 using neuromapp::block;
@@ -53,7 +68,8 @@ namespace neuromapp {
 
 
     template <typename value_type,typename allocator_type>
-        /*function for taking in an array of floats ( TODO make generic) 
+
+        /*
          * and creating an unsigned int array that represents its parts
          */
         void convert_to_parts(value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num){

@@ -1,8 +1,23 @@
-/* Filename : compressor.h
- * Authors : Devin Bayly, Tim Ewart
- * Organization : University of Arizona, EPFL
- * Purpose : xxx
- * Date : 2017-07-20 
+/*
+ * Neuromapp - compressor.h, Copyright (c), 2015,
+ * Devin Bayly - University of Arizona
+ * baylyd@email.arizona.edu,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
  */
 /*this is the compression policy file to be used by the block*/
 #ifndef neuromapp_COMPRESSOR
@@ -12,9 +27,9 @@
 #include <stdexcept> 
 #include <cstdlib>
 #include "zlib.h"
-#include "compress_exception.h"
-#include "block.h"
-//TODO change back from std namespace 
+#include "compression/compress_exception.h"
+#include "compression/block.h"
+
 using namespace std;
 typedef size_t size_type;
 namespace neuromapp {

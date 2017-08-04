@@ -1,11 +1,23 @@
-/* Filename : kernel_measurements.cpp
- * Authors : Devin Bayly, Tim Ewart
- * Organization : University of Arizona, EPFL
- * Purpose : This file exists to assist in determining what level of computation is necessary to make compression routines 
- *          not significantly contribute to the total computation time. We will experiment with varying levels of complexity for 
- *          the calculations starting with simple STREAM like calculations, and gradually working up to Euler method differential 
- *          equation solving techniques.
- * Date : 2017-07-20 
+/*
+ * Neuromapp - kernel_measurements.h, Copyright (c), 2015,
+ * Devin Bayly - University of Arizona
+ * baylyd@email.arizona.edu,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
  */
 #ifndef KERNEL_MEASUREMENT_H
 #define KERNEL_MEASUREMENT_H
@@ -18,13 +30,13 @@
 #include <string>
 #include <ctime>
 #include <vector>
-#include "compressor.h"
-#include "allocator.h"
-#include "exception.h"
-#include "block_sort.h"
-#include "block.h"
-#include "bit_shifting.h"
-#include "timer_tool.h"
+#include "compression/compressor.h"
+#include "compression/allocator.h"
+#include "compression/exception.h"
+#include "compression/block_sort.h"
+#include "compression/block.h"
+#include "compression/bit_shifting.h"
+#include "compression/timer_tool.h"
 
 using neuromapp::col_sort;
 using neuromapp::generate_split_block;

@@ -1,3 +1,22 @@
+/*
+ * Neuromapp - allocator.h, Copyright (c), 2015,
+ * All rights reserved.
+ *
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 #ifndef neuromap_ALLOCATOR
 #define neuromap_ALLOCATOR
 
@@ -6,7 +25,7 @@
 #include <cstring>  // memset
 
 
-#include "exception.h"
+#include "compression/exception.h"
 
 
 namespace neuromapp {
@@ -92,7 +111,7 @@ namespace neuromapp {
                 std::memcpy(ptr_destination, ptr_source, size);
             }
 
-            //TODO perhaps function pointer instead? that might be overboard
+
             bool compare_policy(void * lhs,const void * rhs,size_t size) {
                 cstandard temp_cstd_inst;
                 return temp_cstd_inst.compare_policy(lhs,rhs,size);

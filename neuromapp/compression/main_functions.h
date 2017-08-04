@@ -1,12 +1,33 @@
+/*
+ * Neuromapp - main_functions.h, Copyright (c), 2015,
+ * Devin Bayly - University of Arizona
+ * baylyd@email.arizona.edu,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
+ */
 #ifndef MAIN_FUNCTIONS_H
 #define MAIN_FUNCTIONS_H
-#include "block_sort.h"
+#include "compression/block_sort.h"
 #include <boost/program_options.hpp>
-#include "block.h"
-#include "bit_shifting.h"
-#include "timer_tool.h"
-#include "kernel_measurements.h"
-#include "stream_benchmark.h"
+#include "compression/block.h"
+#include "compression/bit_shifting.h"
+#include "compression/timer_tool.h"
+#include "compression/kernel_measurements.h"
+#include "compression/stream_benchmark.h"
 
 namespace po = boost::program_options;
 using neuromapp::Timer;
@@ -22,7 +43,7 @@ void k_m_routine(string & fname) {
 template <typename allocator_type>
 void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & time_it) {
     time_it.start();
-    //TODO ask whether we should specify for any particular row on the sorting
+
     size_type sorting_row = 0;
     neuromapp::col_sort(&block,sorting_row);
     time_it.end();

@@ -1,8 +1,23 @@
-/* Filename : main.cpp
- * Authors : Devin Bayly, Tim Ewart
- * Organization : University of Arizona, EPFL
- * Purpose:  this program establishes the command line argument parsing tool
- * Date : 2017-07-20 
+/*
+ * Neuromapp - main.cpp, Copyright (c), 2015,
+ * Devin Bayly - University of Arizona
+ * baylyd@email.arizona.edu,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
  */
 #include <sys/stat.h>
 #include <chrono>
@@ -15,9 +30,9 @@
 #include <vector>
 #include <boost/program_options.hpp>
 // the includes are relative to the directory above
-#include "compression/util.h"
 #include "compression/compressor.h"
 #include "compression/allocator.h"
+#include "neuromapp/compression/common/data/path.h"
 #include "compression/exception.h"
 #include "compression/block_sort.h"
 #include "compression/block.h"
@@ -50,6 +65,7 @@ int comp_execute(int argc,char *const argv[])
             ("compress","perform a compress&uncompress on file specific block (prints out results)")
             ("sort","perform a sort on the block before any other operations")
             ("split","create new block of floating points split into their sign exponent mantissa repsentations")
+            ("path","")
             ("align","use non-standard allocator for block process")
             ("kernel_measure","run increasingly complex calculations on block comparing timing performance tradeoff for compression")
             ("stream_benchmark","use a McCalpin STREAM inspired set of benchmarks to measure bandwith on the computer")
@@ -76,6 +92,9 @@ int comp_execute(int argc,char *const argv[])
                 ifile >> b1;
                 file_routine(b1,vm,timer);
             }
+        }
+        if (vm.count("path")) {
+            std::cout << mapp::path_specifier::give_path() << std::endl;;
         }
         if(vm.count("benchmark")) {
             /* gett more info about how to access files, and iterate over the directory of entries */

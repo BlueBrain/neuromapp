@@ -1,8 +1,23 @@
-/* Filename : francesco_task.cpp
- * Authors : Devin Bayly, Tim Ewart
- * Organization : University of Arizona, EPFL
- * Purpose : xxx
- * Date : 2017-07-20 
+/*
+ * Neuromapp - block.h, Copyright (c), 2015,
+ * Devin Bayly - University of Arizona
+ * baylyd@email.arizona.edu,
+ * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
+ * timothee.ewart@epfl.ch,
+ * All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.
  */
 
 #include <iostream>
@@ -10,9 +25,9 @@
 #include <cmath>
 #include <fstream>
 #include <bitset>
-#include "compression.h"
-#include "timer_tool.h"
-#include "block.h"
+#include "compression/compression.h"
+#include "compression/timer_tool.h"
+#include "compression/francesco_task.cpp"
 using namespace std;
 
 
@@ -38,7 +53,7 @@ double calc_u(double u,double fraction,double d_time,double time_const_fac) {
 double calc_x(double x,double u,double d_time,double time_const_rec) {
     return 1+(x - x*u - 1)*exp(-d_time/time_const_rec);
 }
-/*TODO make little description, and show snippet of ro_block structure
+
  * to help clarify index use below 
  */
 void run_workflow() {
