@@ -50,13 +50,43 @@ namespace neuromapp {
             }
 
             /** The deallocate function used in the policy */
+            /**
+            * deallocate_policy 
+            *
+            *
+            * @brief
+            *
+            * @param void *ptr
+            *
+            * @return void
+            */
             void deallocate_policy(void *ptr) { std::free(ptr); }
 
             /** The copy function used in the policy */
+            /**
+            * copy_policy 
+            *
+            *
+            * @brief
+            *
+            * @param void *ptr_destination, void *ptr_source, std::size_t size
+            *
+            * @return void
+            */
             void copy_policy(void *ptr_destination, void *ptr_source, std::size_t size) {
                 std::memcpy(ptr_destination, ptr_source, size);
             }
 
+            /**
+            * compare_policy 
+            *
+            *
+            * @brief
+            *
+            * @param void * lhs,const void * rhs,size_t size
+            *
+            * @return bool
+            */
             bool compare_policy(void * lhs,const void * rhs,size_t size) {
                 int rc =std::memcmp(lhs,rhs,size);
                 if (rc == 0) 
@@ -96,9 +126,29 @@ namespace neuromapp {
             }
 
             /** The deallocate function used in the policy */
+            /**
+            * deallocate_policy 
+            *
+            *
+            * @brief
+            *
+            * @param void *ptr
+            *
+            * @return void
+            */
             void deallocate_policy(void *ptr) { std::free(ptr); }
 
             /** to have each raw align, we may need to add some paddint at the end */
+            /**
+            * resize_policy 
+            *
+            *
+            * @brief
+            *
+            * @param size_type size, size_type sizeof_T
+            *
+            * @return inline static size_type
+            */
             inline static size_type resize_policy(size_type size, size_type sizeof_T) {
                 if (sizeof_T > boundary)
                     throw cpu_memory_allocation("wierd, sizeof(type) larger than boundary", lengine_error::NEUROMAPP_BAD_USAGE);
@@ -107,11 +157,31 @@ namespace neuromapp {
             }
 
             /** The copy function used in the policy */
+            /**
+            * copy_policy 
+            *
+            *
+            * @brief
+            *
+            * @param void *ptr_destination, void *ptr_source, std::size_t size
+            *
+            * @return void
+            */
             void copy_policy(void *ptr_destination, void *ptr_source, std::size_t size) {
                 std::memcpy(ptr_destination, ptr_source, size);
             }
 
 
+            /**
+            * compare_policy 
+            *
+            *
+            * @brief
+            *
+            * @param void * lhs,const void * rhs,size_t size
+            *
+            * @return bool
+            */
             bool compare_policy(void * lhs,const void * rhs,size_t size) {
                 cstandard temp_cstd_inst;
                 return temp_cstd_inst.compare_policy(lhs,rhs,size);

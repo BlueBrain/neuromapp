@@ -60,6 +60,16 @@ namespace neuromapp {
             public:
             level1_compute(double * ptr_arg,double coef_arg,double * end_arg) 
                 :coef {coef},ptr{ptr_arg}, end{end_arg} {}
+            /**
+            * operator ()  
+            *
+            *
+            * @brief
+            *
+            * @param ostream & os
+            *
+            * @return void 
+            */
             void operator () (ostream & os) {
                 os << " running lvl1 compute ";
                 while ( ptr != end) {
@@ -88,6 +98,16 @@ namespace neuromapp {
                     u_block(0) = u_init;
                     x_block(0) = x_init;
                 }
+            /**
+            * operator ()  
+            *
+            *
+            * @brief
+            *
+            * @param ostream & os
+            *
+            * @return void 
+            */
             void operator () (ostream & os) {
                 os << " running lvl2 compute ";
                 //each ptr here is a row in the 2d block
@@ -115,6 +135,16 @@ namespace neuromapp {
             double differential (double y,double t) {
                 return pow(y,2) + t*30;// totally arbitrary for the moment
             }
+            /**
+            * operator ()  
+            *
+            *
+            * @brief
+            *
+            * @param ostream & os
+            *
+            * @return void 
+            */
             void operator () (ostream & os){
                 os << " running lvl3 compute ";
                 /* treat the initials as initials for each step, so initial to start, and each step */
@@ -129,6 +159,16 @@ namespace neuromapp {
     /* Section for sampling strategies */
 
     template< typename allocator_type >
+            /**
+            * init_array 
+            *
+            *
+            * @brief
+            *
+            * @param block<double,allocator_type> * block_array
+            *
+            * @return void
+            */
         void init_array (block<double,allocator_type> * block_array) {
             ifstream blk_file;
             for (int i = 0; i < (int) ARRAY_SIZE; i++) {
@@ -151,6 +191,16 @@ namespace neuromapp {
             Block_selector () {
                 memset(places,0,SIZE*sizeof(int)); //zero out the places
             }
+            /**
+            * operator() 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return int 
+            */
             int operator()() {
                 if(selected_count > SIZE/10)
                     return -1;
@@ -169,6 +219,16 @@ namespace neuromapp {
 
     /* section for the these things combined */
     template <typename allocator_type,typename fun_ob>
+            /**
+            * kernel_measure 
+            *
+            *
+            * @brief
+            *
+            * @param fun_ob & f,ostream & os,block<double,allocator_type> & blk
+            *
+            * @return void
+            */
         void kernel_measure(fun_ob & f,ostream & os,block<double,allocator_type> & blk) {
             /*create and start the timer,compress run first */
             Timer time_it; time_it.start();
@@ -190,6 +250,16 @@ namespace neuromapp {
 
     /* this function allows us to capture compress and non-compress runs using kernel_measure and the different levels of compute complexity */
     template <typename allocator_type>
+            /**
+            * option_coordinator 
+            *
+            *
+            * @brief
+            *
+            * @param ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit
+            *
+            * @return void
+            */
         void option_coordinator(ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit) {
             Block_selector<(size_type) ARRAY_SIZE> bs;
             block<double,allocator_type> block_array[ARRAY_SIZE];
@@ -213,6 +283,16 @@ namespace neuromapp {
         }
 
     template<typename allocator_type>
+            /**
+            * run_km 
+            *
+            *
+            * @brief
+            *
+            * @param string & fname_arg
+            *
+            * @return void
+            */
         void run_km (string & fname_arg) {
             ofstream out("kernel_measure.log");
             out << " Starting Kernel Measure " << std::endl;

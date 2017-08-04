@@ -86,6 +86,16 @@ namespace neuromapp {
                 }
             }
 
+            /**
+            * copy_benchmark 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
             void copy_benchmark () {
                 std::cout << "begin copy benchmark" << std::endl;
                 mem_used = vect_size*v_a[0].memory_allocated()*2*pow(10,-6);
@@ -118,6 +128,16 @@ namespace neuromapp {
                 }
             }
 
+            /**
+            * scale_benchmark 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
             void scale_benchmark() {
                 std::cout << "begin scale benchmark" << std::endl;
                 double min_time;
@@ -150,6 +170,16 @@ namespace neuromapp {
                 scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
             }
 
+            /**
+            * add_benchmark 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
             void add_benchmark () {
 
                 double min_time;
@@ -187,6 +217,16 @@ namespace neuromapp {
                 add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
             }
 
+            /**
+            * triad_benchmark 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
             void triad_benchmark() {
                 std::cout << "begin triad benchmark" << std::endl;
                 double min_time;
@@ -223,6 +263,16 @@ namespace neuromapp {
                 double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
             }
 
+            /**
+            * run_stream_benchmark 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
             void run_stream_benchmark() {
                 triad_benchmark() ;
                 add_benchmark () ;
@@ -230,6 +280,16 @@ namespace neuromapp {
                 copy_benchmark () ;
             }
 
+            /**
+            * output_results 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
             void output_results() {
                 std::cout << left;
                 std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;

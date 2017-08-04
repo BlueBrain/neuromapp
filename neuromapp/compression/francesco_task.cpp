@@ -40,22 +40,62 @@ typedef double * pointer;
 using expmt_block = block<value_type,cstandard>;
 
 /*this function aims to take in a upper limit for time, and return a bitset representing the presence or absence of a spike at that time according to a poisson process */
+            /**
+            * create_spike_time 
+            *
+            *
+            * @brief
+            *
+            * @param int intensity
+            *
+            * @return double
+            */
 double create_spike_time(int intensity) {
     // must be an inverse exponential 
     double rand_val = (double) rand()/RAND_MAX;// subtracting from 1.0 makes sure we don't get a zero
     return -log(1.0- rand_val)/intensity;
 }
 
+            /**
+            * calc_u 
+            *
+            *
+            * @brief
+            *
+            * @param double u,double fraction,double d_time,double time_const_fac
+            *
+            * @return double
+            */
 double calc_u(double u,double fraction,double d_time,double time_const_fac) {
     return fraction + u*(1-fraction)*exp(-d_time/time_const_fac);
 }
 
+            /**
+            * calc_x 
+            *
+            *
+            * @brief
+            *
+            * @param double x,double u,double d_time,double time_const_rec
+            *
+            * @return double
+            */
 double calc_x(double x,double u,double d_time,double time_const_rec) {
     return 1+(x - x*u - 1)*exp(-d_time/time_const_rec);
 }
 
  * to help clarify index use below 
  */
+            /**
+            * run_workflow 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
 void run_workflow() {
     //create the blocks
     expmt_block ro_block,ux_block;
@@ -111,6 +151,16 @@ void run_workflow() {
     std::cout << "experiment took " << time_it.duration() << " (ms) to run" << std::endl;
 }
     
+            /**
+            * main 
+            *
+            *
+            * @brief
+            *
+            * @param int argc,char ** argv
+            *
+            * @return int
+            */
 int main (int argc,char ** argv) {
     run_workflow();
 }

@@ -29,12 +29,52 @@ namespace neuromapp {
     // define these as valid aliases for the values 0-5
     class compression_exception : public std::exception {
         public:
+            /**
+            * compression_exception constructor 
+            *
+            *
+            * @brief
+            *
+            * @param std::string message,int error_code) throw(
+            *
+            * @return 
+            */
             compression_exception(std::string message,int error_code) throw() : message_{message}, error_code_{error_code} {}
 
+            /**
+            * throw 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return compression_exception()
+            */
             ~compression_exception() throw () {}
 
+            /**
+            * throw 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return virtual const char * what() const
+            */
             virtual const char * what() const throw() { return message_.c_str() ; }
 
+            /**
+            * get_error_code 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return int
+            */
             int get_error_code () {return error_code_;}
 
         private:
@@ -44,6 +84,16 @@ namespace neuromapp {
 
     class zlib_exception : public compression_exception {
         public:
+            /**
+            * zlib_exception constructor 
+            *
+            *
+            * @brief
+            *
+            * @param std::string message,int error_code ) : compression_exception(message,error_code
+            *
+            * @return 
+            */
             zlib_exception(std::string message,int error_code ) : compression_exception(message,error_code) {}
     };
 

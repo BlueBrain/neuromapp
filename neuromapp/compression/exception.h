@@ -47,11 +47,51 @@ enum lengine_error {
 class learning_engine_exception : public std::exception {
   public:
     learning_engine_exception(std::string message, int error_code = NEUROMAPP_OK) throw()
+            /**
+            * error_code_ 
+            *
+            *
+            * @brief
+            *
+            * @param error_code
+            *
+            * @return message_(message),
+            */
         : message_(message), error_code_(error_code) {}
+            /**
+            * throw 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return learning_engine_exception()
+            */
     ~learning_engine_exception() throw() {}
 
+            /**
+            * throw 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return virtual const char *what() const
+            */
     virtual const char *what() const throw() { return message_.c_str(); }
 
+            /**
+            * get_error_code 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return int
+            */
     int get_error_code() const { return error_code_; }
 
   private:
@@ -60,17 +100,47 @@ class learning_engine_exception : public std::exception {
 };
 
 template <lengine_error error>
+            /**
+            * is_bad 
+            *
+            *
+            * @brief
+            *
+            * @param learning_engine_exception const &ex
+            *
+            * @return inline bool
+            */
 inline bool is_bad(learning_engine_exception const &ex) {
     return ex.get_error_code() == error;
 }
 
 class cpu_memory_allocation : public learning_engine_exception {
   public:
+            /**
+            * cpu_memory_allocation constructor 
+            *
+            *
+            * @brief
+            *
+            * @param std::string message, int error_code) : learning_engine_exception(message, error_code
+            *
+            * @return 
+            */
     cpu_memory_allocation(std::string message, int error_code) : learning_engine_exception(message, error_code) {}
 };
 
 class gpu_memory_allocation : public learning_engine_exception {
   public:
+            /**
+            * gpu_memory_allocation constructor 
+            *
+            *
+            * @brief
+            *
+            * @param std::string message, int error_code) : learning_engine_exception(message, error_code
+            *
+            * @return 
+            */
     gpu_memory_allocation(std::string message, int error_code) : learning_engine_exception(message, error_code) {}
 };
 

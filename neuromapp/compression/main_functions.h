@@ -36,11 +36,31 @@ using neuromapp::stream_bench;
 typedef size_t size_type;
 
 template<typename allocator_type>
+            /**
+            * k_m_routine 
+            *
+            *
+            * @brief
+            *
+            * @param string & fname
+            *
+            * @return void
+            */
 void k_m_routine(string & fname) {
     neuromapp::run_km<allocator_type>(fname);
 }
 
 template <typename allocator_type>
+            /**
+            * sort_routine 
+            *
+            *
+            * @brief
+            *
+            * @param  block<double,allocator_type> & block,ostream & os, Timer & time_it
+            *
+            * @return void
+            */
 void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & time_it) {
     time_it.start();
 
@@ -51,6 +71,16 @@ void sort_routine ( block<double,allocator_type> & block,ostream & os, Timer & t
 }
 
 template <typename value_type,typename allocator_type>
+            /**
+            * stream_bench_routine 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
 void stream_bench_routine() {
     //create two different stream_bench objects, one compress one not
     stream_bench<value_type,allocator_type> non_str_bench(false);
@@ -62,6 +92,16 @@ void stream_bench_routine() {
 }
 
 template <typename value_type,typename allocator_type>
+            /**
+            * compress_routine 
+            *
+            *
+            * @brief
+            *
+            * @param  block<value_type,allocator_type> & block,ostream & os, Timer & time_it
+            *
+            * @return void
+            */
 void compress_routine ( block<value_type,allocator_type> & block,ostream & os, Timer & time_it) {
         time_it.start();
         block.compress();
@@ -80,6 +120,16 @@ void compress_routine ( block<value_type,allocator_type> & block,ostream & os, T
 
 /* so the routines can have a block that is either cstandard or align */
 template <typename allocator_type>
+            /**
+            * split_routine 
+            *
+            *
+            * @brief
+            *
+            * @param  block<double,allocator_type> & unsplit_block,ostream & os, Timer & time_it
+            *
+            * @return void
+            */
 void split_routine ( block<double,allocator_type> & unsplit_block,ostream & os, Timer & time_it) {
         time_it.start();
         block<unsigned int, allocator_type> split_block = neuromapp::generate_split_block(unsplit_block);
@@ -89,6 +139,16 @@ void split_routine ( block<double,allocator_type> & unsplit_block,ostream & os, 
 }
 
 template <typename allocator_type>
+            /**
+            * file_routine 
+            *
+            *
+            * @brief
+            *
+            * @param  block<double,allocator_type> & b1,po::variables_map & vm,Timer & time_it
+            *
+            * @return void
+            */
 void file_routine( block<double,allocator_type> & b1,po::variables_map & vm,Timer & time_it) {
     ofstream out("compress_app_run.log");
     if(vm.count("split")) {
