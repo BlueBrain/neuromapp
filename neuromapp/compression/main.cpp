@@ -26,7 +26,9 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+/* here id is a qualified name which means that its nested within another type*/
 #include <string>
+/* doesn't that mean that the union case is a qualified name also? */
 #include <vector>
 #include <boost/program_options.hpp>
 // the includes are relative to the directory above
@@ -36,6 +38,7 @@
 #include "compression/exception.h"
 #include "compression/block_sort.h"
 #include "compression/block.h"
+#include "compression/block.hpp"
 #include "compression/bit_shifting.h"
 #include "compression/timer_tool.h"
 #include "compression/compression.h"

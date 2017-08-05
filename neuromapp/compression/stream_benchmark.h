@@ -39,6 +39,7 @@
 #include "compression/timer_tool.h"
 #include "compression/exception.h"
 #include "compression/block.h"
+#include "compression/block.hpp"
 using neuromapp::block;
 using neuromapp::cstandard;
 using neuromapp::Timer;

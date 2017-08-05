@@ -29,6 +29,7 @@
 #include "zlib.h"
 #include "compression/compress_exception.h"
 #include "compression/block.h"
+#include "compression/block.hpp"
 
 using namespace std;
 typedef size_t size_type;

@@ -41,28 +41,8 @@ namespace neuromapp {
             */
             compression_exception(std::string message,int error_code) throw() : message_{message}, error_code_{error_code} {}
 
-            /**
-            * throw 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return compression_exception()
-            */
             ~compression_exception() throw () {}
 
-            /**
-            * throw 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return virtual const char * what() const
-            */
             virtual const char * what() const throw() { return message_.c_str() ; }
 
             /**

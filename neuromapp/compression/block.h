@@ -2,8 +2,15 @@
  * Neuromapp - block.h, Copyright (c), 2015,
  * Timothee Ewart - Swiss Federal Institute of technology in Lausanne,
  * timothee.ewart@epfl.ch,
+ *  -original block.h
+ *  -policy design strategy for development
  * Devin Bayly - University of Arizona
  * baylyd@email.arizona.edu,
+ *  -sorting tools
+ *  -block IO
+ *  -compressor policy
+ *  -benchmarking (STREAM,kernel measure, etc)
+ *
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -46,22 +53,32 @@ namespace neuromapp {
 
     // other allocator nothing special col is not modify
     template <class Allocator>
-            /**
-            * resize_helper 
-            *
-            *
-            * @brief
-            *
-            * @param std::size_t n, std::size_t sizeof_T
-            *
-            * @return inline std::size_t
-            */
+        /**
+         * resize_helper 
+         *
+         *
+         * @brief
+         *
+         * @param std::size_t n, std::size_t sizeof_T
+         *
+         * @return inline std::size_t
+         */
         inline std::size_t resize_helper(std::size_t n, std::size_t sizeof_T) {
             return n;
         }
 
     // specific to align allocator
     template <>
+        /**
+         * resize_helper<align> 
+         *
+         *
+         * @brief
+         *
+         * @param std::size_t n, std::size_t sizeof_T
+         *
+         * @return inline std::size_t
+         */
         inline std::size_t resize_helper<align>(std::size_t n, std::size_t sizeof_T) {
             return align::resize_policy(n, sizeof_T);
         }
@@ -91,15 +108,15 @@ namespace neuromapp {
             // m = 1 one instance only !
             // constructor given dimensions
             /**
-            * block constructor 
-            *
-            *
-            * @brief
-            *
-            * @param size_type n = 1, size_type m = 1) : rows_(m
-            *
-            * @return 
-            */
+             * block constructor 
+             *
+             *
+             * @brief
+             *
+             * @param size_type n = 1, size_type m = 1) : rows_(m
+             *
+             * @return 
+             */
             block(size_type n = 1, size_type m = 1) : rows_(m) {
                 dim0_ = n;                                      // dim0 not necessary = num_cols due to the resize
                 cols_ = resize_helper<allocator>(n, sizeof(T)); // some policy will resize the col, needs for 2D !
@@ -108,15 +125,15 @@ namespace neuromapp {
             }
             //constructor given rval to another block
             /**
-            * block constructor 
-            *
-            *
-            * @brief
-            *
-            * @param block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_
-            *
-            * @return 
-            */
+             * block constructor 
+             *
+             *
+             * @brief
+             *
+             * @param block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_
+             *
+             * @return 
+             */
             block(block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_) {
                 // std::move is not needed on basic type
                 other.rows_ = 0;
@@ -127,15 +144,15 @@ namespace neuromapp {
             }
 
             /**
-            * block constructor 
-            *
-            *
-            * @brief
-            *
-            * @param const block &other
-            *
-            * @return 
-            */
+             * block constructor 
+             *
+             *
+             * @brief
+             *
+             * @param const block &other
+             *
+             * @return 
+             */
             block(const block &other) {
                 // std::move is not needed on basic type
                 rows_ = other.rows_;
@@ -148,15 +165,15 @@ namespace neuromapp {
 
             //include more standard assignment operator
             /**
-            * operator= 
-            *
-            *
-            * @brief
-            *
-            * @param block &rhs
-            *
-            * @return block & 
-            */
+             * operator= 
+             *
+             *
+             * @brief
+             *
+             * @param block &rhs
+             *
+             * @return block & 
+             */
             block & operator=(block &rhs) {
                 rows_ = rhs.rows_;
                 cols_ = rhs.cols_;
@@ -173,15 +190,15 @@ namespace neuromapp {
 
             //copy = operator
             /**
-            * operator= 
-            *
-            *
-            * @brief
-            *
-            * @param block &&rhs
-            *
-            * @return block &
-            */
+             * operator= 
+             *
+             *
+             * @brief
+             *
+             * @param block &&rhs
+             *
+             * @return block &
+             */
             block &operator=(block &&rhs) {
                 rows_ = rhs.rows_;
                 cols_ = rhs.cols_;
@@ -207,15 +224,15 @@ namespace neuromapp {
 
 
             /**
-            * resize 
-            *
-            *
-            * @brief
-            *
-            * @param size_type n = 1, size_type m = 1
-            *
-            * @return void
-            */
+             * resize 
+             *
+             *
+             * @brief
+             *
+             * @param size_type n = 1, size_type m = 1
+             *
+             * @return void
+             */
             void resize(size_type n = 1, size_type m = 1) {
                 // essentially just getting which is smaller the resize or the current
                 if (n != dim0() || m != dim1()) {
@@ -239,26 +256,26 @@ namespace neuromapp {
 
 
             /**
-            * begin 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return iterator
-            */
+             * begin 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return iterator
+             */
             iterator begin() { return data_;}
             /**
-            * end 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return iterator
-            */
+             * end 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return iterator
+             */
             iterator end() { return data_ + dim0_ * rows_;}
 
 
@@ -275,105 +292,105 @@ namespace neuromapp {
                         comp_val = (*blk)(col_ind,comp_row);
                     }
 
-            /**
-            * get_value 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return const value_type&
-            */
+                /**
+                 * get_value 
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return const value_type&
+                 */
                 const value_type& get_value() const {
                     return comp_val;
                 }
 
-            /**
-            * get_col 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return const size_type &
-            */
+                /**
+                 * get_col 
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return const size_type &
+                 */
                 const size_type & get_col () const {
                     return col_ind;
                 }
 
-            /**
-            * set_col 
-            *
-            *
-            * @brief
-            *
-            * @param const size_type & col
-            *
-            * @return void
-            */
+                /**
+                 * set_col 
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const size_type & col
+                 *
+                 * @return void
+                 */
                 void set_col (const size_type & col) {
                     col_ind = col;
                 }
 
-            /**
-            * operator ++  
-            *
-            *
-            * @brief
-            *
-            * @param int
-            *
-            * @return iter 
-            */
+                /**
+                 * operator ++  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param int
+                 *
+                 * @return iter 
+                 */
                 iter operator ++ (int) {
                     iter temp(blk,col_ind,row_mult);
                     row_mult++;
                     return temp;
                 }
 
-            /**
-            * operator --  
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return iter& 
-            */
+                /**
+                 * operator --  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return iter& 
+                 */
                 iter& operator -- () {
                     row_mult--;
                     return *this;
                 }
 
-            /**
-            * operator--   
-            *
-            *
-            * @brief
-            *
-            * @param int
-            *
-            * @return iter 
-            */
+                /**
+                 * operator--   
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param int
+                 *
+                 * @return iter 
+                 */
                 iter operator--  (int) {
                     iter temp(blk,col_ind,row_mult);
                     row_mult--;
                     return temp;
                 }
 
-            /**
-            * operator ++  
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return iter& 
-            */
+                /**
+                 * operator ++  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return iter& 
+                 */
                 iter& operator ++ () {
                     if (row_mult > row_limit) throw std::out_of_range("row mult too hi");
 
@@ -381,74 +398,74 @@ namespace neuromapp {
                     return *this;
                 }
 
-            /**
-            * operator*  
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return value_type& 
-            */
+                /**
+                 * operator*  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return value_type& 
+                 */
                 value_type& operator* () {
                     // make use of the () operator from block
                     return (*blk)(col_ind,row_mult);
                 }
 
-            /**
-            * operator*  
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return const value_type& 
-            */
+                /**
+                 * operator*  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return const value_type& 
+                 */
                 const value_type& operator* () const {
                     // make use of the () operator from block
                     return (*blk)(col_ind,row_mult);
                 }
 
 
-            /**
-            * operator ==  
-            *
-            *
-            * @brief
-            *
-            * @param const iter &rhs
-            *
-            * @return bool 
-            */
+                /**
+                 * operator ==  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter &rhs
+                 *
+                 * @return bool 
+                 */
                 bool operator == (const iter &rhs) {
                     return row_mult == rhs.row_mult;
                 }
-            /**
-            * operator !=  
-            *
-            *
-            * @brief
-            *
-            * @param const iter &rhs
-            *
-            * @return bool 
-            */
+                /**
+                 * operator !=  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter &rhs
+                 *
+                 * @return bool 
+                 */
                 bool operator != (const iter &rhs) {
                     return row_mult != rhs.row_mult;
                 }
 
-            /**
-            * operator =  
-            *
-            *
-            * @brief
-            *
-            * @param const iter &rhs
-            *
-            * @return iter& 
-            */
+                /**
+                 * operator =  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter &rhs
+                 *
+                 * @return iter& 
+                 */
                 iter& operator = (const iter &rhs) {
                     row_mult = rhs.row_mult;
                     col_ind = rhs.col_ind;
@@ -457,16 +474,16 @@ namespace neuromapp {
                 }
 
                 // last things needed by a bidirectional iterator
-            /**
-            * operator +=  
-            *
-            *
-            * @brief
-            *
-            * @param const iter & rhs
-            *
-            * @return iter & 
-            */
+                /**
+                 * operator +=  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter & rhs
+                 *
+                 * @return iter & 
+                 */
                 iter & operator += (const iter & rhs) {
                     if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
                     row_mult += rhs.row_mult;
@@ -474,16 +491,16 @@ namespace neuromapp {
                 }
 
                 template<typename num_t>
-            /**
-            * operator +=  
-            *
-            *
-            * @brief
-            *
-            * @param const num_t & rhs
-            *
-            * @return iter & 
-            */
+                    /**
+                     * operator +=  
+                     *
+                     *
+                     * @brief
+                     *
+                     * @param const num_t & rhs
+                     *
+                     * @return iter & 
+                     */
                     iter & operator += (const num_t & rhs) {
                         if(row_mult > row_limit) throw std::out_of_range("row mult too hi");
                         row_mult += (size_type) rhs;
@@ -491,183 +508,176 @@ namespace neuromapp {
                     }
 
                 template<typename num_t>
-            /**
-            * operator -=  
-            *
-            *
-            * @brief
-            *
-            * @param const num_t & rhs
-            *
-            * @return iter & 
-            */
+                    /**
+                     * operator -=  
+                     *
+                     *
+                     * @brief
+                     *
+                     * @param const num_t & rhs
+                     *
+                     * @return iter & 
+                     */
                     iter & operator -= (const num_t & rhs) {
                         row_mult -= (size_type) rhs;
                         return *this;
                     }
 
-            /**
-            * operator -  
-            *
-            *
-            * @brief
-            *
-            * @param const iter &rhs
-            *
-            * @return size_type 
-            */
+                /**
+                 * operator -  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter &rhs
+                 *
+                 * @return size_type 
+                 */
                 size_type operator - (const iter &rhs) {
                     return row_mult - rhs.row_mult;
                 }
 
-            /**
-            * operator + 
-            *
-            *
-            * @brief
-            *
-            * @param  const iter & rhs
-            *
-            * @return size_type 
-            */
+                /**
+                 * operator + 
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param  const iter & rhs
+                 *
+                 * @return size_type 
+                 */
                 size_type operator +( const iter & rhs) {
                     return row_mult - rhs.row_mult;
                 }
 
-            /**
-            * operator []  
-            *
-            *
-            * @brief
-            *
-            * @param const size_type & row_ind
-            *
-            * @return value_type 
-            */
+                /**
+                 * operator []  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const size_type & row_ind
+                 *
+                 * @return value_type 
+                 */
                 value_type operator [] (const size_type & row_ind) {
                     // make use of the existing + operator and *
                     return (*blk)(col_ind,row_ind);
                 }
 
-            /**
-            * operator ->  
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return pointer 
-            */
+                /**
+                 * operator ->  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return pointer 
+                 */
                 pointer operator -> () const {
                     return &(*blk)[row_mult];
                 }
 
                 // commutative + operators for the iterator
                 template<typename num_t>
-            /**
-            * operator +  
-            *
-            *
-            * @brief
-            *
-            * @param const num_t & lhs
-            *
-            * @return iter 
-            */
+                    /**
+                     * operator +  
+                     *
+                     *
+                     * @brief
+                     *
+                     * @param const num_t & lhs
+                     *
+                     * @return iter 
+                     */
                     iter operator + (const num_t & lhs) const {
                         return iter(blk,col_ind,row_mult + lhs);
                     }
 
                 template<typename num_t>
-            /**
-            * operator -  
-            *
-            *
-            * @brief
-            *
-            * @param  const num_t & lhs
-            *
-            * @return iter 
-            */
+                    /**
+                     * operator -  
+                     *
+                     *
+                     * @brief
+                     *
+                     * @param  const num_t & lhs
+                     *
+                     * @return iter 
+                     */
                     iter operator - ( const num_t & lhs) const {
                         return iter(blk,col_ind,row_mult - lhs);
                     }
 
                 //total ordering operators
 
-            /**
-            * operator >  
-            *
-            *
-            * @brief
-            *
-            * @param const iter & rhs
-            *
-            * @return bool 
-            */
+                /**
+                 * operator >  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter & rhs
+                 *
+                 * @return bool 
+                 */
                 bool operator > (const iter & rhs) const{
                     return row_mult > rhs.row_mult;
                 }
-            /**
-            * operator <  
-            *
-            *
-            * @brief
-            *
-            * @param const iter & rhs
-            *
-            * @return bool 
-            */
+                /**
+                 * operator <  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter & rhs
+                 *
+                 * @return bool 
+                 */
                 bool operator < (const iter & rhs) const{
                     return row_mult < rhs.row_mult;
                 }
-            /**
-            * operator <=  
-            *
-            *
-            * @brief
-            *
-            * @param const iter & rhs
-            *
-            * @return bool 
-            */
+                /**
+                 * operator <=  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter & rhs
+                 *
+                 * @return bool 
+                 */
                 bool operator <= (const iter & rhs) const{
                     return row_mult <= rhs.row_mult;
                 }
-            /**
-            * operator >=  
-            *
-            *
-            * @brief
-            *
-            * @param const iter & rhs
-            *
-            * @return bool 
-            */
+                /**
+                 * operator >=  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param const iter & rhs
+                 *
+                 * @return bool 
+                 */
                 bool operator >= (const iter & rhs) const{
                     return row_mult >= rhs.row_mult;
                 }
             };
 
             /**
-            * print_row 
-            *
-            *
-            * @brief
-            *
-            * @param size_type row,std::string && mesg,size_type cols
-            *
-            * @return void
-            */
-            void print_row(size_type row,std::string && mesg,size_type cols) {
-                for (size_type i = 0 ; i < cols ;i++) {
-                    std::cout << (*this)(i,row) << ",";
-                }
-                std::cout << mesg << std::endl;
-
-            }
-
+             * print_row 
+             *
+             *
+             * @brief
+             *
+             * @param size_type row,std::string && mesg,size_type cols
+             *
+             * @return void
+             */
+            void print_row(size_type row,std::string && mesg,size_type cols); 
 
 
 
@@ -675,145 +685,145 @@ namespace neuromapp {
 
             //difference between memory_allocated and size is that allocated relies on construction size, where size depends on compression
             /**
-            * memory_allocated 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return size_type
-            */
+             * memory_allocated 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return size_type
+             */
             size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
 
             /**
-            * is_compressed 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return bool
-            */
-            bool is_compressed() {return compression_state;}
+             * is_compressed 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return bool
+             */
+            bool is_compressed();
 
             /**
-            * get_current_size 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return size_type
-            */
+             * get_current_size 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return size_type
+             */
             size_type get_current_size() {return current_size;}
 
             /**
-            * data 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return const_pointer
-            */
+             * data 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return const_pointer
+             */
             const_pointer data() const { return data_; };
 
             /**
-            * data 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return pointer
-            */
+             * data 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return pointer
+             */
             pointer data() { return data_; };
 
             /**
-            * dim0 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return size_type
-            */
+             * dim0 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return size_type
+             */
             size_type dim0() const { return dim0_; }
             /**
-            * dim1 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return size_type
-            */
+             * dim1 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return size_type
+             */
             size_type dim1() const { return rows_; }// supposed to be dim1?
             // alias
             /**
-            * num_cols 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return size_type
-            */
+             * num_cols 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return size_type
+             */
             size_type num_cols() const { return cols_; }
             /**
-            * num_rows 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return size_type
-            */
+             * num_rows 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return size_type
+             */
             size_type num_rows() const { return rows_; }
 
             /**
-            * operator[](size_type i) { return (*this) 
-            *
-            *
-            * @brief
-            *
-            * @param 0, i
-            *
-            * @return reference 
-            */
+             * operator[](size_type i) { return (*this) 
+             *
+             *
+             * @brief
+             *
+             * @param 0, i
+             *
+             * @return reference 
+             */
             reference operator[](size_type i) { return (*this)(0, i); }
 
             /**
-            * operator[](size_type i) const { return (*this) 
-            *
-            *
-            * @brief
-            *
-            * @param 0, i
-            *
-            * @return const_reference 
-            */
+             * operator[](size_type i) const { return (*this) 
+             *
+             *
+             * @brief
+             *
+             * @param 0, i
+             *
+             * @return const_reference 
+             */
             const_reference operator[](size_type i) const { return (*this)(0, i); }
 
             /**
-            * operator() 
-            *
-            *
-            * @brief
-            *
-            * @param size_type i, size_type j = 0
-            *
-            * @return reference 
-            */
+             * operator() 
+             *
+             *
+             * @brief
+             *
+             * @param size_type i, size_type j = 0
+             *
+             * @return reference 
+             */
             reference operator()(size_type i, size_type j = 0) {
                 // determines if i j are legal
                 assert(i <= cols_);
@@ -822,15 +832,15 @@ namespace neuromapp {
             }
 
             /**
-            * operator() 
-            *
-            *
-            * @brief
-            *
-            * @param size_type i, size_type j = 0
-            *
-            * @return const_reference 
-            */
+             * operator() 
+             *
+             *
+             * @brief
+             *
+             * @param size_type i, size_type j = 0
+             *
+             * @return const_reference 
+             */
             const_reference operator()(size_type i, size_type j = 0) const {
                 assert(i <= cols_);
                 assert(j <= rows_);
@@ -839,15 +849,15 @@ namespace neuromapp {
 
             //when given the std::cout for the standard operator we add to its stream
             /**
-            * print 
-            *
-            *
-            * @brief
-            *
-            * @param std::ostream & os
-            *
-            * @return std::ostream &
-            */
+             * print 
+             *
+             *
+             * @brief
+             *
+             * @param std::ostream & os
+             *
+             * @return std::ostream &
+             */
             std::ostream & print(std::ostream & os) const {
                 for (int i = 0; i < dim1(); ++i) { // raw first
                     for (int j = 0; j < dim0(); ++j) {
@@ -861,30 +871,30 @@ namespace neuromapp {
             }
 
             /**
-            * operator ==  
-            *
-            *
-            * @brief
-            *
-            * @param const block & other
-            *
-            * @return bool 
-            */
+             * operator ==  
+             *
+             *
+             * @brief
+             *
+             * @param const block & other
+             *
+             * @return bool 
+             */
             bool operator == (const block & other) {
                 //check size matches first
                 return compare_policy(this->data(),other.data(),current_size);
             }
 
             /**
-            * operator !=  
-            *
-            *
-            * @brief
-            *
-            * @param const block & other
-            *
-            * @return bool 
-            */
+             * operator !=  
+             *
+             *
+             * @brief
+             *
+             * @param const block & other
+             *
+             * @return bool 
+             */
             bool operator != (const block & other) {
                 //should just be the opposite of the existing compare_policy
                 return ! compare_policy(this->data(),other.data(),current_size);
@@ -893,120 +903,83 @@ namespace neuromapp {
 
 
 
-            // this is the tool for adding entries to our block
-            void read(std::istream & file_in)
-            {
-                //get the dimensions of the block from the first two values in the data, (col,row)
-                std::string line;
-                int row,col;
-                file_in >> col;
-                file_in >> std::ws;
-                // this comes up in cases where an empty string is provided,
-                if(file_in.get() != ',') {
-                    throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
+            /**
+             * read 
+             *
+             *
+             * @brief
+             *
+             * @param std::istream & file_in
+             *
+             * @return void
+             */
+            void read(std::istream & file_in) ;
+
+                /**
+                 * compress 
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return void
+                 */
+                void compress() ;
+
+                /**
+                 * uncompress 
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param 
+                 *
+                 * @return void
+                 */
+                void uncompress(); 
+                private:
+                size_type rows_;
+                size_type cols_;
+                size_type dim0_;
+                pointer data_;
+                //compression members
+                size_type current_size;
+                bool compression_state = false;
+            };
+
+            template <class T, class A>
+                /**
+                 * operator<< 
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param std::ostream &out, block<T, A> &b
+                 *
+                 * @return std::ostream &
+                 */
+                std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
+                    b.print(out);
+                    return out;
                 }
-                //and now repeat for the row
-                file_in >> row;
-                file_in >> std::ws;
-                //make block match type value_type of calling block
-                block<value_type,allocator_type> b(col,row);
-                //take full line
-                row = 0;// start at first row for entering values
-                while(std::getline(file_in,line) && row < b.num_rows()) {
-                    //reset the column count to enter data for first column
-                    col = 0;
-                    //split on commas
-                    std::stringstream comma_splitter(line);
-                    std::string data_cell;
-                    //read from stream comma_splitter, split on comma, and enter into the data_cell string
-                    while(std::getline(comma_splitter,data_cell,',') && col < b.dim0()) {
-                        // using the block element indexing
-                        std::stringstream(data_cell) >> std::dec >> b(col++,row);
-                    }
-                    row++;
-                }
-                // now we have to swap the data in this block with the calling object block data
-                std::swap(*this,b);
-            }
 
-            // block access to compression functions included via policy
-            // make into data ref and size as arguments
-            //
-            /**
-            * compress 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
-            void compress() {
-                compress_policy(&data_,&current_size);
-                compression_state = true;
-            }
-            /**
-            * uncompress 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
-            void uncompress() {
-                uncompress_policy(&data_,&current_size,this->memory_allocated());
-                compression_state = false;
-            } 
-
-            private:
-            size_type rows_;
-            size_type cols_;
-            size_type dim0_;
-            pointer data_;
-            //compression members
-            size_type current_size;
-            bool compression_state = false;
-        };
-
-    template <class T, class A>
-            /**
-            * operator<< 
-            *
-            *
-            * @brief
-            *
-            * @param std::ostream &out, block<T, A> &b
-            *
-            * @return std::ostream &
-            */
-        std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
-            b.print(out);
-            return out;
-        }
-
-    //follow Tim's pattern with the outbound ostream above
-    template <class T, class A>
-            /**
-            * operator >>  
-            *
-            *
-            * @brief
-            *
-            * @param std::istream & in, block<T,A> &b 
-            *
-            * @return std::istream & 
-            */
-        std::istream & operator >> (std::istream & in, block<T,A> &b ) {
-            b.read(in);// create contents of block based on data in inputstream
-            return in;
-        }
+            //follow Tim's pattern with the outbound ostream above
+            template <class T, class A>
+                /**
+                 * operator >>  
+                 *
+                 *
+                 * @brief
+                 *
+                 * @param std::istream & in, block<T,A> &b 
+                 *
+                 * @return std::istream & 
+                 */
+                std::istream & operator >> (std::istream & in, block<T,A> &b ); 
 
 
-
-} // namespace neuromapp
+        } // namespace neuromapp
 
 
 #endif
