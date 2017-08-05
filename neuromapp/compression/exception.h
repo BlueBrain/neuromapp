@@ -47,46 +47,16 @@ enum lengine_error {
 class learning_engine_exception : public std::exception {
   public:
     learning_engine_exception(std::string message, int error_code = NEUROMAPP_OK) throw()
-            /**
-            * error_code_ 
-            *
-            *
-            * @brief
-            *
-            * @param error_code
-            *
-            * @return message_(message),
-            */
         : message_(message), error_code_(error_code) {}
-            /**
-            * throw 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return learning_engine_exception()
-            */
     ~learning_engine_exception() throw() {}
 
-            /**
-            * throw 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return virtual const char *what() const
-            */
     virtual const char *what() const throw() { return message_.c_str(); }
 
-            /**
+            /** 
             * get_error_code 
+            * 
             *
-            *
-            * @brief
+            * @brief This function gets the correct error code corresponding to the issue, and uses std::exception to raise it and terminate the program.
             *
             * @param 
             *
@@ -104,7 +74,7 @@ template <lengine_error error>
             * is_bad 
             *
             *
-            * @brief
+            * @brief Determines whether the exception is a significant error.
             *
             * @param learning_engine_exception const &ex
             *
@@ -120,9 +90,9 @@ class cpu_memory_allocation : public learning_engine_exception {
             * cpu_memory_allocation constructor 
             *
             *
-            * @brief
+            * @brief This constructs the cpu_memory allocation object used to create blocks suitable for the cpu operations.
             *
-            * @param std::string message, int error_code) : learning_engine_exception(message, error_code
+            * @param std::string message, int error_code 
             *
             * @return 
             */
@@ -135,7 +105,7 @@ class gpu_memory_allocation : public learning_engine_exception {
             * gpu_memory_allocation constructor 
             *
             *
-            * @brief
+            * @brief This is the object is used for specifying block creation for gpu based operations.
             *
             * @param std::string message, int error_code) : learning_engine_exception(message, error_code
             *

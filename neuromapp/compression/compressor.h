@@ -41,7 +41,7 @@ namespace neuromapp {
             * compress_policy 
             *
             *
-            * @brief
+            * @brief This compression policy is meant to not perform any compression on the data. It is essentially what will become a default if nothing more specific is requested. Will just return a warning message at present.
             *
             * @param void * data_source, size_type uncompressed_size 
             *
@@ -55,7 +55,7 @@ namespace neuromapp {
             * uncompress_policy 
             *
             *
-            * @brief
+            * @brief This uncompress policy belongs to the non-compress object, currently just outputs a warning message about not finding a compression library, and returns without uncompression happening.
             *
             * @param void * data_source,size_type compressed_size,size_type uncompressed_size
             *
@@ -74,7 +74,7 @@ namespace neuromapp {
             * check_compression_rc 
             *
             *
-            * @brief
+            * @brief This function determines whether we need to throw a compression exception, or if everything has been performed successfully according to the zlib error code.
             *
             * @param int rc
             *
@@ -99,7 +99,7 @@ namespace neuromapp {
             * compress_policy 
             *
             *
-            * @brief
+            * @brief This compress policy is the zlib compress policy. It uses the zlib compression tool to swap out the blocks' data with a compressed version and then returns. It checks for issues after the compression step and will throw an exception at that point if it detects a zlib error.
             *
             * @param value_type ** data_source, size_type *uncompressed_size
             *
@@ -132,7 +132,7 @@ namespace neuromapp {
             * uncompress_policy 
             *
             *
-            * @brief
+            * @brief This is the uncompress policy which uses the zlib compression library. The block's compressed data is uncompressed using default zlib uncompress utility, and if any error's are encountered, an exception fitting that case gets thrown.
             *
             * @param value_type ** data_source, size_type *compressed_size, size_type uncompressed_size
             *

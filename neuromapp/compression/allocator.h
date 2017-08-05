@@ -34,10 +34,17 @@ namespace neuromapp {
         public:
             typedef std::size_t size_type;
 
-            //note that the lengine entries used to be neuromap - w/o extra p
-            //todo remove the mention of lengine anywhere
-            /** The allocate function used in the policy */
-            void *allocate_policy(size_type size) {
+            /**
+             * allocate_policy 
+             *
+             *
+             * @brief The allocate policy for cstandard blocks.
+             *
+             * @param size_type size
+             *
+             * @return void *
+             */
+            void * allocate_policy(size_type size) {
                 if ((size & 0x8000000000000000)) // size is uint64_t so I check MSB if a negative number is the arg
                     throw cpu_memory_allocation("negative size, cpu cstandard policy", lengine_error::NEUROMAPP_BAD_ARG);
                 else if (size == 0)
@@ -49,44 +56,42 @@ namespace neuromapp {
                 return ptr;
             }
 
-            /** The deallocate function used in the policy */
             /**
-            * deallocate_policy 
-            *
-            *
-            * @brief
-            *
-            * @param void *ptr
-            *
-            * @return void
-            */
+             * deallocate_policy 
+             *
+             *
+             * @brief The deallocate function used in the policy 
+             *
+             * @param void *ptr
+             *
+             * @return void
+             */
             void deallocate_policy(void *ptr) { std::free(ptr); }
 
-            /** The copy function used in the policy */
             /**
-            * copy_policy 
-            *
-            *
-            * @brief
-            *
-            * @param void *ptr_destination, void *ptr_source, std::size_t size
-            *
-            * @return void
-            */
+             * copy_policy 
+             *
+             *
+             * @brief The copy function used in the policy 
+             *
+             * @param void *ptr_destination, void *ptr_source, std::size_t size
+             *
+             * @return void
+             */
             void copy_policy(void *ptr_destination, void *ptr_source, std::size_t size) {
                 std::memcpy(ptr_destination, ptr_source, size);
             }
 
             /**
-            * compare_policy 
-            *
-            *
-            * @brief
-            *
-            * @param void * lhs,const void * rhs,size_t size
-            *
-            * @return bool
-            */
+             * compare_policy 
+             *
+             *
+             * @brief The function used for comparing two different blocks of standard allocation.
+             *
+             * @param void * lhs,const void * rhs,size_t size
+             *
+             * @return bool
+             */
             bool compare_policy(void * lhs,const void * rhs,size_t size) {
                 int rc =std::memcmp(lhs,rhs,size);
                 if (rc == 0) 
@@ -105,8 +110,17 @@ namespace neuromapp {
             typedef std::size_t size_type;
             const static size_type boundary = 32; // always multiple of 32 byte
 
-            /** The allocate function used in the policy */
-            void *allocate_policy(size_type size) {
+            /**
+             * allocate_policy 
+             *
+             *
+             * @brief The allocate function used in the policy
+             *
+             * @param size_type size
+             *
+             * @return void *
+             */
+            void * allocate_policy(size_type size) {
                 if ((size & 0x8000000000000000)) // size is uint64_t so I check MSB if a negative number is the arg
                     throw cpu_memory_allocation("negative size, cpu align policy", lengine_error::NEUROMAPP_BAD_ARG);
                 else if (size == 0)
@@ -125,30 +139,28 @@ namespace neuromapp {
                 return ptr;
             }
 
-            /** The deallocate function used in the policy */
             /**
-            * deallocate_policy 
-            *
-            *
-            * @brief
-            *
-            * @param void *ptr
-            *
-            * @return void
-            */
+             * deallocate_policy 
+             *
+             *
+             * @brief The method for freeing the memory associated with the block.
+             *
+             * @param void *ptr
+             *
+             * @return void
+             */
             void deallocate_policy(void *ptr) { std::free(ptr); }
 
-            /** to have each raw align, we may need to add some paddint at the end */
             /**
-            * resize_policy 
-            *
-            *
-            * @brief
-            *
-            * @param size_type size, size_type sizeof_T
-            *
-            * @return inline static size_type
-            */
+             * resize_policy 
+             *
+             *
+             * @brief Resizes the aligned memory. For each raw align, we may need to add some paddint at the end .
+             *
+             * @param size_type size, size_type sizeof_T
+             *
+             * @return inline static size_type
+             */
             inline static size_type resize_policy(size_type size, size_type sizeof_T) {
                 if (sizeof_T > boundary)
                     throw cpu_memory_allocation("wierd, sizeof(type) larger than boundary", lengine_error::NEUROMAPP_BAD_USAGE);
@@ -156,32 +168,31 @@ namespace neuromapp {
                 return (size / element_per_register + 1) * element_per_register;
             }
 
-            /** The copy function used in the policy */
             /**
-            * copy_policy 
-            *
-            *
-            * @brief
-            *
-            * @param void *ptr_destination, void *ptr_source, std::size_t size
-            *
-            * @return void
-            */
+             * copy_policy 
+             *
+             *
+             * @brief  The copy function used in the policy for align blocks .
+             *
+             * @param void *ptr_destination, void *ptr_source, std::size_t size
+             *
+             * @return void
+             */
             void copy_policy(void *ptr_destination, void *ptr_source, std::size_t size) {
                 std::memcpy(ptr_destination, ptr_source, size);
             }
 
 
             /**
-            * compare_policy 
-            *
-            *
-            * @brief
-            *
-            * @param void * lhs,const void * rhs,size_t size
-            *
-            * @return bool
-            */
+             * compare_policy 
+             *
+             *
+             * @brief The align block compare policy.
+             *
+             * @param void * lhs,const void * rhs,size_t size
+             *
+             * @return bool
+             */
             bool compare_policy(void * lhs,const void * rhs,size_t size) {
                 cstandard temp_cstd_inst;
                 return temp_cstd_inst.compare_policy(lhs,rhs,size);

@@ -57,7 +57,7 @@ namespace neuromapp {
          * resize_helper 
          *
          *
-         * @brief
+         * @brief Base resize function for align specification later on.
          *
          * @param std::size_t n, std::size_t sizeof_T
          *
@@ -73,7 +73,7 @@ namespace neuromapp {
          * resize_helper<align> 
          *
          *
-         * @brief
+         * @brief Specialized resize_helper for align blocks. Makes use of the resize policy provided in allocator.h.
          *
          * @param std::size_t n, std::size_t sizeof_T
          *
@@ -111,7 +111,7 @@ namespace neuromapp {
              * block constructor 
              *
              *
-             * @brief
+             * @brief This is the standard block constructor with defaults of 1 row and 1 column. Note the columns come first in the argument order.
              *
              * @param size_type n = 1, size_type m = 1) : rows_(m
              *
@@ -123,12 +123,13 @@ namespace neuromapp {
                 current_size = sizeof(T) * cols_ * rows_;
                 data_ = (pointer)allocate_policy(current_size);
             }
+
             //constructor given rval to another block
             /**
              * block constructor 
              *
              *
-             * @brief
+             * @brief This is the copy constructor. We provide other block, and constructor generates new block with same dimensions, and data, from it.
              *
              * @param block &&other) : rows_(other.rows_), cols_(other.cols_), dim0_(other.dim0_), data_(other.data_
              *
@@ -147,7 +148,7 @@ namespace neuromapp {
              * block constructor 
              *
              *
-             * @brief
+             * @brief Similar to the (&& other) copy constructor, bu uses const reference instead.
              *
              * @param const block &other
              *
@@ -163,12 +164,11 @@ namespace neuromapp {
                 copy_policy(data_, other.data_, current_size);
             }
 
-            //include more standard assignment operator
             /**
              * operator= 
              *
              *
-             * @brief
+             * @brief This is the standard move assignment operator. Leaves the rhs reference empty to avoid unexpected behavior from assigned block.
              *
              * @param block &rhs
              *
@@ -193,7 +193,7 @@ namespace neuromapp {
              * operator= 
              *
              *
-             * @brief
+             * @brief Copy operator, uses right hand reference to make assignment.
              *
              * @param block &&rhs
              *
@@ -227,7 +227,7 @@ namespace neuromapp {
              * resize 
              *
              *
-             * @brief
+             * @brief This function shrinks or expands the space allowed for holding data within the block.
              *
              * @param size_type n = 1, size_type m = 1
              *
@@ -259,18 +259,19 @@ namespace neuromapp {
              * begin 
              *
              *
-             * @brief
+             * @brief This function allows for STL like algorithms to iterate element by element over the block starting with the return from begin().
              *
              * @param 
              *
              * @return iterator
              */
             iterator begin() { return data_;}
+
             /**
              * end 
              *
              *
-             * @brief
+             * @brief This function returns the sentinel end for comparing an iterator over the block to. 
              *
              * @param 
              *
@@ -296,7 +297,7 @@ namespace neuromapp {
                  * get_value 
                  *
                  *
-                 * @brief
+                 * @brief This function gets the value the iterator dereferences to.
                  *
                  * @param 
                  *
@@ -310,7 +311,7 @@ namespace neuromapp {
                  * get_col 
                  *
                  *
-                 * @brief
+                 * @brief Gives back the column number that the iterator is currently on
                  *
                  * @param 
                  *
@@ -324,7 +325,7 @@ namespace neuromapp {
                  * set_col 
                  *
                  *
-                 * @brief
+                 * @brief positions the iterator on a particular column within the block.
                  *
                  * @param const size_type & col
                  *
@@ -338,7 +339,7 @@ namespace neuromapp {
                  * operator ++  
                  *
                  *
-                 * @brief
+                 * @brief The increment operator moves the iterator down the row.
                  *
                  * @param int
                  *
@@ -354,7 +355,7 @@ namespace neuromapp {
                  * operator --  
                  *
                  *
-                 * @brief
+                 * @brief  Decrement function for iterator, moves back one in the row. Returns a reference to the iterator. prefix decrement
                  *
                  * @param 
                  *
@@ -369,7 +370,7 @@ namespace neuromapp {
                  * operator--   
                  *
                  *
-                 * @brief
+                 * @brief  Postfix iterator decrement operator. returns iterator, not reference.
                  *
                  * @param int
                  *
@@ -385,7 +386,7 @@ namespace neuromapp {
                  * operator ++  
                  *
                  *
-                 * @brief
+                 * @brief  Prefix increment operator for the iterator. Also checks whether limit has been reached for incrementing.
                  *
                  * @param 
                  *
@@ -402,7 +403,8 @@ namespace neuromapp {
                  * operator*  
                  *
                  *
-                 * @brief
+                 * @brief  Dereference operator for the iterator. Gives a reference back to the value in the block at the point where the
+                 * iterator is.
                  *
                  * @param 
                  *
@@ -417,7 +419,7 @@ namespace neuromapp {
                  * operator*  
                  *
                  *
-                 * @brief
+                 * @brief Dereference operator for the iterator, returns const reference to the value that the iterator is referencing within the block.
                  *
                  * @param 
                  *
@@ -433,7 +435,7 @@ namespace neuromapp {
                  * operator ==  
                  *
                  *
-                 * @brief
+                 * @brief   The equals comparison operator. If the positions within the row are identical for the two iterators, returns true.
                  *
                  * @param const iter &rhs
                  *
@@ -446,7 +448,7 @@ namespace neuromapp {
                  * operator !=  
                  *
                  *
-                 * @brief
+                 * @brief The not-equals comparison operator. Returns whether the value pointed to is different between the two iterators.
                  *
                  * @param const iter &rhs
                  *
@@ -460,7 +462,7 @@ namespace neuromapp {
                  * operator =  
                  *
                  *
-                 * @brief
+                 * @brief Assignment operator for the iterator. Copies all salient values from the rhs iterator, and assigns them to the lhs iterator.
                  *
                  * @param const iter &rhs
                  *
@@ -478,7 +480,7 @@ namespace neuromapp {
                  * operator +=  
                  *
                  *
-                 * @brief
+                 * @brief Assign-increment operator, allows for skipping positions within the block referenced by iterator.
                  *
                  * @param const iter & rhs
                  *
@@ -495,7 +497,7 @@ namespace neuromapp {
                      * operator +=  
                      *
                      *
-                     * @brief
+                     * @brief Assign-increment operator, uses numeric type for its increment guide.
                      *
                      * @param const num_t & rhs
                      *
@@ -512,7 +514,8 @@ namespace neuromapp {
                      * operator -=  
                      *
                      *
-                     * @brief
+                     * @brief Decrement-assign operator. This moves the iterator backwards down a row in steps that can be larger
+                     * than one at a time.
                      *
                      * @param const num_t & rhs
                      *
@@ -527,7 +530,7 @@ namespace neuromapp {
                  * operator -  
                  *
                  *
-                 * @brief
+                 * @brief Subtraction operator, useful for defining ranges necessary for the random access iterator type
                  *
                  * @param const iter &rhs
                  *
@@ -541,7 +544,7 @@ namespace neuromapp {
                  * operator + 
                  *
                  *
-                 * @brief
+                 * @brief Addition operator, useful for defining ranges necessary for the random access iterator type
                  *
                  * @param  const iter & rhs
                  *
@@ -555,7 +558,7 @@ namespace neuromapp {
                  * operator []  
                  *
                  *
-                 * @brief
+                 * @brief Indexing operator. Specify block row address to get value of from iterator.
                  *
                  * @param const size_type & row_ind
                  *
@@ -570,7 +573,7 @@ namespace neuromapp {
                  * operator ->  
                  *
                  *
-                 * @brief
+                 * @brief Dagger operator. This returns a pointer to a position within the block.
                  *
                  * @param 
                  *
@@ -580,13 +583,12 @@ namespace neuromapp {
                     return &(*blk)[row_mult];
                 }
 
-                // commutative + operators for the iterator
                 template<typename num_t>
                     /**
                      * operator +  
                      *
                      *
-                     * @brief
+                     * @brief commutative + operators for the iterator, used in defining Ranges for random access iterator.
                      *
                      * @param const num_t & lhs
                      *
@@ -601,7 +603,7 @@ namespace neuromapp {
                      * operator -  
                      *
                      *
-                     * @brief
+                     * @brief  commutative - operators for the iterator, used in defining Ranges for random access iterator.
                      *
                      * @param  const num_t & lhs
                      *
@@ -617,7 +619,7 @@ namespace neuromapp {
                  * operator >  
                  *
                  *
-                 * @brief
+                 * @brief Relational operator. Determines whether the current iterator is at a position further in the row than the rhs iterator.
                  *
                  * @param const iter & rhs
                  *
@@ -630,7 +632,7 @@ namespace neuromapp {
                  * operator <  
                  *
                  *
-                 * @brief
+                 * @brief Relational operator. Determines whether the current iterator is not as far in the row as the rhs iterator.
                  *
                  * @param const iter & rhs
                  *
@@ -643,7 +645,7 @@ namespace neuromapp {
                  * operator <=  
                  *
                  *
-                 * @brief
+                 * @brief Relational operator. Determines if current iterator is at a position closer to the start or equal to the rhs iterator.
                  *
                  * @param const iter & rhs
                  *
@@ -656,7 +658,7 @@ namespace neuromapp {
                  * operator >=  
                  *
                  *
-                 * @brief
+                 * @brief Relational operator. Determines if current iterator is at a position further from the start or equal to the rhs iterator.
                  *
                  * @param const iter & rhs
                  *
@@ -671,7 +673,7 @@ namespace neuromapp {
              * print_row 
              *
              *
-             * @brief
+             * @brief Prints out all the values in the row with spaces in between.
              *
              * @param size_type row,std::string && mesg,size_type cols
              *
@@ -688,7 +690,7 @@ namespace neuromapp {
              * memory_allocated 
              *
              *
-             * @brief
+             * @brief Returns the memory used to hold teh data within the block currently
              *
              * @param 
              *
@@ -700,7 +702,7 @@ namespace neuromapp {
              * is_compressed 
              *
              *
-             * @brief
+             * @brief Determines whether the block is in a compressed state or not.
              *
              * @param 
              *
@@ -712,7 +714,7 @@ namespace neuromapp {
              * get_current_size 
              *
              *
-             * @brief
+             * @brief Returns the current size of the block.
              *
              * @param 
              *
@@ -724,7 +726,7 @@ namespace neuromapp {
              * data 
              *
              *
-             * @brief
+             * @brief This function provides a const pointer to the block of memory used for block data storage. 
              *
              * @param 
              *
@@ -736,7 +738,7 @@ namespace neuromapp {
              * data 
              *
              *
-             * @brief
+             * @brief Returns a pointer to the memory used for block data storage.
              *
              * @param 
              *
@@ -748,7 +750,7 @@ namespace neuromapp {
              * dim0 
              *
              *
-             * @brief
+             * @brief Returns the number of columns in the block, buffered for align or not.
              *
              * @param 
              *
@@ -759,7 +761,7 @@ namespace neuromapp {
              * dim1 
              *
              *
-             * @brief
+             * @brief Return the number of rows it the block.
              *
              * @param 
              *
@@ -771,7 +773,8 @@ namespace neuromapp {
              * num_cols 
              *
              *
-             * @brief
+             * @brief Returns the number of cols_, not taking into account the buffering done for align allocator
+             * blocks.
              *
              * @param 
              *
@@ -782,7 +785,7 @@ namespace neuromapp {
              * num_rows 
              *
              *
-             * @brief
+             * @brief Returns the number of rows used in the block. Essentially the same as calling dim1, but easier to remember.
              *
              * @param 
              *
@@ -794,7 +797,7 @@ namespace neuromapp {
              * operator[](size_type i) { return (*this) 
              *
              *
-             * @brief
+             * @brief The index operator for the block. return a reference to the data stored at that address in the block. Only for first element in column.
              *
              * @param 0, i
              *
@@ -806,7 +809,7 @@ namespace neuromapp {
              * operator[](size_type i) const { return (*this) 
              *
              *
-             * @brief
+             * @brief The index operator for block. Const reference return from address given by argument address. Only for first element in column.
              *
              * @param 0, i
              *
@@ -818,7 +821,7 @@ namespace neuromapp {
              * operator() 
              *
              *
-             * @brief
+             * @brief call operator. Returns a reference to the element stored at the part of the block.
              *
              * @param size_type i, size_type j = 0
              *
@@ -835,7 +838,7 @@ namespace neuromapp {
              * operator() 
              *
              *
-             * @brief
+             * @brief call operator. Returns a const_reference to the element stored at the part of the block.
              *
              * @param size_type i, size_type j = 0
              *
@@ -852,7 +855,7 @@ namespace neuromapp {
              * print 
              *
              *
-             * @brief
+             * @brief Print out the entire block element by element to ostream os.
              *
              * @param std::ostream & os
              *
@@ -874,7 +877,7 @@ namespace neuromapp {
              * operator ==  
              *
              *
-             * @brief
+             * @brief Uses compare policy specified in teh allocator.h to determine block equality between two blocks.
              *
              * @param const block & other
              *
@@ -889,7 +892,7 @@ namespace neuromapp {
              * operator !=  
              *
              *
-             * @brief
+             * @brief Uses binary negation on the return from the compare policy given current block, and other.
              *
              * @param const block & other
              *
@@ -907,7 +910,7 @@ namespace neuromapp {
              * read 
              *
              *
-             * @brief
+             * @brief Read's the contents of a file into the block. Requires specific format. First line must be #cols,#rows (ie 671,4) for 2 dimensional block. Or in the case of 1 dimension #cols,1 (61,1). The rest of the contents must be comma separated numeric values that conform to the file header's dimensions. 
              *
              * @param std::istream & file_in
              *
@@ -919,7 +922,7 @@ namespace neuromapp {
                  * compress 
                  *
                  *
-                 * @brief
+                 * @brief Run compress policy on the block's data. Set the compressed bool to true, and update the size of the block in memory.
                  *
                  * @param 
                  *
@@ -931,7 +934,7 @@ namespace neuromapp {
                  * uncompress 
                  *
                  *
-                 * @brief
+                 * @brief Run uncompress policy on the block's contents.  Set the compressed bool to false, and update the size of the block in memory.
                  *
                  * @param 
                  *
@@ -953,7 +956,7 @@ namespace neuromapp {
                  * operator<< 
                  *
                  *
-                 * @brief
+                 * @brief This operator prints the block element by element.
                  *
                  * @param std::ostream &out, block<T, A> &b
                  *
@@ -970,7 +973,7 @@ namespace neuromapp {
                  * operator >>  
                  *
                  *
-                 * @brief
+                 * @brief This operator is used to read the data into the block from a file opened as an ifstream.
                  *
                  * @param std::istream & in, block<T,A> &b 
                  *

@@ -33,7 +33,7 @@ namespace neuromapp {
             * compression_exception constructor 
             *
             *
-            * @brief
+            * @brief compression exception object constructor. Gets thrown when there's no memory left, or the buffer holding the temporary data is full, or another exception is thrown specified in the zlib.h.
             *
             * @param std::string message,int error_code) throw(
             *
@@ -49,7 +49,7 @@ namespace neuromapp {
             * get_error_code 
             *
             *
-            * @brief
+            * @brief Returns the specific error code associated with the particular exception being thrown.
             *
             * @param 
             *
@@ -68,7 +68,7 @@ namespace neuromapp {
             * zlib_exception constructor 
             *
             *
-            * @brief
+            * @brief Constructor for the exception class for zlib in specific. inherits from the general compression exception class.
             *
             * @param std::string message,int error_code ) : compression_exception(message,error_code
             *

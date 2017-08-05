@@ -70,14 +70,11 @@ namespace neuromapp {
 
     template <typename value_type,typename allocator_type>
 
-        /*
-         * and creating an unsigned int array that represents its parts
-         */
             /**
             * convert_to_parts 
             *
             *
-            * @brief
+            * @brief Convert each element in the block pointed to by row_ptr into parts within the split block.
             *
             * @param value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num
             *
@@ -94,14 +91,12 @@ namespace neuromapp {
         }
 
     template <typename value_type,typename allocator_type>
-        /*reciprocal function to teh one above, take values from the split block, and convert them back to their floating point representation
-         * and store them back in the unsplit block row value_type *
-         */
             /**
             * convert_from_parts 
             *
             *
-            * @brief
+            * @brief Reciprocal function to teh one above, take values from the split block, and convert them back to their floating point representation
+            * and stores them back in the unsplit block row value_type 
             *
             * @param value_type * row_ptr,block<unsigned int,allocator_type> & split_block,size_type row_num
             *
@@ -123,7 +118,7 @@ namespace neuromapp {
             * populate_split_block 
             *
             *
-            * @brief
+            * @brief Fills an empty split block with elements converted from an unsplit block.
             *
             * @param  block<unsigned int,allocator_type> & split_block,block<value_type,allocator_type>& unsplit_block
             *
@@ -141,7 +136,7 @@ namespace neuromapp {
             * populate_unsplit_block 
             *
             *
-            * @brief
+            * @brief  Fills an empty unsplit block with elements converted from an split block.
             *
             * @param  block<unsigned int,allocator_type> & split_block,block<value_type,allocator_type>& unsplit_block
             *
@@ -160,7 +155,7 @@ namespace neuromapp {
             * generate_split_block 
             *
             *
-            * @brief
+            * @brief The toplevel function that creates a split block of the right size, and calls the populating function.
             *
             * @param block<value_type,allocator_type> & unsplit_block
             *
@@ -178,7 +173,7 @@ namespace neuromapp {
             * generate_unsplit_block 
             *
             *
-            * @brief
+            * @brief The toplevel function that creates a unsplit block of the right size, and calls the populating function.
             *
             * @param block<unsigned int,allocator_type> & split_block
             *

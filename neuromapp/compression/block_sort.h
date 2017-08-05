@@ -40,7 +40,7 @@ namespace neuromapp {
             * col_sort 
             *
             *
-            * @brief
+            * @brief This function takes a specific row argument, and sorts the blocks columns by values within that row.
             *
             * @param block<V,A> * block_arg, const size_type & sort_row
             *
