@@ -65,7 +65,7 @@ namespace neuromapp {
             * operator ()  
             *
             *
-            * @brief
+            * @brief This function simply performs an addition using the value the pointer (ptr) refers to, and the argument coef.
             *
             * @param ostream & os
             *
@@ -103,7 +103,8 @@ namespace neuromapp {
             * operator ()  
             *
             *
-            * @brief
+            * @brief The level2 computation is a scaled down version of the Tsodyks-Markram model of PSP adjustment due to activity. Two 1d blocks
+            * are kept within the functor struct and have their contents updated by the computation.
             *
             * @param ostream & os
             *
@@ -140,7 +141,7 @@ namespace neuromapp {
             * operator ()  
             *
             *
-            * @brief
+            * @brief The level 3function. This uses the Euler method to solve a particular differential equation, with given initial values, time limit, and a step size.
             *
             * @param ostream & os
             *
@@ -164,7 +165,7 @@ namespace neuromapp {
             * init_array 
             *
             *
-            * @brief
+            * @brief This function builds our array of blocks using the specific size ARRAY_SIZE. Each block receives the same file contents.
             *
             * @param block<double,allocator_type> * block_array
             *
@@ -196,7 +197,8 @@ namespace neuromapp {
             * operator() 
             *
             *
-            * @brief
+            * @brief This function randomly selects 1 block from the array to be passed to the ensuing computations. Will stop after 10% of the 
+            * blocks have been selected.
             *
             * @param 
             *
@@ -224,7 +226,7 @@ namespace neuromapp {
             * kernel_measure 
             *
             *
-            * @brief
+            * @brief This is the main event. Time counts are taken for computations that involve all three levels using blocks that feature a compression step, and those that don't. Ultimately the result is given back to the user in the form of a table printed out to the screen.
             *
             * @param fun_ob & f,ostream & os,block<double,allocator_type> & blk
             *
@@ -295,15 +297,14 @@ namespace neuromapp {
             * @return void
             */
         void run_km (string & fname_arg) {
-            ofstream out("kernel_measure.log");
-            out << " Starting Kernel Measure " << std::endl;
+            std::cout << " Starting Kernel Measure " << std::endl;
             fname=fname_arg;
             double coef = 2.0,
                    step = 1.0,
                    y_param = 2.0,
                    t_start = 0.0,
                    t_limit = 10000.0;
-            option_coordinator<allocator_type>(out,coef,step,y_param,t_start,t_limit);
+            option_coordinator<allocator_type>(std::cout,coef,step,y_param,t_start,t_limit);
         }
 
 }

@@ -36,32 +36,82 @@ namespace neuromapp {
             void print(string && message);
             double duration();
             void end();
-        class Exception {
-            private:
-                string message_;
-            public:
-                Exception (string & creation_msg ) : message_{creation_msg} {}
-                ~Exception () {};
-        };
+            class Exception {
+                private:
+                    string message_;
+                public:
+                    Exception (string & creation_msg ) : message_{creation_msg} {}
+                    ~Exception () {};
+            };
     };
 
+    /**
+     * Timer::start 
+     *
+     *
+     * @brief This function expands on the basic start function by allowing for a message to be printed just before the timer starts running.
+     *
+     * @param string & message
+     *
+     * @return void
+     */
     void Timer::start(string & message) {
         std::cout << message << std::endl;
         Timer::start();
     }
 
+    /**
+     * Timer::start 
+     *
+     *
+     * @brief This function uses the chrono library to start a milisecond timer that will be stopped by the stop function.
+     *
+     * @param 
+     *
+     * @return void
+     */
     void Timer::start() {
         start_ = chrono::system_clock::now();
     }
 
+    /**
+     * Timer::duration 
+     *
+     *
+     * @brief This function calculates the difference in the time between start and stop values. Again, measurement is in miliseconds.
+     *
+     * @param 
+     *
+     * @return double
+     */
     double Timer::duration() {
         //check to see if duration has been set
         return duration_.count();
     }
+    /**
+     * Timer::print 
+     *
+     *
+     * @brief Outputs the duration plus an additional message at the front.
+     *
+     * @param string &&  message
+     *
+     * @return void
+     */
     void Timer::print(string &&  message) {
         std::cout << message << " "<< "time: " << duration_.count()<< "(ms)" << std::endl;
     }
 
+    /**
+     * Timer::end 
+     *
+     *
+     * @brief This function is the complement of the "start" function, and populates a class member with the system clock time when the function gets called.
+     *
+     * @param 
+     *
+     * @return void
+     */
     void Timer::end() {
         end_ = chrono::system_clock::now();
         duration_ = end_-start_;

@@ -46,7 +46,7 @@ using expmt_block = block<value_type,cstandard>;
  * create_spike_time 
  *
  *
- * @brief
+ * @brief This function generates a delta time value taken from an exponential distribution to be used as the next spike time occuring at a particular synapse in the tsodyks-markram model.
  *
  * @param int intensity
  *
@@ -62,7 +62,7 @@ double create_spike_time(int intensity) {
  * calc_u 
  *
  *
- * @brief
+ * @brief This function calculates the new value for differential equation in use. Please consult references of the tsodyks-markram model for specifics.
  *
  * @param double u,double fraction,double d_time,double time_const_fac
  *
@@ -76,7 +76,7 @@ double calc_u(double u,double fraction,double d_time,double time_const_fac) {
  * calc_x 
  *
  *
- * @brief
+ * @brief This function calculates the new value for differential equation in use. Please consult references of the tsodyks-markram model for specifics.
  *
  * @param double x,double u,double d_time,double time_const_rec
  *
@@ -90,7 +90,7 @@ double calc_x(double x,double u,double d_time,double time_const_rec) {
  * run_workflow 
  *
  *
- * @brief
+ * @brief This function essentially fires off the experiment, and runs for 1000 ms timesteps.
  *
  * @param 
  *
@@ -155,7 +155,7 @@ void run_workflow() {
  * main 
  *
  *
- * @brief
+ * @brief The main just calls the run_workflow() function.
  *
  * @param int argc,char ** argv
  *
