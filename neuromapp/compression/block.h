@@ -976,10 +976,7 @@ namespace neuromapp {
             *
             * @return void
             */
-            void uncompress() {
-                uncompress_policy(&data_,&current_size,this->memory_allocated());
-                compression_state = false;
-            } 
+            void uncompress() ;
 
             void fill_block(value_type val) {
                 pointer start = this->begin();
@@ -1034,5 +1031,6 @@ namespace neuromapp {
 
 } // namespace neuromapp
 
-
+//last but not least attach the .hpp file
+#include "compression/block.hpp"
 #endif
