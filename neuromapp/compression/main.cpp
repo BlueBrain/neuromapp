@@ -20,6 +20,7 @@
  * License along with this library.
  */
 #include <sys/stat.h>
+#include "utils/omp/compatibility.h"
 #include <chrono>
 #include <stdexcept>
 #include <iterator>
@@ -38,12 +39,10 @@
 #include "compression/exception.h"
 #include "compression/block_sort.h"
 #include "compression/block.h"
-#include "compression/block.hpp"
 #include "compression/bit_shifting.h"
 #include "compression/timer_tool.h"
 #include "compression/compression.h"
 #include "compression/main_functions.h"
-#include <boost/mpl/list.hpp>
 
 /* make namespace alias for program options */
 using namespace std;
@@ -73,7 +72,8 @@ int comp_execute(int argc,char *const argv[])
             ("align","use non-standard allocator for block process")
             ("kernel_measure","run increasingly complex calculations on block comparing timing performance tradeoff for compression")
             ("stream_benchmark","use a McCalpin STREAM inspired set of benchmarks to measure bandwith on the computer")
-            ("benchmark","run all of the files in data directory, create csv with output stats");
+         ("numthread", po::value<int>()->default_value(1), "number of OMP thread")
+         ("benchmark","run all of the files in data directory, create csv with output stats");
         //create variable map
         po::variables_map vm;
         po::store(po::parse_command_line(argc,argv,desc),vm);
@@ -83,8 +83,9 @@ int comp_execute(int argc,char *const argv[])
          *  within the file vs benchmark the other options will be checked */
         if (vm.count("help")) {
             std::cout << desc << std::endl;
+            std::cout << "Note: Path-prefix for input files is {Binary_build_dir}/test/ \n\t'block_data/*' contains example csvs" << std::endl;
         }
-        if(vm.count("file") && ! vm.count("benchmark") && ! vm.count("kernel_measure")){
+        else if(vm.count("file") && ! vm.count("benchmark") && ! vm.count("kernel_measure")){
             fname = vm["file"].as<std::string>();
             ifstream ifile(fname);
             if (vm.count("align")) {
@@ -98,7 +99,8 @@ int comp_execute(int argc,char *const argv[])
             }
         }
 
-        if (vm.count("stream_benchmark")) {
+        else if (vm.count("stream_benchmark")) {
+            omp_set_num_threads(vm["numthread"].as<int>());
             if (vm.count("align")) {
                 stream_bench_routine<double,neuromapp::align>();
             } else {
@@ -106,7 +108,7 @@ int comp_execute(int argc,char *const argv[])
             }
         }
 
-        if (vm.count("kernel_measure")) {
+        else if (vm.count("kernel_measure")) {
             string fname ;
             if ( vm.count("file")) {
                 fname = vm["file"].as<std::string>();

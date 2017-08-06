@@ -28,7 +28,6 @@
 #include "compression/compression.h"
 #include "neuromapp/compression/common/data/path.h"
 #include "compression/block.h"
-#include "compression/block.hpp"
 #include "compression/timer_tool.h"
 using namespace std;
 

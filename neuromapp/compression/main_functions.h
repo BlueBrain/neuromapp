@@ -22,9 +22,7 @@
 #ifndef MAIN_FUNCTIONS_H
 #define MAIN_FUNCTIONS_H
 #include "compression/block_sort.h"
-#include <boost/program_options.hpp>
 #include "compression/block.h"
-#include "compression/block.hpp"
 #include "compression/bit_shifting.h"
 #include "compression/timer_tool.h"
 #include "compression/kernel_measurements.h"

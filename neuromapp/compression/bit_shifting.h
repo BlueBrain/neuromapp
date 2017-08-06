@@ -25,7 +25,6 @@
 #include <string>
 #include <algorithm>
 #include "compression/block.h"
-#include "compression/block.hpp"
 
 
 using namespace std;

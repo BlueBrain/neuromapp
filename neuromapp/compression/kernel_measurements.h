@@ -35,7 +35,6 @@
 #include "compression/exception.h"
 #include "compression/block_sort.h"
 #include "compression/block.h"
-#include "compression/block.hpp"
 #include "compression/bit_shifting.h"
 #include "compression/timer_tool.h"
 

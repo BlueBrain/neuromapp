@@ -673,7 +673,7 @@ namespace neuromapp {
             * print_row 
             *
             *
-            * @brief
+            * @brief This function prints one row from the block using the arguments provided.
             *
             * @param size_type row,std::string && mesg,size_type cols
             *
@@ -990,23 +990,6 @@ namespace neuromapp {
             size_type current_size;
             bool compression_state = false;
         };
-
-    template <class T, class A>
-            /**
-            * operator<< 
-            *
-            *
-            * @brief
-            *
-            * @param std::ostream &out, block<T, A> &b
-            *
-            * @return std::ostream &
-            */
-        std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
-            b.print(out);
-            return out;
-        }
-
     //follow Tim's pattern with the outbound ostream above
     template <class T, class A>
             /**
