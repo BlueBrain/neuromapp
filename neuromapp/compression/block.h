@@ -670,16 +670,23 @@ namespace neuromapp {
             };
 
             /**
-             * print_row 
-             *
-             *
-             * @brief Prints out all the values in the row with spaces in between.
-             *
-             * @param size_type row,std::string && mesg,size_type cols
-             *
-             * @return void
-             */
-            void print_row(size_type row,std::string && mesg,size_type cols); 
+            * print_row 
+            *
+            *
+            * @brief
+            *
+            * @param size_type row,std::string && mesg,size_type cols
+            *
+            * @return void
+            */
+            void print_row(size_type row,std::string && mesg,size_type cols) {
+                for (size_type i = 0 ; i < cols ;i++) {
+                    std::cout << (*this)(i,row) << ",";
+                }
+                std::cout << mesg << std::endl;
+
+            }
+
 
 
 
@@ -699,27 +706,27 @@ namespace neuromapp {
             size_type memory_allocated() const { return sizeof(T) * cols_ * rows_; }
 
             /**
-             * is_compressed 
-             *
-             *
-             * @brief Determines whether the block is in a compressed state or not.
-             *
-             * @param 
-             *
-             * @return bool
-             */
-            bool is_compressed();
+            * is_compressed 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return bool
+            */
+            bool is_compressed() {return compression_state;}
 
             /**
-             * get_current_size 
-             *
-             *
-             * @brief Returns the current size of the block.
-             *
-             * @param 
-             *
-             * @return size_type
-             */
+            * get_current_size 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return size_type
+            */
             size_type get_current_size() {return current_size;}
 
             /**
@@ -906,50 +913,117 @@ namespace neuromapp {
 
 
 
+            // this is the tool for adding entries to our block
+            void read(std::istream & file_in)
+            {
+                //get the dimensions of the block from the first two values in the data, (col,row)
+                std::string line;
+                int row,col;
+                file_in >> col;
+                file_in >> std::ws;
+                // this comes up in cases where an empty string is provided,
+                if(file_in.get() != ',') {
+                    throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
+                }
+                //and now repeat for the row
+                file_in >> row;
+                file_in >> std::ws;
+                //make block match type value_type of calling block
+                block<value_type,allocator_type> b(col,row);
+                //take full line
+                row = 0;// start at first row for entering values
+                while(std::getline(file_in,line) && row < b.num_rows()) {
+                    //reset the column count to enter data for first column
+                    col = 0;
+                    //split on commas
+                    std::stringstream comma_splitter(line);
+                    std::string data_cell;
+                    //read from stream comma_splitter, split on comma, and enter into the data_cell string
+                    while(std::getline(comma_splitter,data_cell,',') && col < b.dim0()) {
+                        // using the block element indexing
+                        std::stringstream(data_cell) >> std::dec >> b(col++,row);
+                    }
+                    row++;
+                }
+                // now we have to swap the data in this block with the calling object block data
+                std::swap(*this,b);
+            }
+
+            // block access to compression functions included via policy
+            // make into data ref and size as arguments
+            //
             /**
-             * read 
-             *
-             *
-             * @brief Read's the contents of a file into the block. Requires specific format. First line must be #cols,#rows (ie 671,4) for 2 dimensional block. Or in the case of 1 dimension #cols,1 (61,1). The rest of the contents must be comma separated numeric values that conform to the file header's dimensions. 
-             *
-             * @param std::istream & file_in
-             *
-             * @return void
-             */
-            void read(std::istream & file_in) ;
+            * compress 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
+            void compress() {
+                compress_policy(&data_,&current_size);
+                compression_state = true;
+            }
+            /**
+            * uncompress 
+            *
+            *
+            * @brief
+            *
+            * @param 
+            *
+            * @return void
+            */
+            void uncompress() {
+                uncompress_policy(&data_,&current_size,this->memory_allocated());
+                compression_state = false;
+            } 
 
-                /**
-                 * compress 
-                 *
-                 *
-                 * @brief Run compress policy on the block's data. Set the compressed bool to true, and update the size of the block in memory.
-                 *
-                 * @param 
-                 *
-                 * @return void
-                 */
-                void compress() ;
+            private:
+            size_type rows_;
+            size_type cols_;
+            size_type dim0_;
+            pointer data_;
+            //compression members
+            size_type current_size;
+            bool compression_state = false;
+        };
 
-                /**
-                 * uncompress 
-                 *
-                 *
-                 * @brief Run uncompress policy on the block's contents.  Set the compressed bool to false, and update the size of the block in memory.
-                 *
-                 * @param 
-                 *
-                 * @return void
-                 */
-                void uncompress(); 
-                private:
-                size_type rows_;
-                size_type cols_;
-                size_type dim0_;
-                pointer data_;
-                //compression members
-                size_type current_size;
-                bool compression_state = false;
-            };
+    template <class T, class A>
+            /**
+            * operator<< 
+            *
+            *
+            * @brief
+            *
+            * @param std::ostream &out, block<T, A> &b
+            *
+            * @return std::ostream &
+            */
+        std::ostream &operator<<(std::ostream &out, block<T, A> &b) {
+            b.print(out);
+            return out;
+        }
+
+    //follow Tim's pattern with the outbound ostream above
+    template <class T, class A>
+            /**
+            * operator >>  
+            *
+            *
+            * @brief
+            *
+            * @param std::istream & in, block<T,A> &b 
+            *
+            * @return std::istream & 
+            */
+        std::istream & operator >> (std::istream & in, block<T,A> &b ) {
+            b.read(in);// create contents of block based on data in inputstream
+            return in;
+        }
+
 
             template <class T, class A>
                 /**
@@ -967,22 +1041,7 @@ namespace neuromapp {
                     return out;
                 }
 
-            //follow Tim's pattern with the outbound ostream above
-            template <class T, class A>
-                /**
-                 * operator >>  
-                 *
-                 *
-                 * @brief This operator is used to read the data into the block from a file opened as an ifstream.
-                 *
-                 * @param std::istream & in, block<T,A> &b 
-                 *
-                 * @return std::istream & 
-                 */
-                std::istream & operator >> (std::istream & in, block<T,A> &b ); 
-
-
-        } // namespace neuromapp
+} // namespace neuromapp
 
 
 #endif

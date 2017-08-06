@@ -17,6 +17,7 @@
 #include "compression/exception.h"
 #include "compression/block.h"
 #include "compression/block_sort.h"
+#include "neuromapp/compression/common/data/path.h"
 using neuromapp::block;
 using neuromapp::cstandard;
 using namespace std;
@@ -107,10 +108,10 @@ string s9 {R"(1,5
 
 //this is a vector of the filenames that hold csv data for testing
 
-vector<string> csv_solo_fnames {  "data/csv/values_10_a8213solo.csv", "data/csv/values_10_a8214solo.csv", "data/csv/values_10_a8215solo.csv", "data/csv/values_10_a8216solo.csv", "data/csv/values_10_a8217solo.csv", "data/csv/values_10_a8218solo.csv", "data/csv/values_10_a8219solo.csv", "data/csv/values_10_a8220solo.csv", "data/csv/values_10_a8749solo.csv", "data/csv/values_10_a8750solo.csv", "data/csv/values_10_a8751solo.csv", "data/csv/values_10_a8752solo.csv", "data/csv/values_10_a8761solo.csv", "data/csv/values_8_a10249solo.csv", "data/csv/values_8_a10250solo.csv", "data/csv/values_8_a10251solo.csv", "data/csv/values_8_a10252solo.csv", "data/csv/values_8_a10256solo.csv", "data/csv/values_8_a10261solo.csv", "data/csv/values_8_a10262solo.csv", "data/csv/values_8_a10263solo.csv", "data/csv/values_8_a10264solo.csv", "data/csv/values_8_a8780solo.csv", "data/csv/values_8_a8781solo.csv", "data/csv/values_8_a8801solo.csv", "data/csv/values_8_a8802solo.csv", "data/csv/values_8_a8803solo.csv", "data/csv/values_8_a8804solo.csv", "data/csv/values_9_a10237solo.csv", "data/csv/values_9_a10238solo.csv"};
+vector<string> solo_fnames {  "block_data/values_10_a8213trans_solo.csv", "block_data/values_10_a8214trans_solo.csv", "block_data/values_10_a8215trans_solo.csv", "block_data/values_10_a8216trans_solo.csv", "block_data/values_10_a8217trans_solo.csv", "block_data/values_10_a8218trans_solo.csv", "block_data/values_10_a8219trans_solo.csv", "block_data/values_10_a8220trans_solo.csv", "block_data/values_10_a8749trans_solo.csv", "block_data/values_10_a8750trans_solo.csv", "block_data/values_10_a8751trans_solo.csv", "block_data/values_10_a8752trans_solo.csv", "block_data/values_10_a8761trans_solo.csv", "block_data/values_8_a10249trans_solo.csv", "block_data/values_8_a10250trans_solo.csv", "block_data/values_8_a10251trans_solo.csv", "block_data/values_8_a10252trans_solo.csv", "block_data/values_8_a10256trans_solo.csv", "block_data/values_8_a10261trans_solo.csv", "block_data/values_8_a10262trans_solo.csv", "block_data/values_8_a10263trans_solo.csv", "block_data/values_8_a10264trans_solo.csv", "block_data/values_8_a8780trans_solo.csv", "block_data/values_8_a8781trans_solo.csv", "block_data/values_8_a8801trans_solo.csv", "block_data/values_8_a8802trans_solo.csv", "block_data/values_8_a8803trans_solo.csv", "block_data/values_8_a8804trans_solo.csv", "block_data/values_9_a10237trans_solo.csv", "block_data/values_9_a10238trans_solo.csv"};
 
 
-vector<string> csv_bulk_fnames { "data/csv/values_10_a8213bulk.csv", "data/csv/values_10_a8214bulk.csv", "data/csv/values_10_a8215bulk.csv", "data/csv/values_10_a8216bulk.csv", "data/csv/values_10_a8217bulk.csv", "data/csv/values_10_a8218bulk.csv", "data/csv/values_10_a8219bulk.csv", "data/csv/values_10_a8220bulk.csv", "data/csv/values_10_a8749bulk.csv", "data/csv/values_10_a8750bulk.csv", "data/csv/values_10_a8751bulk.csv", "data/csv/values_10_a8752bulk.csv", "data/csv/values_10_a8761bulk.csv", "data/csv/values_8_a10249bulk.csv", "data/csv/values_8_a10250bulk.csv", "data/csv/values_8_a10251bulk.csv", "data/csv/values_8_a10252bulk.csv", "data/csv/values_8_a10256bulk.csv", "data/csv/values_8_a10261bulk.csv", "data/csv/values_8_a10262bulk.csv", "data/csv/values_8_a10263bulk.csv", "data/csv/values_8_a10264bulk.csv",  "data/csv/values_8_a8780bulk.csv",  "data/csv/values_8_a8781bulk.csv",  "data/csv/values_8_a8801bulk.csv",  "data/csv/values_8_a8802bulk.csv",  "data/csv/values_8_a8803bulk.csv",  "data/csv/values_8_a8804bulk.csv",  "data/csv/values_9_a10237bulk.csv",  "data/csv/values_9_a10238bulk.csv"};
+vector<string> bulk_fnames { "block_data/values_10_a8213trans_bulk.csv", "block_data/values_10_a8214trans_bulk.csv", "block_data/values_10_a8215trans_bulk.csv", "block_data/values_10_a8216trans_bulk.csv", "block_data/values_10_a8217trans_bulk.csv", "block_data/values_10_a8218trans_bulk.csv", "block_data/values_10_a8219trans_bulk.csv", "block_data/values_10_a8220trans_bulk.csv", "block_data/values_10_a8749trans_bulk.csv", "block_data/values_10_a8750trans_bulk.csv", "block_data/values_10_a8751trans_bulk.csv", "block_data/values_10_a8752trans_bulk.csv", "block_data/values_10_a8761trans_bulk.csv", "block_data/values_8_a10249trans_bulk.csv", "block_data/values_8_a10250trans_bulk.csv", "block_data/values_8_a10251trans_bulk.csv", "block_data/values_8_a10252trans_bulk.csv", "block_data/values_8_a10256trans_bulk.csv", "block_data/values_8_a10261trans_bulk.csv", "block_data/values_8_a10262trans_bulk.csv", "block_data/values_8_a10263trans_bulk.csv", "block_data/values_8_a10264trans_bulk.csv",  "block_data/values_8_a8780trans_bulk.csv",  "block_data/values_8_a8781trans_bulk.csv",  "block_data/values_8_a8801trans_bulk.csv",  "block_data/values_8_a8802trans_bulk.csv",  "block_data/values_8_a8803trans_bulk.csv",  "block_data/values_8_a8804trans_bulk.csv",  "block_data/values_9_a10237trans_bulk.csv",  "block_data/values_9_a10238trans_bulk.csv"};
 
 //holder struct for combos of numeric type and allocator policy
 template <class T,class A>
@@ -251,23 +252,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( read_test,T,test_allocator_types) {
     }
 }
 
-ofstream out("bulk_solo_combined_sorted_with_uncompresstime.csv");
 //probably a lot of tests...
 BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
     typedef typename T::value_type value_type;
     typedef typename T::allocator_type allocator_type;
     vector<string> csv_type{"bulk","solo"};
     int type_ind = 0;
-    for (vector<string> fname_container : {csv_bulk_fnames,csv_solo_fnames}) {
+    for (vector<string> fname_container : {bulk_fnames,solo_fnames}) {
         for (string fname : fname_container) {
             chrono::time_point<chrono::system_clock> start,end;
-            ifstream ifile(fname);
+            // make sure that the full path is correct
+            ifstream ifile(mapp::path_specifier::give_path() + fname);
 
             // create a block using the read
             block<value_type,allocator_type> b1;
             //make a copy of b1
             ifile>>b1;
-            out << b1.memory_allocated() << ", ";
             block<value_type,allocator_type> b2(b1);// use the copy constructor
             //start compress
             //TESTING WITH SORT FOR VARIOUS IMPROVEMENTS
@@ -280,8 +280,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
             b1.uncompress();
             end = chrono::system_clock::now();
             chrono::duration<double> uncompress_time = end-start;
-            out << b1.get_current_size() <<
-                ", " << compress_time.count() << ", " << uncompress_time.count() << ", " + csv_type[type_ind] << "\n";
             // compare the two blocks should be equal
             BOOST_CHECK(b1==b2);
         }
