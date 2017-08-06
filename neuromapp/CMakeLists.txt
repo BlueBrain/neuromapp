@@ -1,5 +1,7 @@
 add_subdirectory (utils)
+if(NEUROMAPP_ENABLE_COMPRESSION_MAPP)
 add_subdirectory (compression)
+endif()
 add_subdirectory (hello)
 add_subdirectory (nest)
 add_subdirectory (hdf5)
