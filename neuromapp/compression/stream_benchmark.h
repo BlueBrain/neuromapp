@@ -73,8 +73,11 @@ namespace neuromapp {
 #pragma omp parallel for
                 for(int i = 0; i < vect_size;i++) {
                     block<value_type,allocator_type> ba(block_size);
+                    ba.fill_block(1.0);
                     block<value_type,allocator_type> bb(block_size);
+                    bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
+                    bc.fill_block(0.0);
                     if (compress){
                         ba.compress();
                         bb.compress();
@@ -274,10 +277,10 @@ namespace neuromapp {
             * @return void
             */
             void run_stream_benchmark() {
-                triad_benchmark() ;
+                copy_benchmark () ;
                 add_benchmark () ;
                 scale_benchmark() ;
-                copy_benchmark () ;
+                triad_benchmark() ;
             }
 
             /**

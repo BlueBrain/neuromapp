@@ -981,6 +981,14 @@ namespace neuromapp {
                 compression_state = false;
             } 
 
+            void fill_block(value_type val) {
+                pointer start = this->begin();
+                pointer stop = this->end();
+                for (;start != stop;start++) {
+                    *start = val;
+                }
+            }
+
             private:
             size_type rows_;
             size_type cols_;
