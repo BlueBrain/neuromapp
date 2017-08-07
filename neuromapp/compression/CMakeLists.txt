@@ -1,6 +1,6 @@
 ## using the hello tool as a template for the initial cmake instructions
 # Use -DNEUROMAPP_DISABLE_compression=TRUE to disable compilation/installation of this mini-app
-if(NEUROMAPP_ENABLE_COMPRESSION_MAPP)
+if(NEUROMAPP_COMPRESSION)
     include_directories(${PROJECT_BINARY_DIR})
     include_directories(${PROJECT_SOURCE_DIR})
     configure_file("${PROJECT_SOURCE_DIR}/neuromapp/compression/common/data/path.h.in"
