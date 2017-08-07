@@ -59,7 +59,7 @@ namespace neuromapp {
             double coef,* ptr,* end;
             public:
             level1_compute(double * ptr_arg,double coef_arg,double * end_arg) 
-                :coef {coef},ptr{ptr_arg}, end{end_arg} {}
+                :coef {coef_arg},ptr{ptr_arg}, end{end_arg} {}
             /**
             * operator ()  
             *
@@ -84,8 +84,8 @@ namespace neuromapp {
 
     template <typename allocator_type>
         struct level2_compute {
+            vector<double*> row_ptrs;
             double coef, step, * end;
-            vector<double* > row_ptrs;
             size_type cols;
             double u_init = 1.0,x_init = 2.0;
             block<double ,allocator_type> u_block,x_block;
@@ -112,7 +112,8 @@ namespace neuromapp {
             void operator () (ostream & os) {
                 os << " running lvl2 compute ";
                 //each ptr here is a row in the 2d block
-                double * ptr1 = row_ptrs[0],* ptr2 = row_ptrs[1],* ptr3 = row_ptrs[2],* ptr4 = row_ptrs[3];
+                //except ptr1 which isn't necessary for use
+                double * ptr2 = row_ptrs[1],* ptr3 = row_ptrs[2],* ptr4 = row_ptrs[3];
                 double * u_ptr = u_block.begin(),* x_ptr = x_block.begin();
 
                 for(int i(0);i < (int) cols;i++) {
@@ -149,7 +150,6 @@ namespace neuromapp {
             void operator () (ostream & os){
                 os << " running lvl3 compute ";
                 /* treat the initials as initials for each step, so initial to start, and each step */
-                double y_next;
                 while (t_initial < t_limit) {
                     y_initial = y_initial + differential(y_initial,t_initial) * (step);
                     t_initial +=step;
@@ -204,7 +204,7 @@ namespace neuromapp {
             * @return int 
             */
             int operator()() {
-                if(selected_count > SIZE/10)
+                if(selected_count > (int) SIZE/10)
                     return -1;
                 else {
                     int place;
@@ -267,7 +267,7 @@ namespace neuromapp {
             block<double,allocator_type> block_array[ARRAY_SIZE];
             init_array(block_array);
             /* loop variables */
-            int pos,count = 0;
+            int pos;
             /* continue to select blocks in positions, until 10% of the array has been used. atwhich point the -1 is returned */
             while((pos = bs()) != -1) {
                 out << " position is : " << pos<< std::endl; 

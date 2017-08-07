@@ -55,7 +55,7 @@ namespace neuromapp {
             /*comment out the compress line to enable/disable the compression options*/
             /*this is the number of elements generated for filling the block*/
             const static size_type block_size =  8000;
-            const static int vect_size = 64;
+            const static int vect_size = 640;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             const static int num_rounds =  10;
             block<value_type,allocator_type> v_a[vect_size];
@@ -116,7 +116,7 @@ namespace neuromapp {
                         block<value_type,allocator_type> & b = v_b[i];
                         pointer  ptr_a = a.data();
                         pointer  ptr_b = b.data();
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j <(int) block_size;j++) {
                             ptr_a[j] = ptr_b[j];
                         }
                         if(compress) {
@@ -158,7 +158,7 @@ namespace neuromapp {
                         pointer  ptr_a = a.data();
                         pointer  ptr_b = b.data();
                         value_type scale = 5;
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j < (int) block_size;j++) {
                             ptr_a[j] = scale*ptr_b[j];
                         }
                         if (compress) {
@@ -188,7 +188,7 @@ namespace neuromapp {
                 double min_time;
                 std::cout << "begin add benchmark" << std::endl;
                 //prepare for the add operation
-                mem_used = v_a[0].memory_allocated()*3*pow(10,-6);
+                mem_used = v_a[0].memory_allocated()*3*pow(10,-6)*vect_size;
                 for (int round = 0; round < num_rounds ; round++) {
                     time_it.start();
 #pragma omp parallel for
@@ -204,7 +204,7 @@ namespace neuromapp {
                         pointer  ptr_a = a.data();
                         pointer  ptr_b = b.data();
                         pointer  ptr_c = c.data();
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j <(int) block_size;j++) {
                             ptr_a[j] = ptr_b[j] + ptr_c[j];
                         }
                         if (compress) {
@@ -250,7 +250,7 @@ namespace neuromapp {
                         pointer  ptr_b = b.data();
                         pointer  ptr_c = c.data();
                         value_type scale = 5;
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j < (int) block_size;j++) {
                             ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
                         }
                         if (compress) {
@@ -263,7 +263,7 @@ namespace neuromapp {
                     if (round == 0) min_time = time_it.duration();
                     else if(min_time > time_it.duration()) min_time = time_it.duration();
                 }
-                double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+                triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
             }
 
             /**
@@ -278,8 +278,8 @@ namespace neuromapp {
             */
             void run_stream_benchmark() {
                 copy_benchmark () ;
-                add_benchmark () ;
                 scale_benchmark() ;
+                add_benchmark () ;
                 triad_benchmark() ;
             }
 

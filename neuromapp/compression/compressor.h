@@ -47,7 +47,8 @@ namespace neuromapp {
             * @return void
             */
             void compress_policy(void * data_source, size_type uncompressed_size ){ 
-                std::cout << "compression library not found, can't compress, leaving the same size as before" << std::endl;
+                std::cout << "compression library not found, can't compress, leaving the same size as before " << std::endl;
+                //must reference data_source and uncompressed size to silence warnings
             }
 
             /**
