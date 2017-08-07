@@ -24,32 +24,12 @@
 #ifndef NEUROMallocator_typePP_BLOCK_HPP
 #define NEUROMallocator_typePP_BLOCK_HPP
 
-#include <string>
-#include <memory> // POSIX, size_t is inside
-#include <functional>
-#include <sstream>
-#include <iterator>
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <limits>
-#include <type_traits>
-#include <cctype>
-#include <cassert>
-
-#include "compression/type_definition.h"
-#include "compression/allocator.h" 
-#include "compression/compressor.h"
-#include "compression/exception.h"
-#include "compression/block.h"
-
 namespace neuromapp {
-    template<typename value_type,typename allocator_type>
-        void block<value_type,allocator_type>::uncompress() {
+    template<typename value_type,typename allocator_type,class compressor>
+        void block<value_type,allocator_type,compressor>::uncompress() {
             uncompress_policy(&data_,&current_size,this->memory_allocated());
             compression_state = false;
         } 
 }
+
 #endif

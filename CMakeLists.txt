@@ -32,10 +32,10 @@ option (NEUROMAPP_CURSOR "Allow the use of cursors during input" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake)
 include(Compiler)
-## this prevents use of constexpr, and various components of Tim's block class,
-## uncomment when its clear that we shouldn't be running c++11
-#string(REPLACE "-std=c++11" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-#string(REPLACE "-std=c++0x" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+if (BLUEGENE)
+    string(REPLACE "-std=c++11" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+    string(REPLACE "-std=c++0x" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 
 
@@ -43,10 +43,16 @@ include(BlueGenePortability)
 
 #find_package(Boost COMPONENTS thread date_time program_options filesystem system REQUIRED)
 find_package(Boost 1.44 REQUIRED chrono program_options unit_test_framework system filesystem random)
-find_package(ZLIB REQUIRED)
 find_package(HDF5)
 find_package(SLURM)
 find_package(MPI)
+
+option (NEUROMAPP_COMPRESSION "Build the compression miniapp" ON)
+if(NEUROMAPP_COMPRESSION)
+    find_package(ZLIB REQUIRED)
+    set(NEUROMAPP_ENABLE_COMPRESSION_MAPP TRUE)
+endif()
+
 
 ## MPI link flags need to be overwritten on BG/Q
 include(BlueGenePortability)

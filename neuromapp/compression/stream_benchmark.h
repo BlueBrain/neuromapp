@@ -55,14 +55,14 @@ namespace neuromapp {
             /*comment out the compress line to enable/disable the compression options*/
             /*this is the number of elements generated for filling the block*/
             const static size_type block_size =  8000;
-            const static int vect_size = 64;
+            const static int vect_size = 640;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             const static int num_rounds =  10;
             block<value_type,allocator_type> v_a[vect_size];
             block<value_type,allocator_type> v_b[vect_size];
             block<value_type,allocator_type> v_c[vect_size];
             // calculation results section
-            double mem_used, copy_bandwith , scale_bandwith, add_bandwith,triad_bandwith;
+            double mem_used, copy_bandwith , scale_bandwith, add_bandwith, triad_bandwith;
             public:
             //stream_bench (bool compress_opt) : compress {compress_opt},v_a{vect_size},v_b{vect_size},v_c{vect_size} {
             stream_bench (bool compress_opt) : compress {compress_opt}{
@@ -188,7 +188,7 @@ namespace neuromapp {
                 double min_time;
                 std::cout << "begin add benchmark" << std::endl;
                 //prepare for the add operation
-                mem_used = v_a[0].memory_allocated()*3*pow(10,-6);
+                mem_used = vect_size*v_a[0].memory_allocated()*3*pow(10,-6);
                 for (int round = 0; round < num_rounds ; round++) {
                     time_it.start();
 #pragma omp parallel for
@@ -263,7 +263,7 @@ namespace neuromapp {
                     if (round == 0) min_time = time_it.duration();
                     else if(min_time > time_it.duration()) min_time = time_it.duration();
                 }
-                double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+                triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
             }
 
             /**
@@ -278,8 +278,8 @@ namespace neuromapp {
             */
             void run_stream_benchmark() {
                 copy_benchmark () ;
-                add_benchmark () ;
                 scale_benchmark() ;
+                add_benchmark () ;
                 triad_benchmark() ;
             }
 
