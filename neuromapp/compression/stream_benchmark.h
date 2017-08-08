@@ -116,7 +116,7 @@ namespace neuromapp {
                         block<value_type,allocator_type> & b = v_b[i];
                         pointer  ptr_a = a.data();
                         pointer  ptr_b = b.data();
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j <(int) block_size;j++) {
                             ptr_a[j] = ptr_b[j];
                         }
                         if(compress) {
@@ -158,7 +158,7 @@ namespace neuromapp {
                         pointer  ptr_a = a.data();
                         pointer  ptr_b = b.data();
                         value_type scale = 5;
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j < (int) block_size;j++) {
                             ptr_a[j] = scale*ptr_b[j];
                         }
                         if (compress) {
@@ -204,7 +204,7 @@ namespace neuromapp {
                         pointer  ptr_a = a.data();
                         pointer  ptr_b = b.data();
                         pointer  ptr_c = c.data();
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j <(int) block_size;j++) {
                             ptr_a[j] = ptr_b[j] + ptr_c[j];
                         }
                         if (compress) {
@@ -250,7 +250,7 @@ namespace neuromapp {
                         pointer  ptr_b = b.data();
                         pointer  ptr_c = c.data();
                         value_type scale = 5;
-                        for (int j=0; j < block_size;j++) {
+                        for (int j=0; j < (int) block_size;j++) {
                             ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
                         }
                         if (compress) {
@@ -298,7 +298,6 @@ namespace neuromapp {
                 std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
                 std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << add_bandwith << setw(5) << "MBs" << std::endl;
                 std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << scale_bandwith << setw(5) << "MBs" << std::endl;
-                std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << triad_bandwith << setw(5) << "MBs" << std::endl;
             }
 
 

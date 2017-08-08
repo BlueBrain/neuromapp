@@ -679,13 +679,7 @@ namespace neuromapp {
             *
             * @return void
             */
-            void print_row(size_type row,std::string && mesg,size_type cols) {
-                for (size_type i = 0 ; i < cols ;i++) {
-                    std::cout << (*this)(i,row) << ",";
-                }
-                std::cout << mesg << std::endl;
-
-            }
+            void print_row(size_type row,std::string && mesg,size_type cols); 
 
 
 
@@ -914,40 +908,7 @@ namespace neuromapp {
 
 
             // this is the tool for adding entries to our block
-            void read(std::istream & file_in)
-            {
-                //get the dimensions of the block from the first two values in the data, (col,row)
-                std::string line;
-                int row,col;
-                file_in >> col;
-                file_in >> std::ws;
-                // this comes up in cases where an empty string is provided,
-                if(file_in.get() != ',') {
-                    throw 0;// I think it just means if there was something inbetween that wasn't a comma throw 0 error
-                }
-                //and now repeat for the row
-                file_in >> row;
-                file_in >> std::ws;
-                //make block match type value_type of calling block
-                block<value_type,allocator_type> b(col,row);
-                //take full line
-                row = 0;// start at first row for entering values
-                while(std::getline(file_in,line) && row < b.num_rows()) {
-                    //reset the column count to enter data for first column
-                    col = 0;
-                    //split on commas
-                    std::stringstream comma_splitter(line);
-                    std::string data_cell;
-                    //read from stream comma_splitter, split on comma, and enter into the data_cell string
-                    while(std::getline(comma_splitter,data_cell,',') && col < b.dim0()) {
-                        // using the block element indexing
-                        std::stringstream(data_cell) >> std::dec >> b(col++,row);
-                    }
-                    row++;
-                }
-                // now we have to swap the data in this block with the calling object block data
-                std::swap(*this,b);
-            }
+            void read(std::istream & file_in); 
 
             // block access to compression functions included via policy
             // make into data ref and size as arguments
@@ -962,10 +923,7 @@ namespace neuromapp {
             *
             * @return void
             */
-            void compress() {
-                compress_policy(&data_,&current_size);
-                compression_state = true;
-            }
+            void compress(); 
             /**
             * uncompress 
             *
@@ -978,14 +936,7 @@ namespace neuromapp {
             */
             void uncompress() ;
 
-            void fill_block(value_type val) {
-                pointer start = this->begin();
-                pointer stop = this->end();
-                for (;start != stop;start++) {
-                    *start = val;
-                }
-            }
-
+            void fill_block(value_type val); 
             private:
             size_type rows_;
             size_type cols_;

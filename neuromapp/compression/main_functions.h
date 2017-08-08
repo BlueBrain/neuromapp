@@ -132,6 +132,7 @@ template <typename allocator_type>
 void split_routine ( block<double,allocator_type> & unsplit_block, Timer & time_it) {
     time_it.start();
     block<unsigned int, allocator_type> split_block = neuromapp::generate_split_block(unsplit_block);
+    //sanity check for split version
     time_it.end();
     std::cout << "splitting took " << time_it.duration() << " ms" << std::endl;
     compress_routine<unsigned int,allocator_type>(split_block,time_it);
