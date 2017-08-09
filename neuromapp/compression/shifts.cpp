@@ -15,14 +15,14 @@ struct insert_minder{
     public:
     insert_minder(int rel_start_arg,int shift_type_arg) :rel_start {rel_start_arg},shift_type{shift_type_arg} {
         v_i = floor(rel_start/32);// tells us which element in storage vector we start adding into
-        pos = rel_start%32;// what position in that vector element to add 
+        pos = 31-rel_start%32;// what position in that vector element to add 
     }
 
     void add_in(vector<uint32_t> & vct, uint32_t val ) {
-        uint32_t frame_mask = 1 << shift_type;
-        for (int i = 0; i < shift_type;i++) {
-            uint32_t frame_val = val & (frame_mask >> i);
-            vct[v_i] += frame_val ;
+        for (int i = 1; i <= shift_type;i++) {
+            uint32_t frame_val = (val >> (shift_type -i)) & 1 ;
+            std::cout << "fv: " << frame_val << std::endl;
+            vct[v_i] += frame_val << pos ;
             pos--;
             if (pos < 0) {// move to the start of the next number
                 v_i++;
@@ -67,7 +67,7 @@ int main () {
     vector<uint32_t> store(N);
 
     std::fill(store.begin(),store.end(),0);
-    insert_minder sign_inserter(0*N,1);//magic
+    insert_minder sign_inserter(0,1);//magic
     insert_minder exp_inserter(N,8);//magic
     insert_minder mant_inserter(8*N+N,23);//magic
     conv_bits cb;
