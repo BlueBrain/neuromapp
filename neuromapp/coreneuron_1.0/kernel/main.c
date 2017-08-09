@@ -61,7 +61,7 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
     omp_set_num_threads(p.th);
 
     NrnThread * nt = (NrnThread *) storage_get (p.name,  make_nrnthread, p.d, free_nrnthread);
-    NrnThread * ntlocal = (NrnThread *) clone_nrnthread(nt);
+//    NrnThread * ntlocal = (NrnThread *) clone_nrnthread(nt);
 
     //duplicate the data
     NrnThread ** ntu = malloc(sizeof(NrnThread*)*p.duplicate);
@@ -81,17 +81,18 @@ int coreneuron10_kernel_execute(int argc, char *const argv[])
             compute_wrapper(ntu[i],&p);
     gettimeofday(&tvEnd, NULL);
 
-    storage_put(p.name,ntlocal,free_nrnthread);
-    ntlocal=0;
-    if (ntlocal) free_nrnthread(ntlocal);
+    storage_put(p.name,ntu[0],free_nrnthread);
+    ntu[0]=0;
+    if (ntu[0]) free_nrnthread(ntu[0]);
 
 
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
     printf("\n CURRENT SOA State Version : %s; %s: %ld [s], %ld [us] \n",
            p.m, p.f, (long) tvDiff.tv_sec, (long) tvDiff.tv_usec);
 
-    for(int i=0 ; i < p.duplicate; ++i)
+    for(int i=1 ; i < p.duplicate; ++i)
         free_nrnthread(ntu[i]);
+    free(ntu);
     return error;
 }
 

@@ -53,6 +53,11 @@ struct input_parameters{
     /** key for the number of step
      \warning The default key value is one
      */
+    int mindelay_step;
+    /** key for the number of step
+     \warning The default key value is one
+     */
+
     char * name;
 };
 

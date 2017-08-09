@@ -45,6 +45,8 @@ int cstep_print_usage() {
     printf("                 --name [to internally reference the data, default name coreneuron_1.0_cstep_data] \n");
     printf("                 --duplicate <duplication number=1 > \n");
     printf("                 --step <step number=1 > \n");
+    printf("                 --mindelay_step <step in a min delay number=1 > \n");
+
 
     return MAPP_USAGE;
 }
@@ -57,6 +59,7 @@ int cstep_help(int argc, char * const argv[], struct input_parameters * p)
   p->name = "coreneuron_1.0_cstep_data";
   p->duplicate = 1;
   p->step = 1;
+  p->mindelay_step = 1;
   optind = 0;
 
   while (1)
@@ -69,12 +72,13 @@ int cstep_help(int argc, char * const argv[], struct input_parameters * p)
           {"numthread",  required_argument,0, 't'},
           {"name",  required_argument,     0, 'n'},
           {"step",  required_argument,     0, 's'},
+          {"mindelay_step",  required_argument,     0, 'm'},
           {0, 0, 0, 0}
       };
       /* getopt_long stores the option index here. */
       int option_index = 0;
 
-      c = getopt_long (argc, argv, "d:t:n:u:s:n:h:",
+      c = getopt_long (argc, argv, "d:t:n:u:s:m:n:h:",
                        long_options, &option_index);
       /* Detect the end of the options. */
       if (c == -1)
@@ -95,6 +99,9 @@ int cstep_help(int argc, char * const argv[], struct input_parameters * p)
               break;
           case 's':
               p->step = atoi(optarg);
+              break;
+          case 'm':
+              p->mindelay_step = atoi(optarg);
               break;
           case 'n':
               p->name = optarg;
