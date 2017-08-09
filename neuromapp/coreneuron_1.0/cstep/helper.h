@@ -45,6 +45,19 @@ struct input_parameters{
     /** key for the storage library 
      \warning The default key name is cstep_storage_name_helper
      */
+    int duplicate;
+    /** key for the number of duplication
+     \warning The default key value is one
+     */
+    int step;
+    /** key for the number of step
+     \warning The default key value is one
+     */
+    int mindelay_step;
+    /** key for the number of step
+     \warning The default key value is one
+     */
+
     char * name;
 };
 

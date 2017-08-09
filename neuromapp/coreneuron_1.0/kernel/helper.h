@@ -51,6 +51,14 @@ struct input_parameters{
     /** key for the storage library
      \warning The default key name is coreneuron_1.0_kernel_data
      */
+    int duplicate;
+    /** key for the number of duplication
+     \warning The default key value is one
+     */
+    int step;
+    /** key for the number of step
+     \warning The default key value is one
+     */
     char * name;
 };
 
