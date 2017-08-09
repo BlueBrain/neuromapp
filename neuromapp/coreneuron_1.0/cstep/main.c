@@ -48,15 +48,12 @@
 #include "utils/error.h"
 
 int coreneuron10_cstep_execute(int argc, char * const argv[]) {
-
-    
     struct input_parameters p;
 
     int error = MAPP_OK;
     error = cstep_help(argc, argv, &p);
     if(error != MAPP_OK)
         return error;
-
 
     //duplicate the data
     NrnThread ** ntu = malloc(sizeof(NrnThread*)*p.duplicate);
@@ -71,15 +68,12 @@ int coreneuron10_cstep_execute(int argc, char * const argv[]) {
     for(int i=1; i<p.duplicate; ++i)
         ntu[i] = (NrnThread *) clone_nrnthread(ntu[0]);
 
-
     //Initial mechanisms set-up already done in the input date (no need to call mech_init_Ih, etc)
     gettimeofday(&tvBegin, NULL);
 
     for(int i=0; i < p.step; ++i){
         for(int j=0; j < p.duplicate; ++j){
             for(int k=0; k < p.mindelay_step; k++){ //loop inside min delay
-
-
                 //Load mechanisms
                 mech_current_NaTs2_t(ntu[j],&(ntu[j]->ml[17]));
                 mech_current_Ih(ntu[j],&(ntu[j]->ml[10]));
@@ -95,10 +89,6 @@ int coreneuron10_cstep_execute(int argc, char * const argv[]) {
             }
         }
     }
-    
-//    storage_put(p.name,ntu[0],free_nrnthread);
-//    ntu[0]=0;
-//    if (ntu[0]) free_nrnthread(ntu[0]);
 
     gettimeofday(&tvEnd, NULL);
     timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
