@@ -41,19 +41,19 @@ struct cbit_holder {};
 
 template <>
 struct cbit_holder<float> {
-    union conv_bits{
+    union {
         float val;
         uint32_t bits;
-    };
+    }conv_bits;
 };
 
 
 template <>
 struct cbit_holder<double> {
-    union conv_bits{
+    union {
         double val;
         uint64_t bits;
-    };
+    }conv_bits;
 };
 
 
@@ -118,13 +118,13 @@ int main () {
     insert_minder<float> mant_inserter(8*N+N,23);//magic
     cbit_holder<float> cb_holder;
     for (float ele:  vct) {
-        cb_holder.conv_bits.val = ele;
-        uint32_t sign = get_sign(cb_holder.conv_bits,conv_info);
-        sign_inserter.add_in(store,sign);
-        uint32_t exp = get_exp(cb_holder.conv_bits,conv_info);
-        exp_inserter.add_in(store,exp);
-        uint32_t mant = get_mant(cb_holder.conv_bits,conv_info);
-        mant_inserter.add_in(store,mant);
+         cb_holder.conv_bits.val = ele;
+         uint32_t sign = get_sign(cb_holder.conv_bits,conv_info);
+         sign_inserter.add_in(store,sign);
+         uint32_t exp = get_exp(cb_holder.conv_bits,conv_info);
+         exp_inserter.add_in(store,exp);
+         uint32_t mant = get_mant(cb_holder.conv_bits,conv_info);
+         mant_inserter.add_in(store,mant);
     }
     std::cout << "---" << std::endl;
     std::copy(store.begin(),store.end(),std::ostream_iterator<unsigned int>(std::cout, " "));
