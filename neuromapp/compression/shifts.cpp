@@ -23,7 +23,6 @@ struct insert_minder {
     void add_in(vector<typename Conv_info<T>::bytetype> & vct, typename Conv_info<T>::bytetype val ) {
         for (int i = 1; i <= shift_type;i++) {
             typename Conv_info<T>::bytetype frame_val = (val >> (shift_type -i)) & 1 ;
-            std::cout << frame_val;
             vct[v_i] += frame_val << pos ;
             pos--;
             if (pos < 0) {// move to the start of the next number
@@ -32,6 +31,20 @@ struct insert_minder {
             }
         }
     }
+
+    void take_out(vector<T> & vct, typename Conv_info<T>::bytetype val) {
+        for (int i = 1; i <= shift_type;i++) {
+            typename Conv_info<T>::bytetype frame_val = (val >> i) & 1 ;
+            vct[v_i] += frame_val << pos ;
+            pos++;
+            if (pos > 31) {// move to the start of the next number
+                v_i--;
+                pos = 0;
+            }
+        }
+
+    }
+
 };
 
 template <typename T>
@@ -123,16 +136,21 @@ int main () {
     insert_minder<vct_type> mant_inserter(Conv_info<vect_type>::exp_size*N+N,Conv_info<vect_type>::mant_size);
     cbit_holder<vct_type> cb_holder;
     for (vct_type ele:  vct) {
-         cb_holder.conv_bits.val = ele;
-         typename Conv_info<vect_type>::bytetype sign = get_sign(cb_holder.conv_bits,conv_info);
+         typename Conv_info<vect_type>::bytetype sign = get_sign(ele);
          sign_inserter.add_in(store,sign);
-         typename Conv_info<vect_type>::bytetype exp = get_exp(cb_holder.conv_bits,conv_info);
+         typename Conv_info<vect_type>::bytetype exp = get_exp(ele);
          exp_inserter.add_in(store,exp);
-         typename Conv_info<vect_type>::bytetype mant = get_mant(cb_holder.conv_bits,conv_info);
+         typename Conv_info<vect_type>::bytetype mant = get_mant(ele);
          mant_inserter.add_in(store,mant);
     }
     std::cout << "---" << std::endl;
     std::copy(store.begin(),store.end(),std::ostream_iterator<unsigned int>(std::cout, " "));
+    std::cout << "---" << std::endl;
+    vector<vct_type> vct2(N);
+    for (typename Conv_info<vect_type>::bytetype ele:  store) {
+    }
+    std::cout << "---" << std::endl;
+    std::copy(vct2.begin(),vct2.end(),std::ostream_iterator<unsigned int>(std::cout, " "));
     std::cout << "---" << std::endl;
 }
 
