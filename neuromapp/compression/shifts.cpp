@@ -7,6 +7,29 @@
 #include <cstdlib>
 using namespace std;
 
+template <typename T>
+struct Conv_info {};
+
+template <>
+struct Conv_info<float> {
+    static const int sign_size = 1;
+    static const int exp_size = 8;
+    static const int mant_size = 23;
+    static const int total = sign_size + exp_size + mant_size;
+    typedef uint32_t bytetype;
+};
+
+
+template <>
+struct Conv_info<double> {
+    static const int sign_size = 1;
+    static const int exp_size = 11;
+    static const int mant_size = 52;
+    static const int total = sign_size + exp_size + mant_size;
+    typedef uint64_t bytetype;
+};
+
+
 
 template <typename T>
 struct insert_minder { 
@@ -32,16 +55,21 @@ struct insert_minder {
         }
     }
 
-    void take_out(vector<T> & vct, typename Conv_info<T>::bytetype val) {
+    typename Conv_info<T>::bytetype take_out(vector<typename Conv_info<T>::bytetype> & storage) {
+        typename Conv_info<T>::bytetype val = 0;
         for (int i = 1; i <= shift_type;i++) {
-            typename Conv_info<T>::bytetype frame_val = (val >> i) & 1 ;
-            vct[v_i] += frame_val << pos ;
+            std::cout << "storage i " << storage[v_i] << std::endl;
+            typename Conv_info<T>::bytetype frame_val = (storage[v_i] >>(pos + 1) ) & 1 ;
+            std::cout << frame_val ;
+            val += frame_val << pos ;
             pos++;
             if (pos > 31) {// move to the start of the next number
                 v_i--;
                 pos = 0;
             }
         }
+        std::cout << std::endl;
+        return val;
 
     }
 
@@ -68,90 +96,77 @@ struct cbit_holder<double> {
 };
 
 
+
 template <typename T>
-struct Conv_info {};
-
-template <>
-struct Conv_info<float> {
-    static const int sign_size =1;
-    static const int exp_size = 8;
-    static const int mant_size = 23;
-    static const int total = sign_size + exp_size + mant_size;
-    typedef uint32_t bytetype;
-};
-
-
-template <>
-struct Conv_info<double> {
-    static const int sign_size =1;
-    static const int exp_size = 11;
-    static const int mant_size = 52;
-    static const int total = sign_size + exp_size + mant_size;
-    typedef uint64_t bytetype;
-};
-
-
-
-template <template T>
 typename Conv_info<T>::bytetype get_sign(T val) {
     cbit_holder<T> cb;
-    cb.ele = val;
-    typename Conv_info<T>::bytetype mask = 1<< Conv_info<T>::sign_size;
+    cb.conv_bits.val = val;
+    typename Conv_info<T>::bytetype mask = 1;
     typename Conv_info<T>::bytetype shift = Conv_info<T>::total - Conv_info<T>::sign_size;
-    return (cb.bits >> shift) & mask  ; 
+    return (cb.conv_bits.bits >> shift) & mask  ; 
 }
 
-template <template T>
+template <typename T>
 typename Conv_info<T>::bytetype get_exp(T val) {
     cbit_holder<T> cb;
-    cb.ele = val;
-    typename Conv_info<T>::bytetype mask = 1 << Conv_info<T>::exp_size;
+    cb.conv_bits.val = val;
+    typename Conv_info<T>::bytetype mask = (1 << Conv_info<T>::exp_size)-1;
     typename Conv_info<T>::bytetype shift = Conv_info<T>::total - Conv_info<T>::exp_size - Conv_info<T>::sign_size;
-    return (cb.bits >> shift) &  mask ; 
+    return (cb.conv_bits.bits >> shift) &  mask ; 
 }
 
 
-template <typename conv_bits_type,typename conv_info_type>
-typename Conv_info<T>::bytetype get_mant(conv_bits_type cb,conv_info_type ci) {
-    typename Conv_info<T>::bytetype mask = 1 << ci.mant_size;
-    return cb.bits & mask; 
+template <typename T>
+typename Conv_info<T>::bytetype get_mant(T val) {
+    cbit_holder<T> cb;
+    cb.conv_bits.val=val;
+    typename Conv_info<T>::bytetype mask = (1 << Conv_info<T>::mant_size)-1;
+    return cb.conv_bits.bits & mask; 
 }
 
-
-
+template <typename T>
+T get_dec(typename Conv_info<T>::bytetype sign,typename Conv_info<T>::bytetype exp,typename Conv_info<T>::bytetype mant) {
+    cbit_holder<T> cb;
+    cb.conv_bits.bits = sign + exp + mant;
+    return cb.conv_bits.val;
+}
 
 int main () {
-    typedef float vct_type;
-    vector<vct_type> vct{-9.0,10.0};// seems to be veeery close to having this correctly represented as grouped binary representations
+    typedef float vect_type;
+    vector<vect_type> vct{-9.0,10.0};// seems to be veeery close to having this correctly represented as grouped binary representations
     int N = vct.size();
     // minders would be used for helping to shift number insertion to next frame, and position correctly
     // TODO remove magic numbers
     vector<typename Conv_info<vect_type>::bytetype> store(N);//QUESTION how should I deduce the type of the stored vector from our original's type?
 
     std::fill(store.begin(),store.end(),0);
-    Conv_info<vct_type> conv_info;
     // will use the conv info to substitute these magic number lines
-    insert_minder<vct_type> sign_inserter(0,Conv_info<vect_type>::sign_size);
-    insert_minder<vct_type> exp_inserter(N,Conv_info<vect_type>::exp_size);
-    insert_minder<vct_type> mant_inserter(Conv_info<vect_type>::exp_size*N+N,Conv_info<vect_type>::mant_size);
-    cbit_holder<vct_type> cb_holder;
-    for (vct_type ele:  vct) {
-         typename Conv_info<vect_type>::bytetype sign = get_sign(ele);
+    insert_minder<vect_type> sign_inserter(0,Conv_info<vect_type>::sign_size);
+    insert_minder<vect_type> exp_inserter(N,Conv_info<vect_type>::exp_size);
+    insert_minder<vect_type> mant_inserter(Conv_info<vect_type>::exp_size*N+N,Conv_info<vect_type>::mant_size);
+    typename Conv_info<vect_type>::bytetype sign; 
+    typename Conv_info<vect_type>::bytetype exp; 
+    typename Conv_info<vect_type>::bytetype mant;
+    for (vect_type ele:  vct) {
+         sign = get_sign(ele);
          sign_inserter.add_in(store,sign);
-         typename Conv_info<vect_type>::bytetype exp = get_exp(ele);
+         exp = get_exp(ele);
          exp_inserter.add_in(store,exp);
-         typename Conv_info<vect_type>::bytetype mant = get_mant(ele);
+         mant = get_mant(ele);
          mant_inserter.add_in(store,mant);
     }
-    std::cout << "---" << std::endl;
     std::copy(store.begin(),store.end(),std::ostream_iterator<unsigned int>(std::cout, " "));
-    std::cout << "---" << std::endl;
-    vector<vct_type> vct2(N);
-    for (typename Conv_info<vect_type>::bytetype ele:  store) {
+    std::cout << "" << std::endl;
+
+    vector<vect_type> vct2(N);
+    for (int i = N;i > 0 ; i--) {
+        sign = sign_inserter.take_out(store);
+        exp = exp_inserter.take_out(store);
+        mant = mant_inserter.take_out(store);
+        std::cout << "sign"<< sign<< "exp"<< exp << "mant "<< mant << std::endl;
+        vct2[i-1] = get_dec<vect_type>(sign,exp,mant); 
     }
-    std::cout << "---" << std::endl;
     std::copy(vct2.begin(),vct2.end(),std::ostream_iterator<unsigned int>(std::cout, " "));
-    std::cout << "---" << std::endl;
 }
 
 
