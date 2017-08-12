@@ -27,6 +27,8 @@
 #include "compression/timer_tool.h"
 #include "compression/kernel_measurements.h"
 #include "compression/stream_benchmark.h"
+#include "compression/conv_info.h"
+
 
 namespace po = boost::program_options;
 using neuromapp::Timer;
@@ -131,11 +133,15 @@ template <typename allocator_type>
  */
 void split_routine ( block<double,allocator_type> & unsplit_block, Timer & time_it) {
     time_it.start();
-    block<unsigned int, allocator_type> split_block = neuromapp::generate_split_block(unsplit_block);
+    block<typename Conv_info<double>::bytetype, allocator_type> split_block = neuromapp::generate_split_block(unsplit_block);
     //sanity check for split version
     time_it.end();
     std::cout << "splitting took " << time_it.duration() << " ms" << std::endl;
-    compress_routine<unsigned int,allocator_type>(split_block,time_it);
+    compress_routine<Conv_info<double>::bytetype,allocator_type>(split_block,time_it);
+    time_it.start();
+    block<double,allocator_type> return_trip = neuromapp::generate_unsplit_block<double,allocator_type>(split_block);
+    time_it.end();
+    std::cout << "unsplitting took " << time_it.duration() << " ms" << std::endl;
 }
 
 template <typename allocator_type>
