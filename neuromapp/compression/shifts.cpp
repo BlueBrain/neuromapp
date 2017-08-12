@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <iterator>
 #include <cmath>
 #include <algorithm>
@@ -55,22 +56,26 @@ struct insert_minder {
         }
     }
 
-    typename Conv_info<T>::bytetype take_out(vector<typename Conv_info<T>::bytetype> & storage) {
-        typename Conv_info<T>::bytetype val = 0;
+    void reset() {
+        v_i = floor(rel_start/Conv_info<T>::total);// tells us which element in storage vector we start adding into
+        pos = (Conv_info<T>::total-1)-rel_start%Conv_info<T>::total;// what position in that vector element to add 
+    }
+
+
+    void take_out(vector<typename Conv_info<T>::bytetype> & storage,typename Conv_info<T>::bytetype & outcome_num) {
+
         for (int i = 1; i <= shift_type;i++) {
-            std::cout << "storage i " << storage[v_i] << std::endl;
-            typename Conv_info<T>::bytetype frame_val = (storage[v_i] >>(pos + 1) ) & 1 ;
-            std::cout << frame_val ;
-            val += frame_val << pos ;
-            pos++;
-            if (pos > 31) {// move to the start of the next number
-                v_i--;
-                pos = 0;
+            outcome_num = outcome_num << 1;
+            typename Conv_info<T>::bytetype frame_val = (storage[v_i] >> pos) & 1 ;
+            std::cout << frame_val;
+            outcome_num += frame_val ;
+            pos--;
+            if (pos < 0) {// move to the start of the next number
+                v_i++;
+                pos = Conv_info<T>::total-1;
             }
         }
-        std::cout << std::endl;
-        return val;
-
+        std::cout << "" << std::endl;
     }
 
 };
@@ -125,10 +130,10 @@ typename Conv_info<T>::bytetype get_mant(T val) {
 }
 
 template <typename T>
-T get_dec(typename Conv_info<T>::bytetype sign,typename Conv_info<T>::bytetype exp,typename Conv_info<T>::bytetype mant) {
+T get_dec(typename Conv_info<T>::bytetype bits){
     cbit_holder<T> cb;
-    cb.conv_bits.bits = sign + exp + mant;
-    return cb.conv_bits.val;
+    cb.conv_bits.bits=bits;
+    return cb.conv_bits.val; 
 }
 
 int main () {
@@ -159,14 +164,20 @@ int main () {
     std::cout << "" << std::endl;
 
     vector<vect_type> vct2(N);
-    for (int i = N;i > 0 ; i--) {
-        sign = sign_inserter.take_out(store);
-        exp = exp_inserter.take_out(store);
-        mant = mant_inserter.take_out(store);
-        std::cout << "sign"<< sign<< "exp"<< exp << "mant "<< mant << std::endl;
-        vct2[i-1] = get_dec<vect_type>(sign,exp,mant); 
+    sign_inserter.reset();
+    exp_inserter.reset();
+    mant_inserter.reset();
+    for (int i = 0;i< N ; i++) {
+        typename Conv_info<vect_type>::bytetype aggregate = 0;
+        sign_inserter.take_out(store,aggregate);
+        std::cout << "agg" << aggregate << std::endl;
+        exp_inserter.take_out(store,aggregate);
+        std::cout << "agg" << aggregate << std::endl;
+        mant_inserter.take_out(store,aggregate);
+        std::cout << "agg" << aggregate << std::endl;
+        vct2[i] = get_dec<vect_type>(aggregate); 
+        std::cout << std::setprecision(5) << vct2[i] << std::endl;
     }
-    std::copy(vct2.begin(),vct2.end(),std::ostream_iterator<unsigned int>(std::cout, " "));
 }
 
 
