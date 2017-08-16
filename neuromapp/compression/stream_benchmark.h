@@ -80,9 +80,12 @@ namespace neuromapp {
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
                     bc.fill_block(0.0);
-                    v_a[i] = generate_split_block(ba).compress();
-                    v_b[i] = generate_split_block(bb).compress();
-                    v_c[i] = generate_split_block(bc).compress();
+                    v_a[i] = generate_split_block(ba);
+                    v_b[i] = generate_split_block(bb);
+                    v_c[i] = generate_split_block(bc);
+                    v_a[i]->compress();
+                    v_b[i]->compress();
+                    v_c[i]->compress();
                 }
             }
             inline void set_compress(bool compress) {
@@ -146,9 +149,12 @@ namespace neuromapp {
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
                     bc.fill_block(0.0);
-                    v_a[i] = generate_split_block(ba).compress();
-                    v_b[i] = generate_split_block(bb).compress();
-                    v_c[i] = generate_split_block(bc).compress();
+                    v_a[i] = generate_split_block(ba);
+                    v_b[i] = generate_split_block(bb);
+                    v_c[i] = generate_split_block(bc);
+                    v_a[i]->compress();
+                    v_b[i]->compress();
+                    v_c[i]->compress();
                 }
             }
             inline void set_compress(bool compress) {
