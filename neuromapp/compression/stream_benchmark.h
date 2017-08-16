@@ -63,7 +63,7 @@ namespace neuromapp {
             const static size_type block_size =  8000;
             size_type block_mem_size;
             bool compress;
-            const static int vect_size = 640;
+            const static int vect_size = 10;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<binary_rep,allocator_type>> v_a;
             vector<block<binary_rep,allocator_type>> v_b;
@@ -86,9 +86,11 @@ namespace neuromapp {
                     v_a[i] = generate_split_block(ba);
                     v_b[i] = generate_split_block(bb);
                     v_c[i] = generate_split_block(bc);
-                    v_a[i].compress();
-                    v_b[i].compress();
-                    v_c[i].compress();
+                    if (compress) {
+                        v_a[i].compress();
+                        v_b[i].compress();
+                        v_c[i].compress();
+                    }
                 }
             }
             inline void set_compress(bool compress) {
@@ -144,8 +146,8 @@ namespace neuromapp {
             const static size_type block_size =  8000;
             size_type block_mem_size;
             bool compress;
-//            const static int vect_size = 640;
-            const static int vect_size =640 ;
+//            const static int vect_size = 10;
+            const static int vect_size =10 ;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
             vector<block<value_type,allocator_type>> v_b;
@@ -167,9 +169,11 @@ namespace neuromapp {
                     v_a[i] = ba;
                     v_b[i] = bb;
                     v_c[i] = bc;
-                    v_a[i].compress();
-                    v_b[i].compress();
-                    v_c[i].compress();
+                    if (compress) {
+                        v_a[i].compress();
+                        v_b[i].compress();
+                        v_c[i].compress();
+                    }
                 }
             }
             inline void set_compress(bool compress) {
