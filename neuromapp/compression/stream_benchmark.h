@@ -33,12 +33,18 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <boost/program_options.hpp>
 
 //local code for inclusion
 #include "compression/allocator.h"
+#include "compression/block_sort.h"
+#include "compression/bit_shifting.h"
+#include "compression/conv_info.h"
 #include "compression/timer_tool.h"
 #include "compression/exception.h"
 #include "compression/block.h"
+
+namespace po = boost::program_options;
 using neuromapp::block;
 using neuromapp::cstandard;
 using neuromapp::Timer;
@@ -65,7 +71,7 @@ namespace neuromapp {
             double mem_used, copy_bandwith , scale_bandwith, add_bandwith,triad_bandwith;
             public:
             //stream_bench (bool compress_opt) : compress {compress_opt},v_a{vect_size},v_b{vect_size},v_c{vect_size} {
-            stream_bench (bool compress_opt) : compress {compress_opt}{
+            stream_bench (bool compress_opt,typename po::variables_map vm) : compress {compress_opt}{
                 if (compress) 
                     std::cout << "using compress" << std::endl;
                 else
@@ -78,6 +84,11 @@ namespace neuromapp {
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
                     bc.fill_block(0.0);
+                    if(vm.count("split")){ 
+                        sa = generate_split_block(ba);
+                        sb = generate_split_block(bb);
+                        sc = generate_split_block(bc);
+                    }
                     if (compress){
                         ba.compress();
                         bb.compress();
@@ -90,30 +101,35 @@ namespace neuromapp {
             }
 
             /**
-            * copy_benchmark 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
-            void copy_benchmark () {
+             * copy_benchmark 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return void
+             */
+            void copy_benchmark (po::variables_map vm) {
                 std::cout << "begin copy benchmark" << std::endl;
                 mem_used = vect_size*v_a[0].memory_allocated()*2*pow(10,-6);
                 //prepare for the copy operation
                 double min_time;
                 for (int round = 0; round < num_rounds ; round++) {
                     time_it.start();
-                    #pragma omp parallel for
+#pragma omp parallel for
                     for (int i = 0; i < vect_size;i++) {
                         if(compress) {
                             v_a[i].uncompress();
                             v_b[i].uncompress();
                         }
-                        block<value_type,allocator_type> & a = v_a[i];
-                        block<value_type,allocator_type> & b = v_b[i];
+                        if (vm.count("split")) {
+                            block<value_type,allocator_type> & a = generate_unsplit_block(v_a[i]);
+                            block<value_type,allocator_type> & b = generate_unsplit_block(v_b[i]);                           
+                        } else {
+                            block<value_type,allocator_type> & a = v_a[i];
+                            block<value_type,allocator_type> & b = v_b[i];
+                        }
                         pointer  ptr_a = a.data();
                         pointer  ptr_b = b.data();
                         for (int j=0; j <(int) block_size;j++) {
@@ -132,15 +148,15 @@ namespace neuromapp {
             }
 
             /**
-            * scale_benchmark 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
+             * scale_benchmark 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return void
+             */
             void scale_benchmark() {
                 std::cout << "begin scale benchmark" << std::endl;
                 double min_time;
@@ -174,15 +190,15 @@ namespace neuromapp {
             }
 
             /**
-            * add_benchmark 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
+             * add_benchmark 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return void
+             */
             void add_benchmark () {
 
                 double min_time;
@@ -221,15 +237,15 @@ namespace neuromapp {
             }
 
             /**
-            * triad_benchmark 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
+             * triad_benchmark 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return void
+             */
             void triad_benchmark() {
                 std::cout << "begin triad benchmark" << std::endl;
                 double min_time;
@@ -267,15 +283,15 @@ namespace neuromapp {
             }
 
             /**
-            * run_stream_benchmark 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
+             * run_stream_benchmark 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return void
+             */
             void run_stream_benchmark() {
                 copy_benchmark () ;
                 scale_benchmark() ;
@@ -284,15 +300,15 @@ namespace neuromapp {
             }
 
             /**
-            * output_results 
-            *
-            *
-            * @brief
-            *
-            * @param 
-            *
-            * @return void
-            */
+             * output_results 
+             *
+             *
+             * @brief
+             *
+             * @param 
+             *
+             * @return void
+             */
             void output_results() {
                 std::cout << left;
                 std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
@@ -302,7 +318,7 @@ namespace neuromapp {
             }
 
 
-    };
-}
+        };
+        }
 
 #endif

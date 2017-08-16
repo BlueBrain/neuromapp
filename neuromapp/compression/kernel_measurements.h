@@ -30,6 +30,8 @@
 #include <string>
 #include <ctime>
 #include <vector>
+#include <boost/program_options.hpp>
+
 #include "compression/compressor.h"
 #include "compression/allocator.h"
 #include "compression/exception.h"
@@ -42,6 +44,7 @@ using neuromapp::col_sort;
 using neuromapp::generate_split_block;
 using neuromapp::block;
 using neuromapp::Timer;
+namespace po= boost::program_options;
 typedef size_t size_type;
 
 
@@ -170,12 +173,19 @@ namespace neuromapp {
             *
             * @return void
             */
-        void init_array (block<double,allocator_type> * block_array) {
+        void init_array (block<double,allocator_type> * block_array,po::variables_map vm) {
+
             ifstream blk_file;
             for (int i = 0; i < (int) ARRAY_SIZE; i++) {
                 blk_file.open(fname);
                 block<double,allocator_type> b1;
                 blk_file >> b1;
+                if(vm.count("split")){ 
+                    b1 = generate_split_block(b1);
+                }
+                if (vm.count("sort")) {
+                    b1 = col_sort(&b1,0); 
+                }
                 block_array[i] = b1;
                 blk_file.close();
                 blk_file.clear();
@@ -262,10 +272,10 @@ namespace neuromapp {
             *
             * @return void
             */
-        void option_coordinator(ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit) {
+        void option_coordinator(ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit,po::variables_map vm) {
             Block_selector<(size_type) ARRAY_SIZE> bs;
             block<double,allocator_type> block_array[ARRAY_SIZE];
-            init_array(block_array);
+            init_array(block_array,vm);
             /* loop variables */
             int pos;
             /* continue to select blocks in positions, until 10% of the array has been used. atwhich point the -1 is returned */
@@ -295,7 +305,8 @@ namespace neuromapp {
             *
             * @return void
             */
-        void run_km (string & fname_arg) {
+        //DECIDE ABOUT GLOBALS FOR SETTING BLOCK PRECOMPRESSION OPTIONS
+        void run_km (string & fname_arg,po::variables_map vm) {
             std::cout << " Starting Kernel Measure " << std::endl;
             fname=fname_arg;
             double coef = 2.0,
@@ -303,8 +314,9 @@ namespace neuromapp {
                    y_param = 2.0,
                    t_start = 0.0,
                    t_limit = 10000.0;
-            option_coordinator<allocator_type>(std::cout,coef,step,y_param,t_start,t_limit);
+            option_coordinator<allocator_type>(std::cout,coef,step,y_param,t_start,t_limit,vm);
         }
 
 }
+
 #endif

@@ -21,6 +21,7 @@
  */
 #ifndef MAIN_FUNCTIONS_H
 #define MAIN_FUNCTIONS_H
+#include <boost/program_options.hpp>
 #include "compression/block_sort.h"
 #include "compression/block.h"
 #include "compression/bit_shifting.h"
@@ -47,8 +48,8 @@ template<typename allocator_type>
  *
  * @return void
  */
-void k_m_routine(string & fname) {
-    neuromapp::run_km<allocator_type>(fname);
+void k_m_routine(string & fname,po::variables_map vm) {
+    neuromapp::run_km<allocator_type>(fname,vm);
 }
 
 template <typename allocator_type>
@@ -82,12 +83,12 @@ template <typename value_type,typename allocator_type>
  *
  * @return void
  */
-void stream_bench_routine() {
+void stream_bench_routine(po::variables_map vm) {
     //create two different stream_bench objects, one compress one not
-    stream_bench<value_type,allocator_type> non_str_bench(false);
+    stream_bench<value_type,allocator_type> non_str_bench(false,vm);
     non_str_bench.run_stream_benchmark();
     non_str_bench.output_results();
-    stream_bench<value_type,allocator_type> comp_str_bench(true);
+    stream_bench<value_type,allocator_type> comp_str_bench(true,vm);
     comp_str_bench.run_stream_benchmark();
     comp_str_bench.output_results();
 }
@@ -131,7 +132,7 @@ template <typename allocator_type>
  *
  * @return void
  */
-void split_routine ( block<double,allocator_type> & unsplit_block, Timer & time_it) {
+ block<typename Conv_info<double>::bytetype, allocator_type> split_routine ( block<double,allocator_type> & unsplit_block, Timer & time_it) {
     time_it.start();
     block<typename Conv_info<double>::bytetype, allocator_type> split_block = neuromapp::generate_split_block(unsplit_block);
     //sanity check for split version
@@ -142,6 +143,7 @@ void split_routine ( block<double,allocator_type> & unsplit_block, Timer & time_
     block<double,allocator_type> return_trip = neuromapp::generate_unsplit_block<double,allocator_type>(split_block);
     time_it.end();
     std::cout << "unsplitting took " << time_it.duration() << " ms" << std::endl;
+    return split_block;
 }
 
 template <typename allocator_type>
@@ -179,7 +181,7 @@ template <typename allocator_type>
  *
  * @return void
  */
-void bench_routine( block<double,allocator_type> & b1,Timer & time_it) {
+void bench_routine( block<double,allocator_type> & b1,Timer & time_it,po::variables_map vm) {
     sort_routine(b1,time_it);
     compress_routine(b1,time_it);
     split_routine(b1,time_it);

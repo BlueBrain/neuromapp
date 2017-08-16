@@ -37,6 +37,8 @@
 #include "compression/allocator.h"
 #include "neuromapp/compression/common/data/path.h"
 #include "compression/exception.h"
+#include "compression/kernel_measurements.h"
+#include "compression/stream_benchmark.h"
 #include "compression/block_sort.h"
 #include "compression/block.h"
 #include "compression/bit_shifting.h"
@@ -103,9 +105,9 @@ int comp_execute(int argc,char *const argv[])
         else if (vm.count("stream_benchmark")) {
             omp_set_num_threads(vm["numthread"].as<int>());
             if (vm.count("align")) {
-                stream_bench_routine<double,neuromapp::align>();
+                stream_bench_routine<double,neuromapp::align>(vm);
             } else {
-                stream_bench_routine<double,neuromapp::cstandard>();
+                stream_bench_routine<double,neuromapp::cstandard>(vm);
             }
         }
 
@@ -116,9 +118,9 @@ int comp_execute(int argc,char *const argv[])
                 fname = mapp::path_specifier::give_path() +"block_data/values_10_a8213trans_both.csv";
             }
             if (vm.count("align")) {
-                k_m_routine<neuromapp::align>(fname);
+                k_m_routine<neuromapp::align>(fname,vm);
             } else {
-                k_m_routine<neuromapp::cstandard>(fname);
+                k_m_routine<neuromapp::cstandard>(fname,vm);
             }
         }
 
@@ -136,9 +138,9 @@ int comp_execute(int argc,char *const argv[])
             ifile.close();
             /* now pass both versions through the file routine separately */
             std::cout << "-- cstandard benchmark routine -- " << std::endl;
-            bench_routine(std_block,timer);
+            bench_routine(std_block,timer,vm);
             std::cout << "-- align benchmark routine -- " << std::endl;
-            bench_routine(align_block,timer);
+            bench_routine(align_block,timer,vm);
         }
 
     } catch (po::error &e) {
