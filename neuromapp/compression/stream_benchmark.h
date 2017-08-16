@@ -78,7 +78,7 @@ namespace neuromapp {
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
-                    if (i=0) block_mem_size = ba.memory_allocated();
+                    if (i==0) block_mem_size = ba.memory_allocated();
                     block<value_type,allocator_type> bb(block_size);
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
@@ -119,8 +119,7 @@ namespace neuromapp {
             block<value_type,allocator_type> va_i(int i) {
                 if(compress) {
                     v_a[i].uncompress();
-                    block<binary_rep,allocator_type> bdinary = v_a[i];
-                    return generate_unsplit_block<value_type,allocator_type>(bdinary);
+                    return generate_unsplit_block<value_type,allocator_type>(v_a[i]);
                 }
                 return generate_unsplit_block<value_type,allocator_type>(v_a[i]);
             }
@@ -146,7 +145,7 @@ namespace neuromapp {
             size_type block_mem_size;
             bool compress;
 //            const static int vect_size = 640;
-            const static int vect_size =5 ;
+            const static int vect_size =640 ;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
             vector<block<value_type,allocator_type>> v_b;
@@ -157,12 +156,10 @@ namespace neuromapp {
                 v_a.reserve(vect_size);
                 v_b.reserve(vect_size);
                 v_c.reserve(vect_size);
-#pragma omp parallel for
                 for (int i = 0 ; i < vect_size; i++) {
-                    std::cout << "i is " << i << std::endl;
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
-                    if (i=0) block_mem_size = ba.memory_allocated();
+                    if (i==0) block_mem_size = ba.memory_allocated();
                     block<value_type,allocator_type> bb(block_size);
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
