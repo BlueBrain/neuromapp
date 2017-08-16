@@ -95,18 +95,18 @@ void stream_bench_routine(po::variables_map vm) {
         binary_stream_vectors<value_type,allocator_type> vectors;
         if (vm.count("compression")) vectors.set_compress(true);
         else vectors.set_compress(false);
-        copy_benchmark<binary_stream_vectors,value_type,allocator_type> (vectors) ;
-        scale_benchmark<binary_stream_vectors,value_type,allocator_type> (vectors) ;
-        add_benchmark<binary_stream_vectors,value_type,allocator_type> (vectors) ;
-        triad_benchmark<binary_stream_vectors,value_type,allocator_type> (vectors) ;
+        copy_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        scale_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        add_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        triad_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
     } else {
         stream_vectors<value_type,allocator_type>vectors;
         if (vm.count("compression")) vectors.set_compress(true) ;
         else vectors.set_compress(false); 
-        copy_benchmark<stream_vectors,value_type,allocator_type> (vectors) ;
-        scale_benchmark<stream_vectors,value_type,allocator_type> (vectors) ;
-        add_benchmark<stream_vectors,value_type,allocator_type> (vectors) ;
-        triad_benchmark<stream_vectors,value_type,allocator_type> (vectors) ;
+        copy_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        scale_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        add_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        triad_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
     }
     //need to figure out how to deduce the type
 }

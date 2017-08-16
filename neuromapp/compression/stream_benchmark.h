@@ -83,13 +83,13 @@ namespace neuromapp {
                     v_a[i] = generate_split_block(ba);
                     v_b[i] = generate_split_block(bb);
                     v_c[i] = generate_split_block(bc);
-                    v_a[i]->compress();
-                    v_b[i]->compress();
-                    v_c[i]->compress();
+                    v_a[i].compress();
+                    v_b[i].compress();
+                    v_c[i].compress();
                 }
             }
             inline void set_compress(bool compress) {
-                this.compress = compress;
+                this->compress = compress;
             }
 
 
@@ -97,7 +97,7 @@ namespace neuromapp {
                 return vect_size;
             }
             inline int get_mem_size() {
-                return vect_size*v_a[0].memory_allocated;
+                return vect_size*v_a[0].memory_allocated();
             }
 
             inline size_type get_block_size() {
@@ -114,16 +114,26 @@ namespace neuromapp {
             }
 
             block<value_type,allocator_type> va_i(int i) {
-                if(compress) return generate_unsplit_block(v_a[i].uncompress());
-                return generate_unsplit_block(v_a[i]);
+                if(compress) {
+                    v_a[i].uncompress();
+                    block<binary_rep,allocator_type> bdinary = v_a[i];
+                    return generate_unsplit_block<value_type,allocator_type>(bdinary);
+                }
+                return generate_unsplit_block<value_type,allocator_type>(v_a[i]);
             }
             block<value_type,allocator_type> vb_i(int i) {
-                if (compress) return generate_unsplit_block(v_a[i].uncompress());
-                return generate_unsplit_block(v_b[i]);
+                if(compress) {
+                    v_b[i].uncompress();
+                    return generate_unsplit_block<value_type,allocator_type>(v_b[i]);
+                }
+                return generate_unsplit_block<value_type,allocator_type>(v_b[i]);
             }
             block<value_type,allocator_type> vc_i(int i) {
-                if (compress) return generate_unsplit_block(v_a[i].uncompress());
-                return generate_unsplit_block(v_c[i]);
+                if(compress) {
+                    v_c[i].uncompress();
+                    return generate_unsplit_block<value_type,allocator_type>(v_c[i]);
+                }
+                return generate_unsplit_block<value_type,allocator_type>(v_c[i]);
             }
         };
 
@@ -149,20 +159,23 @@ namespace neuromapp {
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
                     bc.fill_block(0.0);
-                    v_a[i] = generate_split_block(ba);
-                    v_b[i] = generate_split_block(bb);
-                    v_c[i] = generate_split_block(bc);
-                    v_a[i]->compress();
-                    v_b[i]->compress();
-                    v_c[i]->compress();
+                    v_a[i] = ba;
+                    v_b[i] = bb;
+                    v_c[i] = bc;
+                    v_a[i].compress();
+                    v_b[i].compress();
+                    v_c[i].compress();
                 }
             }
             inline void set_compress(bool compress) {
-                this.compress = compress;
+                this->compress = compress;
             }
 
             inline size_type get_block_size() {
                 return block_size;
+            }
+            inline int get_mem_size() {
+                return vect_size*v_a[0].memory_allocated();
             }
 
 
@@ -170,27 +183,36 @@ namespace neuromapp {
                 return vect_size;
             }
             inline void va_i_comp(int i){
-                if(compress) return v_a[i].compress();
+                if(compress) v_a[i].compress();
             }
             inline void vb_i_comp(int i){
-                if(compress) return v_b[i].compress();
+                if(compress) v_b[i].compress();
             }
             inline void vc_i_comp(int i){
-                if(compress) return v_c[i].compress();
+                if(compress) v_c[i].compress();
             }
 
 
             //should these returns be references?
             inline block<value_type,allocator_type> va_i(int i){
-                if(compress) return v_a[i].uncompress();
+                if(compress)  {
+                    v_a[i].uncompress();
+                    return v_a[i];
+                }
                 return (v_a[i]);
             }
             inline block<value_type,allocator_type> vb_i(int i){
-                if(compress) return v_b[i].uncompress();
+                if(compress)  {
+                    v_b[i].uncompress();
+                    return v_b[i];
+                }
                 return (v_b[i]);
             }
             inline block<value_type,allocator_type> vc_i(int i){
-                if(compress) return v_c[i].uncompress();
+                if(compress)  {
+                    v_c[i].uncompress();
+                    return v_c[i];
+                }
                 return (v_c[i]);
             }
         };
@@ -220,8 +242,8 @@ namespace neuromapp {
             time_it.start();
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
-                block<value_type,allocator_type> & a = vectors.va_i(i);
-                block<value_type,allocator_type> & b = vectors.vb_i(i); 
+                block<value_type,allocator_type>  a = vectors.va_i(i);
+                block<value_type,allocator_type>  b = vectors.vb_i(i); 
                 value_type *  ptr_a = a.data();
                 value_type *  ptr_b = b.data();
                 for (int j=0; j <(int) vectors.get_block_size();j++) {
@@ -260,8 +282,8 @@ namespace neuromapp {
             time_it.start();
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
-                block<value_type,allocator_type> & a = vectors.va_i(i);
-                block<value_type,allocator_type> & b = vectors.vb_i(i);
+                block<value_type,allocator_type>  a = vectors.va_i(i);
+                block<value_type,allocator_type>  b = vectors.vb_i(i);
                 value_type *  ptr_a = a.data();
                 value_type *  ptr_b = b.data();
                 value_type scale = 5;
@@ -301,9 +323,9 @@ namespace neuromapp {
             time_it.start();
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
-                block<value_type,allocator_type> & a = vectors.va_i(i);
-                block<value_type,allocator_type> & b = vectors.vb_i(i);
-                block<value_type,allocator_type> & c = vectors.vc_i(i);
+                block<value_type,allocator_type>  a = vectors.va_i(i);
+                block<value_type,allocator_type>  b = vectors.vb_i(i);
+                block<value_type,allocator_type>  c = vectors.vc_i(i);
                 value_type *  ptr_a = a.data();
                 value_type *  ptr_b = b.data();
                 value_type *  ptr_c = c.data();
@@ -343,9 +365,9 @@ namespace neuromapp {
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
 
-                block<value_type,allocator_type> & a = vectors.va_i(i);
-                block<value_type,allocator_type> & b = vectors.vb_i(i);
-                block<value_type,allocator_type> & c = vectors.vc_i(i);
+                block<value_type,allocator_type>  a = vectors.va_i(i);
+                block<value_type,allocator_type>  b = vectors.vb_i(i);
+                block<value_type,allocator_type>  c = vectors.vc_i(i);
 
                 value_type *  ptr_a = a.data();
                 value_type *  ptr_b = b.data();

@@ -180,12 +180,6 @@ namespace neuromapp {
                 blk_file.open(fname);
                 block<double,allocator_type> b1;
                 blk_file >> b1;
-                if(vm.count("split")){ 
-                    b1 = generate_split_block(b1);
-                }
-                if (vm.count("sort")) {
-                    b1 = col_sort(&b1,0); 
-                }
                 block_array[i] = b1;
                 blk_file.close();
                 blk_file.clear();
