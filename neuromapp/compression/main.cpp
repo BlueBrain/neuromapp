@@ -87,7 +87,7 @@ int comp_execute(int argc,char *const argv[])
             std::cout << desc << std::endl;
             std::cout << "Note: Path-prefix for input files is {Binary_build_dir}/test/ \n\t'block_data/*' contains example csvs" << std::endl;
         }
-        else if((vm.count("compress") || vm.count("split") || vm.count("sort") && ! vm.count("benchmark")) && ! vm.count("kernel_measure")){
+        else if((vm.count("compress") || vm.count("split") || vm.count("sort") && ! vm.count("benchmark")) && ! vm.count("kernel_measure") && ! vm.count("stream_benchmark")){
             if (vm.count("file")) fname = vm["file"].as<std::string>();
             else fname = mapp::path_specifier::give_path() +"block_data/values_10_a8213trans_both.csv";
             ifstream ifile(fname);

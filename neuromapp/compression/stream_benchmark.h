@@ -62,7 +62,7 @@ namespace neuromapp {
             typedef typename Conv_info<value_type>::bytetype binary_rep;
             const static size_type block_size =  8000;
             size_type block_mem_size;
-            bool compress;
+            bool compress_opt = false;
             const static int vect_size = 10;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<binary_rep,allocator_type>> v_a;
@@ -86,15 +86,15 @@ namespace neuromapp {
                     v_a.push_back(generate_split_block(ba));
                     v_b.push_back(generate_split_block(bb));
                     v_c.push_back(generate_split_block(bc));
-                    if (compress) {
+                    if (compress_opt) {
                         v_a[i].compress();
                         v_b[i].compress();
                         v_c[i].compress();
                     }
                 }
             }
-            inline void set_compress(bool compress) {
-                this->compress = compress;
+            inline void set_compress(bool compress_arg) {
+                compress_opt = compress_arg;
             }
 
 
@@ -109,31 +109,31 @@ namespace neuromapp {
                 return block_size;
             }
             inline void va_i_comp(int i){
-                if(compress) v_a[i].compress();
+                if(compress_opt) v_a[i].compress();
             }
             inline void vb_i_comp(int i){
-                if(compress) v_b[i].compress();
+                if(compress_opt) v_b[i].compress();
             }
             inline void vc_i_comp(int i){
-                if(compress) v_c[i].compress();
+                if(compress_opt) v_c[i].compress();
             }
 
             block<value_type,allocator_type> va_i(int i) {
-                if(compress) {
+                if(compress_opt) {
                     v_a[i].uncompress();
                     return generate_unsplit_block<value_type,allocator_type>(v_a[i]);
                 }
                 return generate_unsplit_block<value_type,allocator_type>(v_a[i]);
             }
             block<value_type,allocator_type> vb_i(int i) {
-                if(compress) {
+                if(compress_opt) {
                     v_b[i].uncompress();
                     return generate_unsplit_block<value_type,allocator_type>(v_b[i]);
                 }
                 return generate_unsplit_block<value_type,allocator_type>(v_b[i]);
             }
             block<value_type,allocator_type> vc_i(int i) {
-                if(compress) {
+                if(compress_opt) {
                     v_c[i].uncompress();
                     return generate_unsplit_block<value_type,allocator_type>(v_c[i]);
                 }
@@ -145,7 +145,7 @@ namespace neuromapp {
         class stream_vectors {
             const static size_type block_size =  8000;
             size_type block_mem_size;
-            bool compress;
+            bool compress_opt;
             const static int vect_size = 10;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
@@ -169,15 +169,15 @@ namespace neuromapp {
                     v_a[i] = ba;
                     v_b[i] = bb;
                     v_c[i] = bc;
-                    if (compress) {
+                    if (compress_opt) {
                         v_a[i].compress();
                         v_b[i].compress();
                         v_c[i].compress();
                     }
                 }
             }
-            inline void set_compress(bool compress) {
-                this->compress = compress;
+            inline void set_compress(bool compress_arg) {
+                compress_opt = compress_arg;
             }
 
             inline size_type get_block_size() {
@@ -192,33 +192,33 @@ namespace neuromapp {
                 return vect_size;
             }
             inline void va_i_comp(int i){
-                if(compress) v_a[i].compress();
+                if(compress_opt) v_a[i].compress();
             }
             inline void vb_i_comp(int i){
-                if(compress) v_b[i].compress();
+                if(compress_opt) v_b[i].compress();
             }
             inline void vc_i_comp(int i){
-                if(compress) v_c[i].compress();
+                if(compress_opt) v_c[i].compress();
             }
 
 
             //should these returns be references?
             inline block<value_type,allocator_type> va_i(int i){
-                if(compress)  {
+                if(compress_opt)  {
                     v_a[i].uncompress();
                     return v_a[i];
                 }
                 return (v_a[i]);
             }
             inline block<value_type,allocator_type> vb_i(int i){
-                if(compress)  {
+                if(compress_opt)  {
                     v_b[i].uncompress();
                     return v_b[i];
                 }
                 return (v_b[i]);
             }
             inline block<value_type,allocator_type> vc_i(int i){
-                if(compress)  {
+                if(compress_opt)  {
                     v_c[i].uncompress();
                     return v_c[i];
                 }
