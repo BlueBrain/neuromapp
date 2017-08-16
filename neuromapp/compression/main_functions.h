@@ -35,6 +35,8 @@ namespace po = boost::program_options;
 using neuromapp::Timer;
 using neuromapp::block;
 using neuromapp::stream_bench;
+using neuromapp::binary_stream_vectors;
+using neuromapp::stream_vectors;
 typedef size_t size_type;
 
 template<typename allocator_type>
@@ -85,12 +87,23 @@ template <typename value_type,typename allocator_type>
  */
 void stream_bench_routine(po::variables_map vm) {
     //create two different stream_bench objects, one compress one not
-    stream_bench<value_type,allocator_type> non_str_bench(false,vm);
-    non_str_bench.run_stream_benchmark();
-    non_str_bench.output_results();
-    stream_bench<value_type,allocator_type> comp_str_bench(true,vm);
-    comp_str_bench.run_stream_benchmark();
-    comp_str_bench.output_results();
+    //must run the stream bench a separate time without the split argument provided for comparison
+    if (vm.count("split")) {
+        if (vm.count("compression")) binary_stream_vectors<value_type,allocator_type> vectors(true);
+        else binary_stream_vectors<value_type,allocator_type> vectors(false);
+        copy_benchmark<binary_stream_vectors,value_type,allocator_type> (vectors) ;
+        scale_benchmar<binary_stream_vectors,value_type,allocator_type> (vectors) ;
+        add_benchmark<binary_stream_vectors,value_type,allocator_type> (vectors) ;
+        triad_benchmark<binary_stream_vectors,value_type,allocator_type> (vectors) ;
+    } else {
+        if (vm.count("compression")) stream_vectors<value_type,allocator_type>vectors(true) ;
+        else stream_vectors<value_type,allocator_type>vectors(false); 
+        copy_benchmark<stream_vectors,value_type,allocator_type> (vectors) ;
+        scale_benchmar<stream_vectors,value_type,allocator_type> (vectors) ;
+        add_benchmark<stream_vectors,value_type,allocator_type> (vectors) ;
+        triad_benchmark<stream_vectors,value_type,allocator_type> (vectors) ;
+    }
+    //need to figure out how to deduce the type
 }
 
 template <typename value_type,typename allocator_type>

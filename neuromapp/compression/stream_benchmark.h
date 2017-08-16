@@ -177,228 +177,177 @@ namespace neuromapp {
                 if(compress) return v_c[i].uncompress();
                 return (v_c[i]);
             }
-
-
-
-
         };
 
 
 
-                template <typename vectors_type,typename value_type,typename allocator_type>
-                    class stream_bench {
-                        typedef value_type * pointer;
-                        Timer time_it;
-                        /*comment out the compress line to enable/disable the compression options*/
-                        /*this is the number of elements generated for filling the block*/
-                        /*this is the number of times that we run each benchmark computation before taking the minimum time*/
-                        const static int num_rounds =  10;
-                        int vect_size;
-                        int block_size;
-                        // calculation results section
-                        double mem_used, copy_bandwith , scale_bandwith, add_bandwith,triad_bandwith;
-                        vectors_type vectors;
-                        public:
-                            stream_bench(vectors_type vcts_arg) : vectors{vcts_arg} {
-                                vect_size = vectors.get_vec_size();
-                                block_size = vectors.get_block_size();
-                            }
 
 
 
-
-                        /**
-                         * copy_benchmark 
-                         *
-                         *
-                         * @brief
-                         *
-                         * @param 
-                         *
-                         * @return void
-                         */
-                        void copy_benchmark () {
-                            std::cout << "begin copy benchmark" << std::endl;
-                            mem_used = vectors.get_mem_size()*2*pow(10,-6);
-                            //prepare for the copy operation
-                            double min_time;
-                            for (int round = 0; round < num_rounds ; round++) {
-                                time_it.start();
+    /**
+     * copy_benchmark 
+     *
+     *
+     * @brief
+     *
+     * @param 
+     *
+     * @return void
+     */
+    template <typename vect_types,typename value_type,typename allocator_type>
+    void copy_benchmark (vect_types vectors) {
+        std::cout << "begin copy benchmark" << std::endl;
+        mem_used = vectors.get_mem_size()*2*pow(10,-6);
+        //prepare for the copy operation
+        double min_time;
+        for (int round = 0; round < num_rounds ; round++) {
+            time_it.start();
 #pragma omp parallel for
-                                for (int i = 0; i < vect_size;i++) {
-                                    block<value_type,allocator_type> & a = vectors.va_i(i);
-                                    block<value_type,allocator_type> & b = vectors.vb_i(i); 
-                                    pointer  ptr_a = a.data();
-                                    pointer  ptr_b = b.data();
-                                    for (int j=0; j <(int) block_size;j++) {
-                                        ptr_a[j] = ptr_b[j];
-                                    }
-                                    //depending on the vectors class constructor, this may not perform compression
-                                    vectors.va_i_comp(i);   
-                                    vectors.vb_i_comp(i);   
-                                }
-                                time_it.end();
-                                if (round == 0) min_time = time_it.duration();
-                                else if(min_time > time_it.duration()) min_time = time_it.duration();
-                                copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
-                            }
-                        }
-
-                        /**
-                         * scale_benchmark 
-                         *
-                         *
-                         * @brief
-                         *
-                         * @param 
-                         *
-                         * @return void
-                         */
-                        void scale_benchmark() {
-                            std::cout << "begin scale benchmark" << std::endl;
-                            double min_time;
-                            //scale operation
-                            for (int round = 0; round < num_rounds ; round++) {
-                                time_it.start();
-#pragma omp parallel for
-                                for (int i = 0; i < vect_size;i++) {
-                                    block<value_type,allocator_type> & a = vectors.va_i(i);
-                                    block<value_type,allocator_type> & b = vectors.vb_i(i);
-                                    pointer  ptr_a = a.data();
-                                    pointer  ptr_b = b.data();
-                                    value_type scale = 5;
-                                    for (int j=0; j < (int) block_size;j++) {
-                                        ptr_a[j] = scale*ptr_b[j];
-                                    }
-                                    // recompression depending on the run
-                                    vectors.va_i_comp(i);
-                                    vectors.vb_i_comp(i);
-                                }
-                                time_it.end();
-                                if (round == 0) min_time = time_it.duration();
-                                else if(min_time > time_it.duration()) min_time = time_it.duration();
-                            }
-                            scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
-                        }
-
-                        /**
-                         * add_benchmark 
-                         *
-                         *
-                         * @brief
-                         *
-                         * @param 
-                         *
-                         * @return void
-                         */
-                        void add_benchmark () {
-
-                            double min_time;
-                            std::cout << "begin add benchmark" << std::endl;
-                            //prepare for the add operation
-                            mem_used = vectors.get_mem_size()*3*pow(10,-6)*vect_size;
-                            for (int round = 0; round < num_rounds ; round++) {
-                                time_it.start();
-#pragma omp parallel for
-                                for (int i = 0; i < vect_size;i++) {
-                                    block<value_type,allocator_type> & a = vectors.va_i(i);
-                                    block<value_type,allocator_type> & b = vectors.vb_i(i);
-                                    block<value_type,allocator_type> & c = vectors.vc_i(i);
-                                    pointer  ptr_a = a.data();
-                                    pointer  ptr_b = b.data();
-                                    pointer  ptr_c = c.data();
-                                    for (int j=0; j <(int) block_size;j++) {
-                                        ptr_a[j] = ptr_b[j] + ptr_c[j];
-                                    }
-                                    vectors.va_i_comp(i);   
-                                    vectors.vb_i_comp(i);   
-                                    vectors.vc_i_comp(i);   
-                                }
-                                time_it.end();
-                                if (round == 0) min_time = time_it.duration();
-                                else if(min_time > time_it.duration()) min_time = time_it.duration();
-                            }
-                            add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
-                        }
-
-                        /**
-                         * triad_benchmark 
-                         *
-                         *
-                         * @brief
-                         *
-                         * @param 
-                         *
-                         * @return void
-                         */
-                        void triad_benchmark() {
-                            std::cout << "begin triad benchmark" << std::endl;
-                            double min_time;
-                            //triad operation
-                            for (int round = 0; round < num_rounds ; round++) {
-                                time_it.start();
-#pragma omp parallel for
-                                for (int i = 0; i < vect_size;i++) {
-
-                                    block<value_type,allocator_type> & a = vectors.va_i(i);
-                                    block<value_type,allocator_type> & b = vectors.vb_i(i);
-                                    block<value_type,allocator_type> & c = vectors.vc_i(i);
-
-                                    pointer  ptr_a = a.data();
-                                    pointer  ptr_b = b.data();
-                                    pointer  ptr_c = c.data();
-                                    value_type scale = 5;
-                                    for (int j=0; j < (int) block_size;j++) {
-                                        ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
-                                    }
-                                    vectors.va_i_comp(i);   
-                                    vectors.vb_i_comp(i);   
-                                    vectors.vc_i_comp(i);   
-                                }
-                                time_it.end();
-                                if (round == 0) min_time = time_it.duration();
-                                else if(min_time > time_it.duration()) min_time = time_it.duration();
-                            }
-                            triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
-                        }
-
-                        /**
-                         * run_stream_benchmark 
-                         *
-                         *
-                         * @brief
-                         *
-                         * @param 
-                         *
-                         * @return void
-                         */
-                        void run_stream_benchmark() {
-                            copy_benchmark () ;
-                            scale_benchmark() ;
-                            add_benchmark () ;
-                            triad_benchmark() ;
-                        }
-
-                        /**
-                         * output_results 
-                         *
-                         *
-                         * @brief
-                         *
-                         * @param 
-                         *
-                         * @return void
-                         */
-                        void output_results() {
-                            std::cout << left;
-                            std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
-                            std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << add_bandwith << setw(5) << "MBs" << std::endl;
-                            std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << scale_bandwith << setw(5) << "MBs" << std::endl;
-                            std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << triad_bandwith << setw(5) << "MBs" << std::endl;
-                        }
-
-
-                    };
+            for (int i = 0; i < vect_size;i++) {
+                block<value_type,allocator_type> & a = vectors.va_i(i);
+                block<value_type,allocator_type> & b = vectors.vb_i(i); 
+                pointer  ptr_a = a.data();
+                pointer  ptr_b = b.data();
+                for (int j=0; j <(int) block_size;j++) {
+                    ptr_a[j] = ptr_b[j];
+                }
+                //depending on the vectors class constructor, this may not perform compression
+                vectors.va_i_comp(i);   
+                vectors.vb_i_comp(i);   
             }
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
+            copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
+            std::cout << left;
+            std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
+        }
+    }
+
+    /**
+     * scale_benchmark 
+     *
+     *
+     * @brief
+     *
+     * @param 
+     *
+     * @return void
+     */
+    template <typename vect_types,typename value_type,typename allocator_type>
+    void scale_benchmark(vect_types vectors) {
+        mem_used = vectors.get_mem_size()*2*pow(10,-6);
+        std::cout << "begin scale benchmark" << std::endl;
+        double min_time;
+        //scale operation
+        for (int round = 0; round < num_rounds ; round++) {
+            time_it.start();
+#pragma omp parallel for
+            for (int i = 0; i < vect_size;i++) {
+                block<value_type,allocator_type> & a = vectors.va_i(i);
+                block<value_type,allocator_type> & b = vectors.vb_i(i);
+                pointer  ptr_a = a.data();
+                pointer  ptr_b = b.data();
+                value_type scale = 5;
+                for (int j=0; j < (int) block_size;j++) {
+                    ptr_a[j] = scale*ptr_b[j];
+                }
+                // recompression depending on the run
+                vectors.va_i_comp(i);
+                vectors.vb_i_comp(i);
+            }
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
+        }
+        scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+        std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << scale_bandwith << setw(5) << "MBs" << std::endl;
+    }
+
+    /**
+     * add_benchmark 
+     *
+     *
+     * @brief
+     *
+     * @param 
+     *
+     * @return void
+     */
+    template <typename vect_types,typename value_type,typename allocator_type>
+    void add_benchmark (vect_types vectors) {
+
+        double min_time;
+        std::cout << "begin add benchmark" << std::endl;
+        //prepare for the add operation
+        mem_used = vectors.get_mem_size()*3*pow(10,-6)*vect_size;
+        for (int round = 0; round < num_rounds ; round++) {
+            time_it.start();
+#pragma omp parallel for
+            for (int i = 0; i < vect_size;i++) {
+                block<value_type,allocator_type> & a = vectors.va_i(i);
+                block<value_type,allocator_type> & b = vectors.vb_i(i);
+                block<value_type,allocator_type> & c = vectors.vc_i(i);
+                pointer  ptr_a = a.data();
+                pointer  ptr_b = b.data();
+                pointer  ptr_c = c.data();
+                for (int j=0; j <(int) block_size;j++) {
+                    ptr_a[j] = ptr_b[j] + ptr_c[j];
+                }
+                vectors.va_i_comp(i);   
+                vectors.vb_i_comp(i);   
+                vectors.vc_i_comp(i);   
+            }
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
+        }
+        add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+        std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << add_bandwith << setw(5) << "MBs" << std::endl;
+    }
+
+    /**
+     * triad_benchmark 
+     *
+     *
+     * @brief
+     *
+     * @param 
+     *
+     * @return void
+     */
+    template <typename vect_types,typename value_type,typename allocator_type>
+    void triad_benchmark(vect_types vectors) {
+        std::cout << "begin triad benchmark" << std::endl;
+        double min_time;
+        //triad operation
+        for (int round = 0; round < num_rounds ; round++) {
+            time_it.start();
+#pragma omp parallel for
+            for (int i = 0; i < vect_size;i++) {
+
+                block<value_type,allocator_type> & a = vectors.va_i(i);
+                block<value_type,allocator_type> & b = vectors.vb_i(i);
+                block<value_type,allocator_type> & c = vectors.vc_i(i);
+
+                pointer  ptr_a = a.data();
+                pointer  ptr_b = b.data();
+                pointer  ptr_c = c.data();
+                value_type scale = 5;
+                for (int j=0; j < (int) block_size;j++) {
+                    ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
+                }
+                vectors.va_i_comp(i);   
+                vectors.vb_i_comp(i);   
+                vectors.vc_i_comp(i);   
+            }
+            time_it.end();
+            if (round == 0) min_time = time_it.duration();
+            else if(min_time > time_it.duration()) min_time = time_it.duration();
+        }
+        triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+        std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << triad_bandwith << setw(5) << "MBs" << std::endl;
+    }
+}
 
 #endif
