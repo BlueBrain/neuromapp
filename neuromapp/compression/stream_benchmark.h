@@ -61,6 +61,7 @@ namespace neuromapp {
         class binary_stream_vectors {
             typedef typename Conv_info<value_type>::bytetype binary_rep;
             const static size_type block_size =  8000;
+            size_type block_mem_size;
             bool compress;
             const static int vect_size = 640;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
@@ -73,9 +74,11 @@ namespace neuromapp {
                 v_a.reserve(vect_size);
                 v_b.reserve(vect_size);
                 v_c.reserve(vect_size);
+#pragma omp parallel for
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
+                    if (i=0) block_mem_size = ba.memory_allocated();
                     block<value_type,allocator_type> bb(block_size);
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
@@ -97,7 +100,7 @@ namespace neuromapp {
                 return vect_size;
             }
             inline int get_mem_size() {
-                return vect_size*v_a[0].memory_allocated();
+                return vect_size*block_mem_size;
             }
 
             inline size_type get_block_size() {
@@ -140,8 +143,10 @@ namespace neuromapp {
     template <typename value_type,typename allocator_type> 
         class stream_vectors {
             const static size_type block_size =  8000;
+            size_type block_mem_size;
             bool compress;
-            const static int vect_size = 640;
+//            const static int vect_size = 640;
+            const static int vect_size =5 ;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
             vector<block<value_type,allocator_type>> v_b;
@@ -152,9 +157,12 @@ namespace neuromapp {
                 v_a.reserve(vect_size);
                 v_b.reserve(vect_size);
                 v_c.reserve(vect_size);
+#pragma omp parallel for
                 for (int i = 0 ; i < vect_size; i++) {
+                    std::cout << "i is " << i << std::endl;
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
+                    if (i=0) block_mem_size = ba.memory_allocated();
                     block<value_type,allocator_type> bb(block_size);
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
