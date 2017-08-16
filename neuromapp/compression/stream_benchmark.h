@@ -71,9 +71,9 @@ namespace neuromapp {
             // calculation results section
             public:
             binary_stream_vectors() {
-                v_a.reserve(vect_size);
-                v_b.reserve(vect_size);
-                v_c.reserve(vect_size);
+                //v_a.reserve(vect_size);
+                //v_b.reserve(vect_size);
+                //v_c.reserve(vect_size);
 #pragma omp parallel for
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
@@ -83,9 +83,9 @@ namespace neuromapp {
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
                     bc.fill_block(0.0);
-                    v_a[i] = generate_split_block(ba);
-                    v_b[i] = generate_split_block(bb);
-                    v_c[i] = generate_split_block(bc);
+                    v_a.push_back(generate_split_block(ba));
+                    v_b.push_back(generate_split_block(bb));
+                    v_c.push_back(generate_split_block(bc));
                     if (compress) {
                         v_a[i].compress();
                         v_b[i].compress();
@@ -146,8 +146,7 @@ namespace neuromapp {
             const static size_type block_size =  8000;
             size_type block_mem_size;
             bool compress;
-//            const static int vect_size = 10;
-            const static int vect_size =10 ;
+            const static int vect_size = 10;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
             vector<block<value_type,allocator_type>> v_b;
@@ -158,6 +157,7 @@ namespace neuromapp {
                 v_a.reserve(vect_size);
                 v_b.reserve(vect_size);
                 v_c.reserve(vect_size);
+#pragma omp parallel for
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
@@ -265,10 +265,10 @@ namespace neuromapp {
             time_it.end();
             if (round == 0) min_time = time_it.duration();
             else if(min_time > time_it.duration()) min_time = time_it.duration();
-            double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
-            std::cout << left;
-            std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
         }
+        double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
+        std::cout << left;
+        std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
     }
 
     /**
