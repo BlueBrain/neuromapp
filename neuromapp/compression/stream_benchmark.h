@@ -61,12 +61,15 @@ namespace neuromapp {
             bool compress;
             const static int vect_size = 640;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
-            vector<block<binary_rep,allocator_type>> v_a(vect_size);
-            vector<block<binary_rep,allocator_type>> v_b(vect_size);
-            vector<block<binary_rep,allocator_type>> v_c(vect_size);
+            vector<block<binary_rep,allocator_type>> v_a;
+            vector<block<binary_rep,allocator_type>> v_b;
+            vector<block<binary_rep,allocator_type>> v_c;
             // calculation results section
             public:
             binary_stream_vectors() {
+                v_a.reserve(vect_size);
+                v_b.reserve(vect_size);
+                v_c.reserve(vect_size);
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
@@ -79,7 +82,16 @@ namespace neuromapp {
                     v_c[i] = generate_split_block(bc).compress();
                 }
             }
+            inline int get_vec_size() {
+                return vect_size;
+            }
+            inline int get_mem_size() {
+                return vect_size*v_a[0].memory_allocated;
+            }
 
+            inline size_type get_block_size() {
+                return block_size;
+            }
 
             inline void va_i_comp(int i){
                 if(compress) v_a[i].compress();
@@ -111,12 +123,15 @@ namespace neuromapp {
             bool compress;
             const static int vect_size = 640;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
-            vector<block<value_type,allocator_type>> v_a(vect_size);
-            vector<block<value_type,allocator_type>> v_b(vect_size);
-            vector<block<value_type,allocator_type>> v_c(vect_size);
+            vector<block<value_type,allocator_type>> v_a;
+            vector<block<value_type,allocator_type>> v_b;
+            vector<block<value_type,allocator_type>> v_c;
             // calculation results section
             public:
             stream_vectors () {
+                v_a.reserve(vect_size);
+                v_b.reserve(vect_size);
+                v_c.reserve(vect_size);
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
@@ -130,6 +145,14 @@ namespace neuromapp {
                 }
             }
 
+            inline size_type get_block_size() {
+                return block_size;
+            }
+
+
+            inline int get_vec_size() {
+                return vect_size;
+            }
             inline void va_i_comp(int i){
                 if(compress) return v_a[i].compress();
             }
@@ -141,6 +164,7 @@ namespace neuromapp {
             }
 
 
+            //should these returns be references?
             inline block<value_type,allocator_type> va_i(int i){
                 if(compress) return v_a[i].uncompress();
                 return (v_a[i]);
@@ -155,6 +179,8 @@ namespace neuromapp {
             }
 
 
+
+
         };
 
 
@@ -167,11 +193,16 @@ namespace neuromapp {
                         /*this is the number of elements generated for filling the block*/
                         /*this is the number of times that we run each benchmark computation before taking the minimum time*/
                         const static int num_rounds =  10;
+                        int vect_size;
+                        int block_size;
                         // calculation results section
                         double mem_used, copy_bandwith , scale_bandwith, add_bandwith,triad_bandwith;
                         vectors_type vectors;
                         public:
-                            stream_bench(vectors_type vcts_arg) : vectors{vcts_arg} {}
+                            stream_bench(vectors_type vcts_arg) : vectors{vcts_arg} {
+                                vect_size = vectors.get_vec_size();
+                                block_size = vectors.get_block_size();
+                            }
 
 
 
@@ -188,7 +219,7 @@ namespace neuromapp {
                          */
                         void copy_benchmark () {
                             std::cout << "begin copy benchmark" << std::endl;
-                            mem_used = vect_size*v_a[0].memory_allocated()*2*pow(10,-6);
+                            mem_used = vectors.get_mem_size()*2*pow(10,-6);
                             //prepare for the copy operation
                             double min_time;
                             for (int round = 0; round < num_rounds ; round++) {
@@ -265,7 +296,7 @@ namespace neuromapp {
                             double min_time;
                             std::cout << "begin add benchmark" << std::endl;
                             //prepare for the add operation
-                            mem_used = v_a[0].memory_allocated()*3*pow(10,-6)*vect_size;
+                            mem_used = vectors.get_mem_size()*3*pow(10,-6)*vect_size;
                             for (int round = 0; round < num_rounds ; round++) {
                                 time_it.start();
 #pragma omp parallel for
