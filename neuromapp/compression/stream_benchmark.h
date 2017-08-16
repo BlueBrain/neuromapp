@@ -51,6 +51,9 @@ using neuromapp::Timer;
 using namespace std;
 typedef size_t size_type;
 
+const int num_rounds =10;
+Timer time_it;
+
 namespace neuromapp {
 
     //space for the alternative subroutine classes
@@ -82,6 +85,11 @@ namespace neuromapp {
                     v_c[i] = generate_split_block(bc).compress();
                 }
             }
+            inline void set_compress(bool compress) {
+                this.compress = compress;
+            }
+
+
             inline int get_vec_size() {
                 return vect_size;
             }
@@ -92,7 +100,6 @@ namespace neuromapp {
             inline size_type get_block_size() {
                 return block_size;
             }
-
             inline void va_i_comp(int i){
                 if(compress) v_a[i].compress();
             }
@@ -143,6 +150,9 @@ namespace neuromapp {
                     v_b[i] = generate_split_block(bb).compress();
                     v_c[i] = generate_split_block(bc).compress();
                 }
+            }
+            inline void set_compress(bool compress) {
+                this.compress = compress;
             }
 
             inline size_type get_block_size() {
@@ -197,18 +207,18 @@ namespace neuromapp {
     template <typename vect_types,typename value_type,typename allocator_type>
     void copy_benchmark (vect_types vectors) {
         std::cout << "begin copy benchmark" << std::endl;
-        mem_used = vectors.get_mem_size()*2*pow(10,-6);
+        double mem_used = vectors.get_mem_size()*2*pow(10,-6);
         //prepare for the copy operation
         double min_time;
         for (int round = 0; round < num_rounds ; round++) {
             time_it.start();
 #pragma omp parallel for
-            for (int i = 0; i < vect_size;i++) {
+            for (int i = 0; i <vectors.get_vec_size();i++) {
                 block<value_type,allocator_type> & a = vectors.va_i(i);
                 block<value_type,allocator_type> & b = vectors.vb_i(i); 
-                pointer  ptr_a = a.data();
-                pointer  ptr_b = b.data();
-                for (int j=0; j <(int) block_size;j++) {
+                value_type *  ptr_a = a.data();
+                value_type *  ptr_b = b.data();
+                for (int j=0; j <(int) vectors.get_block_size();j++) {
                     ptr_a[j] = ptr_b[j];
                 }
                 //depending on the vectors class constructor, this may not perform compression
@@ -218,7 +228,7 @@ namespace neuromapp {
             time_it.end();
             if (round == 0) min_time = time_it.duration();
             else if(min_time > time_it.duration()) min_time = time_it.duration();
-            copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
+            double copy_bandwith =  mem_used *(1000/min_time) ; // this will be in MBs
             std::cout << left;
             std::cout << setw(20) <<  "operation: copy " <<setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << copy_bandwith << setw(5) << "MBs" << std::endl;
         }
@@ -236,20 +246,20 @@ namespace neuromapp {
      */
     template <typename vect_types,typename value_type,typename allocator_type>
     void scale_benchmark(vect_types vectors) {
-        mem_used = vectors.get_mem_size()*2*pow(10,-6);
+        double mem_used = vectors.get_mem_size()*2*pow(10,-6);
         std::cout << "begin scale benchmark" << std::endl;
         double min_time;
         //scale operation
         for (int round = 0; round < num_rounds ; round++) {
             time_it.start();
 #pragma omp parallel for
-            for (int i = 0; i < vect_size;i++) {
+            for (int i = 0; i <vectors.get_vec_size();i++) {
                 block<value_type,allocator_type> & a = vectors.va_i(i);
                 block<value_type,allocator_type> & b = vectors.vb_i(i);
-                pointer  ptr_a = a.data();
-                pointer  ptr_b = b.data();
+                value_type *  ptr_a = a.data();
+                value_type *  ptr_b = b.data();
                 value_type scale = 5;
-                for (int j=0; j < (int) block_size;j++) {
+                for (int j=0; j < (int) vectors.get_block_size();j++) {
                     ptr_a[j] = scale*ptr_b[j];
                 }
                 // recompression depending on the run
@@ -260,7 +270,7 @@ namespace neuromapp {
             if (round == 0) min_time = time_it.duration();
             else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
-        scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+        double scale_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
         std::cout<< setw(20) << "operation: scale " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << scale_bandwith << setw(5) << "MBs" << std::endl;
     }
 
@@ -280,18 +290,18 @@ namespace neuromapp {
         double min_time;
         std::cout << "begin add benchmark" << std::endl;
         //prepare for the add operation
-        mem_used = vectors.get_mem_size()*3*pow(10,-6)*vect_size;
+        double mem_used = vectors.get_mem_size()*3*pow(10,-6)*vectors.get_vec_size();
         for (int round = 0; round < num_rounds ; round++) {
             time_it.start();
 #pragma omp parallel for
-            for (int i = 0; i < vect_size;i++) {
+            for (int i = 0; i <vectors.get_vec_size();i++) {
                 block<value_type,allocator_type> & a = vectors.va_i(i);
                 block<value_type,allocator_type> & b = vectors.vb_i(i);
                 block<value_type,allocator_type> & c = vectors.vc_i(i);
-                pointer  ptr_a = a.data();
-                pointer  ptr_b = b.data();
-                pointer  ptr_c = c.data();
-                for (int j=0; j <(int) block_size;j++) {
+                value_type *  ptr_a = a.data();
+                value_type *  ptr_b = b.data();
+                value_type *  ptr_c = c.data();
+                for (int j=0; j <(int) vectors.get_block_size();j++) {
                     ptr_a[j] = ptr_b[j] + ptr_c[j];
                 }
                 vectors.va_i_comp(i);   
@@ -302,7 +312,7 @@ namespace neuromapp {
             if (round == 0) min_time = time_it.duration();
             else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
-        add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+        double add_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
         std::cout<< setw(20) << "operation: add " << setw(13) << "bandwith : " <<setw(16) <<   setprecision(5) << add_bandwith << setw(5) << "MBs" << std::endl;
     }
 
@@ -320,21 +330,22 @@ namespace neuromapp {
     void triad_benchmark(vect_types vectors) {
         std::cout << "begin triad benchmark" << std::endl;
         double min_time;
+        double mem_used = vectors.get_mem_size()*3*pow(10,-6)*vectors.get_vec_size();
         //triad operation
         for (int round = 0; round < num_rounds ; round++) {
             time_it.start();
 #pragma omp parallel for
-            for (int i = 0; i < vect_size;i++) {
+            for (int i = 0; i <vectors.get_vec_size();i++) {
 
                 block<value_type,allocator_type> & a = vectors.va_i(i);
                 block<value_type,allocator_type> & b = vectors.vb_i(i);
                 block<value_type,allocator_type> & c = vectors.vc_i(i);
 
-                pointer  ptr_a = a.data();
-                pointer  ptr_b = b.data();
-                pointer  ptr_c = c.data();
+                value_type *  ptr_a = a.data();
+                value_type *  ptr_b = b.data();
+                value_type *  ptr_c = c.data();
                 value_type scale = 5;
-                for (int j=0; j < (int) block_size;j++) {
+                for (int j=0; j < (int) vectors.get_block_size();j++) {
                     ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
                 }
                 vectors.va_i_comp(i);   
@@ -345,7 +356,7 @@ namespace neuromapp {
             if (round == 0) min_time = time_it.duration();
             else if(min_time > time_it.duration()) min_time = time_it.duration();
         }
-        triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
+        double triad_bandwith = mem_used*(1000/min_time) ; // this will be in MBs
         std::cout<< setw(20) << "operation: triad " << setw(13) << "bandwith : " <<setw(16) << setprecision(5) << triad_bandwith << setw(5) << "MBs" << std::endl;
     }
 }
