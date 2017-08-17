@@ -35,37 +35,34 @@
 #include "compression/compressor.h"
 #include "compression/allocator.h"
 #include "compression/exception.h"
-#include "compression/conv_info.h"
 #include "compression/block_sort.h"
 #include "compression/block.h"
 #include "compression/bit_shifting.h"
 #include "compression/timer_tool.h"
+#include "compression/conv_info.h"
 
+using namespace std; 
 using neuromapp::col_sort;
 using neuromapp::generate_split_block;
+using neuromapp::generate_unsplit_block;
 using neuromapp::block;
 using neuromapp::Timer;
-using namespace std;
 namespace po= boost::program_options;
 typedef size_t size_type;
-typedef Conv_info<double>::bytetype binary_rep;
 
 
 /* Section basic global variable instantiation  */
 
-#define VECTOR_SIZE 100 
+#define ARRAY_SIZE 100 
 
 
 // section for the global vars
 string fname;
 namespace neuromapp {
     /* Section for the computation functions */
-    template <typename value_type,typename allocator_type>
+    template <typename allocator_type>
         struct level1_compute {
-            double coef;
             public:
-            level1_compute(double coef_arg) 
-                :coef {coef_arg} {}
             /**
             * operator ()  
             *
@@ -76,19 +73,12 @@ namespace neuromapp {
             *
             * @return void 
             */
-            void operator () (block<value_type,allocator_type> * b1,po::variables_map & vm,ostream & os) {
+            void operator () (block<double,allocator_type> & blk,ostream & os) {
+                
                 os << " running lvl1 compute ";
-
-                double * ptr;
-                if (vm.count("split")) {
-                    block<double,allocator_type> b2 = generate_unsplit_block(*b1);
-                    ptr = b2.data();
-                } else {
-                    ptr = b1.data();
-                }
-                size_type end = b1->dim0();
-                for (int i = 0 ; i < (int) end; i++)  {
-                    double result = *ptr +coef;
+                double * ptr = blk.data();
+                for (int i = 0;i< blk.dim0()*blk.num_rows();i++) {
+                    double result = *ptr +5.0;//arbitrary 5.0
                     ptr++;
                 }
             }
@@ -97,13 +87,36 @@ namespace neuromapp {
 
 
 
-
-    template <typename value_type,typename allocator_type>
-        struct level3_compute {
-            double y_initial,  t_initial, step, t_limit;
+    template <typename allocator_type>
+        struct level2_compute {
+            double u_init = 1.0,x_init = 2.0;
+            block<double ,allocator_type> u_block,x_block;
             public:
-            level3_compute (double y_initial_arg, double t_initial_arg,double step_arg,double t_limit_arg) :
-                y_initial {y_initial_arg},  t_initial {t_initial_arg}, step {step_arg}, t_limit {t_limit_arg} {}
+            /**
+            * operator ()  
+            *
+            *
+            * @brief The level2 computation is a scaled down version of the Tsodyks-Markram model of PSP adjustment due to activity. Two 1d blocks
+            * are kept within the functor struct and have their contents updated by the computation.
+            *
+            * @param ostream & os
+            *
+            * @return void 
+            */
+            void operator () (block<double,allocator_type> & blk,ostream & os) {
+                os << " running lvl2 compute ";
+                //each ptr here is a row in the 2d block
+                //except ptr1 which isn't necessary for use
+
+            }
+        };
+
+
+
+    template <typename allocator_type>
+        struct level3_compute {
+            double y_initial=1.0,  t_initial=0.0, step = .0001, t_limit = 1000.0;
+            public:
             /* this is the function that you should edit if you want a different solution */
             double differential (double y,double t) {
                 return pow(y,2) + t*30;// totally arbitrary for the moment
@@ -118,7 +131,7 @@ namespace neuromapp {
             *
             * @return void 
             */
-            void operator () (block<value_type,allocator_type> * b1,po::variables_map &vm,ostream & os){
+            void operator () (block<double,allocator_type> & blk,ostream & os){
                 os << " running lvl3 compute ";
                 /* treat the initials as initials for each step, so initial to start, and each step */
                 while (t_initial < t_limit) {
@@ -130,37 +143,58 @@ namespace neuromapp {
 
     /* Section for sampling strategies */
 
-    template<typename value_type,typename allocator_type >
+    template< typename allocator_type >
             /**
-            * init_vector 
+            * init_array 
             *
             *
-            * @brief This function builds our vector of blocks using the specific size VECTOR_SIZE. Each block receives the same file contents.
+            * @brief This function builds our array of blocks using the specific size ARRAY_SIZE. Each block receives the same file contents.
             *
-            * @param block<double,allocator_type> * block_vec
+            * @param block<double,allocator_type> * block_array
             *
             * @return void
             */
-        void init_vector (vector<block<value_type,allocator_type>> & block_vec,po::variables_map & vm) {
+        void init_array (block<double,allocator_type> * block_array,po::variables_map vm) {
+
             ifstream blk_file;
-            for (int i = 0; i < (int) VECTOR_SIZE; i++) {
+            for (int i = 0; i < (int) ARRAY_SIZE; i++) {
                 blk_file.open(fname);
                 block<double,allocator_type> b1;
                 blk_file >> b1;
-                //different storage if split option provided
-                if (vm.count("split")) {
-                    block<binary_rep,allocator_type> b2 = generate_split_block(b1);
-                    block_vec.push_back(b2);
-                }
-                else block_vec.push_back(b1);
-                block_vec[i].compress();
+                block_array[i] = b1;
+                block_array[i].compress();
+                blk_file.close();
+                blk_file.clear();
+            }
+        }
+
+    template< typename allocator_type >
+            /**
+            * init_array 
+            *
+            *
+            * @brief This function builds our array of blocks using the specific size ARRAY_SIZE. Each block receives the same file contents.
+            *
+            * @param block<double,allocator_type> * block_array
+            *
+            * @return void
+            */
+        void bin_init_array (block<typename Conv_info<double>::bytetype,allocator_type> * block_array,po::variables_map vm) {
+            ifstream blk_file;
+            for (int i = 0; i < (int) ARRAY_SIZE; i++) {
+                blk_file.open(fname);
+                block<double,allocator_type> b1;
+                blk_file >> b1;
+                block_array[i] = generate_split_block(b1);
+                block_array[i].compress();
                 blk_file.close();
                 blk_file.clear();
             }
         }
 
 
-    /* selects a novel position in a representative vector  that hasn't been picked already */
+
+    /* selects a novel position in a representative array  that hasn't been picked already */
     template <size_type SIZE>
         class Block_selector {
             int selected_count = 0;
@@ -173,7 +207,7 @@ namespace neuromapp {
             * operator() 
             *
             *
-            * @brief This function randomly selects 1 block from the vector to be passed to the ensuing computations. Will stop after 10% of the 
+            * @brief This function randomly selects 1 block from the array to be passed to the ensuing computations. Will stop after 10% of the 
             * blocks have been selected.
             *
             * @param 
@@ -197,7 +231,7 @@ namespace neuromapp {
 
 
     /* section for the these things combined */
-    template <typename value_type,typename allocator_type,typename fun_ob>
+    template <typename allocator_type,typename fun_ob>
             /**
             * kernel_measure 
             *
@@ -208,12 +242,12 @@ namespace neuromapp {
             *
             * @return void
             */
-        void kernel_measure(fun_ob & f,ostream & os,block<value_type,allocator_type> & blk,po::variables_map & vm) {
+        void kernel_measure(fun_ob & f,ostream & os,block<double,allocator_type> & blk) {
             /*create and start the timer,compress run first */
             Timer time_it; time_it.start();
             os << " compression: " ;
             blk.uncompress();
-            f(&blk,vm,os);
+            f(blk,os);
             blk.compress();
             time_it.end();
             os << " duration " << time_it.duration() ;
@@ -221,13 +255,45 @@ namespace neuromapp {
             /* now the non-compress run */
             os << " non-compress: " ;
             time_it.start();
-            f(&blk,vm,os);
+            f(blk,os);
             time_it.end();
             os << " duration " << time_it.duration() << std::endl;
         }
 
+    /* section for the these things combined */
+    template <typename allocator_type,typename fun_ob>
+            /**
+            * kernel_measure 
+            *
+            *
+            * @brief This is the main event. Time counts are taken for computations that involve all three levels using blocks that feature a compression step, and those that don't. Ultimately the result is given back to the user in the form of a table printed out to the screen.
+            *
+            * @param fun_ob & f,ostream & os,block<double,allocator_type> & blk
+            *
+            * @return void
+            */
+        void bin_kernel_measure(fun_ob & f,ostream & os,block<typename Conv_info<double>::bytetype,allocator_type> & blk) {
+            /*create and start the timer,compress run first */
+            Timer time_it; time_it.start();
+            os << " compression: " ;
+            blk.uncompress();
+            block<double,allocator_type> dec_block= generate_unsplit_block<double,allocator_type>(blk);
+            f(dec_block,os);
+            blk.compress();
+            time_it.end();
+            os << " duration " << time_it.duration() ;
+            /* now the non-compress run */
+            os << " non-compress: " ;
+            time_it.start();
+            f(dec_block,os);
+            time_it.end();
+            os << " duration " << time_it.duration() << std::endl;
+        }
+
+
+
     /* this function allows us to capture compress and non-compress runs using kernel_measure and the different levels of compute complexity */
-    template <typename value_type,typename allocator_type>
+    template <typename allocator_type>
             /**
             * option_coordinator 
             *
@@ -238,21 +304,42 @@ namespace neuromapp {
             *
             * @return void
             */
-        void option_coordinator(vector<block<value_type,allocator_type>> & block_vec,ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit,po::variables_map & vm) {
-            if (vm.count("split")) init_vector<binary_rep,allocator_type>(block_vec,vm);
-            else  init_vector<double,allocator_type>(block_vec,vm);
-            Block_selector<(size_type) VECTOR_SIZE> bs;
+        void option_coordinator(ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit,po::variables_map vm) {
+            Block_selector<(size_type) ARRAY_SIZE> bs;
+            block<double,allocator_type> block_array[ARRAY_SIZE];
+            init_array(block_array,vm);
             /* loop variables */
             int pos;
-            /* continue to select blocks in positions, until 10% of the vector has been used. atwhich point the -1 is returned */
+            /* continue to select blocks in positions, until 10% of the array has been used. atwhich point the -1 is returned */
             while((pos = bs()) != -1) {
                 out << " position is : " << pos<< std::endl; 
-                block<value_type,allocator_type> blk = block_vec[pos];
                 /* generate the initial computation states for functions */
-                level1_compute<value_type,allocator_type> f_lvl1(coef);
-                level3_compute<value_type,allocator_type> f_lvl3(y_initial,t_initial,step,t_limit);
-                kernel_measure(f_lvl1,out,blk,vm);
-                kernel_measure(f_lvl3,out,blk,vm);
+                level1_compute<allocator_type> f_lvl1;
+                level2_compute<allocator_type> f_lvl2;
+                level3_compute<allocator_type> f_lvl3;
+                kernel_measure(f_lvl1,out,block_array[pos]);
+                kernel_measure(f_lvl2,out,block_array[pos]);
+                kernel_measure(f_lvl3,out,block_array[pos]);
+            }
+        }
+
+    template<typename allocator_type>
+        void bin_option_coordinator(ostream & out, double coef,double step,double y_initial, double t_initial,double t_limit,po::variables_map vm) {
+            Block_selector<(size_type) ARRAY_SIZE> bs;
+            block<typename Conv_info<double>::bytetype,allocator_type> block_array[ARRAY_SIZE];
+            bin_init_array(block_array,vm);
+            /* loop variables */
+            int pos;
+            /* continue to select blocks in positions, until 10% of the array has been used. atwhich point the -1 is returned */
+            while((pos = bs()) != -1) {
+                out << " position is : " << pos<< std::endl; 
+                /* generate the initial computation states for functions */
+                level1_compute<allocator_type> f_lvl1;
+                level2_compute<allocator_type> f_lvl2;
+                level3_compute<allocator_type> f_lvl3;
+                bin_kernel_measure(f_lvl1,out,block_array[pos]);
+                bin_kernel_measure(f_lvl2,out,block_array[pos]);
+                bin_kernel_measure(f_lvl3,out,block_array[pos]);
             }
         }
 
@@ -268,22 +355,39 @@ namespace neuromapp {
             * @return void
             */
         //DECIDE ABOUT GLOBALS FOR SETTING BLOCK PRECOMPRESSION OPTIONS
-        void run_km (string & fname_arg,po::variables_map & vm) {
+        void bin_run_km (string & fname_arg,po::variables_map vm) {
             std::cout << " Starting Kernel Measure " << std::endl;
+            fname=fname_arg;
             double coef = 2.0,
                    step = 1.0,
                    y_param = 2.0,
                    t_start = 0.0,
                    t_limit = 10000.0;
-            if (vm.count("split")) {
-                vector<block<binary_rep,allocator_type>> block_vec(VECTOR_SIZE);
-                option_coordinator<binary_rep,allocator_type>(block_vec,std::cout,coef,step,y_param,t_start,t_limit,vm);
-            } else {
-                vector<block<double,allocator_type>> block_vec(VECTOR_SIZE);
-                option_coordinator<double,allocator_type>(block_vec,std::cout,coef,step,y_param,t_start,t_limit,vm);
-            }
-
+            bin_option_coordinator<allocator_type>(std::cout,coef,step,y_param,t_start,t_limit,vm);
         }
+    template<typename allocator_type>
+            /**
+            * run_km 
+            *
+            *
+            * @brief
+            *
+            * @param string & fname_arg
+            *
+            * @return void
+            */
+        //DECIDE ABOUT GLOBALS FOR SETTING BLOCK PRECOMPRESSION OPTIONS
+        void run_km (string & fname_arg,po::variables_map vm) {
+            std::cout << " Starting Kernel Measure " << std::endl;
+            fname=fname_arg;
+            double coef = 2.0,
+                   step = 1.0,
+                   y_param = 2.0,
+                   t_start = 0.0,
+                   t_limit = 10000.0;
+            option_coordinator<allocator_type>(std::cout,coef,step,y_param,t_start,t_limit,vm);
+        }
+
 }
 
 #endif

@@ -54,7 +54,8 @@ template<typename allocator_type>
  * @return void
  */
 void k_m_routine(string & fname,po::variables_map vm) {
-    neuromapp::run_km<allocator_type>(fname,vm);
+    if(vm.count("split")) neuromapp::run_km<allocator_type>(fname,vm);
+    else neuromapp::bin_run_km<allocator_type>(fname,vm);
 }
 
 template <typename allocator_type>
@@ -95,30 +96,30 @@ void stream_bench_routine(po::variables_map vm) {
         if (vm.count("compress")) {
             binary_stream_vectors<value_type,allocator_type> vectors(true);
             copy_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            scale_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            add_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            triad_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
         } else {
             binary_stream_vectors<value_type,allocator_type> vectors(false);
             copy_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            scale_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            add_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            triad_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
         }
 
     } else {
         if (vm.count("compress")){
             stream_vectors<value_type,allocator_type> vectors(true);
             copy_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            scale_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            add_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            triad_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
         } else {
             stream_vectors<value_type,allocator_type> vectors(false);
             copy_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            scale_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            add_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
-            triad_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
         }
 
     }

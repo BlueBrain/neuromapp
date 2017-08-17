@@ -55,15 +55,14 @@ const int num_rounds =10;
 Timer time_it;
 
 namespace neuromapp {
-
     //space for the alternative subroutine classes
     template <typename value_type,typename allocator_type> 
         class binary_stream_vectors {
             typedef typename Conv_info<value_type>::bytetype binary_rep;
-            const static size_type block_size =  8000;
+            const static size_type block_size = 8000*70;
             size_type block_mem_size;
             bool compress_opt = false;
-            const static int vect_size = 640;
+            const static int vect_size = 120;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<binary_rep,allocator_type>> v_a;
             vector<block<binary_rep,allocator_type>> v_b;
@@ -140,10 +139,10 @@ namespace neuromapp {
 
     template <typename value_type,typename allocator_type> 
         class stream_vectors {
-            const static size_type block_size =  8000;
+            const static size_type block_size = 8000*70;//xxxxxtargetline
             size_type block_mem_size;
             bool compress_opt;
-            const static int vect_size = 640;
+            const static int vect_size = 120;//8
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
             vector<block<value_type,allocator_type>> v_b;
@@ -152,10 +151,11 @@ namespace neuromapp {
             public:
             stream_vectors (bool compress_arg) : compress_opt{compress_arg} {
 //#pragma omp parallel for
+                std::cout << "block size " << block_size << std::endl;
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
-                    if (i==0) block_mem_size = ba.memory_allocated();
+                    if (i==0) block_mem_size = ba.memory_allocated(); 
                     block<value_type,allocator_type> bb(block_size);
                     bb.fill_block(2.0);
                     block<value_type,allocator_type> bc(block_size);
