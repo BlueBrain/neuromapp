@@ -62,7 +62,8 @@ namespace neuromapp {
             const static size_type block_size = 8000*70;
             size_type block_mem_size;
             bool compress_opt = false;
-            const static int vect_size = 120;
+            //const static int vect_size = 120;
+            const static int vect_size = 12;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<binary_rep,allocator_type>> v_a;
             vector<block<binary_rep,allocator_type>> v_b;
@@ -146,7 +147,8 @@ namespace neuromapp {
             const static size_type block_size = 8000*70;//xxxxxtargetline
             size_type block_mem_size;
             bool compress_opt;
-            const static int vect_size = 120;//8
+            //const static int vect_size = 120;//8
+            const static int vect_size = 12;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
             vector<block<value_type,allocator_type>> v_b;
@@ -285,10 +287,8 @@ namespace neuromapp {
             time_it.start();
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
-                block<value_type,allocator_type>  a = vectors.va_i(i);
-                block<value_type,allocator_type>  b = vectors.vb_i(i);
-                value_type *  ptr_a = a.data();
-                value_type *  ptr_b = b.data();
+                value_type *  ptr_a = vectors.va_ptr_i(i);
+                value_type *  ptr_b = vectors.vb_ptr_i(i);
                 value_type scale = 5;
                 for (int j=0; j < (int) vectors.get_block_size();j++) {
                     ptr_a[j] = scale*ptr_b[j];
@@ -326,12 +326,9 @@ namespace neuromapp {
             time_it.start();
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
-                block<value_type,allocator_type>  a = vectors.va_i(i);
-                block<value_type,allocator_type>  b = vectors.vb_i(i);
-                block<value_type,allocator_type>  c = vectors.vc_i(i);
-                value_type *  ptr_a = a.data();
-                value_type *  ptr_b = b.data();
-                value_type *  ptr_c = c.data();
+                value_type *  ptr_a = vectors.va_ptr_i(i);
+                value_type *  ptr_b = vectors.vb_ptr_i(i);
+                value_type *  ptr_c = vectors.vc_ptr_i(i);
                 for (int j=0; j <(int) vectors.get_block_size();j++) {
                     ptr_a[j] = ptr_b[j] + ptr_c[j];
                 }
@@ -368,13 +365,10 @@ namespace neuromapp {
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
 
-                block<value_type,allocator_type>  a = vectors.va_i(i);
-                block<value_type,allocator_type>  b = vectors.vb_i(i);
-                block<value_type,allocator_type>  c = vectors.vc_i(i);
+                value_type *  ptr_a = vectors.va_ptr_i(i);
+                value_type *  ptr_b = vectors.vb_ptr_i(i);
+                value_type *  ptr_c = vectors.vc_ptr_i(i);
 
-                value_type *  ptr_a = a.data();
-                value_type *  ptr_b = b.data();
-                value_type *  ptr_c = c.data();
                 value_type scale = 5;
                 for (int j=0; j < (int) vectors.get_block_size();j++) {
                     ptr_a[j] = scale*ptr_b[j] + ptr_c[j];
