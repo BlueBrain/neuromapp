@@ -114,27 +114,31 @@ namespace neuromapp {
                 if(compress_opt) v_c[i].compress();
             }
 
-            block<value_type,allocator_type> va_i(int i) {
-                if(compress_opt) {
+            //should these returns be references?
+            inline value_type * va_ptr_i(int i) {
+                if (compress_opt) {
                     v_a[i].uncompress();
-                    return generate_unsplit_block<value_type,allocator_type>(v_a[i]);
+                    return generate_unsplit_block<double,allocator_type>(v_a[i]).data();
                 }
-                return generate_unsplit_block<value_type,allocator_type>(v_a[i]);
+                return generate_unsplit_block<double,allocator_type>(v_a[i]).data();
             }
-            block<value_type,allocator_type> vb_i(int i) {
-                if(compress_opt) {
+            inline value_type * vb_ptr_i(int i) {
+                if (compress_opt) {
                     v_b[i].uncompress();
-                    return generate_unsplit_block<value_type,allocator_type>(v_b[i]);
+                    return generate_unsplit_block<double,allocator_type>(v_b[i]).data();
                 }
-                return generate_unsplit_block<value_type,allocator_type>(v_b[i]);
+                return generate_unsplit_block<double,allocator_type>(v_b[i]).data();
             }
-            block<value_type,allocator_type> vc_i(int i) {
-                if(compress_opt) {
+
+            inline value_type * vc_ptr_i(int i) {
+                if (compress_opt) {
                     v_c[i].uncompress();
-                    return generate_unsplit_block<value_type,allocator_type>(v_c[i]);
+                    return generate_unsplit_block<double,allocator_type>(v_c[i]).data();
                 }
-                return generate_unsplit_block<value_type,allocator_type>(v_c[i]);
+                return generate_unsplit_block<double,allocator_type>(v_c[i]).data();
             }
+
+
         };
 
     template <typename value_type,typename allocator_type> 
@@ -193,27 +197,29 @@ namespace neuromapp {
 
 
             //should these returns be references?
-            inline block<value_type,allocator_type> va_i(int i){
-                if(compress_opt)  {
+            inline value_type * va_ptr_i(int i) {
+                if (compress_opt) {
                     v_a[i].uncompress();
-                    return v_a[i];
+                    return v_a[i].data();
                 }
-                return (v_a[i]);
+                return v_a[i].data();
             }
-            inline block<value_type,allocator_type> vb_i(int i){
-                if(compress_opt)  {
+            inline value_type * vb_ptr_i(int i) {
+                if (compress_opt) {
                     v_b[i].uncompress();
-                    return v_b[i];
+                    return v_b[i].data();
                 }
-                return (v_b[i]);
+                return v_b[i].data();
             }
-            inline block<value_type,allocator_type> vc_i(int i){
-                if(compress_opt)  {
+            
+            inline value_type * vc_ptr_i(int i) {
+                if (compress_opt) {
                     v_c[i].uncompress();
-                    return v_c[i];
+                    return v_c[i].data();
                 }
-                return (v_c[i]);
+                return v_c[i].data();
             }
+
         };
 
 
@@ -241,10 +247,8 @@ namespace neuromapp {
             time_it.start();
 #pragma omp parallel for
             for (int i = 0; i <vectors.get_vec_size();i++) {
-                block<value_type,allocator_type>  a = vectors.va_i(i);
-                block<value_type,allocator_type>  b = vectors.vb_i(i); 
-                value_type *  ptr_a = a.data();
-                value_type *  ptr_b = b.data();
+                value_type *  ptr_a = vectors.va_ptr_i(i);
+                value_type *  ptr_b = vectors.vb_ptr_i(i);
                 for (int j=0; j <(int) vectors.get_block_size();j++) {
                     ptr_a[j] = ptr_b[j];
                 }
