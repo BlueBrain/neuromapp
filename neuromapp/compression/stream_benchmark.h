@@ -63,15 +63,22 @@ namespace neuromapp {
             size_type block_mem_size;
             bool compress_opt = false;
             //const static int vect_size = 120;
-            const static int vect_size = 12;
+            const static int vect_size = 120;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<binary_rep,allocator_type>> v_a;
             vector<block<binary_rep,allocator_type>> v_b;
             vector<block<binary_rep,allocator_type>> v_c;
+            block<double,allocator_type> a_dec;
+            block<double,allocator_type> b_dec;
+            block<double,allocator_type> c_dec;
             // calculation results section
             public:
             binary_stream_vectors(bool compress_arg) : compress_opt{compress_arg}  {
-//#pragma omp parallel for
+                v_a.resize(vect_size);
+                v_b.resize(vect_size);
+                v_c.resize(vect_size);
+                std::cout << "block_size" << block_size << std::endl;
+#pragma omp parallel for
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
@@ -88,9 +95,9 @@ namespace neuromapp {
                         bin_bb.compress();
                         bin_bc.compress();
                     }
-                    v_a.push_back(bin_ba);
-                    v_b.push_back(bin_bb);
-                    v_c.push_back(bin_bc);
+                    v_a[i] = bin_ba;
+                    v_b[i] = bin_bb;
+                    v_c[i] = bin_bc;
                 }
             }
 
@@ -115,28 +122,32 @@ namespace neuromapp {
                 if(compress_opt) v_c[i].compress();
             }
 
-            //should these returns be references?
             inline value_type * va_ptr_i(int i) {
                 if (compress_opt) {
                     v_a[i].uncompress();
-                    return generate_unsplit_block<double,allocator_type>(v_a[i]).data();
+                    a_dec = generate_unsplit_block<double,allocator_type>(v_a[i]);
+                    return a_dec.data();
                 }
-                return generate_unsplit_block<double,allocator_type>(v_a[i]).data();
+                    a_dec = generate_unsplit_block<double,allocator_type>(v_a[i]);
+                    return a_dec.data();
             }
             inline value_type * vb_ptr_i(int i) {
                 if (compress_opt) {
                     v_b[i].uncompress();
-                    return generate_unsplit_block<double,allocator_type>(v_b[i]).data();
+                    b_dec = generate_unsplit_block<double,allocator_type>(v_b[i]);
+                    return b_dec.data();
                 }
-                return generate_unsplit_block<double,allocator_type>(v_b[i]).data();
+                    b_dec = generate_unsplit_block<double,allocator_type>(v_b[i]);
+                    return b_dec.data();
             }
-
             inline value_type * vc_ptr_i(int i) {
                 if (compress_opt) {
                     v_c[i].uncompress();
-                    return generate_unsplit_block<double,allocator_type>(v_c[i]).data();
+                    c_dec = generate_unsplit_block<double,allocator_type>(v_c[i]);
+                    return c_dec.data();
                 }
-                return generate_unsplit_block<double,allocator_type>(v_c[i]).data();
+                    c_dec = generate_unsplit_block<double,allocator_type>(v_c[i]);
+                    return c_dec.data();
             }
 
 
@@ -148,7 +159,7 @@ namespace neuromapp {
             size_type block_mem_size;
             bool compress_opt;
             //const static int vect_size = 120;//8
-            const static int vect_size = 12;
+            const static int vect_size = 120;
             /*this is the number of times that we run each benchmark computation before taking the minimum time*/
             vector<block<value_type,allocator_type>> v_a;
             vector<block<value_type,allocator_type>> v_b;
@@ -156,8 +167,11 @@ namespace neuromapp {
             // calculation results section
             public:
             stream_vectors (bool compress_arg) : compress_opt{compress_arg} {
-//#pragma omp parallel for
+                v_a.resize(vect_size);
+                v_b.resize(vect_size);
+                v_c.resize(vect_size);
                 std::cout << "block size " << block_size << std::endl;
+#pragma omp parallel for
                 for (int i = 0 ; i < vect_size; i++) {
                     block<value_type,allocator_type> ba(block_size);
                     ba.fill_block(1.0);
@@ -171,9 +185,9 @@ namespace neuromapp {
                         bb.compress();
                         bc.compress();
                     }
-                    v_a.push_back(ba);
-                    v_b.push_back(bb);
-                    v_c.push_back(bc);
+                    v_a[i] = ba;
+                    v_b[i] =bb;
+                    v_c[i] =bc;
                 }
             }
             inline size_type get_block_size() {
