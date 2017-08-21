@@ -21,17 +21,25 @@
  */
 #ifndef MAIN_FUNCTIONS_H
 #define MAIN_FUNCTIONS_H
+#include <boost/program_options.hpp>
 #include "compression/block_sort.h"
 #include "compression/block.h"
 #include "compression/bit_shifting.h"
 #include "compression/timer_tool.h"
 #include "compression/kernel_measurements.h"
 #include "compression/stream_benchmark.h"
+#include "compression/conv_info.h"
+
 
 namespace po = boost::program_options;
 using neuromapp::Timer;
 using neuromapp::block;
-using neuromapp::stream_bench;
+using neuromapp::scale_benchmark;
+using neuromapp::add_benchmark;
+using neuromapp::triad_benchmark;
+using neuromapp::copy_benchmark;
+using neuromapp::binary_stream_vectors;
+using neuromapp::stream_vectors;
 typedef size_t size_type;
 
 template<typename allocator_type>
@@ -45,8 +53,9 @@ template<typename allocator_type>
  *
  * @return void
  */
-void k_m_routine(string & fname) {
-    neuromapp::run_km<allocator_type>(fname);
+void k_m_routine(string & fname,po::variables_map vm) {
+    if(vm.count("split")) neuromapp::run_km<allocator_type>(fname,vm);
+    else neuromapp::bin_run_km<allocator_type>(fname,vm);
 }
 
 template <typename allocator_type>
@@ -80,14 +89,41 @@ template <typename value_type,typename allocator_type>
  *
  * @return void
  */
-void stream_bench_routine() {
+void stream_bench_routine(po::variables_map vm) {
     //create two different stream_bench objects, one compress one not
-    stream_bench<value_type,allocator_type> non_str_bench(false);
-    non_str_bench.run_stream_benchmark();
-    non_str_bench.output_results();
-    stream_bench<value_type,allocator_type> comp_str_bench(true);
-    comp_str_bench.run_stream_benchmark();
-    comp_str_bench.output_results();
+    //must run the stream bench a separate time without the split argument provided for comparison
+    if (vm.count("split")) {
+        if (vm.count("compress")) {
+            binary_stream_vectors<value_type,allocator_type> vectors(true);
+            copy_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        } else {
+            binary_stream_vectors<value_type,allocator_type> vectors(false);
+            copy_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<binary_stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        }
+
+    } else {
+        if (vm.count("compress")){
+            stream_vectors<value_type,allocator_type> vectors(true);
+            copy_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        } else {
+            stream_vectors<value_type,allocator_type> vectors(false);
+            copy_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //scale_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //add_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+            //triad_benchmark<stream_vectors<value_type,allocator_type>,value_type,allocator_type> (vectors) ;
+        }
+
+    }
+    //need to figure out how to deduce the type
 }
 
 template <typename value_type,typename allocator_type>
@@ -129,13 +165,18 @@ template <typename allocator_type>
  *
  * @return void
  */
-void split_routine ( block<double,allocator_type> & unsplit_block, Timer & time_it) {
+ block<typename Conv_info<double>::bytetype, allocator_type> split_routine ( block<double,allocator_type> & unsplit_block, Timer & time_it) {
     time_it.start();
-    block<unsigned int, allocator_type> split_block = neuromapp::generate_split_block(unsplit_block);
+    block<typename Conv_info<double>::bytetype, allocator_type> split_block = neuromapp::generate_split_block(unsplit_block);
     //sanity check for split version
     time_it.end();
     std::cout << "splitting took " << time_it.duration() << " ms" << std::endl;
-    compress_routine<unsigned int,allocator_type>(split_block,time_it);
+    compress_routine<Conv_info<double>::bytetype,allocator_type>(split_block,time_it);
+    time_it.start();
+    block<double,allocator_type> return_trip = neuromapp::generate_unsplit_block<double,allocator_type>(split_block);
+    time_it.end();
+    std::cout << "unsplitting took " << time_it.duration() << " ms" << std::endl;
+    return split_block;
 }
 
 template <typename allocator_type>
@@ -173,7 +214,7 @@ template <typename allocator_type>
  *
  * @return void
  */
-void bench_routine( block<double,allocator_type> & b1,Timer & time_it) {
+void bench_routine( block<double,allocator_type> & b1,Timer & time_it,po::variables_map vm) {
     sort_routine(b1,time_it);
     compress_routine(b1,time_it);
     split_routine(b1,time_it);
