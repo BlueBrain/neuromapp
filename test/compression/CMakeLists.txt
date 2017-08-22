@@ -1,5 +1,5 @@
 #compression test
-set(tests compression_tests block_reading_tests sorting_tests spliting_tests)
+set(tests zlib_compression block_reading sorting spliting)
 
 foreach(i ${tests})
     add_executable(${i} ${i}.cpp)
