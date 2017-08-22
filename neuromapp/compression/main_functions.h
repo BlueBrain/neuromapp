@@ -58,26 +58,6 @@ void k_m_routine(string & fname,po::variables_map vm) {
     else neuromapp::bin_run_km<allocator_type>(fname,vm);
 }
 
-template <typename allocator_type>
-/**
- * sort_routine 
- *
- *
- * @brief
- *
- * @param  block<double,allocator_type> & block, Timer & time_it
- *
- * @return void
- */
-void sort_routine ( block<double,allocator_type> & block, Timer & time_it) {
-    time_it.start();
-
-    size_type sorting_row = 0;
-    neuromapp::col_sort(&block,sorting_row);
-    time_it.end();
-    std::cout << "sorting took " << time_it.duration () << " ms " << std::endl;
-}
-
 template <typename value_type,typename allocator_type>
 /**
  * stream_bench_routine 
@@ -178,6 +158,29 @@ template <typename allocator_type>
     std::cout << "unsplitting took " << time_it.duration() << " ms" << std::endl;
     return split_block;
 }
+
+template <typename allocator_type>
+/**
+ * sort_routine
+ *
+ *
+ * @brief
+ *
+ * @param  block<double,allocator_type> & block, Timer & time_it
+ *
+ * @return void
+ */
+void sort_routine ( block<double,allocator_type> & block, Timer & time_it) {
+
+    time_it.start();
+
+    size_type sorting_row = 0;
+    neuromapp::col_sort(&block,sorting_row);
+    time_it.end();
+    std::cout << "sorting took " << time_it.duration () << " ms " << std::endl;
+    compress_routine<double,allocator_type>(block,time_it);
+}
+
 
 template <typename allocator_type>
 /**
