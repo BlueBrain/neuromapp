@@ -183,18 +183,18 @@ string create_correct_string(string original_str) {
 
 // specialized versions for each of the numeric types used for block (int,double,float)
 template <> string create_correct_string<float>(string original_str) {
-    float converter;
+    float converter(0);
     return numeric_conv(original_str,converter);
 }
 
 template <> string create_correct_string<double>(string original_str) {
-    double converter;
+    double converter(0);
     return numeric_conv(original_str,converter);
 }
 
 template <>
 string create_correct_string<int>(string original_str) {
-    int converter;
+    int converter(0);
     return numeric_conv(original_str,converter);
 }
 
@@ -274,12 +274,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(compression_test,T,test_allocator_types) {
             start = chrono::system_clock::now();
             b1.compress();
             end = chrono::system_clock::now();
-            chrono::duration<double> compress_time = end-start;
             //do the uncompress
             start = chrono::system_clock::now();
             b1.uncompress();
             end = chrono::system_clock::now();
-            chrono::duration<double> uncompress_time = end-start;
             // compare the two blocks should be equal
             BOOST_CHECK(b1==b2);
         }

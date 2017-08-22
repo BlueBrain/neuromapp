@@ -108,7 +108,7 @@ namespace neuromapp {
     class align {
         public:
             typedef std::size_t size_type;
-            const static size_type boundary = 16; // always multiple of 32 byte
+            const static size_type boundary = 32; // always multiple of 32 byte
 
             /**
              * allocate_policy 

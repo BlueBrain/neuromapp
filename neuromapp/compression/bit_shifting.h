@@ -118,7 +118,8 @@ template <typename T>
 typename Conv_info<T>::bytetype get_exp(T val) {
     cbit_holder<T> cb;
     cb.conv_bits.val = val;
-    typename Conv_info<T>::bytetype mask = (1 << Conv_info<T>::exp_size)-1;
+    typename Conv_info<T>::bytetype one(1);
+    typename Conv_info<T>::bytetype mask = (one << Conv_info<T>::exp_size)-one;
     typename Conv_info<T>::bytetype shift = Conv_info<T>::total - Conv_info<T>::exp_size - Conv_info<T>::sign_size;
     return (cb.conv_bits.bits >> shift) &  mask ; 
 }
@@ -128,7 +129,8 @@ template <typename T>
 typename Conv_info<T>::bytetype get_mant(T val) {
     cbit_holder<T> cb;
     cb.conv_bits.val=val;
-    typename Conv_info<T>::bytetype mask = (1 << Conv_info<T>::mant_size)-1;
+    typename Conv_info<T>::bytetype one(1);
+    typename Conv_info<T>::bytetype mask = (one << Conv_info<T>::mant_size)-one;
     return cb.conv_bits.bits & mask; 
 }
 
@@ -156,7 +158,7 @@ value_type get_dec(typename Conv_info<value_type>::bytetype bits){
             * @return void
             */
         void convert_to_parts(value_type * unsplit_ptr,block<typename Conv_info<value_type>::bytetype,allocator_type> & split_block){
-            int cells = split_block.dim0()* split_block.num_rows();
+            int cells = split_block.num_cols()* split_block.num_rows();
 
             insert_minder<value_type> sign_inserter(0,Conv_info<value_type>::sign_size);
             insert_minder<value_type> exp_inserter(cells,Conv_info<value_type>::exp_size);
@@ -189,7 +191,7 @@ value_type get_dec(typename Conv_info<value_type>::bytetype bits){
             * @return void
             */
     void convert_from_parts(value_type * unsplit_ptr,block<typename Conv_info<value_type>::bytetype,allocator_type> & split_block){
-            int cells = split_block.dim0()* split_block.num_rows();
+        int cells = split_block.num_cols()* split_block.num_rows();
         insert_minder<value_type> sign_inserter(0,Conv_info<value_type>::sign_size);
         insert_minder<value_type> exp_inserter(cells,Conv_info<value_type>::exp_size);
         insert_minder<value_type> mant_inserter(Conv_info<value_type>::exp_size*cells+cells,Conv_info<value_type>::mant_size);
@@ -216,7 +218,7 @@ value_type get_dec(typename Conv_info<value_type>::bytetype bits){
             */
         block<typename Conv_info<value_type>::bytetype, allocator_type> generate_split_block(block<value_type,allocator_type> & unsplit_block) {
             size_type rows_ = unsplit_block.num_rows();
-            size_type cols_=unsplit_block.dim0();
+            size_type cols_ = unsplit_block.dim0();
             block<typename Conv_info<value_type>::bytetype,allocator_type> split_block(cols_,rows_);
             convert_to_parts(unsplit_block.data(),split_block);
             return split_block;
@@ -235,7 +237,7 @@ value_type get_dec(typename Conv_info<value_type>::bytetype bits){
             */
         block<value_type,allocator_type> generate_unsplit_block(block<typename Conv_info<value_type>::bytetype,allocator_type> & split_block) {
             size_type rows_ = split_block.num_rows();
-            size_type cols_=split_block.dim0();
+            size_type cols_= split_block.dim0();
             block<value_type,allocator_type> unsplit_block(cols_,rows_);
             convert_from_parts(unsplit_block.data(),split_block);
             return unsplit_block;

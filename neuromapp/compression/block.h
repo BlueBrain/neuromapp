@@ -120,7 +120,7 @@ namespace neuromapp {
             block(size_type n = 1, size_type m = 1) : rows_(m) {
                 dim0_ = n;                                      // dim0 not necessary = num_cols due to the resize
                 cols_ = resize_helper<allocator>(n, sizeof(T)); // some policy will resize the col, needs for 2D !
-                current_size = sizeof(T) * dim0_ * rows_;
+                current_size = sizeof(T) * cols_ * rows_;
                 data_ = (pointer)allocate_policy(current_size);
             }
 
