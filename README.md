@@ -73,6 +73,12 @@ This directory contains a miniapp that simulates synapse models from NEST.
 You can disable the compilation of this mini-app by using the following variable in cmake
 command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
 
+## neuromapp/compression
+
+This directory contains a miniapp that simulates in memory compression for neuro science.
+
+You can disable the compilation of this mini-app by using the following variable in cmake
+command: '-DNEUROMAPP_DISABLE_COMPRESSION=TRUE'
 
 # Installation Instructions #
 
