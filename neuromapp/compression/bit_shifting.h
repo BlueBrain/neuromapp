@@ -193,9 +193,6 @@ value_type get_dec(typename Conv_info<value_type>::bytetype bits){
         insert_minder<value_type> sign_inserter(0,Conv_info<value_type>::sign_size);
         insert_minder<value_type> exp_inserter(cells,Conv_info<value_type>::exp_size);
         insert_minder<value_type> mant_inserter(Conv_info<value_type>::exp_size*cells+cells,Conv_info<value_type>::mant_size);
-        typename Conv_info<value_type>::bytetype sign; 
-        typename Conv_info<value_type>::bytetype exp; 
-        typename Conv_info<value_type>::bytetype mant;
         typename Conv_info<value_type>::bytetype * split_blk_ptr = split_block.data();
         for (int i = 0;i< cells ; i++) {
             typename Conv_info<value_type>::bytetype aggregate = 0;

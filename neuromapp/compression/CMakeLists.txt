@@ -6,7 +6,7 @@ if(NEUROMAPP_COMPRESSION)
     configure_file("${PROJECT_SOURCE_DIR}/neuromapp/compression/common/data/path.h.in"
                    "${PROJECT_BINARY_DIR}/neuromapp/compression/common/data/path.h")
     add_library (compression main.cpp)
-    add_executable(shfts shifts.cpp)
+#    add_executable(shfts shifts.cpp)
     if ( ZLIB_FOUND )
         ## this is according to cmake third parties SE post
         include_directories( ${ZLIB_INCLUDE_DIRS})
@@ -14,7 +14,7 @@ if(NEUROMAPP_COMPRESSION)
     endif (ZLIB_FOUND)
 
     set_target_properties(compression PROPERTIES COMPILE_FLAGS "-Wall -Wextra -pedantic-errors")
-    set_target_properties(shfts PROPERTIES COMPILE_FLAGS "-Wall -Wextra -pedantic-errors")
+#    set_target_properties(shfts PROPERTIES COMPILE_FLAGS "-Wall -Wextra -pedantic-errors")
 
     
 

@@ -77,7 +77,7 @@ namespace neuromapp {
                 
                 os << " running lvl1 compute ";
                 double * ptr = blk.data();
-                for (int i = 0;i< blk.dim0()*blk.num_rows();i++) {
+                for (std::size_t i = 0;i< blk.dim0()*blk.num_rows();i++) {
                     double result = *ptr +5.0;//arbitrary 5.0
                     ptr++;
                 }
