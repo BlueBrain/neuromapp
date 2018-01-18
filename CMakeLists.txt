@@ -57,6 +57,8 @@ endif()
 ## MPI link flags need to be overwritten on BG/Q
 include(BlueGenePortability)
 
+## Cray System compatibility (libraries wrappers and specific compiler options)
+include(CrayPortability)
 
 # include all directories
 include_directories(${Boost_INCLUDE_DIRS} ${MPI_C_INCLUDE_PATH} )
