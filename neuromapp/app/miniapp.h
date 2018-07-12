@@ -62,6 +62,11 @@
 #include "iobench/iobench.h"
 #endif
 
+//should I include all of the headers?
+#if NEUROMAPP_COMPRESSION_MAPP
+#include "compression/compression.h"
+#endif
+
 #include "app/driver.h"
 
 //! Generic namespace for all the mini-apps
@@ -94,6 +99,10 @@ void register_miniapps(mapp::driver &d) {
 #endif
 #if NEUROMAPP_IOBENCH_MAPP
     d.insert("iobench",iobench_execute);
+#endif
+//note should change suffix to execute when time comes
+#if NEUROMAPP_COMPRESSION_MAPP
+    d.insert("compression",comp_execute);
 #endif
 
 }

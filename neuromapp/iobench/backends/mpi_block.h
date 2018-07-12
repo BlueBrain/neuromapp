@@ -119,8 +119,8 @@ void MPIBKV::openFile(iobench::args *a)
          int elems = 3; // LB + 1 block of data + UB
          size_t min_size = a->valuesize() * a->npairs();
          _blockSize = min_size * a->procs();
-         int lengths[] = {1, min_size, 1};
-         MPI_Aint displacements[] = {0, min_size * a->rank(), _blockSize};
+         int lengths[] = {1, (int)min_size, 1};
+         MPI_Aint displacements[] = {0, (MPI_Aint)min_size * a->rank(), (MPI_Aint)_blockSize};
          MPI_Datatype data_types[] = {MPI_LB, MPI_BYTE, MPI_UB};
 
          MPI_Type_struct(elems, &lengths[0], &displacements[0], &data_types[0], &_fileDesc._filetype);

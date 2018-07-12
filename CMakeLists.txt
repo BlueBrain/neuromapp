@@ -32,8 +32,10 @@ option (NEUROMAPP_CURSOR "Allow the use of cursors during input" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake)
 include(Compiler)
-string(REPLACE "-std=c++11" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-string(REPLACE "-std=c++0x" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+if (BLUEGENE)
+    string(REPLACE "-std=c++11" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+    string(REPLACE "-std=c++0x" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 
 
@@ -44,6 +46,13 @@ find_package(Boost 1.44 REQUIRED chrono program_options unit_test_framework syst
 find_package(HDF5)
 find_package(SLURM)
 find_package(MPI)
+
+option (NEUROMAPP_COMPRESSION "Build the compression miniapp" ON)
+if(NEUROMAPP_COMPRESSION)
+    find_package(ZLIB REQUIRED)
+    set(NEUROMAPP_ENABLE_COMPRESSION_MAPP TRUE)
+endif()
+
 
 ## MPI link flags need to be overwritten on BG/Q
 include(BlueGenePortability)
@@ -87,7 +96,10 @@ execute_process(COMMAND unzip -o ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/
 #prepare the ref solution for the test
 execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/coreneuron_1.0/common/data/rhs_d_ref.tar.gz
                             -C    ${PROJECT_BINARY_DIR}/test/)
-                            
+#get compression csvs included correctly
+execute_process(COMMAND tar -xzvf ${PROJECT_SOURCE_DIR}/neuromapp/compression/common/data/block_csvs.tar.gz
+                            -C    ${PROJECT_BINARY_DIR}/test/)
+
 file(COPY ${PROJECT_SOURCE_DIR}/neuromapp/hdf5/data/syn_test_126_comp.h5 DESTINATION ${PROJECT_BINARY_DIR}/test/)
 
 find_package(Doxygen)

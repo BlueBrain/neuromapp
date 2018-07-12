@@ -42,7 +42,9 @@ int kernel_print_usage() {
     printf("                 --mechanism [Na, ProbAMPANMDA or Ih] \n");
     printf("                 --function [state or current] \n");
     printf("                 --data [path to the input] \n");
-    printf("                 --numthread [threadnumber] \n");
+    printf("                 --duplicate [duplicate number = 1 ] \n");
+    printf("                 --step [step number = 1 ] \n");
+    printf("                 --numthread [threadnumber = 1] \n");
     printf("                 --name [to internally reference the data, default name coreneuron_1.0_kernel_data] \n");
     return MAPP_USAGE;
 }
@@ -73,6 +75,8 @@ int kernel_help(int argc, char * const argv[], struct input_parameters * p)
   p->d = "";
   p->th = 1; // one omp thread by default
   p->name = "coreneuron_1.0_kernel_data";
+  p->duplicate = 1;
+  p->step = 1;
 
   optind = 0;
 
@@ -84,15 +88,17 @@ int kernel_help(int argc, char * const argv[], struct input_parameters * p)
           {"mechanism", required_argument, 0, 'm'},
           {"function",  required_argument, 0, 'f'},
           {"data",  required_argument,     0, 'd'},
+          {"duplicate",  required_argument, 0, 'u'},
           {"numthread",  required_argument,0, 't'},
           {"name",  required_argument,     0, 'n'},
+          {"step",  required_argument,     0, 's'},
 
           {0, 0, 0, 0}
       };
       /* getopt_long stores the option index here. */
       int option_index = 0;
 
-      c = getopt_long (argc, argv, "m:f:d:t:n:",
+      c = getopt_long (argc, argv, "m:f:d:t:u:s:n:",
                        long_options, &option_index);
       /* Detect the end of the options. */
       if (c == -1)
@@ -117,6 +123,12 @@ int kernel_help(int argc, char * const argv[], struct input_parameters * p)
               break;
           case 't':
               p->th = atoi(optarg);
+              break;
+          case 'u':
+              p->duplicate = atoi(optarg);
+              break;
+          case 's':
+              p->step = atoi(optarg);
               break;
           case 'n':
               p->name = optarg;
