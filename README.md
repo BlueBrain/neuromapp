@@ -78,7 +78,7 @@ command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
 This directory contains a miniapp that simulates in memory compression for neuro science.
 
 You can disable the compilation of this mini-app by using the following variable in cmake
-command: '-DNEUROMAPP_DISABLE_COMPRESSION=TRUE'
+command: '-DNEUROMAPP_COMPRESSION=FALSE'
 
 # Installation Instructions #
 
@@ -95,6 +95,8 @@ $ cmake .. -DCMAKE_INSTALL_PREFIX=$NEUROMAPP_INST_DIR
 $ make
 $ make install
 ```
+
+> Note : On OS X with Clang compiler we need to disable compression miniapp using '-DNEUROMAPP_COMPRESSION=FALSE'
 
 If you're using GCC 5.1 and above, you may have issues if your full stack (e.g. BOOST) has not been
 compiled with C++11 due to the std::string implementation that changes with GCC 4.9.
