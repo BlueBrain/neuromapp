@@ -88,6 +88,12 @@ This directory contains a miniapp that simulates synapse models from NEST.
 You can disable the compilation of this mini-app by using the following variable in cmake
 command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
 
+## neuromapp/compression
+
+This directory contains a miniapp that simulates in memory compression for neuro science.
+
+You can disable the compilation of this mini-app by using the following variable in cmake
+command: '-DNEUROMAPP_COMPRESSION=FALSE'
 
 # Installation Instructions #
 
@@ -105,7 +111,11 @@ $ make
 $ make install
 ```
 
-If you're using GCC 5.1 and above, please add the following flag to your ```cmake``` 
+> Note : On OS X with Clang compiler we need to disable compression miniapp using '-DNEUROMAPP_COMPRESSION=FALSE'
+
+If you're using GCC 5.1 and above, you may have issues if your full stack (e.g. BOOST) has not been
+compiled with C++11 due to the std::string implementation that changes with GCC 4.9.
+In this case, please add the following flag to your ```cmake``` 
 command to tell GCC to not use the C++11 ABI:
 ```
 -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0

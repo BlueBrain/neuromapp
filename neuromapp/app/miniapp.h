@@ -66,6 +66,10 @@
 #include "readi/readi.h"
 #endif
 
+#if NEUROMAPP_COMPRESSION_MAPP
+#include "compression/compression.h"
+#endif
+
 #include "app/driver.h"
 
 //! Generic namespace for all the mini-apps
@@ -97,10 +101,14 @@ void register_miniapps(mapp::driver &d) {
     d.insert("replib",replib_execute);
 #endif
 #if NEUROMAPP_IOBENCH_MAPP
-    d.insert("iobench",iobench_execute);
+    d.insert("iobench"#endif,iobench_execute);
 #endif
 #if NEUROMAPP_READI_MAPP
     d.insert("readi",readi_execute);
+#endif
+//note should change suffix to execute when time comes
+#if NEUROMAPP_COMPRESSION_MAPP
+    d.insert("compression",comp_execute);
 #endif
 
 }

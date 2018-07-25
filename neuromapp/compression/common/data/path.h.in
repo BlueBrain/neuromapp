@@ -1,0 +1,15 @@
+#ifndef NEUROMAPP_PATH
+#define NEUROMAPP_PATH
+
+namespace mapp {
+    /** copying of the path used in the coreneuron miniapp
+     */
+
+    struct path_specifier {
+        const std::string static give_path() {
+            return "@PROJECT_BINARY_DIR@/test/";
+        }
+    };
+}
+#endif
+

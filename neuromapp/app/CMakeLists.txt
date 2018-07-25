@@ -97,6 +97,16 @@ else()
     message(STATUS "Ignoring readi mini-app")
 endif()
 
+# compression mini-app
+if(NEUROMAPP_COMPRESSION_MAPP)
+    target_link_libraries (app
+                           compression)
+    add_definitions(-DNEUROMAPP_COMPRESSION_MAPP=1)
+    message(STATUS "Adding compression mini-app")
+else()
+    add_definitions(-DNEUROMAPP_COMPRESSION_MAPP=0)
+    message(STATUS "Ignoring compression mini-app")
+endif()
 
 # Other needed libraries
 target_link_libraries (app

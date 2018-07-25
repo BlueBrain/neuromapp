@@ -41,4 +41,7 @@ endif()
 
 if(NEUROMAPP_READI_MAPP)
     add_subdirectory (readi)
+
+if(NEUROMAPP_COMPRESSION_MAPP)
+    add_subdirectory(compression)
 endif()

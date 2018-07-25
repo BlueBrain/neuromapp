@@ -15,3 +15,4 @@
  * mpi: contains several MPI utilities, like timer, printing, creating/destroying MPI env, etc.
  * omp: wrapper to OMP functions. This avoids having ifdef's in mini-app codes to check whether OMP is present or not
  * storage: a library to handle data loading and sharing between miniapps
+* compression: a program to experiment with performance changes when data compression is incorporated
