@@ -27,6 +27,7 @@
 #define MAPP_READI_RNG_UTILS_
 
 #include <cassert>
+#include <cmath>
 
 
 namespace readi {

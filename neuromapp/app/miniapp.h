@@ -101,7 +101,7 @@ void register_miniapps(mapp::driver &d) {
     d.insert("replib",replib_execute);
 #endif
 #if NEUROMAPP_IOBENCH_MAPP
-    d.insert("iobench"#endif,iobench_execute);
+    d.insert("iobench",iobench_execute);
 #endif
 #if NEUROMAPP_READI_MAPP
     d.insert("readi",readi_execute);

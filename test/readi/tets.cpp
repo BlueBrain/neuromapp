@@ -18,6 +18,7 @@
  * License along with this library.
  */
 
+#include <random>
 
 #define BOOST_TEST_MODULE ReadiTest
 #include "readi/readi.h"

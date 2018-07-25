@@ -1,6 +1,5 @@
 # Use -DNEUROMAPP_DISABLE_READI=TRUE to disable compilation/installation of this mini-app
 if(NOT NEUROMAPP_DISABLE_READI)
-    add_definitions("-std=c++11")
     add_library (readi main.cpp)
     install (TARGETS readi DESTINATION lib)
     install (FILES readi.h DESTINATION include)
