@@ -31,6 +31,9 @@
 
 #include "replib/backends/basic.h"
 #include "replib/backends/mpiio.h"
+#ifdef RL_HDF5
+#include "replib/backends/hdf5p.h"
+#endif
 #ifdef RL_ADIOS
 #include "replib/backends/adios.h"
 #endif
@@ -60,6 +63,13 @@ class benchmark {
             if (c_.backend() == "mpiio") {
                 // MPI I/O backend
                 writer_ = reinterpret_cast<replib::Writer*>(new replib::MPIIOWriter());
+            } else if (c_.backend() == "h5p") {
+                // Parallel HDF5
+#ifdef RL_HDF5
+                writer_ = reinterpret_cast<replib::Writer*>(new replib::H5PWriter());
+#else
+                std::cout << "Error: asked for parallel HDF5 backend, but HDF5 library was not found." << std::endl;
+#endif
             } else if (c_.backend() == "adios") {
                 // To complete
 #ifdef RL_ADIOS
@@ -129,7 +139,7 @@ class benchmark {
         {
             writer_->init(c_);
 
-            // Each process can have a different amount of data to write, ask the write what is
+            // Each process can have a different amount of data to write, ask the writer what is
             // the exact size for each process
             unsigned int sizeToWrite = writer_->total_bytes();
 
@@ -250,8 +260,13 @@ class benchmark {
             if (c_.check()) {
                 int passed = 0;
                 if (c_.id() == 0) {
-                    c_.passed() = check_report(report, nwrites, c_.elems_per_step(), c_.procs(), units, decimals);
-                    passed = c_.passed() ? 1 : 0;
+                    if (c_.backend() == "mpiio") {
+                        c_.passed() = check_report(report, nwrites, c_.elems_per_step(), c_.procs(), units, decimals);
+                        passed = c_.passed() ? 1 : 0;
+                    } else {
+                        std::cout << "WARNING: Test check only available for MPI I/O backend" << std::endl;
+                        passed = 1;
+                    }
                 }
                 MPI_Bcast(&passed, 1, MPI_INT, 0, MPI_COMM_WORLD);
                 c_.passed() = (passed == 1) ? true : false;
@@ -294,6 +309,7 @@ class benchmark {
             // Value = RANK_ID * units + reporting_step "." index_in_buffer
             // E.g.: Value = 23045.0117 --> Value written by rank 23, at the 45th
             // reporting iteration. This value corresponds to buffer1[117]
+            // NOTE: In the IOR mode, reporting_step is always 0
             float units = 10.0;
             float nsteps = (float) rep_steps;
             while ((int) nsteps > 0) {
@@ -401,8 +417,13 @@ class benchmark {
             if (c_.check()) {
                 int passed = 0;
                 if (c_.id() == 0) {
-                    c_.passed() = check_report(report, nwrites, c_.elems_per_step(), c_.procs(), units, decimals);
-                    passed = c_.passed() ? 1 : 0;
+                    if (c_.backend() == "mpiio") {
+                        c_.passed() = check_report(report, nwrites, c_.elems_per_step(), c_.procs(), units, decimals);
+                        passed = c_.passed() ? 1 : 0;
+                    } else {
+                        std::cout << "WARNING: Test check only available for MPI I/O backend" << std::endl;
+                        passed = 1;
+                    }
                 }
                 MPI_Bcast(&passed, 1, MPI_INT, 0, MPI_COMM_WORLD);
                 c_.passed() = (passed == 1) ? true : false;

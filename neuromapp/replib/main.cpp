@@ -46,7 +46,7 @@ int replib_help(int argc, char* const argv[], po::variables_map& vm){
     desc.add_options()
     ("help,h", "Produce this help message")
 
-    ("backend,b", po::value<std::string>()->default_value("mpiio"), "[string] I/O backend to use. Supported backends: mpiio (MPI I/O), adios (ADIOS)")
+    ("backend,b", po::value<std::string>()->default_value("mpiio"), "[string] I/O backend to use. Supported backends: mpiio (MPI I/O), h5p (HDF5 parallel), adios (ADIOS)")
 
     ("numproc,p", po::value<int>()->default_value(1), "[int]    Number of MPI processes")
 
