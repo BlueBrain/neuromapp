@@ -152,14 +152,17 @@ void statistics::print(std::ostream& os) const {
 
 
     // CSV output data format:
-    // miniapp_name, num_procs, writeMode, invertRanks, numCells, simulationSteps, reportingSteps,
+    // miniapp_name, num_procs, backend, writeMode, invertRanks,
+    // HDF5chunkRows, HDF5chunkColumns,
+    // numCells, simulationSteps, reportingSteps,
     // avgRankBW (MB/s), aggregatedBW (MB/s), OWCaggrBW (MB/s), WCaggrBW (MB/s), WaggrBW (MB/s),
     // maxBW, maxBWsize, maxBWrank, minBW, minBWsize, minBWrank
-    os << "RLMAPP," << c_.procs() << "," << c_.write() << "," << ( c_.invert() ? "inv" : "seq" ) << ","
-            << c_.numcells() << "," << c_.sim_steps() << "," << c_.rep_steps() << "," << std::fixed
-            << g_mbw_ << "," << a_mbw_ << "," << owc_mbw_ << "," << wc_mbw_ << "," << w_mbw_ << ","
-            << max_.mbw_ << "," << max_.size_ << "," << max_.rank_ << "," << min_.mbw_ << ","
-            << min_.size_ << "," << min_.rank_ << std::endl;
+    os << "RLMAPP," << c_.procs() << "," << c_.backend() << "," << c_.write() << "," << ( c_.invert() ? "inv" : "seq" )
+            << "," << c_.h5_ch_r() << "," << c_.h5_ch_c()
+            << "," << c_.numcells() << "," << c_.sim_steps() << "," << c_.rep_steps() << ","
+            << std::fixed << g_mbw_ << "," << a_mbw_ << "," << owc_mbw_ << "," << wc_mbw_ << "," << w_mbw_ << ","
+            << max_.mbw_ << "," << max_.size_ << "," << max_.rank_ << ","
+            << min_.mbw_ << "," << min_.size_ << "," << min_.rank_ << std::endl;
 }
 
 }
