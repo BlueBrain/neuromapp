@@ -19,13 +19,22 @@ rank=1
 # Please note that the maximum value must be under 40 GB (due to integer overflow)
 # and that not all combinations work on all types of systems
 # Here are some examples:
+#bytes=65536 # 64 KB
 #bytes=102400 # 100 KB
+#bytes=131072 # 128 KB
+#bytes=256000 # 250 KB
+#bytes=262144 # 256 KB
 #bytes=409600 # 400 KB
+#bytes=524288 # 512 KB
 bytes=665600 # 650 KB --> Close to a real use case
 #bytes=1048576 # 1 MB
 #bytes=4194304 # 4 MB # Not working on BG/Q: error @ set fileview
+#bytes=8388608 # 8 MB
 #bytes=16777216 # 16 MB
+#bytes=33554432 # 32 MB
 #bytes=67108864 # 64 MB
+#bytes=134217728 # 128 MB
+#bytes=268435456 # 256 MB
 #bytes=419430400 # 400 MB
 #bytes=536870912 # 512 MB
 #bytes=4294967296 # 4 GB

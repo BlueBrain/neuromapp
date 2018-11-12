@@ -54,6 +54,8 @@ private:
     int         sim_time_ms_;
     bool        check_;
     bool        passed_;
+    size_t      h5_ch_r_;
+    size_t      h5_ch_c_;
 
 public:
     /** \fn config(int argc = 0 , char * argv[] = NULL)
@@ -63,7 +65,7 @@ public:
             procs_(1), backend_("mpiio"), write_("rnd1b"), input_dist_(""),
             output_report_(""), invert_(false), numcells_(10), sim_steps_(15),
             rep_steps_(1), elems_per_step_(0), sim_time_ms_(100), check_(false),
-            passed_(false) {
+            passed_(false), h5_ch_r_(0), h5_ch_c_(0) {
         if (argc != 0) {
             std::vector<std::string> v(argv+1, argv+argc);
             argument_helper(v,"-b",backend(),to_string());
@@ -76,6 +78,9 @@ public:
             argument_helper(v,"-r",rep_steps(),to_int());
             argument_helper(v,"-t",sim_time_ms(),to_int());
             argument_helper(v,"-v",check(),to_true());
+            argument_helper(v,"-m",h5_ch_r(),to_size_t());
+            argument_helper(v,"-n",h5_ch_c(),to_size_t());
+
         }
         // Get the number of processes and rank ID from the MPI controller
         procs_ = mapp::master.size();
@@ -97,6 +102,15 @@ public:
          */
         int operator()(std::string const& s){
             return std::atoi(s.c_str());
+        }
+    };
+
+    struct to_size_t{
+        /** \fn operator()
+         \brief functor that transform the argument to integer
+         */
+        size_t operator()(std::string const& s){
+            return (size_t) std::atoi(s.c_str());
         }
     };
 
@@ -220,6 +234,20 @@ public:
     }
 
     /**
+     \brief return chunking row size for HDF5 connector, read only
+     */
+    inline size_t h5_ch_r() const {
+        return h5_ch_r_;
+    }
+
+    /**
+     \brief return chunking column size for HDF5 connector, read only
+     */
+    inline size_t h5_ch_c() const {
+        return h5_ch_c_;
+    }
+
+    /**
      \brief return the number of processors, write only
      */
     inline int& procs() {
@@ -317,6 +345,20 @@ public:
          return passed_;
      }
 
+     /**
+      \brief return chunking row size for HDF5 connector, write only
+      */
+     inline size_t& h5_ch_r() {
+         return h5_ch_r_;
+     }
+
+     /**
+      \brief return chunking column size for HDF5 connector, write only
+      */
+     inline size_t& h5_ch_c() {
+         return h5_ch_c_;
+     }
+
     /** \brief the print function, I do not like friend function */
     void print(std::ostream& out) const {
         out << " procs: " << procs() << " \n"
@@ -330,7 +372,9 @@ public:
             << " rep_steps_: " << rep_steps() << " \n"
             << " elems_per_step_: " << elems_per_step() << " \n"
             << " sim_time_ms_: " << sim_time_ms() << " \n"
-            << " check_: " << check() << " \n";
+            << " check_: " << check() << " \n"
+            << " HDF5 chunking rows: " << h5_ch_r() << " \n"
+            << " HDF5 chunking columns: " << h5_ch_c() << " \n";
         if (check()) {
             out << "Report verification: " << ( passed() ? "PASSED" : "FAILED") << "\n";
         }

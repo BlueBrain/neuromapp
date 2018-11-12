@@ -19,13 +19,14 @@
  * License along with this library.
  */
 
-//#ifdef RL_HDF5
+#ifdef RL_HDF5
 
 #ifndef MAPP_RL_H5P_H
 #define MAPP_RL_H5P_H
 
 #include <string.h>
 #include <cstring>
+#include <cstdlib>
 
 #include "hdf5.h"
 
@@ -58,17 +59,14 @@ class H5PWriter : public replib::Writer {
         hid_t  fid_;        // File ID
         hid_t  data_ds_id_; // Group ID
         hid_t  memspace_;   // Memspace
-        hid_t  filespace_;  // Filespace
-        std::vector<hid_t>  filespaces_;  // Filespaces
-        int fs_idx_;
         hid_t  cplist_;     // Collective I/O property
         hid_t  iplist_;     // Independent I/O property
-        herr_t status_;     // Status error
 
-        hsize_t rankOffset_;    // Offset at which this rank writes wrt the beginning of current time step
+        hsize_t rankOffset_;                // Offset at which this rank writes wrt the beginning of current time step
         std::vector<hsize_t> dataOffset_;   // Offset at which each rank writes, per dimension
         std::vector<hsize_t> writeDims_;    // Dimensions of the data written by one rank at once
         std::vector<hsize_t> dataDims_;     // Total #elems written in the dataset, per dimension
+        std::vector<hsize_t> chunkDims_;    // Dimensions of the HDF5 data chunk
 
 
     public:
@@ -90,14 +88,12 @@ class H5PWriter : public replib::Writer {
     \brief create the object, no special actions required for MPI I/O
  */
 H5PWriter::H5PWriter() : numElemsPerTStep_(0), tStepsPerWrite_(0), numElemsPerWrite_(0), globalElemsPerTStep_(0),
-        totalSimTSteps_(0), fid_(0), data_ds_id_(0), memspace_(0), filespace_(0), fs_idx_(0), cplist_(0), iplist_(0), status_(0),
-        rankOffset_(0) {
+        totalSimTSteps_(0), fid_(0), data_ds_id_(0), memspace_(0), cplist_(0), iplist_(0), rankOffset_(0) {
     // Create vectors of 2 dimensions
-    filespaces_ = std::vector<hid_t>();
     dataOffset_ = std::vector<hsize_t>(2);
     writeDims_ = std::vector<hsize_t>(2);
     dataDims_ = std::vector<hsize_t>(2);
-
+    chunkDims_ = std::vector<hsize_t>(2);
 }
 
 
@@ -133,8 +129,22 @@ void H5PWriter::init(replib::config &c) {
     // MPI_Scan is inclusive, subtract the elements of the current rank to find out the real offset
     rankOffset_ -= numElemsPerTStep_;
 
-    filespaces_.reserve(c.rep_steps());
+    // Choose chunk dimensions of the dataset from config or by default
+    // The maximum number of elements in a chunk is (2^32)-1
+    // The maximum size for any chunk is 4 GB
+    if (c.h5_ch_r() == 0) {
+        chunkDims_[0] = std::min(totalSimTSteps_, tStepsPerWrite_* 2); // timesteps
+        c.h5_ch_r() = chunkDims_[0];
+    } else {
+        chunkDims_[0] = c.h5_ch_r();
+    }
 
+    if (c.h5_ch_c() == 0) {
+        chunkDims_[1] = std::min((size_t) 2048, globalElemsPerTStep_); // compartments
+        c.h5_ch_c() = chunkDims_[1];
+    } else {
+        chunkDims_[1] = c.h5_ch_c();
+    }
 }
 
 
@@ -148,74 +158,194 @@ inline void H5PWriter::open(char * report) {
     hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
     H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, info);
 
-    // Create a new file collectively
-    fid_ = H5Fcreate(report, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
-
-    // Release property list identifier
-    H5Pclose(plist_id);
-
-    // https://stackoverflow.com/questions/15379399/writing-appending-arrays-of-float-to-the-only-dataset-in-hdf5-file-in-c
-
-
-    /* Create dataset '/data' */
-    // Dataset dimensions
-    dataDims_[0] = totalSimTSteps_; //0; //tStepsPerWrite_; --> We'll extend it at each write
-    dataDims_[1] = globalElemsPerTStep_;
-    int nDims = dataDims_.size();
-    std::vector<hsize_t> maxDims = std::vector<hsize_t>(2);
-    maxDims[0] = totalSimTSteps_;
-    maxDims[1] = dataDims_[1];
-
-    // Dataset chunking
-    // The maximum number of elements in a chunk is (2^32)-1
-    // The maximum size for any chunk is 4 GB
-    std::vector<hsize_t> chDims = std::vector<hsize_t>(2);
-    chDims[0] = std::min(totalSimTSteps_, tStepsPerWrite_* 2); // timesteps
-    chDims[1] = std::min((size_t) 2000, globalElemsPerTStep_); //numComps; // compartments
-    int chnDims = chDims.size();
-
-    // Create dataset with chunking
-    hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_layout(dcpl, H5D_CHUNKED);
-    // Create the dataspace for the dataset
-    hid_t space = H5Screate_simple(nDims, &dataDims_[0], &maxDims[0]);
-    hid_t err = H5Pset_chunk(dcpl, chnDims, &chDims[0]);
-    // Create the dataset with default properties
-    data_ds_id_ = H5Dcreate2(fid_, "/data", H5T_NATIVE_FLOAT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
-    // Close filespace
-    H5Sclose(space);
-    H5Pclose(dcpl);
-
     // Create property lists for collective/independent dataset write
     cplist_ = H5Pcreate(H5P_DATASET_XFER);
     iplist_ = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(cplist_, H5FD_MPIO_COLLECTIVE);
     H5Pset_dxpl_mpio(iplist_, H5FD_MPIO_INDEPENDENT);
 
+    // Create a new file collectively
+    fid_ = H5Fcreate(report, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+
+    // Release property list identifier
+    H5Pclose(plist_id);
+
+    /* Create file attributes (Brion compatibility) */
+    // magic
+    int attr_value = 2682;
+    hsize_t attr_size = 1;
+    hid_t attr_space = H5Screate_simple(1, &attr_size, &attr_size);
+    hid_t attr_magic_id = H5Acreate2(fid_, "magic", H5T_STD_U32LE, attr_space, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(attr_magic_id, H5T_NATIVE_INT, (void*) &attr_value);
+    H5Aclose (attr_magic_id);
+    H5Sclose (attr_space);
+
+    // version
+    int attr_values[2];
+    attr_values[0] = 0;
+    attr_values[1] = 1;
+    attr_size = 2;
+    attr_space = H5Screate_simple(1, &attr_size, &attr_size);
+    hid_t attr_version_id = H5Acreate(fid_, "version", H5T_STD_U32LE, attr_space, H5P_DEFAULT, H5P_DEFAULT);
+    H5Awrite(attr_version_id, H5T_NATIVE_INT, (void*) &attr_values[0]);
+    H5Aclose (attr_version_id);
+    H5Sclose (attr_space);
+
+    /* Create group /mapping (Brion compatibility) */
+    hid_t group_id = H5Gcreate2(fid_, "/mapping", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+
+    // Create list of GIDs, #compartments per gid, etc
+    // We assume each neuron has around 1500 compartments (synapses, in fact)
+    unsigned int compsLeft = numElemsPerTStep_;
+    std::vector<int> numComps = std::vector<int>();
+    std::vector<unsigned int> gids = std::vector<unsigned int>();
+    int nextgid = (mapp::controler::getInstance().rank() + 1) * 100000;
+    // Set random seed for reproducibility
+    std::srand(23487);
+    while (compsLeft > 0) {
+        // Get a random value between -500 and 500, add it to 1500 to get a random number of compartments (or synapses)
+        int nextcomps = 1500 + ((std::rand() % 1000) - 500);
+        if (nextcomps > compsLeft)
+            nextcomps = compsLeft;
+        compsLeft -= nextcomps;
+
+        nextgid++;
+
+        numComps.push_back(nextcomps);
+        gids.push_back(nextgid);
+    }
+    unsigned int numGids = gids.size();
+
+    // Coordinate with the other ranks: global number of GIDs and rank offset
+    int globalNumGids = 0;
+    int offset = 0;
+    MPI_Allreduce(&numGids, &globalNumGids, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Scan(&numGids, &offset, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    // Scan includes rank's value, subtract it
+    offset -= numGids;
+
+    std::vector<unsigned int> gidIndex = std::vector<unsigned int>(numGids);
+    gidIndex[0] = rankOffset_;
+    for (int i = 1; i < gidIndex.size(); i++)
+        gidIndex[i] = gidIndex[i-1] + numComps[i-1];
+
+    std::vector<int> sectionId = std::vector<int>(numElemsPerTStep_);
+    int index = 0;
+    for (int g = 0; g < numGids; g++) {
+        int ncomps = numComps[g];
+        for (int i = 0; i < ncomps; i++) {
+            sectionId[index] = i;
+            index++;
+        }
+    }
+
+    std::vector<double> time = std::vector<double>(3);
+    time[0] = 0.0; // tstart
+    time[1] = totalSimTSteps_ * 0.1; // tstop
+    time[2] = 0.1; // tstep
+
+    // /mapping/gids dataset
+    hsize_t gdims = globalNumGids;
+    hid_t gdataspace = H5Screate_simple(1, &gdims, NULL);
+    hid_t gdataset = H5Dcreate2(fid_, "/mapping/gids", H5T_STD_U32LE, gdataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    hsize_t off = offset;
+    hsize_t dim = numGids;
+    hid_t filespace = H5Dget_space(gdataset);
+    hid_t memspace = H5Screate_simple(1, &dim, NULL);
+    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &off, NULL, &dim, NULL);
+    H5Dwrite(gdataset, H5T_NATIVE_INT, memspace, filespace, iplist_, (void*) &gids[0]);
+
+    H5Sclose(memspace);
+    H5Sclose(filespace);
+    H5Sclose(gdataspace);
+    H5Dclose(gdataset);
+
+    // /mapping/index_pointer dataset
+    hsize_t ipdims = globalNumGids;
+    hid_t ipdataspace = H5Screate_simple(1, &ipdims, NULL);
+    hid_t ipdataset = H5Dcreate2(fid_, "/mapping/index_pointer", H5T_STD_U64LE, ipdataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    off = offset;
+    dim = numGids;
+    filespace = H5Dget_space(ipdataset);
+    memspace = H5Screate_simple(1, &dim, NULL);
+    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &off, NULL, &dim, NULL);
+    H5Dwrite(ipdataset, H5T_NATIVE_INT, memspace, filespace, iplist_, (void*) &gidIndex[0]);
+
+    H5Sclose(memspace);
+    H5Sclose(filespace);
+    H5Sclose(ipdataspace);
+    H5Dclose(ipdataset);
+
+    // /mapping/element_id dataset
+    hsize_t edims = globalElemsPerTStep_;
+    hid_t edataspace = H5Screate_simple(1, &edims, NULL);
+    hid_t edataset = H5Dcreate2(fid_, "/mapping/element_id", H5T_STD_U32LE, edataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    off = rankOffset_;
+    dim = numElemsPerTStep_;
+    filespace = H5Dget_space(edataset);
+    memspace = H5Screate_simple(1, &dim, NULL);
+    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &off, NULL, &dim, NULL);
+    H5Dwrite(edataset, H5T_NATIVE_INT, memspace, filespace, iplist_, (void*) &sectionId[0]);
+
+    H5Sclose(memspace);
+    H5Sclose(filespace);
+    H5Sclose(edataspace);
+    H5Dclose(edataset);
+
+
+    // /mapping/time dataset
+    hsize_t tdims = 3;
+    hid_t tdataspace = H5Screate_simple(1, &tdims, NULL);
+    hid_t tdataset = H5Dcreate2(fid_, "/mapping/time", H5T_IEEE_F64LE, tdataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(tdataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &time[0]);
+    H5Sclose(tdataspace);
+    H5Dclose(tdataset);
+
+    // Close /mapping group
+    H5Gclose(group_id);
+
+
+    // https://stackoverflow.com/questions/15379399/writing-appending-arrays-of-float-to-the-only-dataset-in-hdf5-file-in-c
+
+    /* Create dataset '/data' */
+    // Dataset dimensions
+    dataDims_[0] = totalSimTSteps_;
+    dataDims_[1] = globalElemsPerTStep_;
+    int nDims = dataDims_.size();
+    std::vector<hsize_t> maxDims = std::vector<hsize_t>(2);
+    maxDims[0] = totalSimTSteps_;
+    maxDims[1] = dataDims_[1];
+
+    // Dataset chunking dimensions
+    int chnDims = chunkDims_.size();
+
+    // Create dataset with chunking
+    hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
+    H5Pset_layout(dcpl, H5D_CHUNKED);
+    // Create the dataspace for the dataset
+    hid_t space = H5Screate_simple(nDims, &dataDims_[0], &maxDims[0]);
+    hid_t err = H5Pset_chunk(dcpl, chnDims, &chunkDims_[0]);
+    // Create the dataset with default properties
+    data_ds_id_ = H5Dcreate2(fid_, "/data", H5T_NATIVE_FLOAT, space, H5P_DEFAULT, dcpl, H5P_DEFAULT);
+    // Close filespace
+    H5Sclose(space);
+    H5Pclose(dcpl);
+
     // Create initial vectors of offsets and length counts
     // Setting the appropriate offsets and counts is tricky
     // This presentation was super useful to understand how hyperslabs work:
     // http://www.speedup.ch/workshops/w37_2008/HDF5-Tutorial-PDF/PSI-HDF5-PARALLEL.pdf
-    //std::vector<hsize_t> offset = std::vector<hsize_t>(2);
     dataOffset_[0] = 0;
     dataOffset_[1] = rankOffset_;
-    //std::vector<hsize_t> writeDims_ = std::vector<hsize_t>(2);
     writeDims_[0] = tStepsPerWrite_; // #rows at a time
     writeDims_[1] = numElemsPerTStep_; // #comps at a time
 
-    /* Create memspace and filespace hyperslabs */
+    /* Create memspace for hyperslabs */
     memspace_ = H5Screate_simple(writeDims_.size(), &writeDims_[0], NULL);
-    filespace_ = H5Dget_space(data_ds_id_);
-
-
-    for (int count = 0; count < filespaces_.capacity(); count++) {
-        hid_t filespace = H5Dget_space(data_ds_id_);
-        H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &dataOffset_[0], NULL, &writeDims_[0], NULL);
-        filespaces_.push_back(filespace);
-        dataOffset_[0] += tStepsPerWrite_;
-    }
-    fs_idx_ = 0;
-
 }
 
 /** \fun open(mapp::timer &t_io, const std::string & path)
@@ -229,7 +359,6 @@ void H5PWriter::open(mapp::timer &t_io, const std::string & path) {
     t_io.tic();
     open(report);
     t_io.toc();
-
 }
 
 
@@ -239,26 +368,17 @@ inline void H5PWriter::write(float * buffer, size_t count) {
     /* Extend the dataset */
     // We could extend the dataset at each write, but this is not efficient at all!
     //dataDims_[0] += tStepsPerWrite_;
-    // dataDims_[1] = globalElemsPerTStep_; --> Value doesn't change
+    //dataDims_[1] = globalElemsPerTStep_; --> Value doesn't change
     //H5Dset_extent(data_ds_id_, &dataDims_[0]);
 
-
-
-    /** first we discard elements from filespace by retaining only needed ones and then start adding new sub-dimensions */
-    //if(writeDims_.empty()) {
-    //    H5Sselect_none(filespace_);
-    //    H5Sselect_none(memspace_);
-    //} else {
-    //    H5Sselect_hyperslab(filespace_, H5S_SELECT_SET, &dataOffset_[0], NULL, &writeDims_[0], NULL);
-    //}
+    hid_t filespace = H5Dget_space(data_ds_id_);
+    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &dataOffset_[0], NULL, &writeDims_[0], NULL);
 
     /* Write the dataset */
-    H5Dwrite(data_ds_id_, H5T_NATIVE_FLOAT, memspace_, filespaces_[fs_idx_], cplist_, (void*) buffer);
-    fs_idx_++;
+    H5Dwrite(data_ds_id_, H5T_NATIVE_FLOAT, memspace_, filespace, cplist_, (void*) buffer);
+    H5Sclose(filespace);
 
-
-
-    //dataOffset_[0] += tStepsPerWrite_;
+    dataOffset_[0] += tStepsPerWrite_;
 }
 
 /** \fun write(mapp::timer &t_io, float * buffer, size_t count)
@@ -275,12 +395,7 @@ void H5PWriter::write(mapp::timer &t_io, float * buffer, size_t count) {
 /** \fun close()
     \brief Close the file. Inline version to be as fast as possible */
 inline void H5PWriter::close() {
-
-    for (int i = 0; i < filespaces_.size(); i++)
-        H5Sclose(filespaces_[i]);
-    H5Sclose(filespace_);
     H5Sclose(memspace_);
-
     H5Pclose(cplist_);
     H5Pclose(iplist_);
     H5Dclose(data_ds_id_);
@@ -305,4 +420,4 @@ unsigned int H5PWriter::total_bytes() {
 } // end namespace
 
 #endif // MAPP_RL_H5P_H
-//#endif // RL_HDF5
+#endif // RL_HDF5
