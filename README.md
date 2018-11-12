@@ -22,8 +22,9 @@ of coreneuron, 3 miniapps are available: kernel and solver
 * cstep: It combines the kernel and the solver to mimic a step time of neuron simulator
 
 * queue: This miniapp simulates the queueing system of CoreNeuron.
+
  
-##hello
+## neuromapp/hello
 
 This directory provides an example of how could be design a miniapp (C++)
 
@@ -55,6 +56,20 @@ For more information, run the mini-app with the --help argument.
 You can disable the compilation of this mini-app by using the following variable in cmake
 command: '-DNEUROMAPP_DISABLE_KEYVALUE=TRUE'
 
+## neuromapp/readi
+
+This directory contains a miniapp implementing a reaction-diffusion simulator
+based on operator splitting, as in TetOpSplit solver of STEPS software package.
+To run the simulation on a simple model with 10 species and 8 reactions, go to
+the `build` directory and execute the mini-app with the following arguments:
+
+`./neuromapp/app/app readi --filename_mesh ../neuromapp/readi/dataset/data_mesh --filename_model ../neuromapp/readi/dataset/data_model`
+
+For more information, run the mini-app with the `--help` argument.
+
+You can disable the compilation of this mini-app by setting
+`-DNEUROMAPP_DISABLE_READI=TRUE` when running cmake.
+
 ## neuromapp/replib
 
 This directory contains a miniapp that mimics the behavior of Neuron's ReportingLib. 
@@ -78,7 +93,7 @@ command: '-DNEUROMAPP_DISABLE_NEST=TRUE'
 This directory contains a miniapp that simulates in memory compression for neuro science.
 
 You can disable the compilation of this mini-app by using the following variable in cmake
-command: '-DNEUROMAPP_DISABLE_COMPRESSION=TRUE'
+command: '-DNEUROMAPP_COMPRESSION=FALSE'
 
 # Installation Instructions #
 
@@ -95,6 +110,8 @@ $ cmake .. -DCMAKE_INSTALL_PREFIX=$NEUROMAPP_INST_DIR
 $ make
 $ make install
 ```
+
+> Note : On OS X with Clang compiler we need to disable compression miniapp using '-DNEUROMAPP_COMPRESSION=FALSE'
 
 If you're using GCC 5.1 and above, you may have issues if your full stack (e.g. BOOST) has not been
 compiled with C++11 due to the std::string implementation that changes with GCC 4.9.

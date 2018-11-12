@@ -38,7 +38,7 @@ else()
 endif()
 
 # CoreNeuron mini-apps
-#if(NEUROMAPP_CORENEURON_MAPP)
+if(NEUROMAPP_CORENEURON_MAPP)
     target_link_libraries (app
                            coreneuron10_kernel
                            coreneuron10_solver
@@ -46,12 +46,12 @@ endif()
                            coreneuron10_event
                            coreneuron10_queue
                            storage)
-#    add_definitions(-DNEUROMAPP_CORENEURON_MAPP=1)
-    message(STATUS "Adding CoreNeuron mini-apps")
-#else()
-#    add_definitions(-DNEUROMAPP_CORENEURON_MAPP=0)
-#    message(STATUS "Ignoring CoreNeuron mini-apps")
-#endif()
+    add_definitions(-DNEUROMAPP_CORENEURON_MAPP=1)
+   message(STATUS "Adding CoreNeuron mini-apps")
+else()
+    add_definitions(-DNEUROMAPP_CORENEURON_MAPP=0)
+    message(STATUS "Ignoring CoreNeuron mini-apps")
+endif()
 
 # Keyvalue mini-app
 if(NEUROMAPP_KEYVALUE_MAPP)
@@ -84,6 +84,17 @@ if(NEUROMAPP_IOBENCH_MAPP)
 else()
     add_definitions(-DNEUROMAPP_IOBENCH_MAPP=0)
     message(STATUS "Ignoring iobench mini-app")
+endif()
+
+# Readi mini-app
+if(NEUROMAPP_READI_MAPP)
+    target_link_libraries (app
+                           readi)
+    add_definitions(-DNEUROMAPP_READI_MAPP=1)
+    message(STATUS "Adding readi mini-app")
+else()
+    add_definitions(-DNEUROMAPP_READI_MAPP=0)
+    message(STATUS "Ignoring readi mini-app")
 endif()
 
 # compression mini-app

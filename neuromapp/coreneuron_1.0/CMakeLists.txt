@@ -1,7 +1,10 @@
 # Use -DNEUROMAPP_DISABLE_CORENEURON=TRUE to disable compilation/installation of this mini-app
 # Other mini-apps depend on some parts of these mini-apps, enabling them by now until
 # mini-apps are decoupled
-if(NOT NEUROMAPP_DISABLE_CORENEURON)
+if(NEUROMAPP_DISABLE_CORENEURON)
+    message(WARNING "coreneuron mini-apps cannot be disabled in this version")
+endif()
+#if(NOT NEUROMAPP_DISABLE_CORENEURON)
     include_directories(${PROJECT_BINARY_DIR})
     include_directories(${PROJECT_SOURCE_DIR})
 
@@ -58,7 +61,7 @@ if(NOT NEUROMAPP_DISABLE_CORENEURON)
     add_subdirectory (event_passing)
 
     set(NEUROMAPP_CORENEURON_MAPP ON CACHE BOOL "True if coreneuron mini-apps will be installed")
-else()
-    set(NEUROMAPP_CORENEURON_MAPP OFF CACHE BOOL "True if coreneuron mini-apps will be installed")
-endif()
+#else()
+#    set(NEUROMAPP_CORENEURON_MAPP OFF CACHE BOOL "True if coreneuron mini-apps will be installed")
+#endif()
 

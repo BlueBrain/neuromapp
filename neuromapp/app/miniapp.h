@@ -42,13 +42,13 @@
 #include "hdf5/drivers/h5read.h"
 #endif
 
-//#if NEUROMAPP_CORENEURON_MAPP
+#if NEUROMAPP_CORENEURON_MAPP
 #include "coreneuron_1.0/event_passing/drivers/drivers.h"
 #include "coreneuron_1.0/kernel/kernel.h"
 #include "coreneuron_1.0/solver/solver.h"
 #include "coreneuron_1.0/cstep/cstep.h"
 #include "coreneuron_1.0/queue/queue.h"
-//#endif
+#endif
 
 #if NEUROMAPP_KEYVALUE_MAPP
 #include "keyvalue/keyvalue.h"
@@ -62,7 +62,10 @@
 #include "iobench/iobench.h"
 #endif
 
-//should I include all of the headers?
+#if NEUROMAPP_READI_MAPP
+#include "readi/readi.h"
+#endif
+
 #if NEUROMAPP_COMPRESSION_MAPP
 #include "compression/compression.h"
 #endif
@@ -84,13 +87,13 @@ void register_miniapps(mapp::driver &d) {
 #if NEUROMAPP_HDF5_MAPP
     d.insert("h5read", hdf5::h5read::execute);
 #endif
-//#if NEUROMAPP_CORENEURON_MAPP
+#if NEUROMAPP_CORENEURON_MAPP
     d.insert("event",event_execute);
     d.insert("kernel",coreneuron10_kernel_execute);
     d.insert("solver",coreneuron10_solver_execute);
     d.insert("cstep",coreneuron10_cstep_execute);
     d.insert("queue",coreneuron10_queue_execute);
-//#endif
+#endif
 #if NEUROMAPP_KEYVALUE_MAPP
     d.insert("keyvalue",keyvalue_execute);
 #endif
@@ -99,6 +102,9 @@ void register_miniapps(mapp::driver &d) {
 #endif
 #if NEUROMAPP_IOBENCH_MAPP
     d.insert("iobench",iobench_execute);
+#endif
+#if NEUROMAPP_READI_MAPP
+    d.insert("readi",readi_execute);
 #endif
 //note should change suffix to execute when time comes
 #if NEUROMAPP_COMPRESSION_MAPP

@@ -38,6 +38,10 @@ if (BLUEGENE)
 endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_DIALECT_OPT_C99EXT}")
 
+# Check if c++11 is available: if not, we don't compile what requires it
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+
 
 include(BlueGenePortability)
 

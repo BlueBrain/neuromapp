@@ -39,6 +39,10 @@ if(NEUROMAPP_REPLIB_MAPP)
     add_subdirectory (replib)
 endif()
 
+if(NEUROMAPP_READI_MAPP)
+    add_subdirectory (readi)
+endif()
+
 if(NEUROMAPP_COMPRESSION_MAPP)
     add_subdirectory(compression)
 endif()

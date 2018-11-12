@@ -1,0 +1,17 @@
+n_species 3
+species (species - intial count)
+A 100
+B 200
+C 300   
+
+n_reactions 4
+reactions (lhs - rhs - kcst)
+A B - C - 1.e+9
+C - A - 1.e+2
+B - C B - 1.e+2
+A A - C - 1.e+9
+
+diffusions (species dcst)
+A  1.e-10 
+B  9.e-11
+C  8.e-11
