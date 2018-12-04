@@ -35,41 +35,56 @@
 #include <vector>
 
 #include "CompRej.h"
+#include "Mesh.h"
 #include "Model.h"
-#include "Tets.h"
 
 namespace readi {
 
-template <class IntType, class FloatType>
+struct composition_rejection_sampling_policy {
+    template <typename... Args>
+    using sampling_type = CompRej<Args...>;
+
+    template <typename... Args>
+    using mesh_type = SSAMesh<Args...>;
+};
+
+template <class IntType, class FloatType, class SamplingPolicy>
 class RdSolver {
   public:
+    using model_type = Model<IntType, FloatType>;
+    using mesh_type =
+        typename SamplingPolicy::template mesh_type<IntType, FloatType>;
+    using sampling_type =
+        typename SamplingPolicy::template sampling_type<mesh_type>;
+
     // c-tor
-    RdSolver(IntType seed = 42) : rand_engine_(seed) {}
+    RdSolver(IntType seed = 42) : rand_engine_(seed), sampling_(mesh_) {}
 
     // read from file both model and mesh
     void read_mesh_and_model(std::string const& filename_mesh,
                              std::string const& filename_model) {
 
         // Initialize mesh structure
-        tets_.read_from_file(filename_mesh, filename_model, rand_engine_);
+        mesh_.read_from_file(filename_mesh, filename_model, rand_engine_);
 
         // Initialize model structure
         model_.read_from_file(filename_model);
 
         // Initialize composition-rejection structure (holding and handling
         // propensity values)
-        comprej_.set_size(model_.get_n_reactions(), tets_.get_n_tets());
-        recompute_all_propensities();
+        sampling_.set_size(model_.get_n_reactions(), mesh_.get_n_tets());
+        recompute_all_propensities(model_);
     }
 
     // recompute value of each propensity to initialize the whole
     // composition-rejection structure
-    void recompute_all_propensities() {
-        for (IntType i = 0; i < tets_.get_n_tets(); ++i)
+    template <class ModelType>
+    void recompute_all_propensities(const ModelType& model) {
+        for (IntType i = 0; i < mesh_.get_n_tets(); ++i)
             for (IntType r = 0; r < model_.get_n_reactions(); ++r) {
                 FloatType new_prop_val =
-                    model_.compute_reaction_propensity(r, i, tets_);
-                comprej_.update_propensity(r, i, new_prop_val);
+                    model_.compute_reaction_propensity(r, i, mesh_);
+                sampling_.update_propensity(model, r, i, new_prop_val);
             }
     }
 
@@ -79,8 +94,8 @@ class RdSolver {
             model_.get_reaction_dependencies(r);
         for (auto r_idx : dependencies_idxs) {
             FloatType new_prop_val =
-                model_.compute_reaction_propensity(r_idx, i, tets_);
-            comprej_.update_propensity(r_idx, i, new_prop_val);
+                model_.compute_reaction_propensity(r_idx, i, mesh_);
+            sampling_.update_propensity(model_, r_idx, i, new_prop_val);
         }
     }
 
@@ -91,15 +106,15 @@ class RdSolver {
             model_.get_diffusion_dependencies(s);
         for (auto r_idx : dependencies_idxs) {
             FloatType new_prop_val =
-                model_.compute_reaction_propensity(r_idx, i, tets_);
-            comprej_.update_propensity(r_idx, i, new_prop_val);
+                model_.compute_reaction_propensity(r_idx, i, mesh_);
+            sampling_.update_propensity(model_, r_idx, i, new_prop_val);
         }
     }
 
     // compute update period, a.k.a. tau
     inline FloatType get_update_period() {
         FloatType max_diffusion_coeff = model_.get_max_diff();
-        FloatType max_shape = tets_.get_max_shape();
+        FloatType max_shape = mesh_.get_max_shape();
         return 1.0 / (max_diffusion_coeff * max_shape);
     }
 
@@ -125,16 +140,16 @@ class RdSolver {
             // j  ~ Categorical(p_i = a_i/a_0)  [select idx of next reaction]
             FloatType u = (rand_engine_() - rand_engine_.min()) /
                           double(rand_engine_.max() - rand_engine_.min());
-            FloatType dt = -std::log(u) / comprej_.get_total_propensity();
+            FloatType dt = -std::log(u) / sampling_.get_total_propensity();
             if (elapsed_time + dt > tau)
                 break;
             elapsed_time += dt;
             IntType next_reac_i; // idx of tet where next reaction takes place
             IntType next_reac_r; // idx of next reaction that takes place
-            comprej_.select_next_reaction(rand_engine_, &next_reac_r,
-                                          &next_reac_i);
+            sampling_.select_next_reaction(rand_engine_, model_, next_reac_r,
+                                           next_reac_i);
             update_occupancies_at_reac(next_reac_r, next_reac_i, elapsed_time);
-            model_.apply_reaction(next_reac_r, next_reac_i, tets_);
+            model_.apply_reaction(next_reac_r, next_reac_i, mesh_);
             recompute_propensities_after_reac(next_reac_r, next_reac_i);
             vec_occurred_reacs.emplace_back(next_reac_r, next_reac_i);
         }
@@ -151,55 +166,55 @@ class RdSolver {
             std::unordered_set<IntType>
                 update_tet_idxs; // set with idxes of tets affected by diffusion
 
-            for (IntType i = 0; i < tets_.get_n_tets(); ++i) {
+            for (IntType i = 0; i < mesh_.get_n_tets(); ++i) {
                 FloatType zeta_k = model_.diffusion_coeff(s) *
-                                   tets_.shape_sum(i) *
+                                   mesh_.shape_sum(i) *
                                    tau; // zeta_k = prob. of local diffusion
                                         // compute max n. of molecules that may
                                         // leave based on occupancy
                 FloatType n_average =
-                    (tets_.molecule_occupancy_count(s, i) +
-                     (tau - tets_.molecule_occupancy_last_update_time(s, i)) *
-                         tets_.molecule_count(s, i)) /
+                    (mesh_.molecule_occupancy_count(s, i) +
+                     (tau - mesh_.molecule_occupancy_last_update_time(s, i)) *
+                         mesh_.molecule_count(s, i)) /
                     tau;
                 IntType n_leaving_max = std::min(
                     readi::rand_round<IntType>(n_average, rand_engine_),
-                    tets_.molecule_count(s, i));
+                    mesh_.molecule_count(s, i));
                 readi::binomial_distribution<IntType> binomial(n_leaving_max,
                                                                zeta_k);
                 IntType tot_leaving_mols =
                     binomial(rand_engine_); // compute n. of molecules that will
                                             // actually leave
-                tets_.molecule_count(s, i) -=
+                mesh_.molecule_count(s, i) -=
                     tot_leaving_mols; // remove from origin tet n. of molecules
                                       // leaving
                 if (tot_leaving_mols)
                     update_tet_idxs.insert(i);
 
                 FloatType shapes_partial =
-                    tets_.shape_sum(i); // select destinations with multinomial
+                    mesh_.shape_sum(i); // select destinations with multinomial
                 for (IntType j = 0; j < 3; ++j) {
                     readi::binomial_distribution<IntType> binomial_destination(
-                        tot_leaving_mols, tets_.shape(i, j) / shapes_partial);
+                        tot_leaving_mols, mesh_.shape(i, j) / shapes_partial);
                     IntType leaving_neighb = binomial_destination(rand_engine_);
                     tot_leaving_mols -= leaving_neighb;
                     if (leaving_neighb)
-                        update_tet_idxs.insert(tets_.neighbor(i, j));
-                    tets_.add_to_bucket(i, j, leaving_neighb);
-                    shapes_partial -= tets_.shape(i, j);
+                        update_tet_idxs.insert(mesh_.neighbor(i, j));
+                    mesh_.add_to_bucket(i, j, leaving_neighb);
+                    shapes_partial -= mesh_.shape(i, j);
                 }
 
-                tets_.add_to_bucket(
+                mesh_.add_to_bucket(
                     i, 3, tot_leaving_mols); // last remaining direction
                                              // possible: all the rest
                 if (tot_leaving_mols)
-                    update_tet_idxs.insert(tets_.neighbor(i, 3));
+                    update_tet_idxs.insert(mesh_.neighbor(i, 3));
             }
 
             for (auto i : update_tet_idxs)
                 recompute_propensities_after_diff(
                     s, i); // update props in tets affected by diffusion
-            tets_.empty_buckets(
+            mesh_.empty_buckets(
                 s); // empty buckets into actual mol counter for species s
         }
 
@@ -211,10 +226,10 @@ class RdSolver {
                                            FloatType t_now) {
         std::vector<IntType> affected_species = model_.get_update_idxs(r);
         for (auto s : affected_species) {
-            tets_.molecule_occupancy_count(s, i) +=
-                tets_.molecule_count(s, i) *
-                (t_now - tets_.molecule_occupancy_last_update_time(s, i));
-            tets_.molecule_occupancy_last_update_time(s, i) = t_now;
+            mesh_.molecule_occupancy_count(s, i) +=
+                mesh_.molecule_count(s, i) *
+                (t_now - mesh_.molecule_occupancy_last_update_time(s, i));
+            mesh_.molecule_occupancy_last_update_time(s, i) = t_now;
         }
     }
 
@@ -224,18 +239,19 @@ class RdSolver {
             std::vector<IntType> affected_species =
                 model_.get_update_idxs(p.first);
             for (auto s : affected_species) {
-                tets_.molecule_occupancy_count(s, p.second) = 0.;
-                tets_.molecule_occupancy_last_update_time(s, p.second) = 0.;
+                mesh_.molecule_occupancy_count(s, p.second) = 0.;
+                mesh_.molecule_occupancy_last_update_time(s, p.second) = 0.;
             }
         }
     }
 
   private:
     std::mt19937 rand_engine_;
-    readi::Tets<IntType, FloatType> tets_;
-    readi::Model<IntType, FloatType> model_;
-    readi::CompRej<IntType, FloatType> comprej_;
+    mesh_type mesh_;
+    model_type model_;
+    sampling_type sampling_;
 };
 
 } // namespace readi
+
 #endif // MAPP_READ_RDSOLVER_

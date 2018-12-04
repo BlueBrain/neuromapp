@@ -34,55 +34,41 @@
 #include <unordered_set>
 #include <vector>
 
+#include "Mesh.h"
+
 namespace readi {
 
-template <class IntType, class FloatType>
+template <class Mesh>
 class CompRej {
   public:
+    using IntType = typename Mesh::int_type;
+    using FloatType = typename Mesh::float_type;
+    static_assert(std::is_unsigned<IntType>::value,
+                  "IntType may be an unsigned literal type");
     using idx_type = IntType;
     using real_type = FloatType;
 
-    CompRej() : a0_(0.) {}
+    CompRej(Mesh& mesh) : a0_(0.), mesh_(mesh) {}
 
     struct CompRejGroup {
         CompRejGroup() : ag_(0.) {}
+
         std::unordered_set<IntType>
             propensity_idxes; // set of propensities within this range
-        inline FloatType get_group_propensity() const { return ag_; }
-        inline IntType size() const { return propensity_idxes.size(); }
+        inline FloatType get_group_propensity() const noexcept { return ag_; }
+        inline IntType size() const noexcept { return propensity_idxes.size(); }
         FloatType ag_;
     };
 
     // set n. of reacs and tetrahedra
     void set_size(IntType n_reacs, IntType n_tets) {
-        n_reacs_ = n_reacs;
-        n_tets_ = n_tets;
-        propensity_values_.resize(n_reacs_ * n_tets_,
-                                  0); // initialize all propensities to 0
+        mesh_.set_size(n_reacs, n_tets);
         cr_groups_pos_.emplace_back(new CompRejGroup);
         cr_groups_neg_.emplace_back(new CompRejGroup);
     }
 
-    // access propensity value of r-th reaction inside i-th tetrahedron
-    inline FloatType& propensity_val(IntType r, IntType i) {
-        assert(r >= 0 && r < n_reacs_);
-        assert(i >= 0 && i < n_tets_);
-        return propensity_values_[propensity_idx(r, i)];
-    }
-    inline FloatType propensity_val(IntType r, IntType i) const {
-        assert(r >= 0 && r < n_reacs_);
-        assert(i >= 0 && i < n_tets_);
-        return propensity_values_[propensity_idx(r, i)];
-    }
-
-    inline IntType propensity_idx(IntType r, IntType i) const {
-        assert(r >= 0 && r < n_reacs_);
-        assert(i >= 0 && i < n_tets_);
-        return n_reacs_ * i + r;
-    }
-
     // get total propensity
-    inline FloatType get_total_propensity() const { return a0_; }
+    inline FloatType get_total_propensity() const noexcept { return a0_; }
 
     // CATEGORICAL SAMPLING TO CHOOSE GROUP OF PROPENSITIES
     template <class Generator>
@@ -90,7 +76,7 @@ class CompRej {
         FloatType unif = (g() - g.min()) / double(g.max() - g.min());
         FloatType discr = unif * get_total_propensity();
         FloatType part_sum = 0.;
-        for (int i = cr_groups_neg_.size() - 1; i >= 0; --i) {
+        for (auto i = cr_groups_neg_.size() - 1; i >= 0; --i) {
             part_sum += cr_groups_neg_[i]->get_group_propensity();
             if (discr <= part_sum)
                 return -i - 1;
@@ -133,35 +119,39 @@ class CompRej {
             IntType global_idx =
                 *std::next(group.propensity_idxes.begin(),
                            local_idx); // global index of propensity
-            FloatType a_j = propensity_values_[global_idx];
+            FloatType a_j = mesh_.propensity_values(global_idx);
             if (a_j > uppbd * u2)
                 return global_idx;
         }
     }
 
     // COMPOSITION-REJECTION ALGORITHM
-    template <class Generator>
-    void select_next_reaction(Generator& g, IntType* r, IntType* i) const {
+    template <class Generator, class ModelType>
+    void select_next_reaction(Generator& g, ModelType& model, IntType& r,
+                              IntType& i) const {
         IntType group_idx = select_group(g);
         IntType global_idx = select_propensity_in_group(g, group_idx);
-        auto div_result = std::div(global_idx, n_reacs_);
-        *i = div_result.quot;
-        *r = div_result.rem;
+        auto div_result = std::div(static_cast<long>(global_idx),
+                                   static_cast<long>(model.get_n_reactions()));
+        i = div_result.quot;
+        r = div_result.rem;
     }
 
     // update the propensity relative to r-th reaction inside i-th tetrahedron
-    void update_propensity(IntType r, IntType i, FloatType new_prop) {
-        assert(r >= 0 && r < n_reacs_);
-        assert(i >= 0 && r < n_tets_);
-        assert(propensity_val(r, i) >= 0.0);
+    template <typename ModelType>
+    void update_propensity(const ModelType& model, const IntType r,
+                           const IntType i, FloatType new_prop) {
+        assert(i < mesh_.get_n_tets());
+        auto const propen_val = mesh_.propensity_val(model, r, i);
+        assert(propen_val >= 0.0);
         assert(new_prop >= 0.0);
 
         // CASE 0: OLD_GROUP=-IFTY / NEW_GROUP=-IFTY
         // CASE 0.1: OLD == NEW == 0
-        if (propensity_val(r, i) == 0.0 && new_prop == 0.0)
+        if (propen_val == 0.0 && new_prop == 0.0)
             return;
         // CASE 0.2: OLD == 0, NEW != 0
-        if (propensity_val(r, i) == 0.0) {
+        if (propen_val == 0.0) {
             IntType new_group_idx = std::logb(new_prop);
             if (new_group_idx >= 0) {
                 // B- handle case where not enuough groups
@@ -173,7 +163,7 @@ class CompRej {
                 // C- insert idx of a_j in new group + update value of a_g in
                 // new group
                 cr_groups_pos_[new_group_idx]->propensity_idxes.insert(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 cr_groups_pos_[new_group_idx]->ag_ += new_prop;
             } else {
                 new_group_idx = -new_group_idx - 1;
@@ -186,63 +176,62 @@ class CompRej {
                 // C- insert idx of a_j in new group + update value of a_g in
                 // new group
                 cr_groups_neg_[new_group_idx]->propensity_idxes.insert(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 cr_groups_neg_[new_group_idx]->ag_ += new_prop;
             }
             // D- update value of a_0
             // E- update value of a_j in the vector of propensities
             a0_ += new_prop;
-            propensity_val(r, i) = new_prop;
+            mesh_.propensity_val(model, r, i) = new_prop;
             return;
         }
         // CASE 0.3: OLD != 0, NEW == 0
         if (new_prop == 0.0) {
-            IntType old_group_idx = std::logb(
-                propensity_val(r, i)); // group where a_j was until now
+            IntType old_group_idx = std::logb(propen_val);
+            // group where a_j was until now
             // A- remove idx of a_j in old_group + update value of a_g in
             // old_group
             if (old_group_idx >= 0) {
                 cr_groups_pos_[old_group_idx]->propensity_idxes.erase(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 if (cr_groups_pos_[old_group_idx]
                         ->propensity_idxes.empty()) // if no more idxes in
                                                     // group, set exactely to 0.
                     cr_groups_pos_[old_group_idx]->ag_ = 0.;
                 else
-                    cr_groups_pos_[old_group_idx]->ag_ -= propensity_val(r, i);
+                    cr_groups_pos_[old_group_idx]->ag_ -= propen_val;
             } else {
                 old_group_idx = -old_group_idx - 1;
                 cr_groups_neg_[old_group_idx]->propensity_idxes.erase(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 if (cr_groups_neg_[old_group_idx]
                         ->propensity_idxes.empty()) // if no more idxes in
                                                     // group, set exactely to 0.
                     cr_groups_neg_[old_group_idx]->ag_ = 0.;
                 else
-                    cr_groups_neg_[old_group_idx]->ag_ -= propensity_val(r, i);
+                    cr_groups_neg_[old_group_idx]->ag_ -= propen_val;
             }
             // D- update value of a_0
             // E- update value of a_j in the vector of propensities
-            a0_ -= propensity_val(r, i);
-            propensity_val(r, i) = 0;
+            a0_ -= propen_val;
+            mesh_.propensity_val(model, r, i) = 0;
             return;
         }
 
         // If we arrived until here, then OLD!=0, NEW!=0
 
         IntType old_group_idx =
-            std::logb(propensity_val(r, i)); // group where a_j was until now
+            std::logb(propen_val); // group where a_j was until now
         IntType new_group_idx = std::logb(new_prop); // group where a_j will go
 
         // CASE 1: A_J CHANGES VALUE BUT STAYS IN SAME GROUP
         // A- update value of a_g
         if (old_group_idx == new_group_idx) {
             if (old_group_idx >= 0)
-                cr_groups_pos_[old_group_idx]->ag_ +=
-                    (new_prop - propensity_val(r, i));
+                cr_groups_pos_[old_group_idx]->ag_ += (new_prop - propen_val);
             else
                 cr_groups_neg_[-old_group_idx - 1]->ag_ +=
-                    (new_prop - propensity_val(r, i));
+                    (new_prop - propen_val);
         }
         // CASE 2: A_J CHANGES VALUE AND ALSO CHANGES GROUP
         // A- remove idx of a_j in old_group + update value of a_g in old_group
@@ -253,23 +242,23 @@ class CompRej {
             // old_group
             if (old_group_idx >= 0) {
                 cr_groups_pos_[old_group_idx]->propensity_idxes.erase(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 if (cr_groups_pos_[old_group_idx]
                         ->propensity_idxes.empty()) // if no more idxes in
                                                     // group, set exactely to 0.
                     cr_groups_pos_[old_group_idx]->ag_ = 0.;
                 else
-                    cr_groups_pos_[old_group_idx]->ag_ -= propensity_val(r, i);
+                    cr_groups_pos_[old_group_idx]->ag_ -= propen_val;
             } else {
                 old_group_idx = -old_group_idx - 1;
                 cr_groups_neg_[old_group_idx]->propensity_idxes.erase(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 if (cr_groups_neg_[old_group_idx]
                         ->propensity_idxes.empty()) // if no more idxes in
                                                     // group, set exactely to 0.
                     cr_groups_neg_[old_group_idx]->ag_ = 0.;
                 else
-                    cr_groups_neg_[old_group_idx]->ag_ -= propensity_val(r, i);
+                    cr_groups_neg_[old_group_idx]->ag_ -= propen_val;
             }
 
             if (new_group_idx >= 0) {
@@ -283,7 +272,7 @@ class CompRej {
                 // C- insert idx of a_j in new group + update value of a_g in
                 // new group
                 cr_groups_pos_[new_group_idx]->propensity_idxes.insert(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 cr_groups_pos_[new_group_idx]->ag_ += new_prop;
             } else {
                 new_group_idx = -new_group_idx - 1;
@@ -297,7 +286,7 @@ class CompRej {
                 // C- insert idx of a_j in new group + update value of a_g in
                 // new group
                 cr_groups_neg_[new_group_idx]->propensity_idxes.insert(
-                    propensity_idx(r, i));
+                    mesh_.propensity_idx(model, r, i));
                 cr_groups_neg_[new_group_idx]->ag_ += new_prop;
             }
         }
@@ -305,20 +294,18 @@ class CompRej {
         // CASE 1 and 2:
         // D- update value of a_0
         // E- update value of a_j in the vector of propensities
-        a0_ += (new_prop - propensity_val(r, i));
-        propensity_val(r, i) = new_prop;
+        a0_ += (new_prop - propen_val);
+        mesh_.propensity_val(model, r, i) = new_prop;
     }
 
   private:
-    IntType n_reacs_;
-    IntType n_tets_;
-    std::vector<FloatType>
-        propensity_values_; // vector with all propensity values
-    FloatType a0_;          // total propensity
-    std::vector<std::unique_ptr<CompRejGroup>>
-        cr_groups_pos_; // i-th group, i=0.., covers range (2^{i}, 2^{i+1})
-    std::vector<std::unique_ptr<CompRejGroup>>
-        cr_groups_neg_; // i-th group, i=0.., covers range (2^{-i-1}, 2^{-i})
+    /// \brief total propensity
+    FloatType a0_;
+    /// \brief i-th group, i=0.., covers range (2^{i}, 2^{i+1})
+    std::vector<std::unique_ptr<CompRejGroup>> cr_groups_pos_;
+    /// \brief i-th group, i=0.., covers range (2^{-i-1}, 2^{-i})
+    std::vector<std::unique_ptr<CompRejGroup>> cr_groups_neg_;
+    Mesh& mesh_;
 };
 
 } // namespace readi

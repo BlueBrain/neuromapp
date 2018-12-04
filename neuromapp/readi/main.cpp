@@ -28,9 +28,9 @@
 
 #include <boost/program_options.hpp>
 
+#include "Mesh.h"
 #include "RdSolver.h"
 #include "Reac.h"
-#include "Tets.h"
 #include "readi.h"
 
 #include "utils/error.h"
@@ -69,7 +69,9 @@ int readi_help(int argc, char* const argv[], po::variables_map& vm) {
 void readi_content(po::variables_map const& vm) {
 
     int random_seed = 42;
-    readi::RdSolver<int, double> solver(random_seed);
+    readi::RdSolver<unsigned int, double,
+                    readi::composition_rejection_sampling_policy>
+        solver(random_seed);
 
     solver.read_mesh_and_model(vm["filename_mesh"].as<std::string>(),
                                vm["filename_model"].as<std::string>());

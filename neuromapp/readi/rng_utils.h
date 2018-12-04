@@ -47,6 +47,9 @@ IntType rand_round(FloatType x, Generator& g) {
 
 template <class IntType = int>
 class binomial_distribution {
+    static_assert(std::is_unsigned<IntType>::value,
+                  "IntType should be an unsigned literal type");
+
   public:
     //! Type of generated values. Alias of IntType
     typedef IntType result_type;
@@ -58,7 +61,6 @@ class binomial_distribution {
     */
     explicit binomial_distribution(IntType t = 1, double p = 0.5)
         : t_(t), p_(p) {
-        assert(t_ >= 0);
         assert(p_ >= 0. && p <= 1.);
     }
 
@@ -110,10 +112,10 @@ class binomial_distribution {
 
   private:
     // number of trials
-    IntType t_;
+    const IntType t_;
 
     // probability of event 1
-    double p_;
+    const double p_;
 };
 
 } // namespace readi

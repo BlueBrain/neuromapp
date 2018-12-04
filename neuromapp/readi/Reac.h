@@ -34,40 +34,46 @@
 #include <string>
 #include <vector>
 
-#include "Tets.h"
+#include "Mesh.h"
 #include "rng_utils.h"
 
 static constexpr double N_avogadro = 6.022140857e+23;
 
 namespace readi {
 
-template <class IntType, class FloatType>
-class Model;
+// template <class IntType, class FloatType>
+// class Model;
 
 template <class IntType, class FloatType>
 class Reac {
   public:
-    using idx_type = IntType;
-    using real_type = FloatType;
+    using int_type = IntType;
+    using float_type = FloatType;
+
+    static_assert(std::is_unsigned<int_type>::value,
+                  "int_type should be an unsigned literal type");
+    using idx_type = int_type;
+    using real_type = float_type;
 
     // c-tor                                         // e.g. 2B + C --> A
-    Reac(std::vector<std::string> const&
+    Reac(const std::vector<std::string>&
              spec_names,                      // e.g. {'A', 'B', 'C', 'D', 'E'}
          std::vector<std::string> const& lhs, // e.g. {'B', 'B', 'C'}
          std::vector<std::string> const& rhs, // e.g. {'A'}
-         FloatType reaction_rate)
+         float_type reaction_rate)
         : // the k_cst constant of reaction
           order_(lhs.size()), reaction_rate_(reaction_rate) {
-        std::map<IntType, IntType>
-            lhs_counts_map; // tells us that in LHS species idxed by 2 ("B")
-                            // appears 2 times, species idxed by 3 appears 1
+        std::map<int_type, int_type>
+            lhs_counts_map; // tells us that in LHS species indexed by 2 ("B")
+                            // appears 2 times, species indexed by 3 appears 1
                             // time.
-        std::map<IntType, IntType> rhs_counts_map;
+        std::map<int_type, int_type> rhs_counts_map;
 
+        /// TODO TCL factor 2 sections of code below
         // 1. count species in LHS
         for (auto& sp : lhs) {
-            IntType idx = std::find(spec_names.begin(), spec_names.end(), sp) -
-                          spec_names.begin();
+            int_type idx = std::find(spec_names.begin(), spec_names.end(), sp) -
+                           spec_names.begin();
             if (idx == spec_names.size())
                 throw std::range_error("species " + sp +
                                        " from lhs is undeclared!");
@@ -81,8 +87,8 @@ class Reac {
 
         // 2. count species in RHS
         for (auto& sp : rhs) {
-            IntType idx = std::find(spec_names.begin(), spec_names.end(), sp) -
-                          spec_names.begin();
+            int_type idx = std::find(spec_names.begin(), spec_names.end(), sp) -
+                           spec_names.begin();
             if (idx == spec_names.size())
                 throw std::range_error("species " + sp +
                                        " from rhs is undeclared!");
@@ -97,7 +103,7 @@ class Reac {
         // 3. count species in update vector
         // 3.1. create a set with all the idxes of the species that appear at
         // least in one of the two maps
-        std::set<IntType> lhs_rhs_idxes;
+        std::set<int_type> lhs_rhs_idxes;
         for (auto& el : lhs_counts_map)
             lhs_rhs_idxes.insert(el.first);
         for (auto& el : rhs_counts_map)
@@ -139,9 +145,16 @@ class Reac {
     }
 
     // apply this reaction on a tetrahedron
-    inline void apply(IntType tet_idx,
-                      readi::Tets<IntType, FloatType>& tets) const {
-        for (IntType i = 0; i < upd_idxs_.size(); ++i) {
+
+    template <typename MeshType>
+    inline void apply(int_type tet_idx, MeshType& tets) const {
+        static_assert(
+            std::is_same<typename MeshType::int_type, int_type>::value,
+            "Invalid mesh type");
+        static_assert(
+            std::is_same<typename MeshType::float_type, float_type>::value,
+            "Invalid mesh type");
+        for (auto i = 0u; i < upd_idxs_.size(); ++i) {
             assert(tets.molecule_count(upd_idxs_[i], tet_idx) >=
                    -upd_counts_[i]);
             tets.molecule_count(upd_idxs_[i], tet_idx) += upd_counts_[i];
@@ -149,20 +162,26 @@ class Reac {
     }
 
     // compute scaled reaction rate for propensity
-    inline FloatType compute_c_mu(FloatType reaction_rate,
-                                  FloatType volume) const {
-        FloatType volume_scaled = 1.e3 * volume * N_avogadro;
+    [[gnu::pure]] inline float_type compute_c_mu(float_type reaction_rate,
+                                                 float_type volume) const {
+        float_type volume_scaled = 1.e3 * volume * N_avogadro;
         return reaction_rate * std::pow(volume_scaled, -order_ + 1);
     }
 
     // compute propensity of this reaction on a tetrahedron
-    FloatType
-    compute_propensity(IntType tet_idx,
-                       readi::Tets<IntType, FloatType> const& tets) const {
-        FloatType propensity =
+    template <typename MeshType>
+    float_type compute_propensity(int_type tet_idx,
+                                  const MeshType& tets) const {
+        static_assert(
+            std::is_same<typename MeshType::int_type, int_type>::value,
+            "Invalid mesh type");
+        static_assert(
+            std::is_same<typename MeshType::float_type, float_type>::value,
+            "Invalid mesh type");
+        float_type propensity =
             compute_c_mu(reaction_rate_, tets.volume(tet_idx));
         for (int i = 0; i < lhs_idxs_.size(); ++i) {
-            IntType X_i = tets.molecule_count(
+            int_type X_i = tets.molecule_count(
                 lhs_idxs_[i],
                 tet_idx); // number of molecules of i-th species inside tet
             for (int j = 0; j < lhs_counts_[i]; ++j) {
@@ -172,33 +191,52 @@ class Reac {
         return propensity;
     }
 
-    friend class readi::Model<IntType, FloatType>; // why? because Model needs
-                                                   // to access lhs and rhs
+    inline const std::vector<int_type>& get_lhs_idxs() const noexcept {
+        return lhs_idxs_;
+    }
 
-    inline std::vector<IntType> get_lhs_idxs() const { return lhs_idxs_; }
+    inline const std::vector<int_type>& get_lhs_counts() const noexcept {
+        return lhs_counts_;
+    }
 
-    inline std::vector<IntType> get_lhs_counts() const { return lhs_counts_; }
+    inline const std::vector<int_type>& get_rhs_idxs() const noexcept {
+        return rhs_idxs_;
+    }
 
-    inline std::vector<IntType> get_rhs_idxs() const { return rhs_idxs_; }
+    inline const std::vector<int_type>& get_rhs_counts() const noexcept {
+        return rhs_counts_;
+    }
 
-    inline std::vector<IntType> get_rhs_counts() const { return rhs_counts_; }
+    inline const std::vector<int_type>& get_upd_idxs() const noexcept {
+        return upd_idxs_;
+    }
 
-    inline std::vector<IntType> get_upd_idxs() const { return upd_idxs_; }
+    inline const std::vector<int_type>& get_upd_counts() const noexcept {
+        return upd_counts_;
+    }
 
-    inline std::vector<IntType> get_upd_counts() const { return upd_counts_; }
-
-    inline FloatType get_rate() const { return reaction_rate_; }
+    inline float_type get_rate() const { return reaction_rate_; }
 
   private:
-    IntType order_;                   // order of reaction
-    std::vector<IntType> lhs_idxs_;   // idxes of species in lhs
-    std::vector<IntType> lhs_counts_; // counts of molecules per species in lhs
-    std::vector<IntType> rhs_idxs_;   // idxes of species in rhs
-    std::vector<IntType> rhs_counts_; // counts of molecules per species in rhs
-    std::vector<IntType> upd_idxs_;   // idxes of species in update vector
-    std::vector<IntType>
-        upd_counts_; // counts of molecules per species in update vector
-    FloatType reaction_rate_; // non-scaled reaction rate
+    /// TODO TCL all std::vector member variables below are constant
+    /// and thus should be \a const
+
+    /// \brief order of reaction
+    const int_type order_;
+    /// \brief idxes of species in lhs
+    std::vector<int_type> lhs_idxs_;
+    /// \brief counts of molecules per species in lhs
+    std::vector<int_type> lhs_counts_;
+    /// \brief idxes of species in rhs
+    std::vector<int_type> rhs_idxs_;
+    /// \brief counts of molecules per species in rhs
+    std::vector<int_type> rhs_counts_;
+    /// \brief idxes of species in update vector
+    std::vector<int_type> upd_idxs_;
+    /// \brief counts of molecules per species in update vector
+    std::vector<int_type> upd_counts_;
+    /// \brief non-scaled reaction rate
+    const float_type reaction_rate_;
 };
 
 } // namespace readi
