@@ -1,0 +1,3 @@
+[submodule "neuromapp/h5benchmark/HighFive"]
+	path = neuromapp/h5benchmark/HighFive
+	url = git@github.com:BlueBrain/HighFive.git
