@@ -155,24 +155,24 @@ int read_group(h5drv_t drv, hid_t file, h5group_t *group)
 /**
  * Helper method to read the content of a group using the HighFive API.
  */
-int read_group_h5(h5drv_t drv, File file_h5, h5group_t *group)
+int read_group_h5(h5drv_t drv, File *file_h5, h5group_t *group)
 {
     // Retrieve the group and open the datasets
-    Group          group_h5    = file_h5.getGroup(string(group->name));
-    DataSet        dset_struct = group_h5.getDataSet("structure");
-    DataSet        dset_points = group_h5.getDataSet("points");
-    vector<int>    buffer_struct;
-    vector<double> buffer_points;
+    Group                  group_h5    = file_h5->getGroup(string(group->name));
+    DataSet                dset_struct = group_h5.getDataSet("structure");
+    DataSet                dset_points = group_h5.getDataSet("points");
+    vector<vector<int>>    buffer_struct;
+    vector<vector<double>> buffer_points;
     
     // Read the content available on each dataset
     dset_struct.read(buffer_struct);
     dset_points.read(buffer_points);
     
-    printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", group->name,
-                                                    buffer_points[0],
-                                                    buffer_points[1],
-                                                    buffer_points[2],
-                                                    buffer_points[3]);
+    // printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", group->name,
+    //                                                 buffer_points[0][0],
+    //                                                 buffer_points[0][1],
+    //                                                 buffer_points[0][2],
+    //                                                 buffer_points[0][3]);
     
     return 0;
 }
@@ -181,7 +181,7 @@ int read_group_h5(h5drv_t drv, File file_h5, h5group_t *group)
  * Sequential / Random benchmark that retrieves datasets from each group.
  */
 int launch_bmark(h5bmark_t bmark, h5api_t api, h5drv_t drv, hid_t file,
-                 File file_h5, int rank)
+                 File *file_h5, int rank)
 {
     const int is_random = (bmark == H5BMARK_RND);
     off_t     offset    = 0;
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
     h5drv_t   drv       = H5DRV_POSIX;
     char      *path     = NULL;
     hid_t     file      = 0;
-    File      file_h5   = File("", File::ReadOnly);
+    File      *file_h5  = nullptr;
     hid_t     fapl_id   = H5P_DEFAULT;
     int       rank      = 0;
     int       num_ranks = 0;
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
     {
         try
         {
-            file_h5 = File(path, File::ReadOnly, // <<<<<<<<<<<<< pHDF5!!!!
+            file_h5 = new File(path, File::ReadOnly, // <<<<<<<<<<<< pHDF5!!!!
                            MPIOFileDriver(MPI_COMM_WORLD, MPI_INFO_NULL));
         }
         catch (Exception& err) { MPI_Abort(MPI_COMM_WORLD, 1); }
@@ -291,6 +291,8 @@ int main(int argc, char **argv)
         H5Fclose(file);
     }
     
+    delete file_h5;
+
     free(g_h5groups.data);
     MPI_Finalize();
 
