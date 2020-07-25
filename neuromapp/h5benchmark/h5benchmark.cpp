@@ -217,9 +217,9 @@ int main(int argc, char **argv)
     h5bmark_t bmark     = H5BMARK_SEQ;
     h5api_t   api       = H5API_DEFAULT;
     h5drv_t   drv       = H5DRV_POSIX;
-    char      *path     = argv[1];
+    char      *path     = NULL;
     hid_t     file      = 0;
-    File      file_h5   = { 0 };
+    File      file_h5   = File("", File::ReadOnly);
     hid_t     fapl_id   = H5P_DEFAULT;
     int       rank      = 0;
     int       num_ranks = 0;
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
     {
         try
         {
-            file_h5 = File(FILE_NAME, File::ReadOnly, // <<<<<<<<<<<<< pHDF5!!!!
+            file_h5 = File(path, File::ReadOnly, // <<<<<<<<<<<<< pHDF5!!!!
                            MPIOFileDriver(MPI_COMM_WORLD, MPI_INFO_NULL));
         }
         catch (Exception& err) { MPI_Abort(MPI_COMM_WORLD, 1); }
@@ -278,7 +278,7 @@ int main(int argc, char **argv)
     // Pre-allocate the space for the groups and share the information
     MPI_Bcast(&g_h5groups.count, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
     g_h5groups.size = g_h5groups.count * sizeof(h5group_t); // Overwrite size
-    g_h5groups.data = realloc(g_h5groups.data, g_h5groups.size);
+    g_h5groups.data = (h5group_t *)realloc(g_h5groups.data, g_h5groups.size);
     MPI_Bcast(g_h5groups.data, g_h5groups.size, MPI_BYTE, 0, MPI_COMM_WORLD);
     
     // Launch the benchmark that reads the complete file
