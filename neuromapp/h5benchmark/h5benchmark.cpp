@@ -158,11 +158,11 @@ int read_group(h5drv_t drv, hid_t file, h5group_t *group)
 int read_group_h5(h5drv_t drv, File *file_h5, h5group_t *group)
 {
     // Retrieve the group and open the datasets
-    Group                  group_h5    = file_h5->getGroup(string(group->name));
-    DataSet                dset_struct = group_h5.getDataSet("structure");
-    DataSet                dset_points = group_h5.getDataSet("points");
-    vector<vector<int>>    buffer_struct;
-    vector<vector<double>> buffer_points;
+    Group                 group_h5    = file_h5->getGroup(string(group->name));
+    DataSet               dset_struct = group_h5.getDataSet("structure");
+    DataSet               dset_points = group_h5.getDataSet("points");
+    vector<vector<int>>   buffer_struct;
+    vector<vector<float>> buffer_points;
     
     // Read the content available on each dataset
     dset_struct.read(buffer_struct);
