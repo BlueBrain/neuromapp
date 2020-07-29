@@ -14,10 +14,12 @@
 #include <highfive/H5Group.hpp>
 #include <highfive/H5DataSpace.hpp>
 #include <highfive/H5File.hpp>
+#include <morphio/errorMessages.h>
 #include <morphokit/storage.h>
 
 using namespace std;
 using namespace HighFive;
+using namespace morphokit;
 
 #define INPUT_PARAMS    "[bmark] [api] [drv] [file]"
 #define BUFFER_SIZE     (1048576 * 256) // TODO: Check for dataset sizes!
@@ -60,6 +62,8 @@ typedef struct
     hid_t loc_id;                                // Group identifier (obj. loc.)
     char  name[NAME_LENGTH_MAX - sizeof(hid_t)]; // Name of the group
 } h5group_t;
+
+typedef shared_ptr<FileStorage> FStorage;
 
 /*
  * Container that stores the information of the groups located in a file.
@@ -182,7 +186,7 @@ int read_group_h5(h5drv_t drv, File *file_h5, h5group_t *group)
 /**
  * Helper method to read the content of a group using the Morpho-kit API.
  */
-int read_group_mk(h5drv_t drv, FileStorage *file_mk, h5group_t *group)
+int read_group_mk(h5drv_t drv, FStorage file_mk, h5group_t *group)
 {
     // Retrieve the group and open the datasets
     try
@@ -198,7 +202,7 @@ int read_group_mk(h5drv_t drv, FileStorage *file_mk, h5group_t *group)
  * Sequential / Random benchmark that retrieves datasets from each group.
  */
 int launch_bmark(h5bmark_t bmark, h5api_t api, h5drv_t drv, hid_t file,
-                 File *file_h5, FileStorage *file_mk, int rank)
+                 File *file_h5, FStorage file_mk, int rank)
 {
     const int is_random = (bmark == H5BMARK_RND);
     off_t     offset    = 0;
@@ -232,17 +236,20 @@ int launch_bmark(h5bmark_t bmark, h5api_t api, h5drv_t drv, hid_t file,
 
 int main(int argc, char **argv)
 {
-    h5bmark_t   bmark     = H5BMARK_SEQ;
-    h5api_t     api       = H5API_DEFAULT;
-    h5drv_t     drv       = H5DRV_POSIX;
-    char        *path     = NULL;
-    hid_t       file      = 0;
-    File        *file_h5  = nullptr;
-    FileStorage *file_mk  = nullptr;
-    hid_t       fapl_id   = H5P_DEFAULT;
-    int         rank      = 0;
-    int         num_ranks = 0;
-    
+    h5bmark_t bmark     = H5BMARK_SEQ;
+    h5api_t   api       = H5API_DEFAULT;
+    h5drv_t   drv       = H5DRV_POSIX;
+    char      *path     = NULL;
+    hid_t     file      = 0;
+    File      *file_h5  = nullptr;
+    FStorage  file_mk   = nullptr;
+    hid_t     fapl_id   = H5P_DEFAULT;
+    int       rank      = 0;
+    int       num_ranks = 0;
+   
+    // Disable any warnings by MorphIO
+    morphio::set_maximum_warnings(0);
+
     // Check if the number of parameters match the expected
     if (argc != 5)
     {
@@ -292,7 +299,7 @@ int main(int argc, char **argv)
     {
         try
         {
-            file_mk = new FileStorage(path);
+            file_mk = dynamic_pointer_cast<FileStorage>(storage(path));
         }
         catch (Exception& err) { MPI_Abort(MPI_COMM_WORLD, 1); }
     }
@@ -304,6 +311,7 @@ int main(int argc, char **argv)
     
     // Pre-allocate the space for the groups and share the information
     MPI_Bcast(&g_h5groups.count, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
+    //g_h5groups.count >>= 4;
     g_h5groups.size = g_h5groups.count * sizeof(h5group_t); // Overwrite size
     g_h5groups.data = (h5group_t *)realloc(g_h5groups.data, g_h5groups.size);
     MPI_Bcast(g_h5groups.data, g_h5groups.size, MPI_BYTE, 0, MPI_COMM_WORLD);
