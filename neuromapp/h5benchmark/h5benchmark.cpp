@@ -14,6 +14,7 @@
 #include <highfive/H5Group.hpp>
 #include <highfive/H5DataSpace.hpp>
 #include <highfive/H5File.hpp>
+#include <morphokit/storage.h>
 
 using namespace std;
 using namespace HighFive;
@@ -39,6 +40,7 @@ typedef enum
 {
     H5API_DEFAULT = 0,  // Default C API
     H5API_HIGHFIVE,     // BBP HighFive C++ wrapper
+    H5API_MORPHOKIT,    // BBP Morpho-kit reader
 } h5api_t;
 
 /**
@@ -178,10 +180,25 @@ int read_group_h5(h5drv_t drv, File *file_h5, h5group_t *group)
 }
 
 /**
+ * Helper method to read the content of a group using the Morpho-kit API.
+ */
+int read_group_mk(h5drv_t drv, FileStorage *file_mk, h5group_t *group)
+{
+    // Retrieve the group and open the datasets
+    try
+    {
+        Morphology group_mk = file_mk->get(string(group->name));
+    }
+    catch (Exception& err) { MPI_Abort(MPI_COMM_WORLD, 1); }
+    
+    return 0;
+}
+
+/**
  * Sequential / Random benchmark that retrieves datasets from each group.
  */
 int launch_bmark(h5bmark_t bmark, h5api_t api, h5drv_t drv, hid_t file,
-                 File *file_h5, int rank)
+                 File *file_h5, FileStorage *file_mk, int rank)
 {
     const int is_random = (bmark == H5BMARK_RND);
     off_t     offset    = 0;
@@ -196,13 +213,14 @@ int launch_bmark(h5bmark_t bmark, h5api_t api, h5drv_t drv, hid_t file,
     
     for (size_t rd_count = 0; rd_count < g_h5groups.count; rd_count++)
     {
-        if (api == H5API_DEFAULT)
+        switch (api)
         {
-            read_group(drv, file, &g_h5groups.data[offset]);
-        }
-        else
-        {
-            read_group_h5(drv, file_h5, &g_h5groups.data[offset]);
+            case H5API_DEFAULT:
+                read_group_h5(drv, file_h5, &g_h5groups.data[offset]); break;
+            case H5API_MORPHOKIT:
+                read_group_mk(drv, file_mk, &g_h5groups.data[offset]); break;
+            default:
+                read_group(drv, file, &g_h5groups.data[offset]);
         }
         
         offset = ((is_random) ? (off_t)rand_r(&seed) :
@@ -214,15 +232,16 @@ int launch_bmark(h5bmark_t bmark, h5api_t api, h5drv_t drv, hid_t file,
 
 int main(int argc, char **argv)
 {
-    h5bmark_t bmark     = H5BMARK_SEQ;
-    h5api_t   api       = H5API_DEFAULT;
-    h5drv_t   drv       = H5DRV_POSIX;
-    char      *path     = NULL;
-    hid_t     file      = 0;
-    File      *file_h5  = nullptr;
-    hid_t     fapl_id   = H5P_DEFAULT;
-    int       rank      = 0;
-    int       num_ranks = 0;
+    h5bmark_t   bmark     = H5BMARK_SEQ;
+    h5api_t     api       = H5API_DEFAULT;
+    h5drv_t     drv       = H5DRV_POSIX;
+    char        *path     = NULL;
+    hid_t       file      = 0;
+    File        *file_h5  = nullptr;
+    FileStorage *file_mk  = nullptr;
+    hid_t       fapl_id   = H5P_DEFAULT;
+    int         rank      = 0;
+    int         num_ranks = 0;
     
     // Check if the number of parameters match the expected
     if (argc != 5)
@@ -269,6 +288,14 @@ int main(int argc, char **argv)
         }
         catch (Exception& err) { MPI_Abort(MPI_COMM_WORLD, 1); }
     }
+    else if (api == H5API_MORPHOKIT)
+    {
+        try
+        {
+            file_mk = new FileStorage(path);
+        }
+        catch (Exception& err) { MPI_Abort(MPI_COMM_WORLD, 1); }
+    }
     
     if (rank == 0)
     {
@@ -282,7 +309,7 @@ int main(int argc, char **argv)
     MPI_Bcast(g_h5groups.data, g_h5groups.size, MPI_BYTE, 0, MPI_COMM_WORLD);
     
     // Launch the benchmark that reads the complete file
-    launch_bmark(bmark, api, drv, file, file_h5, rank);
+    launch_bmark(bmark, api, drv, file, file_h5, file_mk, rank);
     MPI_Barrier(MPI_COMM_WORLD);
 
     // Close and release resources
