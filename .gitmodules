@@ -1,3 +1,9 @@
 [submodule "neuromapp/h5benchmark/HighFive"]
 	path = neuromapp/h5benchmark/HighFive
 	url = git@github.com:BlueBrain/HighFive.git
+[submodule "neuromapp/h5benchmark/morphio"]
+	path = neuromapp/h5benchmark/morphio
+	url = git@github.com:bluebrain/morphio.git
+[submodule "neuromapp/h5benchmark/morpho-kit"]
+	path = neuromapp/h5benchmark/morpho-kit
+	url = ssh://bbpcode.epfl.ch/nse/morpho-kit
