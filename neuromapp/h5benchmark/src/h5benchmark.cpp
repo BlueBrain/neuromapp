@@ -219,7 +219,7 @@ int launch_bmark(h5bmark_t bmark, h5api_t api, h5drv_t drv, hid_t file,
     {
         switch (api)
         {
-            case H5API_DEFAULT:
+            case H5API_HIGHFIVE:
                 read_group_h5(drv, file_h5, &g_h5groups.data[offset]); break;
             case H5API_MORPHOKIT:
                 read_group_mk(drv, file_mk, &g_h5groups.data[offset]); break;
