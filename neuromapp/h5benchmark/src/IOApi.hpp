@@ -16,6 +16,8 @@ namespace h5benchmark
              * Reads the structure and points datasets from a given group name. 
              */
             virtual int readGroup(std::string name) = 0;
+            
+            virtual ~IOApi() { }
     };
 }
 
