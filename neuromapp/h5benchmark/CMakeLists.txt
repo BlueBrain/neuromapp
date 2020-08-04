@@ -19,6 +19,5 @@ set(SOURCE_FILES "${CMAKE_SOURCE_DIR}/src/H5Benchmark.cpp"
                  "${CMAKE_SOURCE_DIR}/src/IOApi_MKit.cpp")
 
 add_executable(h5benchmark ${SOURCE_FILES})
-target_include_directories(h5benchmark SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/morphio/build/include")
 target_include_directories(h5benchmark SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/morpho-kit/build/include")
 target_link_libraries(h5benchmark ${HDF5_C_LIBRARIES} MorphoKit::morphokit_shared)
