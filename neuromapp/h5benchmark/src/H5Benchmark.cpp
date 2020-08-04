@@ -18,7 +18,7 @@
 using namespace std;
 using namespace h5benchmark;
 
-#define INPUT_PARAMS    "[bmark] [api] [drv] [file]"
+#define INPUT_PARAMS "[bmark] [api] [drv] [factor] [file]"
 
 /**
  * Enumerate that defines the different benchmark types available.
@@ -51,26 +51,28 @@ typedef enum
 /**
  * Sequential / Random benchmark that retrieves datasets from each group.
  */
-int launchBenchmark(h5bmark_t type, IOApi *ioapi, vector<string> groups,
-                    int rank)
+int launchBenchmark(h5bmark_t type, IOApi *ioapi, double factor,
+                    vector<string> groups, int rank)
 {
-    const int is_random = (type == H5BMARK_RND);
-    off_t     offset    = 0;
-    uint32_t  seed      = (rank + 1) * 921;
+    const size_t num_groups = groups.size(); 
+    const size_t rd_limit   = num_groups * factor;
+    const int    is_random  = (type == H5BMARK_RND);
+    off_t        offset     = 0;
+    uint32_t     seed       = (rank + 1) * 921;
     
     if (is_random)
     {
         // Set the seed and generate the first offset
         rand_r(&seed);
-        offset = (rand_r(&seed) % groups.size());
+        offset = (rand_r(&seed) % num_groups);
     }
     
-    for (size_t rd_count = 0; rd_count < groups.size(); rd_count++)
+    for (size_t rd_count = 0; rd_count < rd_limit; rd_count++)
     {
         ioapi->readGroup(groups[offset]);
         
         offset = ((is_random) ? (off_t)rand_r(&seed) :
-                                (offset + 1)) % groups.size();
+                                (offset + 1)) % num_groups;
     }
     
     return 0;
@@ -81,6 +83,7 @@ int main(int argc, char **argv)
     h5bmark_t      bmark       = H5BMARK_SEQ;
     h5api_t        api         = H5API_DEFAULT;
     h5drv_t        drv         = H5DRV_POSIX;
+    double         factor      = 1.0;
     char           *path       = NULL;
     int            rank        = 0;
     IOApi          *ioapi      = nullptr;
@@ -94,7 +97,7 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     // Check if the number of parameters match the expected
-    if (argc != 5)
+    if (argc != 6)
     {
         cerr << "Error: The number of parameters is incorrect!" << endl;
         cerr << "Use: " << argv[0] << " " << INPUT_PARAMS << endl;
@@ -105,8 +108,9 @@ int main(int argc, char **argv)
     sscanf(argv[1], "%d", (int *)&bmark);
     sscanf(argv[2], "%d", (int *)&api);
     sscanf(argv[3], "%d", (int *)&drv);
+    sscanf(argv[4], "%lf", &factor);
     
-    if (access((path = argv[4]), F_OK))
+    if (access((path = argv[5]), F_OK))
     {
         cerr << "Error: File does not exist or cannot be accessed." << endl;
         return -1;
@@ -149,7 +153,7 @@ int main(int argc, char **argv)
     }
     
     // Launch the benchmark that reads the groups from the file
-    launchBenchmark(bmark, ioapi, groups, rank);
+    launchBenchmark(bmark, ioapi, factor, groups, rank);
     MPI_Barrier(MPI_COMM_WORLD);
 
     // Release resources
