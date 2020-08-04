@@ -4,6 +4,7 @@
 #include "highfive/H5DataSpace.hpp"
 #include "IOApi_Hi5.hpp"
 
+using namespace std;
 using namespace HighFive;
 using namespace h5benchmark;
 
@@ -15,7 +16,7 @@ IOApiH5::IOApiH5(std::string filename, bool enable_phdf5) :
     
 }
 
-~IOApiH5::IOApiH5()
+IOApiH5::~IOApiH5()
 {
     
 }

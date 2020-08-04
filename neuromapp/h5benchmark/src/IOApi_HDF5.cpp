@@ -27,7 +27,7 @@ IOApiHDF5::IOApiHDF5(std::string filename, bool enable_phdf5) :
     m_buffer = malloc(BUFFER_SIZE);
 }
 
-~IOApiHDF5::IOApiHDF5()
+IOApiHDF5::~IOApiHDF5()
 {
     H5Fclose(m_file);
     free(m_buffer);

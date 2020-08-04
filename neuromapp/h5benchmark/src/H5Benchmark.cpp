@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     if (argc != 5)
     {
         cerr << "Error: The number of parameters is incorrect!" << endl;
-        cerr << "Use: " argv[0] << " " << INPUT_PARAMS << endl;
+        cerr << "Use: " << argv[0] << " " << INPUT_PARAMS << endl;
         return -1;
     }
     

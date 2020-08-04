@@ -15,10 +15,10 @@ namespace h5benchmark
             virtual int readGroup(std::string name);
             
         private:
-            typedef std::shared_ptr<FileStorage> FStorage;
+            typedef std::shared_ptr<morphokit::FileStorage> FStorage;
             
             FStorage m_file;    // File handle
-    }
+    };
 }
 
 #endif

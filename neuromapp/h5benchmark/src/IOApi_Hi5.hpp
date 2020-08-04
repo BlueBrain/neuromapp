@@ -15,7 +15,7 @@ namespace h5benchmark
             virtual int readGroup(std::string name);
             
         private:
-            File m_file;    // File handle
+            HighFive::File m_file;    // File handle
     };
 }
 
