@@ -12,7 +12,7 @@ H5Parser::H5Parser(std::string filename, bool enable_phdf5)
     if (enable_phdf5)
     {
         fapl_id = H5Pcreate(H5P_FILE_ACCESS);
-        H5Pset_fapl_mpio(fapl_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+        H5Pset_fapl_mpio(fapl_id, MPI_COMM_SELF, MPI_INFO_NULL);
     }
     
     m_file = H5Fopen(filename.c_str(), H5F_ACC_RDONLY, fapl_id);
