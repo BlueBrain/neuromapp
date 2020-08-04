@@ -11,10 +11,7 @@ find_package(HDF5 REQUIRED)
 find_package(MorphoKit REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem)
 
-set(HIGHFIVE_INC_DIR ${CMAKE_SOURCE_DIR}/HighFive/include/highfive)
-set(HEADER_FILES ${HIGHFIVE_INC_DIR}/H5File.hpp ${HIGHFIVE_INC_DIR}/H5DataSet.hpp ${HIGHFIVE_INC_DIR}/H5Group.hpp ${HIGHFIVE_INC_DIR}/H5DataSpace.hpp)
-
-add_executable(h5benchmark ${CMAKE_SOURCE_DIR}/src/H5Benchmark.cpp ${HEADER_FILES})
-target_include_directories(h5benchmark SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/HighFive/include")
+add_executable(h5benchmark ${CMAKE_SOURCE_DIR}/src/H5Benchmark.cpp)
+target_include_directories(h5benchmark SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/morphio/build/include")
 target_include_directories(h5benchmark SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/morpho-kit/build/include")
 target_link_libraries(h5benchmark ${HDF5_C_LIBRARIES} MorphoKit::morphokit_shared)

@@ -1,7 +1,7 @@
 #ifndef H5BMARK_IOAPI_HI5
 #define H5BMARK_IOAPI_HI5
 
-#include <highfive/H5File.hpp>
+#include "highfive/H5File.hpp"
 #include "IOApi.hpp"
 
 namespace h5benchmark
