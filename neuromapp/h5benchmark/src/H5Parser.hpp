@@ -13,7 +13,7 @@ namespace h5benchmark
             H5Parser(std::string filename, bool enable_mpiio);
             ~H5Parser();
             
-            int getGroups(std::vector<std::string> groups);
+            int getGroups(std::vector<std::string> &groups);
             
         private:
             hid_t m_file;   // File handle

@@ -5,7 +5,7 @@
 using namespace std;
 using namespace h5benchmark;
 
-fixedstring_t* H5Util::vectorConv(vector<string> strings)
+fixedstring_t* H5Util::vectorConv(vector<string> &strings)
 {
     const size_t  buffer_size = sizeof(fixedstring_t) * strings.size();
     fixedstring_t *converted  = (fixedstring_t *)malloc(buffer_size);

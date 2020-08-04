@@ -16,7 +16,7 @@ namespace h5benchmark
             /**
              * Converts a vector<string> to a buffer of fixed-length strings.
              */
-            static fixedstring_t* vectorConv(std::vector<std::string> strings);
+            static fixedstring_t* vectorConv(std::vector<std::string> &strings);
             
             /**
              * Converts a buffer of fixed-length strings to a vector<string>.

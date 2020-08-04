@@ -45,7 +45,7 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
     return 0;
 }
 
-int H5Parser::getGroups(std::vector<std::string> groups)
+int H5Parser::getGroups(std::vector<std::string> &groups)
 {
     return H5Literate(m_file, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, op_func,
                       static_cast<void *>(&groups));

@@ -115,17 +115,6 @@ int main(int argc, char **argv)
         cerr << "Error: File does not exist or cannot be accessed." << endl;
         return -1;
     }
-    
-    // Configure the API for I/O
-    switch (api)
-    {
-        case H5API_HIGHFIVE:
-            ioapi = new IOApiH5(string(path),   (drv == H5DRV_MPIIO)); break;
-        case H5API_MORPHOKIT:
-            ioapi = new IOApiMKit(string(path), (drv == H5DRV_MPIIO)); break;
-        default:
-            ioapi = new IOApiHDF5(string(path), (drv == H5DRV_MPIIO));
-    }
 
     // Retrieve all the groups inside the file and share the information
     {
@@ -150,6 +139,17 @@ int main(int argc, char **argv)
         }
         
         free(groups_tmp);
+    }
+    
+    // Configure the API for I/O
+    switch (api)
+    {
+        case H5API_HIGHFIVE:
+            ioapi = new IOApiH5(string(path),   (drv == H5DRV_MPIIO)); break;
+        case H5API_MORPHOKIT:
+            ioapi = new IOApiMKit(string(path), (drv == H5DRV_MPIIO)); break;
+        default:
+            ioapi = new IOApiHDF5(string(path), (drv == H5DRV_MPIIO));
     }
     
     // Launch the benchmark that reads the groups from the file
