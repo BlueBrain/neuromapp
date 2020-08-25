@@ -9,13 +9,14 @@ namespace h5benchmark
     class IOApiH5 : public IOApi
     {
         public:
-            IOApiH5(std::string filename, bool enable_mpiio);
+            IOApiH5(std::string filename, bool enable_mpiio, bool enable_boost);
             virtual ~IOApiH5();
             
             virtual int readGroup(std::string name);
             
         private:
-            HighFive::File m_file;    // File handle
+            HighFive::File m_file;          // File handle
+            const bool     m_boost_enabled; // Flag to use Boost
     };
 }
 

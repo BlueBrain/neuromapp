@@ -25,7 +25,10 @@ set(SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/H5Benchmark.cpp"
                  "${PROJECT_SOURCE_DIR}/src/IOApi_MKit.cpp")
 
 add_executable(h5benchmark ${SOURCE_FILES})
-#target_include_directories(h5benchmark SYSTEM PRIVATE "${PROJECT_SOURCE_DIR}/morpho-kit/build/include")
+add_definitions(-DH5_USE_BOOST)
+if (INTERNAL_PACKAGES)
+    target_include_directories(h5benchmark SYSTEM PRIVATE "${PROJECT_SOURCE_DIR}/morpho-kit/build/include")
+endif()
 target_link_libraries(h5benchmark ${HDF5_C_LIBRARIES} MorphoKit::morphokit_shared)
 
 install(TARGETS h5benchmark

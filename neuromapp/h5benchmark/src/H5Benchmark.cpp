@@ -18,7 +18,7 @@
 using namespace std;
 using namespace h5benchmark;
 
-#define INPUT_PARAMS "[bmark] [api] [drv] [factor] [file]"
+#define INPUT_PARAMS "[bmark] [api] [drv] [factor] [use_boost] [file]"
 
 /**
  * Enumerate that defines the different benchmark types available.
@@ -84,6 +84,7 @@ int main(int argc, char **argv)
     h5api_t        api         = H5API_DEFAULT;
     h5drv_t        drv         = H5DRV_POSIX;
     double         factor      = 1.0;
+    int            use_boost   = 0;
     char           *path       = NULL;
     int            rank        = 0;
     IOApi          *ioapi      = nullptr;
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     // Check if the number of parameters match the expected
-    if (argc != 6)
+    if (argc != 7)
     {
         cerr << "Error: The number of parameters is incorrect!" << endl;
         cerr << "Use: " << argv[0] << " " << INPUT_PARAMS << endl;
@@ -109,8 +110,9 @@ int main(int argc, char **argv)
     sscanf(argv[2], "%d", (int *)&api);
     sscanf(argv[3], "%d", (int *)&drv);
     sscanf(argv[4], "%lf", &factor);
+    sscanf(argv[5], "%d", (int *)&use_boost);
     
-    if (access((path = argv[5]), F_OK))
+    if (access((path = argv[6]), F_OK))
     {
         cerr << "Error: File does not exist or cannot be accessed." << endl;
         return -1;
@@ -145,7 +147,8 @@ int main(int argc, char **argv)
     switch (api)
     {
         case H5API_HIGHFIVE:
-            ioapi = new IOApiH5(string(path),   (drv == H5DRV_MPIIO)); break;
+            ioapi = new IOApiH5(string(path), (drv == H5DRV_MPIIO), use_boost);
+            break;
         case H5API_MORPHOKIT:
             ioapi = new IOApiMKit(string(path), (drv == H5DRV_MPIIO)); break;
         default:
