@@ -69,13 +69,17 @@ int main(int argc, char **argv)
     path = argv[2];
     
     // Launch the collective read
-    printf("Writing %zux8x%d blocks to \"%s\"\n", bsize, nranks, path);
     {
+        if (rank == 0)
+            printf("Writing %zux8x%d blocks to \"%s\"\n", bsize, nranks, path);
+        
         init_read(rank, nranks, bsize, &buffer);
         launch_read(rank, nranks, bsize, path, buffer);
         release_read(&buffer);
+        
+        if (rank == 0)
+            printf("Done!\n");
     }
-    printf("Done!\n");
 
     // Release resources
     MPI_Finalize();
