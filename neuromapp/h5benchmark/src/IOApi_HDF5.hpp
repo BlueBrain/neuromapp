@@ -12,7 +12,7 @@ namespace h5benchmark
             IOApiHDF5(std::string filename, bool enable_mpiio);
             virtual ~IOApiHDF5();
             
-            virtual int readGroup(std::string name);
+            virtual int readGroup(group_t &group);
             
         private:
             hid_t m_file;    // File handle

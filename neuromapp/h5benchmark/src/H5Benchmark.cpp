@@ -14,6 +14,7 @@
 #include "IOApi_HDF5.hpp"
 #include "IOApi_Hi5.hpp"
 #include "IOApi_MKit.hpp"
+#include "IOApi_MPIO.hpp"
 
 using namespace std;
 using namespace h5benchmark;
@@ -37,6 +38,7 @@ typedef enum
     H5API_DEFAULT = 0,  // Default C API
     H5API_HIGHFIVE,     // BBP HighFive C++ wrapper
     H5API_MORPHOKIT,    // BBP Morpho-kit reader
+    H5API_MPIO,         // Custom MPI-IO reader
 } h5api_t;
 
 /**
@@ -52,7 +54,7 @@ typedef enum
  * Sequential / Random benchmark that retrieves datasets from each group.
  */
 int launchBenchmark(h5bmark_t type, IOApi *ioapi, double factor,
-                    vector<string> groups, int rank)
+                    vector<group_t> groups, int rank)
 {
     const size_t num_groups = groups.size(); 
     const size_t rd_limit   = num_groups * factor;
@@ -91,7 +93,7 @@ int main(int argc, char **argv)
     fixedstring_t  *groups_tmp = NULL;
     size_t         groups_cnt  = 0;
     size_t         groups_size = 0;
-    vector<string> groups;
+    vector<group_t> groups;
     
     // Initialize MPI
     MPI_Init(&argc, &argv);
@@ -125,22 +127,22 @@ int main(int argc, char **argv)
             H5Parser parser(string(path), (drv == H5DRV_MPIIO));
             parser.getGroups(groups);
             
-            groups_tmp = H5Util::vectorConv(groups);
-            groups_cnt = groups.size();
+            // groups_tmp = &groups[0]; // H5Util::vectorConv(groups);
+            // groups_cnt = groups.size();
         }
         
-        MPI_Bcast(&groups_cnt, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
-        groups_size = groups_cnt * sizeof(fixedstring_t);
-        groups_tmp  = (fixedstring_t *)realloc(groups_tmp, groups_size);
-        MPI_Bcast(groups_tmp, groups_size, MPI_BYTE, 0, MPI_COMM_WORLD);
+        // MPI_Bcast(&groups_cnt, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
+        // groups_size = groups_cnt * sizeof(group_t);
+        // groups_tmp  = (group_t *)realloc(groups_tmp, groups_size);
+        // MPI_Bcast(groups_tmp, groups_size, MPI_BYTE, 0, MPI_COMM_WORLD);
         
         // Convert the buffer back to a vector of strings
-        if (rank != 0)
-        {
-            groups = H5Util::bufferConv(groups_tmp, groups_cnt);
-        }
+        // if (rank != 0)
+        // {
+        //     groups = H5Util::bufferConv(groups_tmp, groups_cnt);
+        // }
         
-        free(groups_tmp);
+        // free(groups_tmp);
     }
     
     // Configure the API for I/O
@@ -151,6 +153,8 @@ int main(int argc, char **argv)
             break;
         case H5API_MORPHOKIT:
             ioapi = new IOApiMKit(string(path), (drv == H5DRV_MPIIO)); break;
+        case H5API_MPIO:
+            ioapi = new IOApiMPIO(string(path), (drv == H5DRV_MPIIO)); break;
         default:
             ioapi = new IOApiHDF5(string(path), (drv == H5DRV_MPIIO));
     }

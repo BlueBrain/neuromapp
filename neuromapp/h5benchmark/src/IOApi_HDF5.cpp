@@ -33,21 +33,21 @@ IOApiHDF5::~IOApiHDF5()
     free(m_buffer);
 }
 
-int IOApiHDF5::readGroup(std::string name)
+int IOApiHDF5::readGroup(group_t &group)
 {
     hid_t gid    = 0;
     hid_t did[2] = { 0 };
     
     // Retrieve the group and open the datasets
-    gid    = H5Gopen2(m_file, name.c_str(), H5P_DEFAULT);
-    did[0] = H5Dopen2(gid,    "structure",  H5P_DEFAULT);
-    did[1] = H5Dopen2(gid,    "points",     H5P_DEFAULT);
+    gid    = H5Gopen2(m_file, group.name,  H5P_DEFAULT);
+    did[0] = H5Dopen2(gid,    "structure", H5P_DEFAULT);
+    did[1] = H5Dopen2(gid,    "points",    H5P_DEFAULT);
     
     // Read the content available on each dataset
     H5Dread(did[0], H5T_NATIVE_INT,   H5S_ALL, H5S_ALL, m_plist, m_buffer);
     H5Dread(did[1], H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, m_plist, m_buffer);
     
-    // printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", name.c_str(),
+    // printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", group.name,
     //                                                 ((float *)m_buffer)[0],
     //                                                 ((float *)m_buffer)[1],
     //                                                 ((float *)m_buffer)[2],

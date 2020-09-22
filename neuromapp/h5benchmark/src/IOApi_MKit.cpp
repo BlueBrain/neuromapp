@@ -19,10 +19,10 @@ IOApiMKit::~IOApiMKit()
     
 }
 
-int IOApiMKit::readGroup(std::string name)
+int IOApiMKit::readGroup(group_t &_group)
 {
     // Retrieving the morphology is enough to read the whole group
-    Morphology group = m_file->get(name);
+    Morphology group = m_file->get(std::string(_group.name));
     
     return 0;
 }

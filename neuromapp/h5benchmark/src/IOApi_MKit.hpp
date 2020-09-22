@@ -12,7 +12,7 @@ namespace h5benchmark
             IOApiMKit(std::string filename, bool enable_mpiio);
             virtual ~IOApiMKit();
             
-            virtual int readGroup(std::string name);
+            virtual int readGroup(group_t &group);
             
         private:
             typedef std::shared_ptr<morphokit::FileStorage> FStorage;

@@ -24,10 +24,10 @@ IOApiH5::~IOApiH5()
     
 }
 
-int IOApiH5::readGroup(std::string name)
+int IOApiH5::readGroup(group_t &_group)
 {
     // Retrieve the group and open the datasets
-    Group   group       = m_file.getGroup(name);
+    Group   group       = m_file.getGroup(std::string(_group.name));
     DataSet dset_struct = group.getDataSet("structure");
     DataSet dset_points = group.getDataSet("points");
     
@@ -49,7 +49,7 @@ int IOApiH5::readGroup(std::string name)
         dset_points.read(buffer_points);
     }
     
-    // printf ("Dataset: %s\n    (%f,%f,%f,%f)\n", name.c_str(),
+    // printf ("Dataset: %s\n    (%f,%f,%f,%f)\n", _group.name,
     //                                             buffer_points[0][0],
     //                                             buffer_points[0][1],
     //                                             buffer_points[0][2],
