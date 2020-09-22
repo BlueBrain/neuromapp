@@ -44,8 +44,10 @@ int IOApiHDF5::readGroup(group_t &group)
     did[1] = H5Dopen2(gid,    "points",    H5P_DEFAULT);
     
     // Read the content available on each dataset
-    H5Dread(did[0], H5T_NATIVE_INT,   H5S_ALL, H5S_ALL, m_plist, m_buffer);
-    H5Dread(did[1], H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, m_plist, m_buffer);
+    H5Dread(did[0], H5T_NATIVE_INT,    H5S_ALL, H5S_ALL, m_plist, m_buffer);
+    H5Dread(did[1], H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, m_plist, m_buffer);
+    
+    // <<<<<<<<<<<<<<<<<<<<< Type conversion from double to float is missing!!
     
     // printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", group.name,
     //                                                 ((float *)m_buffer)[0],
