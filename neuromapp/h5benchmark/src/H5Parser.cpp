@@ -1,5 +1,4 @@
 
-#include <string.h>
 #include <H5Opublic.h>
 #include <H5Dpublic.h>
 #include <mpi.h>

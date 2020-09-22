@@ -2,6 +2,7 @@
 #define H5BMARK_IOAPI
 
 #include <string>
+#include <cstring>
 
 namespace h5benchmark
 {
