@@ -30,11 +30,11 @@ int IOApiMPIO::readGroup(group_t &group)
     
     // <<<<<<<<<<<<<<<<<<<<< Type conversion from double to float is missing!!
     
-    printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", group.name,
-                                                (float)((double *)m_buffer)[0],
-                                                (float)((double *)m_buffer)[1],
-                                                (float)((double *)m_buffer)[2],
-                                                (float)((double *)m_buffer)[3]);
+    // printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", group.name,
+    //                                          (float)((double *)m_buffer)[0],
+    //                                          (float)((double *)m_buffer)[1],
+    //                                          (float)((double *)m_buffer)[2],
+    //                                          (float)((double *)m_buffer)[3]);
     
     return 0;
 }
