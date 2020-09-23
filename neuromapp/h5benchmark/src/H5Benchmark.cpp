@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/time.h>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 #include <mpi.h>
 #include "H5Parser.hpp"
 #include "H5Util.hpp"
@@ -20,6 +22,27 @@ using namespace std;
 using namespace h5benchmark;
 
 #define INPUT_PARAMS "[bmark] [api] [drv] [factor] [use_boost] [file]"
+
+typedef struct timeval timeval_t;
+
+/**
+ * Structure that represents a performance measurement.
+ */
+typedef struct _measurement_t
+{
+    string description;
+    double elapsed;
+    double avg;
+    double min;
+    double max;
+    
+    _measurement_t(string _description, double _elapsed)
+        : description(_description)
+        , elapsed(_elapsed)
+        , avg(0.0)
+        , min(0.0)
+        , max(0.0) { }
+} measurement_t;
 
 /**
  * Enumerate that defines the different benchmark types available.
@@ -80,6 +103,15 @@ int launchBenchmark(h5bmark_t type, IOApi *ioapi, double factor,
     return 0;
 }
 
+/**
+ * Helper method to obtain the elapsed time between two measurements.
+ */
+double getElapsed(timeval_t &tv_0, timeval_t &tv_1)
+{
+    return (double)(tv_1.tv_sec - tv_0.tv_sec) +
+            (tv_1.tv_usec - tv_0.tv_usec) * 0.000001;
+}
+
 int main(int argc, char **argv)
 {
     h5bmark_t      bmark       = H5BMARK_SEQ;
@@ -89,12 +121,16 @@ int main(int argc, char **argv)
     int            use_boost   = 0;
     char           *path       = NULL;
     int            rank        = 0;
+    int            nranks      = 0;
     IOApi          *ioapi      = nullptr;
-    vector<group_t> groups;
+    vector<group_t>     groups;
+    vector<timeval_t>   tv(4);
+    list<measurement_t> measurements;
     
     // Initialize MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &nranks);
 
     // Check if the number of parameters match the expected
     if (argc != 7)
@@ -123,8 +159,12 @@ int main(int argc, char **argv)
         
         if (rank == 0)
         {
+            gettimeofday(&tv[0], NULL);
             H5Parser parser(string(path), (drv == H5DRV_MPIIO));
             parser.getGroups(groups);
+            gettimeofday(&tv[1], NULL);
+
+            printf("Group Retrieval (s): %lf", getElapsed(tv[0], tv[1]));
             
             groups_cnt = groups.size();
         }
@@ -136,6 +176,8 @@ int main(int argc, char **argv)
     }
     
     // Configure the API for I/O
+    gettimeofday(&tv[0], NULL);
+    gettimeofday(&tv[2], NULL);
     switch (api)
     {
         case H5API_HIGHFIVE:
@@ -148,10 +190,39 @@ int main(int argc, char **argv)
         default:
             ioapi = new IOApiHDF5(string(path), (drv == H5DRV_MPIIO));
     }
-    
+    gettimeofday(&tv[1], NULL);
+
+    measurements.push_back(measurement_t("API Creation", getElapsed(tv[0], tv[1])));
+
     // Launch the benchmark that reads the groups from the file
+    gettimeofday(&tv[0], NULL);
     launchBenchmark(bmark, ioapi, factor, groups, rank);
+    gettimeofday(&tv[1], NULL);
+
+    measurements.push_back(measurement_t("Benchmark", getElapsed(tv[0], tv[1])));
+
     MPI_Barrier(MPI_COMM_WORLD);
+    gettimeofday(&tv[3], NULL);
+
+    // Output the measurements
+    if (rank == 0)
+    {
+        printf("Execution Time (s): %lf", getElapsed(tv[2], tv[3]));
+    }
+
+    for (auto &m : measurements) {
+        MPI_Reduce(&m.elapsed, &m.avg, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&m.elapsed, &m.min, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&m.elapsed, &m.max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        
+        if (rank == 0)
+        {
+            printf("  > %s (s): %lf %lf %lf", m.description,
+                                              (m.avg / (double)nranks),
+                                              m.min,
+                                              m.max);
+        }
+    }
 
     // Release resources
     delete ioapi;
