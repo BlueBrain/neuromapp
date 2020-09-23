@@ -164,7 +164,7 @@ int main(int argc, char **argv)
             parser.getGroups(groups);
             gettimeofday(&tv[1], NULL);
 
-            printf("Group Retrieval (s): %lf", getElapsed(tv[0], tv[1]));
+            printf("Group Retrieval (s): %lf\n", getElapsed(tv[0], tv[1]));
             
             groups_cnt = groups.size();
         }
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
     // Output the measurements
     if (rank == 0)
     {
-        printf("Execution Time (s): %lf", getElapsed(tv[2], tv[3]));
+        printf("Execution Time (s): %lf\n", getElapsed(tv[2], tv[3]));
     }
 
     for (auto &m : measurements) {
@@ -217,10 +217,10 @@ int main(int argc, char **argv)
         
         if (rank == 0)
         {
-            printf("  > %s (s): %lf %lf %lf", m.description,
-                                              (m.avg / (double)nranks),
-                                              m.min,
-                                              m.max);
+            printf("  > %s (s): %lf %lf %lf\n", m.description.c_str(),
+                                                (m.avg / (double)nranks),
+                                                m.min,
+                                                m.max);
         }
     }
 
