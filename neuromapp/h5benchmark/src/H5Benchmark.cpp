@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     sscanf(argv[4], "%lf", &factor);
     sscanf(argv[5], "%d", (int *)&use_boost);
     
-    if (access((path = argv[6]), F_OK))
+    if (strncmp((path = argv[6]), "ime:", 4) && access(path, F_OK))
     {
         cerr << "Error: File does not exist or cannot be accessed." << endl;
         return -1;
