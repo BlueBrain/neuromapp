@@ -25,10 +25,14 @@ namespace h5benchmark
         char name[256];
         dataset_t dataset[2];
         
-        _group_t(const char *_name)
+        _group_t()
         {
             memset(name,    0, sizeof(name));
             memset(dataset, 0, sizeof(dataset));
+        }
+        
+        _group_t(const char *_name) : _group_t()
+        {
             strncpy(name, _name, sizeof(name));
         }
     } group_t;

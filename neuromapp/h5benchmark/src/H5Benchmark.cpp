@@ -90,9 +90,6 @@ int main(int argc, char **argv)
     char           *path       = NULL;
     int            rank        = 0;
     IOApi          *ioapi      = nullptr;
-    fixedstring_t  *groups_tmp = NULL;
-    size_t         groups_cnt  = 0;
-    size_t         groups_size = 0;
     vector<group_t> groups;
     
     // Initialize MPI
@@ -122,27 +119,20 @@ int main(int argc, char **argv)
 
     // Retrieve all the groups inside the file and share the information
     {
+        size_t groups_cnt = 0;
+        
         if (rank == 0)
         {
             H5Parser parser(string(path), (drv == H5DRV_MPIIO));
             parser.getGroups(groups);
             
-            // groups_tmp = &groups[0]; // H5Util::vectorConv(groups);
-            // groups_cnt = groups.size();
+            groups_cnt = groups.size();
         }
         
-        // MPI_Bcast(&groups_cnt, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
-        // groups_size = groups_cnt * sizeof(group_t);
-        // groups_tmp  = (group_t *)realloc(groups_tmp, groups_size);
-        // MPI_Bcast(groups_tmp, groups_size, MPI_BYTE, 0, MPI_COMM_WORLD);
-        
-        // Convert the buffer back to a vector of strings
-        // if (rank != 0)
-        // {
-        //     groups = H5Util::bufferConv(groups_tmp, groups_cnt);
-        // }
-        
-        // free(groups_tmp);
+        MPI_Bcast(&groups_cnt, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
+        groups.resize(groups_cnt);
+        MPI_Bcast(&groups[0], groups_cnt * sizeof(group_t), MPI_BYTE, 0,
+                  MPI_COMM_WORLD);
     }
     
     // Configure the API for I/O
