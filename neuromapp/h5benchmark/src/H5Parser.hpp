@@ -17,7 +17,9 @@ namespace h5benchmark
             int getGroups(std::vector<group_t> &groups);
             
         private:
-            hid_t m_file;   // File handle
+            hid_t       m_file;         // File handle
+            MPI_File    m_file_idx;     // File handle for the index
+            std::string m_filename_idx; // Filename for the index
     };
 }
 
