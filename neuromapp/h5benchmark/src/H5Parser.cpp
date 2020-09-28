@@ -6,7 +6,7 @@
 
 using namespace h5benchmark;
 
-#define INDEX_SUFFIX ".idx"
+#define INDEX_SUFFIX ".idx"
 
 H5Parser::H5Parser(std::string filename, bool enable_phdf5)
     : m_file_idx(MPI_FILE_NULL)
