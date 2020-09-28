@@ -9,7 +9,8 @@ using namespace h5benchmark;
 #define INDEX_SUFFIX ".idx"
 
 H5Parser::H5Parser(std::string filename, bool enable_phdf5)
-    : m_file_idx(MPI_FILE_NULL)
+    : m_file(-1)
+    , m_file_idx(MPI_FILE_NULL)
     , m_filename_idx(filename + INDEX_SUFFIX)
 {
     // Try to open the cached index first
@@ -33,8 +34,14 @@ H5Parser::H5Parser(std::string filename, bool enable_phdf5)
 
 H5Parser::~H5Parser()
 {
-    H5Fclose(m_file);
-    MPI_File_close(&m_file_idx);
+    if (m_file >= 0)
+    {
+        H5Fclose(m_file);
+    }
+    else
+    {
+        MPI_File_close(&m_file_idx);
+    }
 }
 
 /**
@@ -115,6 +122,7 @@ int H5Parser::getGroups(std::vector<group_t> &groups)
             
             // Close the HDF5 file
             H5Fclose(m_file);
+            m_file = -1;
         }
     }
 
