@@ -16,6 +16,7 @@
 #include "IOApi_HDF5.hpp"
 #include "IOApi_Hi5.hpp"
 #include "IOApi_MKit.hpp"
+#include "IOApi_POSIX.hpp"
 #include "IOApi_MPIO.hpp"
 
 using namespace std;
@@ -61,6 +62,7 @@ typedef enum
     H5API_DEFAULT = 0,  // Default C API
     H5API_HIGHFIVE,     // BBP HighFive C++ wrapper
     H5API_MORPHOKIT,    // BBP Morpho-kit reader
+    H5API_POSIX,        // Custom POSIX reader
     H5API_MPIO,         // Custom MPI-IO reader
 } h5api_t;
 
@@ -185,6 +187,8 @@ int main(int argc, char **argv)
             break;
         case H5API_MORPHOKIT:
             ioapi = new IOApiMKit(string(path), (drv == H5DRV_MPIIO)); break;
+        case H5API_POSIX:
+            ioapi = new IOApiPOSIX(string(path), (drv == H5DRV_MPIIO)); break;
         case H5API_MPIO:
             ioapi = new IOApiMPIO(string(path), (drv == H5DRV_MPIIO)); break;
         default:

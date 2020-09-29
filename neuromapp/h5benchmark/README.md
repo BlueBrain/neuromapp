@@ -57,7 +57,7 @@ make install
 **Compile H5Benchmark**
 ```shell
 mkdir build && cd build
-cmake -DCMAKE_CXX_COMPILER=mpicxx ..
+cmake -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_CXX_FLAGS='-O2 -g' ..
 make
 ```
 

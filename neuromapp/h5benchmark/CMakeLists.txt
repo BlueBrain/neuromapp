@@ -23,6 +23,7 @@ set(SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/H5Benchmark.cpp"
                  "${PROJECT_SOURCE_DIR}/src/IOApi_HDF5.cpp"
                  "${PROJECT_SOURCE_DIR}/src/IOApi_Hi5.cpp"
                  "${PROJECT_SOURCE_DIR}/src/IOApi_MKit.cpp"
+                 "${PROJECT_SOURCE_DIR}/src/IOApi_POSIX.cpp"
                  "${PROJECT_SOURCE_DIR}/src/IOApi_MPIO.cpp")
 
 add_executable(h5benchmark ${SOURCE_FILES})

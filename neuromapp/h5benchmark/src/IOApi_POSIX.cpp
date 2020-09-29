@@ -1,32 +1,33 @@
 
-#include "IOApi_MPIO.hpp"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include "IOApi_POSIX.hpp"
 
 using namespace h5benchmark;
 
 #define BUFFER_SIZE (1048576 * 256) // TODO: Check for dataset sizes!
 
-IOApiMPIO::IOApiMPIO(std::string filename, bool enable_phdf5)
+IOApiPOSIX::IOApiPOSIX(std::string filename, bool enable_phdf5)
 {
-    MPI_File_open(MPI_COMM_SELF, filename.c_str(), MPI_MODE_RDONLY, 
-                  MPI_INFO_NULL, &m_file);
+    m_file   = open(filename.c_str(), O_RDONLY);
     m_buffer = malloc(BUFFER_SIZE);
 }
 
-IOApiMPIO::~IOApiMPIO()
+IOApiPOSIX::~IOApiPOSIX()
 {
-    MPI_File_close(&m_file);
+    close(m_file);
     free(m_buffer);
 }
 
-int IOApiMPIO::readGroup(group_t &group)
+int IOApiPOSIX::readGroup(group_t &group)
 {
     auto &dataset = group.dataset;
     
     // Read the content available on each dataset
-    MPI_File_read_at(m_file, dataset[0].offset, m_buffer, dataset[0].size,
-                     MPI_BYTE, MPI_STATUS_IGNORE);
-    MPI_File_read_at(m_file, dataset[1].offset, m_buffer, dataset[1].size,
-                     MPI_BYTE, MPI_STATUS_IGNORE);
+    pread(m_file, m_buffer, dataset[0].size, dataset[0].offset);
+    pread(m_file, m_buffer, dataset[1].size, dataset[1].offset);
     
     // <<<<<<<<<<<<<<<<<<<<< Type conversion from double to float is missing!!
     
