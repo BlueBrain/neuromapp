@@ -59,12 +59,13 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
     {
         if (infobuf.type == H5O_TYPE_GROUP)
         {
-            groups->push_back(group_t(name));
+            groups->emplace_back(name);
             
             // printf("Group: %s (addr=%zu)\n", name, infobuf.addr);
             
-            return H5Literate_by_name(loc_id, name, H5_INDEX_NAME, H5_ITER_NATIVE,
-                                    NULL, op_func, op_data, H5P_DEFAULT);
+            return H5Literate_by_name(loc_id, name, H5_INDEX_NAME, 
+                                      H5_ITER_NATIVE, NULL, op_func, op_data,
+                                      H5P_DEFAULT);
         }
         
         auto dataset    = &groups->back().dataset[!strcmp("points", name)];

@@ -50,10 +50,10 @@ int IOApiHDF5::readGroup(group_t &group)
     // <<<<<<<<<<<<<<<<<<<<< Type conversion from double to float is missing!!
     
     // printf ("Dataset: %s\n    (%lf,%lf,%lf,%lf)\n", group.name,
-    //                                                 ((float *)m_buffer)[0],
-    //                                                 ((float *)m_buffer)[1],
-    //                                                 ((float *)m_buffer)[2],
-    //                                                 ((float *)m_buffer)[3]);
+    //                                                 ((double *)m_buffer)[0],
+    //                                                 ((double *)m_buffer)[1],
+    //                                                 ((double *)m_buffer)[2],
+    //                                                 ((double *)m_buffer)[3]);
     
     H5Dclose(did[0]);
     H5Dclose(did[1]);
