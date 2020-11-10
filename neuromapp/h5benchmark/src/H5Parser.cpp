@@ -59,6 +59,12 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t *info,
     {
         if (infobuf.type == H5O_TYPE_GROUP)
         {
+            // Check if we added an empty group (i.e., for nested files)
+            if (groups->size() > 0 && groups->back().dataset[0].size == 0)
+            {
+                groups->pop_back();
+            }
+
             groups->emplace_back(name);
             
             // printf("Group: %s (addr=%zu)\n", name, infobuf.addr);
