@@ -11,18 +11,10 @@
 #include <vector>
 #include <list>
 #include <mpi.h>
-#include "H5Parser.hpp"
-#include "H5Util.hpp"
-#include "IOApi_HDF5.hpp"
-#include "IOApi_Hi5.hpp"
-#include "IOApi_MKit.hpp"
-#include "IOApi_POSIX.hpp"
-#include "IOApi_MPIO.hpp"
+#include "imeutil.h"
 
 using namespace std;
-using namespace h5benchmark;
-
-#define INPUT_PARAMS "[bmark] [api] [drv] [factor] [use_boost] [file]"
+using namespace bbp::sonata;
 
 typedef struct timeval timeval_t;
 
@@ -46,64 +38,15 @@ typedef struct _measurement_t
 } measurement_t;
 
 /**
- * Enumerate that defines the different benchmark types available.
- */
-typedef enum 
-{
-    H5BMARK_SEQ = 0,  // Sequential benchmark
-    H5BMARK_RND,      // Pseudo-random benchmark
-} h5bmark_t;
-
-/**
- * Enumerate that defines the different APIs available to read the datasets.
- */
-typedef enum 
-{
-    H5API_DEFAULT = 0,  // Default C API
-    H5API_HIGHFIVE,     // BBP HighFive C++ wrapper
-    H5API_MORPHOKIT,    // BBP Morpho-kit reader
-    H5API_POSIX,        // Custom POSIX reader
-    H5API_MPIO,         // Custom MPI-IO reader
-} h5api_t;
-
-/**
  * Enumerate that defines the different I/O drivers available.
  */
 typedef enum 
 {
-    H5DRV_POSIX = 0,  // POSIX HDF5 driver
-    H5DRV_MPIIO,      // MPI-IO pHDF5 driver
+    H5DRV_POSIX = 0,  // POSIX driver
+    H5DRV_MPIIO,      // MPI-IO driver
+    H5DRV_POSIX_v2,   // POSIX driver v2
+    H5DRV_MPIIO_v2,   // MPI-IO driver v2
 } h5drv_t;
-
-/**
- * Sequential / Random benchmark that retrieves datasets from each group.
- */
-int launchBenchmark(h5bmark_t type, IOApi *ioapi, double factor,
-                    vector<group_t> groups, int rank)
-{
-    const size_t num_groups = groups.size(); 
-    const size_t rd_limit   = num_groups * factor;
-    const int    is_random  = (type == H5BMARK_RND);
-    off_t        offset     = 0;
-    uint32_t     seed       = (rank + 1) * 921;
-    
-    if (is_random)
-    {
-        // Set the seed and generate the first offset
-        rand_r(&seed);
-        offset = (rand_r(&seed) % num_groups);
-    }
-    
-    for (size_t rd_count = 0; rd_count < rd_limit; rd_count++)
-    {
-        ioapi->readGroup(groups[offset]);
-        
-        offset = ((is_random) ? (off_t)rand_r(&seed) :
-                                (offset + 1)) % num_groups;
-    }
-    
-    return 0;
-}
 
 /**
  * Helper method to obtain the elapsed time between two measurements.
@@ -114,122 +57,741 @@ double getElapsed(timeval_t &tv_0, timeval_t &tv_1)
             (tv_1.tv_usec - tv_0.tv_usec) * 0.000001;
 }
 
+const size_t nmech = 4000;
+const size_t mla_size = 40;
+const size_t indices_size = 40;
+
+void launchPOSIX(const char* path)
+{
+    FILE *f = fopen(path, "w");
+
+    fprintf(f, "%s\n", "CORENEURON v1.21");
+    fprintf(f, "%d ngid\n", 1);
+    fprintf(f, "%d n_real_gid\n", 2);
+    fprintf(f, "%d nnode\n", 3);
+    fprintf(f, "%d ndiam\n", 4);
+    fprintf(f, "%d nmech\n", nmech);
+
+    for (int i=0; i < nmech; ++i) {
+        fprintf(f, "%d\n", (i*2)%16777216);
+        fprintf(f, "%d\n", i>>1);
+    }
+
+    fprintf(f, "%d nidata\n", 0);
+    fprintf(f, "%d nvdata\n", 1);
+    fprintf(f, "%d nweight\n", 2);
+
+    // data
+    {
+        size_t count = 6;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            size_t base = (i > 0) ? sizeof(double) : sizeof(int);
+            fprintf(f, "chkpnt %d\n", i);
+            fwrite(a[i], base, (size[i]/base), f);
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // mechanism data
+    {
+        size_t count = 5;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                size_t base = (i % 2) ? sizeof(int) : sizeof(double);
+                fprintf(f, "chkpnt %d\n", i);
+                fwrite(a[i], base, (size[i]/base), f);
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // connections
+    {
+        size_t count = 4;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            size_t base = (i > 1) ? sizeof(int) : sizeof(double);
+            fprintf(f, "chkpnt %d\n", i);
+            fwrite(a[i], base, (size[i]/base), f);
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // special handling for BBCOREPOINTER
+    fprintf(f, "%d bbcorepointer\n", 1);
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            fprintf(f, "%d\n", i);
+            fprintf(f, "%d\n%d\n", i+1, i-1);
+            for (int i = 0; i < count; i++)
+            {
+                size_t base = (i % 2) ? sizeof(int) : sizeof(double);
+                fprintf(f, "chkpnt %d\n", i);
+                fwrite(a[i], base, (size[i]/base), f);
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // indices
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < indices_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                size_t base = (i % 2) ? sizeof(int) : sizeof(double);
+                fprintf(f, "%d\n", i);
+                fprintf(f, "%d\n", i+1);
+                fprintf(f, "%d\n", i-1);
+                fprintf(f, "%d\n", i>>1);
+                fprintf(f, "chkpnt %d\n", i);
+                fwrite(a[i], base, (size[i]/base), f);
+                fprintf(f, "chkpnt %d\n", i);
+                fwrite(a[i], base, (size[i]/base), f);
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // fsync(fileno(f));
+    fclose(f);
+}
+
+void launchPOSIXv2(const char* path)
+{
+    void *buffer = malloc(1048576ULL * 1024 * 2);
+    char *ptr = (char *)buffer;
+
+    ptr += sprintf(ptr, "%s\n", "CORENEURON v1.21");
+    ptr += sprintf(ptr, "%d ngid\n", 1);
+    ptr += sprintf(ptr, "%d n_real_gid\n", 2);
+    ptr += sprintf(ptr, "%d nnode\n", 3);
+    ptr += sprintf(ptr, "%d ndiam\n", 4);
+    ptr += sprintf(ptr, "%d nmech\n", nmech);
+
+    for (int i=0; i < nmech; ++i) {
+        ptr += sprintf(ptr, "%d\n", (i*2)%16777216);
+        ptr += sprintf(ptr, "%d\n", i>>1);
+    }
+
+    ptr += sprintf(ptr, "%d nidata\n", 0);
+    ptr += sprintf(ptr, "%d nvdata\n", 1);
+    ptr += sprintf(ptr, "%d nweight\n", 2);
+
+    // data
+    {
+        size_t count = 6;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            ptr += sprintf(ptr, "chkpnt %d\n", i);
+            memcpy(ptr, a[i], size[i]);
+            ptr += size[i];
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // mechanism data
+    {
+        size_t count = 5;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // connections
+    {
+        size_t count = 4;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            ptr += sprintf(ptr, "chkpnt %d\n", i);
+            memcpy(ptr, a[i], size[i]);
+            ptr += size[i];
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // special handling for BBCOREPOINTER
+    ptr += sprintf(ptr, "%d bbcorepointer\n", 1);
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            ptr += sprintf(ptr, "%d\n", i);
+            ptr += sprintf(ptr, "%d\n%d\n", i+1, i-1);
+            for (int i = 0; i < count; i++)
+            {
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // indices
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < indices_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                size_t base = (i % 2) ? sizeof(int) : sizeof(double);
+                ptr += sprintf(ptr, "%d\n", i);
+                ptr += sprintf(ptr, "%d\n", i+1);
+                ptr += sprintf(ptr, "%d\n", i-1);
+                ptr += sprintf(ptr, "%d\n", i>>1);
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    FILE *f = fopen(path, "w");
+    fwrite(buffer, sizeof(char), ((uintptr_t)ptr - (uintptr_t)buffer), f);
+    // fsync(fileno(f));
+    fclose(f);
+}
+
+void launchMPIIO(const char* path, MPI_Info &info)
+{
+    char buffer[1048576];
+    MPI_Offset nbytes = 0;
+    MPI_File f;
+    
+    MPI_File_open(MPI_COMM_SELF, path, MPI_MODE_WRONLY | MPI_MODE_CREATE, info, &f);
+    // MPI_File_seek(f, 0, SEEK_END);
+
+    nbytes = sprintf(buffer, "%s\n", "CORENEURON v1.21");
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    nbytes = sprintf(buffer, "%d ngid\n", 1);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    nbytes = sprintf(buffer, "%d n_real_gid\n", 2);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    nbytes = sprintf(buffer, "%d nnode\n", 3);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    nbytes = sprintf(buffer, "%d ndiam\n", 4);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    nbytes = sprintf(buffer, "%d nmech\n", nmech);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+
+    for (int i=0; i < nmech; ++i) {
+        nbytes = sprintf(buffer, "%d\n", (i*2)%16777216);
+        MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+        nbytes = sprintf(buffer, "%d\n", i>>1);
+        MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    }
+
+    nbytes = sprintf(buffer, "%d nidata\n", 0);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    nbytes = sprintf(buffer, "%d nvdata\n", 1);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    nbytes = sprintf(buffer, "%d nweight\n", 2);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+
+    // data
+    {
+        size_t count = 6;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            nbytes = sprintf(buffer, "chkpnt %d\n", i);
+            MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+            MPI_File_write(f, a[i], size[i], MPI_BYTE, MPI_STATUS_IGNORE);
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // mechanism data
+    {
+        size_t count = 5;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                nbytes = sprintf(buffer, "chkpnt %d\n", i);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                MPI_File_write(f, a[i], size[i], MPI_BYTE, MPI_STATUS_IGNORE);
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // connections
+    {
+        size_t count = 4;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            nbytes = sprintf(buffer, "chkpnt %d\n", i);
+            MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+            MPI_File_write(f, a[i], size[i], MPI_BYTE, MPI_STATUS_IGNORE);
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // special handling for BBCOREPOINTER
+    nbytes = sprintf(buffer, "%d bbcorepointer\n", 1);
+    MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            nbytes = sprintf(buffer, "%d\n", i);
+            MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+            nbytes = sprintf(buffer, "%d\n%d\n", i+1, i-1);
+            MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+            for (int i = 0; i < count; i++)
+            {
+                nbytes = sprintf(buffer, "chkpnt %d\n", i);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                MPI_File_write(f, a[i], size[i], MPI_BYTE, MPI_STATUS_IGNORE);
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // indices
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < indices_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                nbytes = sprintf(buffer, "%d\n", i);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                nbytes = sprintf(buffer, "%d\n", i+1);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                nbytes = sprintf(buffer, "%d\n", i-1);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                nbytes = sprintf(buffer, "%d\n", i>>1);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                nbytes = sprintf(buffer, "chkpnt %d\n", i);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                MPI_File_write(f, a[i], size[i], MPI_BYTE, MPI_STATUS_IGNORE);
+                nbytes = sprintf(buffer, "chkpnt %d\n", i);
+                MPI_File_write(f, buffer, nbytes, MPI_BYTE, MPI_STATUS_IGNORE);
+                MPI_File_write(f, a[i], size[i], MPI_BYTE, MPI_STATUS_IGNORE);
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // MPI_File_sync(f);
+    MPI_File_close(&f);
+}
+
+void launchMPIIOv2(const char* path, MPI_Info &info)
+{
+    void *buffer = malloc(1048576ULL * 1024 * 2);
+    char *ptr = (char *)buffer;
+
+    ptr += sprintf(ptr, "%s\n", "CORENEURON v1.21");
+    ptr += sprintf(ptr, "%d ngid\n", 1);
+    ptr += sprintf(ptr, "%d n_real_gid\n", 2);
+    ptr += sprintf(ptr, "%d nnode\n", 3);
+    ptr += sprintf(ptr, "%d ndiam\n", 4);
+    ptr += sprintf(ptr, "%d nmech\n", nmech);
+
+    for (int i=0; i < nmech; ++i) {
+        ptr += sprintf(ptr, "%d\n", (i*2)%16777216);
+        ptr += sprintf(ptr, "%d\n", i>>1);
+    }
+
+    ptr += sprintf(ptr, "%d nidata\n", 0);
+    ptr += sprintf(ptr, "%d nvdata\n", 1);
+    ptr += sprintf(ptr, "%d nweight\n", 2);
+
+    // data
+    {
+        size_t count = 6;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            ptr += sprintf(ptr, "chkpnt %d\n", i);
+            memcpy(ptr, a[i], size[i]);
+            ptr += size[i];
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // mechanism data
+    {
+        size_t count = 5;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // connections
+    {
+        size_t count = 4;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < count; i++)
+        {
+            ptr += sprintf(ptr, "chkpnt %d\n", i);
+            memcpy(ptr, a[i], size[i]);
+            ptr += size[i];
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // special handling for BBCOREPOINTER
+    ptr += sprintf(ptr, "%d bbcorepointer\n", 1);
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < mla_size; i++)
+        {
+            ptr += sprintf(ptr, "%d\n", i);
+            ptr += sprintf(ptr, "%d\n%d\n", i+1, i-1);
+            for (int i = 0; i < count; i++)
+            {
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    // indices
+    {
+        size_t count = 2;
+        void **a = (void **)malloc(sizeof(void *) * count);
+        size_t *size = (size_t *)malloc(sizeof(size_t) * count);
+        for (int i = 0; i < count; i++)
+        {
+            size[i] = (1048576 << ((i + (count >> 1)) % count)) % 16777216;
+            a[i] = malloc(size[i]);
+            memset(a[i], i+21, size[i]);
+        }
+        for (int i = 0; i < indices_size; i++)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                size_t base = (i % 2) ? sizeof(int) : sizeof(double);
+                ptr += sprintf(ptr, "%d\n", i);
+                ptr += sprintf(ptr, "%d\n", i+1);
+                ptr += sprintf(ptr, "%d\n", i-1);
+                ptr += sprintf(ptr, "%d\n", i>>1);
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+                ptr += sprintf(ptr, "chkpnt %d\n", i);
+                memcpy(ptr, a[i], size[i]);
+                ptr += size[i];
+            }
+        }
+        for (int i = 0; i < count; i++)
+        {
+            free(a[i]);
+        }
+        free(a);
+        free(size);
+    }
+
+    MPI_File f;
+    MPI_File_open(MPI_COMM_SELF, path, MPI_MODE_WRONLY | MPI_MODE_CREATE, info, &f);
+    MPI_File_write(f, buffer, ((uintptr_t)ptr - (uintptr_t)buffer), MPI_BYTE, MPI_STATUS_IGNORE);
+    // MPI_File_sync(f);
+    MPI_File_close(&f);
+}
+
 int main(int argc, char **argv)
 {
-    h5bmark_t      bmark       = H5BMARK_SEQ;
-    h5api_t        api         = H5API_DEFAULT;
-    h5drv_t        drv         = H5DRV_POSIX;
-    double         factor      = 1.0;
-    int            use_boost   = 0;
-    char           *path       = NULL;
-    int            rank        = 0;
-    int            nranks      = 0;
-    IOApi          *ioapi      = nullptr;
-    vector<group_t>     groups;
-    vector<timeval_t>   tv(4);
-    list<measurement_t> measurements;
+    h5drv_t drv = (h5drv_t)(argc-2);
+    int rank = 0;
+    vector<timeval_t> tv(2);
     
     // Initialize MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &nranks);
-
-    // Check if the number of parameters match the expected
-    if (argc != 7)
-    {
-        cerr << "Error: The number of parameters is incorrect!" << endl;
-        cerr << "Use: " << argv[0] << " " << INPUT_PARAMS << endl;
-        return -1;
-    }
-    
-    // Retrieve the benchmark settings and check if the file is correct
-    sscanf(argv[1], "%d", (int *)&bmark);
-    sscanf(argv[2], "%d", (int *)&api);
-    sscanf(argv[3], "%d", (int *)&drv);
-    sscanf(argv[4], "%lf", &factor);
-    sscanf(argv[5], "%d", (int *)&use_boost);
-    
-    if (strncmp((path = argv[6]), "ime:", 4) && access(path, F_OK))
-    {
-        cerr << "Error: File does not exist or cannot be accessed." << endl;
-        return -1;
-    }
-
-    // Retrieve all the groups inside the file and share the information
-    {
-        size_t groups_cnt = 0;
-        
-        if (rank == 0)
-        {
-            gettimeofday(&tv[0], NULL);
-            H5Parser parser(string(path), (drv == H5DRV_MPIIO));
-            parser.getGroups(groups);
-            gettimeofday(&tv[1], NULL);
-
-            printf("Group Retrieval (s): %lf\n", getElapsed(tv[0], tv[1]));
-            
-            groups_cnt = groups.size();
-        }
-        
-        MPI_Bcast(&groups_cnt, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
-        groups.resize(groups_cnt);
-        MPI_Bcast(&groups[0], groups_cnt * sizeof(group_t), MPI_BYTE, 0,
-                  MPI_COMM_WORLD);
-    }
-    
-    // Configure the API for I/O
-    gettimeofday(&tv[0], NULL);
-    gettimeofday(&tv[2], NULL);
-    switch (api)
-    {
-        case H5API_HIGHFIVE:
-            ioapi = new IOApiH5(string(path), (drv == H5DRV_MPIIO), use_boost);
-            break;
-        case H5API_MORPHOKIT:
-            ioapi = new IOApiMKit(string(path), (drv == H5DRV_MPIIO)); break;
-        case H5API_POSIX:
-            ioapi = new IOApiPOSIX(string(path), (drv == H5DRV_MPIIO)); break;
-        case H5API_MPIO:
-            ioapi = new IOApiMPIO(string(path), (drv == H5DRV_MPIIO)); break;
-        default:
-            ioapi = new IOApiHDF5(string(path), (drv == H5DRV_MPIIO));
-    }
-    gettimeofday(&tv[1], NULL);
-
-    measurements.push_back(measurement_t("API Creation", getElapsed(tv[0], tv[1])));
-
-    // Launch the benchmark that reads the groups from the file
-    gettimeofday(&tv[0], NULL);
-    launchBenchmark(bmark, ioapi, factor, groups, rank);
-    gettimeofday(&tv[1], NULL);
-
-    measurements.push_back(measurement_t("Benchmark", getElapsed(tv[0], tv[1])));
 
     MPI_Barrier(MPI_COMM_WORLD);
-    gettimeofday(&tv[3], NULL);
+    gettimeofday(&tv[0], NULL);
+    // for (int i = 0; i < 4; i++)
+    {
+        char path[4096];
+        sprintf(path, "%s/test_%d.dat", argv[1], rank);
+        const auto& path_info = IMEUtil::getPathInfo(path);
+        MPI_Info info = MPI_INFO_NULL;
+    
+        // Set proper MPI-IO hints for better IME support
+        if ((drv == H5DRV_MPIIO || drv == H5DRV_MPIIO_v2) && path_info.first == FSTYPE_IME) {
+            IMEUtil::setMPIHints(info);
+            strcpy(path, path_info.second.c_str());
+        }
+
+        switch (drv)
+        {
+            case H5DRV_POSIX:
+                launchPOSIX(path); break;
+            case H5DRV_POSIX_v2:
+                launchPOSIXv2(path); break;
+            case H5DRV_MPIIO:
+                launchMPIIO(path, info); break;
+            case H5DRV_MPIIO_v2:
+                launchMPIIOv2(path, info); break;
+            default:;
+        }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    gettimeofday(&tv[1], NULL);
 
     // Output the measurements
     if (rank == 0)
     {
-        printf("Execution Time (s): %lf\n", getElapsed(tv[2], tv[3]));
-    }
-
-    for (auto &m : measurements) {
-        MPI_Reduce(&m.elapsed, &m.avg, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&m.elapsed, &m.min, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&m.elapsed, &m.max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-        
-        if (rank == 0)
-        {
-            printf("  > %s (s): %lf %lf %lf\n", m.description.c_str(),
-                                                (m.avg / (double)nranks),
-                                                m.min,
-                                                m.max);
-        }
+        printf("%s: %lfs\n", (drv == H5DRV_POSIX)    ? "POSIX"    :
+                             (drv == H5DRV_POSIX_v2) ? "POSIX v2" :
+                             (drv == H5DRV_MPIIO)    ? "MPI-IO"   :
+                                                       "MPI-IO v2",
+                             getElapsed(tv[0], tv[1]));
     }
 
     // Release resources
-    delete ioapi;
     MPI_Finalize();
 
     return 0;
