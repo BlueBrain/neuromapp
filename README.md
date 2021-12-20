@@ -152,3 +152,9 @@ parts of the framework or ignore certain external libraries that would be used o
 
 '```-DNEUROMAPP_DISABLE_SKV=TRUE```': Do not try to find the IBM SKV installation
 
+## Funding
+
+The development of this software was supported by funding to the Blue Brain Project, a research center of the École polytechnique fédérale de Lausanne (EPFL), from the Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
+
+Copyright (c) 2013-2021 Blue Brain Project/EPFL
+
